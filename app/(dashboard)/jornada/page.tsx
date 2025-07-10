@@ -21,6 +21,7 @@ import {
 import DraggableBusinessCard, { BusinessCardOverlay } from '@/components/DraggableBusinessCard';
 import DroppableColumn from '@/components/DroppableColumn';
 import { useToast } from '@/components/Toast';
+import CalendarWidget from '@/components/CalendarWidget';
 
 // Dados de exemplo para demonstração (serão substituídos pelos dados do Google Sheets)
 const mockBusinesses = [
@@ -32,7 +33,7 @@ const mockBusinesses = [
     contactDate: '2024-01-15',
     value: 15000,
     description: 'Campanha de verão focada em roupas casuais para jovens de 18-30 anos',
-    influencers: [
+    creators: [
       { name: 'Ana Silva', username: 'anasilva', followers: 125000, engagementRate: 4.2 },
       { name: 'Carlos Santos', username: 'carlossantos', followers: 89000, engagementRate: 6.8 }
     ],
@@ -48,7 +49,7 @@ const mockBusinesses = [
     contactDate: '2024-01-10',
     value: 8000,
     description: 'Divulgação de pratos especiais e experiência gastronômica única',
-    influencers: [
+    creators: [
       { name: 'Maria Oliveira', username: 'mariaoliveira', followers: 234000, engagementRate: 3.1 }
     ],
     campaigns: []
@@ -61,7 +62,7 @@ const mockBusinesses = [
     contactDate: '2024-01-20',
     value: 25000,
     description: 'Campanha de motivação fitness com foco em resultados reais',
-    influencers: [
+    creators: [
       { name: 'João Fitness', username: 'joaofitness', followers: 156000, engagementRate: 5.4 },
       { name: 'Carla Strong', username: 'carlastrong', followers: 98000, engagementRate: 7.2 },
       { name: 'Pedro Muscle', username: 'pedromuscle', followers: 67000, engagementRate: 4.8 }
@@ -78,7 +79,7 @@ const mockBusinesses = [
     contactDate: '2024-01-12',
     value: 12000,
     description: 'Divulgação de tratamentos estéticos com foco em naturalidade',
-    influencers: [
+    creators: [
       { name: 'Bella Beauty', username: 'bellabeauty', followers: 189000, engagementRate: 6.1 }
     ],
     campaigns: []
@@ -87,11 +88,11 @@ const mockBusinesses = [
     id: 5,
     businessName: 'Loja de Eletrônicos',
     journeyStage: 'Agendamentos',
-    nextAction: 'Coordenar reviews de produtos com tech influencers',
+    nextAction: 'Coordenar reviews de produtos com tech creators',
     contactDate: '2024-01-08',
     value: 18000,
     description: 'Reviews autênticos de gadgets e eletrônicos inovadores',
-    influencers: [
+    creators: [
       { name: 'Tech Master', username: 'techmaster', followers: 145000, engagementRate: 5.9 },
       { name: 'Gamer Pro', username: 'gamerpro', followers: 203000, engagementRate: 4.5 }
     ],
@@ -142,7 +143,7 @@ export default function JornadaPage() {
             contactDate: item.contactDate || item.Data || item['Data de Contato'] || new Date().toISOString().split('T')[0],
             value: parseInt(item.value || item.Valor || item['Valor do Negócio'] || '0'),
             description: item.description || item.Descrição || 'Descrição não informada',
-            influencers: JSON.parse(item.influencers || '[]'),
+            creators: JSON.parse(item.creators || '[]'),
             campaigns: JSON.parse(item.campaigns || '[]')
           }));
           setBusinesses(businessesData);
@@ -196,11 +197,15 @@ export default function JornadaPage() {
     // Atualiza no banco de dados
     setIsUpdating(true);
     try {
-      await updateBusinessStage(businessId, newStage);
+      await updateBusinessStage(businessId, newStage, business);
       console.log(`Negócio ${business.businessName} movido para ${newStage}`);
 
-      // Notificação de sucesso
-      showToast(`${business.businessName} movido para ${newStage}`, 'success');
+      // Notificação especial para agendamentos
+      if (newStage === 'Agendamentos') {
+        showToast(`${business.businessName} movido para Agendamentos. Evento criado no calendário!`, 'success');
+      } else {
+        showToast(`${business.businessName} movido para ${newStage}`, 'success');
+      }
 
     } catch (error) {
       console.error('Erro ao atualizar estágio:', error);
@@ -287,35 +292,45 @@ export default function JornadaPage() {
         </div>
       </div>
 
-      {/* Kanban da Jornada com Drag & Drop */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {businessesByStage.map((stage) => (
-            <DroppableColumn
-              key={stage.id}
-              id={stage.id}
-              title={stage.label}
-              icon={stage.icon}
-              businesses={stage.businesses}
-              totalValue={stage.totalValue}
-              onBusinessClick={handleBusinessClick}
-              isUpdating={isUpdating}
-            />
-          ))}
+      {/* Layout Principal */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Kanban da Jornada com Drag & Drop */}
+        <div className="xl:col-span-3">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {businessesByStage.map((stage) => (
+                <DroppableColumn
+                  key={stage.id}
+                  id={stage.id}
+                  title={stage.label}
+                  icon={stage.icon}
+                  businesses={stage.businesses}
+                  totalValue={stage.totalValue}
+                  onBusinessClick={handleBusinessClick}
+                  isUpdating={isUpdating}
+                />
+              ))}
+            </div>
+
+            {/* Overlay para mostrar o item sendo arrastado */}
+            <DragOverlay>
+              {activeBusiness ? (
+                <BusinessCardOverlay business={activeBusiness} />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </div>
 
-        {/* Overlay para mostrar o item sendo arrastado */}
-        <DragOverlay>
-          {activeBusiness ? (
-            <BusinessCardOverlay business={activeBusiness} />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+        {/* Sidebar com Calendário */}
+        <div className="xl:col-span-1">
+          <CalendarWidget />
+        </div>
+      </div>
 
       {/* Modal de Detalhes */}
       <BusinessDetailModal

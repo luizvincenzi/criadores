@@ -38,7 +38,7 @@ const getAllCampaigns = () => {
           status: 'Planejamento',
           startDate: '2024-02-01',
           endDate: '2024-04-30',
-          brief: 'Reviews autênticos de gadgets e eletrônicos inovadores com tech influencers'
+          brief: 'Reviews autênticos de gadgets e eletrônicos inovadores com tech creators'
         }
       ]
     }
@@ -155,13 +155,9 @@ export default async function CampaignsPage() {
           <h3 className="text-xl font-medium text-on-surface mb-2">
             Nenhuma campanha encontrada
           </h3>
-          <p className="text-on-surface-variant mb-6">
+          <p className="text-on-surface-variant">
             Configure o Google Sheets para ver os dados das campanhas.
           </p>
-          <button className="btn-primary">
-            <span className="mr-2">➕</span>
-            Criar Primeira Campanha
-          </button>
         </div>
       )}
     </div>

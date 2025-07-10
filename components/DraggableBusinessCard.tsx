@@ -12,7 +12,7 @@ interface Business {
   contactDate: string;
   value: number;
   description: string;
-  influencers: any[];
+  creators: any[];
   campaigns: any[];
 }
 
@@ -94,7 +94,7 @@ export default function DraggableBusinessCard({
       <div className="flex items-center mb-3">
         <span className="text-xs text-on-surface-variant mr-2">👥</span>
         <span className="text-sm font-medium text-secondary">
-          {business.influencers.length} influenciador{business.influencers.length !== 1 ? 'es' : ''}
+          {business.creators.length} influenciador{business.creators.length !== 1 ? 'es' : ''}
         </span>
       </div>
       
@@ -128,7 +128,7 @@ export function BusinessCardOverlay({ business }: { business: Business }) {
       </p>
       <div className="flex items-center justify-between text-sm">
         <span className="text-on-surface-variant">
-          👥 {business.influencers.length} influenciador{business.influencers.length !== 1 ? 'es' : ''}
+          👥 {business.creators.length} influenciador{business.creators.length !== 1 ? 'es' : ''}
         </span>
         <span className="font-bold text-primary">
           R$ {(business.value / 1000).toFixed(0)}K

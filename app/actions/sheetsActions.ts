@@ -106,7 +106,7 @@ export async function updateData(sheetName: string, range: string, rowData: any[
 }
 
 // Função específica para atualizar o estágio da jornada de um negócio
-export async function updateBusinessStage(businessId: string, newStage: string) {
+export async function updateBusinessStage(businessId: string, newStage: string, businessData?: any) {
   try {
     // Se Google Sheets não estiver configurado, simula sucesso
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
@@ -168,6 +168,18 @@ export async function updateBusinessStage(businessId: string, newStage: string) 
         values: [[newStage]],
       },
     });
+
+    // Se o novo estágio for "Agendamentos", criar evento no calendário
+    if (newStage === 'Agendamentos' && businessData) {
+      try {
+        const { createSchedulingEvent } = await import('./calendarActions');
+        await createSchedulingEvent(businessData);
+        console.log(`Evento de agendamento criado para ${businessData.businessName}`);
+      } catch (calendarError) {
+        console.error('Erro ao criar evento no calendário:', calendarError);
+        // Não falha a operação principal se o calendário falhar
+      }
+    }
 
     return { success: true, data: response.data };
   } catch (error) {

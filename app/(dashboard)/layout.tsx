@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Determinar seção ativa baseada na URL
   React.useEffect(() => {
     if (pathname.includes('businesses')) setActiveSection('businesses');
-    else if (pathname.includes('influencers')) setActiveSection('influencers');
+    else if (pathname.includes('creators')) setActiveSection('creators');
     else if (pathname.includes('campaigns')) setActiveSection('campaigns');
     else if (pathname.includes('jornada')) setActiveSection('jornada');
     else setActiveSection('businesses');
@@ -30,10 +30,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       count: 12
     },
     {
-      id: 'influencers',
-      label: 'Influenciadores',
+      id: 'creators',
+      label: 'Criadores',
       icon: '👥',
-      href: '/influencers',
+      href: '/creators',
       count: 8
     },
     {
@@ -64,19 +64,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
 
             <div className="flex items-center space-x-3">
-              <button className="btn-text">
-                <span className="mr-2">🔍</span>
-                Buscar
-              </button>
-              <button className="btn-outlined">
-                <span className="mr-2">📥</span>
-                Importar
-              </button>
-              <button className="btn-primary">
-                <span className="mr-2">➕</span>
-                Novo
-              </button>
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center ml-4">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-on-primary text-sm font-medium">U</span>
               </div>
             </div>

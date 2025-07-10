@@ -13,7 +13,7 @@ interface Business {
   contactDate: string;
   value: number;
   description: string;
-  influencers: any[];
+  creators: any[];
   campaigns: any[];
 }
 

@@ -13,7 +13,7 @@ const mockBusinesses = [
     contactDate: '2024-01-15',
     value: 15000,
     description: 'Campanha de verão focada em roupas casuais para jovens de 18-30 anos',
-    influencers: [
+    creators: [
       { name: 'Ana Silva', username: 'anasilva', followers: 125000, engagementRate: 4.2 },
       { name: 'Carlos Santos', username: 'carlossantos', followers: 89000, engagementRate: 6.8 }
     ],
@@ -29,7 +29,7 @@ const mockBusinesses = [
     contactDate: '2024-01-10',
     value: 8000,
     description: 'Divulgação de pratos especiais e experiência gastronômica única',
-    influencers: [
+    creators: [
       { name: 'Maria Oliveira', username: 'mariaoliveira', followers: 234000, engagementRate: 3.1 }
     ],
     campaigns: []
@@ -42,7 +42,7 @@ const mockBusinesses = [
     contactDate: '2024-01-20',
     value: 25000,
     description: 'Campanha de motivação fitness com foco em resultados reais',
-    influencers: [
+    creators: [
       { name: 'João Fitness', username: 'joaofitness', followers: 156000, engagementRate: 5.4 },
       { name: 'Carla Strong', username: 'carlastrong', followers: 98000, engagementRate: 7.2 },
       { name: 'Pedro Muscle', username: 'pedromuscle', followers: 67000, engagementRate: 4.8 }
@@ -59,7 +59,7 @@ const mockBusinesses = [
     contactDate: '2024-01-12',
     value: 12000,
     description: 'Divulgação de tratamentos estéticos com foco em naturalidade',
-    influencers: [
+    creators: [
       { name: 'Bella Beauty', username: 'bellabeauty', followers: 189000, engagementRate: 6.1 }
     ],
     campaigns: []
@@ -68,11 +68,11 @@ const mockBusinesses = [
     id: 5,
     businessName: 'Loja de Eletrônicos',
     journeyStage: 'Agendamentos',
-    nextAction: 'Coordenar reviews de produtos com tech influencers',
+    nextAction: 'Coordenar reviews de produtos com tech creators',
     contactDate: '2024-01-08',
     value: 18000,
     description: 'Reviews autênticos de gadgets e eletrônicos inovadores',
-    influencers: [
+    creators: [
       { name: 'Tech Master', username: 'techmaster', followers: 145000, engagementRate: 5.9 },
       { name: 'Gamer Pro', username: 'gamerpro', followers: 203000, engagementRate: 4.5 }
     ],
@@ -159,7 +159,7 @@ export default async function BusinessesPage() {
             businessName={business.businessName}
             journeyStage={business.journeyStage}
             nextAction={business.nextAction}
-            influencersCount={business.influencers?.length || 0}
+            creatorsCount={business.creators?.length || 0}
             value={business.value || 0}
           />
         ))}
@@ -171,13 +171,9 @@ export default async function BusinessesPage() {
           <h3 className="text-xl font-medium text-on-surface mb-2">
             Nenhum negócio encontrado
           </h3>
-          <p className="text-on-surface-variant mb-6">
+          <p className="text-on-surface-variant">
             Configure o Google Sheets para ver os dados dos negócios.
           </p>
-          <button className="btn-primary">
-            <span className="mr-2">➕</span>
-            Adicionar Primeiro Negócio
-          </button>
         </div>
       )}
     </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 
-interface Influencer {
+interface Creator {
   name: string;
   username: string;
   followers: number;
@@ -25,7 +25,7 @@ interface Business {
   contactDate: string;
   value: number;
   description: string;
-  influencers: Influencer[];
+  creators: Creator[];
   campaigns: Campaign[];
 }
 
@@ -117,39 +117,39 @@ export default function BusinessDetailModal({ business, isOpen, onClose }: Busin
           {/* Influenciadores */}
           <div className="card-elevated p-4">
             <h3 className="font-semibold text-on-surface mb-4">
-              👥 Influenciadores Contratados ({business.influencers.length})
+              👥 Influenciadores Contratados ({business.creators.length})
             </h3>
             
-            {business.influencers.length > 0 ? (
+            {business.creators.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {business.influencers.map((influencer, index) => (
+                {business.creators.map((creator, index) => (
                   <div key={index} className="bg-surface-container rounded-lg p-4">
                     <div className="flex items-center space-x-3">
                       <div className="relative w-12 h-12">
                         <Image
                           src="/placeholder-avatar.svg"
-                          alt={`Avatar de ${influencer.name}`}
+                          alt={`Avatar de ${creator.name}`}
                           fill
                           className="rounded-full object-cover"
                           sizes="48px"
                         />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-on-surface">{influencer.name}</h4>
-                        <p className="text-sm text-on-surface-variant">@{influencer.username}</p>
+                        <h4 className="font-medium text-on-surface">{creator.name}</h4>
+                        <p className="text-sm text-on-surface-variant">@{creator.username}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mt-3">
                       <div className="text-center">
                         <div className="text-lg font-bold text-primary">
-                          {formatFollowers(influencer.followers)}
+                          {formatFollowers(creator.followers)}
                         </div>
                         <div className="text-xs text-on-surface-variant">Seguidores</div>
                       </div>
                       <div className="text-center">
                         <div className="text-lg font-bold text-secondary">
-                          {influencer.engagementRate.toFixed(1)}%
+                          {creator.engagementRate.toFixed(1)}%
                         </div>
                         <div className="text-xs text-on-surface-variant">Engajamento</div>
                       </div>

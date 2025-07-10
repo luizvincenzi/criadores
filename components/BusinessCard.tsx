@@ -4,7 +4,7 @@ interface BusinessCardProps {
   businessName: string;
   journeyStage: string;
   nextAction: string;
-  influencersCount?: number;
+  creatorsCount?: number;
   value?: number;
 }
 
@@ -12,7 +12,7 @@ export default function BusinessCard({
   businessName,
   journeyStage,
   nextAction,
-  influencersCount = 0,
+  creatorsCount = 0,
   value = 0
 }: BusinessCardProps) {
   // Função para determinar a cor do badge baseado no estágio
@@ -70,7 +70,7 @@ export default function BusinessCard({
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="bg-surface-container rounded-lg p-3 text-center">
           <div className="text-lg font-bold text-secondary mb-1">
-            {influencersCount}
+            {creatorsCount}
           </div>
           <div className="text-xs text-on-surface-variant">
             Influenciadores
