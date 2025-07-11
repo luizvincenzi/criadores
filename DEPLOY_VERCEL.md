@@ -26,10 +26,10 @@ GOOGLE_CALENDAR_ID=6115d050020f0be9264f21f81b1b18731082e16669a4f8dac3e9f34ce79c6
 
 2. **Configurações de Build:**
    - Framework Preset: `Next.js`
-   - Root Directory: `./` (deixe vazio ou use ponto)
-   - Build Command: `cd crm-interno && npm run build`
-   - Output Directory: `crm-interno/.next`
-   - Install Command: `cd crm-interno && npm install`
+   - Root Directory: `./` (deixe vazio)
+   - Build Command: `npm run build` (padrão)
+   - Output Directory: `.next` (padrão)
+   - Install Command: `npm install` (padrão)
 
 3. **Configurações Avançadas:**
    - Node.js Version: `18.x`
