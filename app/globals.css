@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  /* Material Design 3 Color System - Gmail Style */
+  /* Material Design 3 Color System - Modern Gmail Style */
   /* Primary Colors (Blue) */
-  --primary: #1976d2;
+  --primary: #1a73e8;
   --on-primary: #ffffff;
-  --primary-container: #d3e3fd;
-  --on-primary-container: #001c38;
+  --primary-container: #d2e3fc;
+  --on-primary-container: #001d35;
 
-  /* Secondary Colors */
-  --secondary: #5f6368;
+  /* Secondary Colors (Green) */
+  --secondary: #137333;
   --on-secondary: #ffffff;
-  --secondary-container: #e8eaed;
-  --on-secondary-container: #1f1f1f;
+  --secondary-container: #e6f4ea;
+  --on-secondary-container: #0d652d;
 
-  /* Tertiary Colors */
-  --tertiary: #7c4dff;
+  /* Tertiary Colors (Red) */
+  --tertiary: #d93025;
   --on-tertiary: #ffffff;
-  --tertiary-container: #e8e2ff;
-  --on-tertiary-container: #1a0033;
+  --tertiary-container: #fce8e6;
+  --on-tertiary-container: #410002;
 
   /* Error Colors */
   --error: #d93025;
@@ -26,9 +26,9 @@
   --error-container: #fce8e6;
   --on-error-container: #410002;
 
-  /* Surface Colors (Gmail Gray Palette) */
+  /* Surface Colors (Clean Background) */
   --surface: #ffffff;
-  --on-surface: #1f1f1f;
+  --on-surface: #202124;
   --surface-variant: #f8f9fa;
   --on-surface-variant: #5f6368;
   --surface-container-lowest: #ffffff;
@@ -47,11 +47,11 @@
   --inverse-surface: #2d2e30;
   --inverse-on-surface: #f1f3f4;
   --inverse-primary: #a8c7fa;
-  --shadow: #000000;
+  --shadow: rgba(0, 0, 0, 0.1);
   --scrim: #000000;
 
   /* Legacy variables for compatibility */
-  --background: var(--surface);
+  --background: var(--surface-dim);
   --foreground: var(--on-surface);
 }
 
@@ -106,24 +106,42 @@
 }
 
 /* Gmail-style Material Design 3 Components */
+
+/* Botões Padronizados - Estilo Gmail */
 .btn-primary {
-  @apply bg-primary text-on-primary px-6 py-2 rounded-full font-medium transition-all duration-200 hover:shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  @apply bg-primary text-on-primary px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-200 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:scale-95;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-on-secondary px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-200 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 active:scale-95;
+}
+
+.btn-tertiary {
+  @apply bg-tertiary text-on-tertiary px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-200 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-tertiary focus:ring-offset-2 active:scale-95;
 }
 
 .btn-outlined {
-  @apply border border-outline text-primary px-6 py-2 rounded-full font-medium transition-all duration-200 hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  @apply border-2 border-outline text-primary px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-200 hover:bg-primary-container hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:scale-95;
 }
 
 .btn-text {
-  @apply text-primary px-4 py-2 rounded-full font-medium transition-all duration-200 hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  @apply text-primary px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 hover:bg-primary-container hover:text-on-primary-container focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
 }
 
+/* Cards Modernos */
 .card-elevated {
-  @apply bg-surface rounded-xl shadow-sm border border-outline-variant transition-all duration-200 hover:shadow-md;
+  @apply bg-surface rounded-2xl shadow-sm border-0 transition-all duration-300 hover:shadow-md hover:-translate-y-1;
 }
 
+.card-flat {
+  @apply bg-surface-container rounded-2xl border-0 transition-all duration-200 hover:bg-surface-container-high;
+}
+
+/* Navegação Superior - Quadrada e Estendida */
 .nav-tab {
-  @apply flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-200 cursor-pointer;
+  @apply flex items-center px-6 font-medium text-sm transition-all duration-200 cursor-pointer text-on-surface-variant relative;
+  border-radius: 0;
+  border-bottom: 3px solid transparent;
 }
 
 .nav-tab:hover {
@@ -131,7 +149,60 @@
 }
 
 .nav-tab.active {
-  @apply bg-primary-container text-on-primary-container;
+  @apply text-on-surface;
+  background-color: #f5f5f5;
+  border-bottom: 3px solid #f5f5f5;
+  position: relative;
+}
+
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #f5f5f5;
+}
+
+/* Utilitários para Kanban */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Animações para drag & drop */
+.kanban-card-dragging {
+  @apply opacity-60 rotate-2 scale-105 shadow-lg z-50;
+}
+
+.kanban-column-over {
+  @apply bg-blue-50 ring-2 ring-blue-300;
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+  .kanban-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .kanban-column {
+    min-height: 50vh;
+  }
+
+  .kanban-card {
+    padding: 0.75rem;
+  }
 }
 
 .kanban-column {
@@ -204,21 +275,6 @@
   cursor: grabbing;
 }
 
-/* Remove all borders and outlines */
-* {
-  border: none !important;
-  outline: none !important;
-}
-
-/* Re-add only necessary borders */
-.card-elevated {
-  border: 1px solid var(--outline-variant) !important;
-}
-
-.btn-outlined {
-  border: 1px solid var(--outline) !important;
-}
-
 /* Focus states */
 .btn-primary:focus,
 .btn-outlined:focus,
@@ -278,7 +334,61 @@
 }
 
 body {
-  background: var(--background);
+  background: #f5f5f5;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure proper styling for Material Design components */
+.bg-surface-dim {
+  background-color: var(--surface-dim) !important;
+}
+
+.bg-surface {
+  background-color: var(--surface) !important;
+}
+
+.text-on-surface {
+  color: var(--on-surface) !important;
+}
+
+.text-on-surface-variant {
+  color: var(--on-surface-variant) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+
+.text-on-primary {
+  color: var(--on-primary) !important;
+}
+
+.bg-primary-container {
+  background-color: var(--primary-container) !important;
+}
+
+.text-on-primary-container {
+  color: var(--on-primary-container) !important;
+}
+
+.bg-surface-container {
+  background-color: var(--surface-container) !important;
+}
+
+.bg-surface-container-high {
+  background-color: var(--surface-container-high) !important;
+}
+
+.text-primary {
+  color: var(--primary) !important;
+}
+
+.text-secondary {
+  color: var(--secondary) !important;
 }

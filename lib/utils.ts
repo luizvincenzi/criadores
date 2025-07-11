@@ -1,5 +1,15 @@
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 /**
- * Transforma dados de array de arrays (formato do Google Sheets) 
+ * Utility function to merge Tailwind CSS classes
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+/**
+ * Transforma dados de array de arrays (formato do Google Sheets)
  * em array de objetos JSON usando a primeira linha como cabeçalhos
  */
 export function transformData(data: any[][]): Record<string, any>[] {

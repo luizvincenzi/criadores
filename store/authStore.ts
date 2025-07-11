@@ -28,13 +28,53 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           user: userData,
         });
+
+        // Registra o login no log de auditoria
+        setTimeout(() => {
+          import('@/app/actions/sheetsActions').then(({ logAction, createAuditLogSheet }) => {
+            createAuditLogSheet().then(() => {
+              logAction({
+                action: 'user_login',
+                entity_type: 'user',
+                entity_id: userData.id,
+                entity_name: userData.name,
+                user_id: userData.id,
+                user_name: userData.name,
+                details: `Login realizado - ${userData.email} (${userData.role})`
+              }).catch(error => {
+                console.error('Erro ao registrar log de login:', error);
+              });
+            });
+          });
+        }, 100);
       },
-      
+
       logout: () => {
+        const currentUser = get().user;
+
         set({
           isAuthenticated: false,
           user: null,
         });
+
+        // Registra o logout no log de auditoria
+        if (currentUser) {
+          setTimeout(() => {
+            import('@/app/actions/sheetsActions').then(({ logAction }) => {
+              logAction({
+                action: 'user_logout',
+                entity_type: 'user',
+                entity_id: currentUser.id,
+                entity_name: currentUser.name,
+                user_id: currentUser.id,
+                user_name: currentUser.name,
+                details: `Logout realizado - ${currentUser.email}`
+              }).catch(error => {
+                console.error('Erro ao registrar log de logout:', error);
+              });
+            });
+          }, 100);
+        }
       },
       
       updateUser: (userData: Partial<User>) => {
