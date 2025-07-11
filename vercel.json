@@ -1,7 +1,0 @@
-{
-  "buildCommand": "cd crm-interno && npm run build",
-  "outputDirectory": "crm-interno/.next",
-  "installCommand": "cd crm-interno && npm install",
-  "framework": "nextjs",
-  "regions": ["gru1"]
-}
