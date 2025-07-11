@@ -767,7 +767,7 @@ export async function addBusinessToSheet(businessData: any[]): Promise<void> {
 
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Business!A:P', // Colunas A-P conforme cabeçalho real
+      range: 'Business!A:P', // A=Nome, B=Categoria, C=Plano atual, D=Comercial, E=Nome Responsável, F=Cidade, G=WhatsApp Responsável, H=Prospecção, I=Responsável, J=Instagram, K=Grupo WhatsApp criado, L=Contrato assinado e enviado, M=Data assinatura do contrato, N=Contrato válido até, O=Related files, P=Notes
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [businessData]
@@ -793,6 +793,62 @@ export async function addBusinessToSheet(businessData: any[]): Promise<void> {
 
   } catch (error) {
     console.error('❌ Erro ao adicionar negócio:', error);
+    throw error;
+  }
+}
+
+// Função para adicionar novo criador ao Google Sheets
+export async function addCreatorToSheet(creatorData: any[]): Promise<void> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      throw new Error('GOOGLE_SPREADSHEET_ID não configurado');
+    }
+
+    console.log('📝 Adicionando novo criador ao Google Sheets...');
+    console.log('📊 Dados do criador:', creatorData);
+
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Creators!A:S', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [creatorData]
+      }
+    });
+
+    console.log('✅ Criador adicionado com sucesso:', response.data);
+
+    // Registra no audit log
+    try {
+      const creatorName = creatorData[0]; // Nome está na primeira posição
+
+      await logAction({
+        action: 'creator_created',
+        entity_type: 'creator',
+        entity_id: `creator_${Date.now()}`,
+        entity_name: creatorName,
+        old_value: '',
+        new_value: '',
+        old_value_status: '',
+        new_value_status: creatorData[1], // Status do criador
+        user_id: 'system',
+        user_name: 'Sistema',
+        details: `Novo criador "${creatorName}" criado via formulário`
+      });
+
+      console.log('📊 Audit log registrado para novo criador');
+    } catch (auditError) {
+      console.error('⚠️ Erro ao registrar audit log (não crítico):', auditError);
+      // Não falha a operação principal se o audit log falhar
+    }
+
+  } catch (error) {
+    console.error('❌ Erro ao adicionar criador:', error);
     throw error;
   }
 }
@@ -1074,7 +1130,12 @@ export async function getUserByEmail(email: string): Promise<UserData | null> {
     // Procura pelo usuário com o email fornecido
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      if (row[1] && row[1].toLowerCase() === email.toLowerCase()) {
+      const emailInSheet = row[1];
+
+      console.log(`🔍 Comparando: "${emailInSheet}" vs "${email}"`);
+
+      if (emailInSheet && emailInSheet.toString().trim().toLowerCase() === email.toLowerCase()) {
+        console.log(`✅ Usuário encontrado: ${emailInSheet}`);
         return {
           id: row[0] || '',
           email: row[1] || '',

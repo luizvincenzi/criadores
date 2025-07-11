@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getCreatorsData, CreatorData } from '@/app/actions/sheetsActions';
 import CreatorModal from '@/components/CreatorModal';
+import AddCreatorModal from '@/components/AddCreatorModal';
 import Button from '@/components/ui/Button';
 
 export default function CreatorsPage() {
@@ -10,6 +11,7 @@ export default function CreatorsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCreator, setSelectedCreator] = useState<CreatorData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -117,6 +119,15 @@ export default function CreatorsPage() {
           >
             <span className="hidden sm:inline">Atualizar</span>
             <span className="sm:hidden">Sync</span>
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            icon="➕"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <span className="hidden sm:inline">Novo Criador</span>
+            <span className="sm:hidden">Novo</span>
           </Button>
         </div>
       </div>
@@ -330,6 +341,16 @@ export default function CreatorsPage() {
         creator={selectedCreator}
         isOpen={isModalOpen}
         onClose={closeModal}
+      />
+
+      {/* Modal de Adicionar Criador */}
+      <AddCreatorModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => {
+          loadCreators(); // Recarrega a lista após adicionar
+          setIsAddModalOpen(false);
+        }}
       />
     </div>
   );

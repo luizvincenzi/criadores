@@ -132,6 +132,132 @@ export async function POST(request: NextRequest) {
           });
         }
 
+      case 'get_users_data':
+        try {
+          // Tenta ler a aba Users
+          const response = await sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: 'Users!A:H',
+          });
+
+          return NextResponse.json({
+            success: true,
+            data: response.data.values || [],
+            message: 'Dados da aba Users obtidos com sucesso!'
+          });
+        } catch (error: any) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao acessar aba Users: ${error.message}`,
+            details: 'Verifique se a aba "Users" existe na planilha'
+          });
+        }
+
+      case 'create_users_sheet':
+        try {
+          // Verifica se a aba já existe
+          const spreadsheet = await sheets.spreadsheets.get({
+            spreadsheetId
+          });
+
+          const usersSheetExists = spreadsheet.data.sheets?.some(
+            sheet => sheet.properties?.title === 'Users'
+          );
+
+          if (usersSheetExists) {
+            return NextResponse.json({
+              success: true,
+              message: 'Aba Users já existe'
+            });
+          }
+
+          // Cria a aba Users
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId,
+            requestBody: {
+              requests: [{
+                addSheet: {
+                  properties: {
+                    title: 'Users'
+                  }
+                }
+              }]
+            }
+          });
+
+          // Adiciona cabeçalhos
+          const headers = [
+            'ID',
+            'Email',
+            'Password',
+            'Name',
+            'Role',
+            'Status',
+            'Created_At',
+            'Last_Login'
+          ];
+
+          await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: 'Users!A1:H1',
+            valueInputOption: 'RAW',
+            requestBody: {
+              values: [headers]
+            }
+          });
+
+          return NextResponse.json({
+            success: true,
+            message: 'Aba Users criada com sucesso!'
+          });
+        } catch (error: any) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao criar aba Users: ${error.message}`
+          });
+        }
+
+      case 'create_user':
+        try {
+          const userData = data;
+
+          // Gera ID único para o usuário
+          const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+
+          // Prepara dados do usuário
+          const userRow = [
+            userId,
+            userData.email,
+            userData.password,
+            userData.name,
+            userData.role,
+            'active',
+            new Date().toISOString(),
+            '' // Last_Login vazio inicialmente
+          ];
+
+          // Adiciona o usuário à aba Users
+          await sheets.spreadsheets.values.append({
+            spreadsheetId,
+            range: 'Users!A:H',
+            valueInputOption: 'RAW',
+            requestBody: {
+              values: [userRow]
+            }
+          });
+
+          return NextResponse.json({
+            success: true,
+            message: `Usuário ${userData.email} criado com sucesso!`,
+            userId: userId
+          });
+        } catch (error: any) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao criar usuário: ${error.message}`
+          });
+        }
+
       case 'test_log_entry':
         try {
           // Gera entrada de log

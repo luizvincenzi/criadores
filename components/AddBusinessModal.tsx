@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { addBusinessToSheet } from '@/app/actions/sheetsActions';
 
 interface AddBusinessModalProps {
   isOpen: boolean;
@@ -98,35 +97,36 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    console.log('🔄 Iniciando submissão do formulário...');
+
     if (!validateForm()) {
+      console.log('❌ Validação do formulário falhou');
       return;
     }
 
+    console.log('✅ Formulário validado com sucesso');
     setIsSubmitting(true);
 
     try {
-      // Preparar dados para o Google Sheets seguindo o cabeçalho exato
-      const businessData = [
-        formData.businessName,                    // A = Nome
-        formData.category,                        // B = Categoria
-        formData.currentPlan || 'Não definido',  // C = Plano atual
-        formData.comercial || '',                 // D = Comercial
-        formData.nomeResponsavel,                 // E = Nome Responsável
-        formData.cidade || '',                    // F = Cidade
-        formData.whatsappResponsavel,             // G = WhatsApp Responsável
-        formData.prospeccao || '',                // H = Prospecção
-        formData.responsavel || '',               // I = Responsável
-        formData.instagram || '',                 // J = Instagram
-        formData.grupoWhatsApp || '',             // K = Grupo WhatsApp criado
-        formData.contratoAssinado || '',          // L = Contrato assinado e enviado
-        formData.dataAssinatura || '',            // M = Data assinatura do contrato
-        formData.contratoValidoAte || '',         // N = Contrato válido até
-        formData.relatedFiles || '',              // O = Related files
-        formData.notes || ''                      // P = Notes
-      ];
+      console.log('🚀 Enviando dados via API...');
 
-      await addBusinessToSheet(businessData);
+      // Usar a API em vez de chamar a função diretamente
+      const response = await fetch('/api/add-business', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao adicionar negócio');
+      }
+
+      console.log('✅ Negócio adicionado com sucesso via API!');
       
       // Reset form
       setFormData({
@@ -148,12 +148,14 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
         notes: ''                // P = Notes
       });
 
+      console.log('🎉 Chamando onSuccess e onClose...');
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Erro ao adicionar negócio:', error);
-      alert('Erro ao adicionar negócio. Tente novamente.');
+      console.error('❌ Erro ao adicionar negócio:', error);
+      alert(`Erro ao adicionar negócio: ${error instanceof Error ? error.message : 'Erro desconhecido'}. Tente novamente.`);
     } finally {
+      console.log('🏁 Finalizando submissão...');
       setIsSubmitting(false);
     }
   };
@@ -166,6 +168,8 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
   };
 
   if (!isOpen) return null;
+
+  console.log('🔄 Modal renderizado, isSubmitting:', isSubmitting);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -279,81 +283,63 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pessoa de Contato *
+                    Nome Responsável *
                   </label>
                   <input
                     type="text"
-                    value={formData.contactPerson}
-                    onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+                    value={formData.nomeResponsavel}
+                    onChange={(e) => handleInputChange('nomeResponsavel', e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.contactPerson ? 'border-red-500' : 'border-gray-300'
+                      errors.nomeResponsavel ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Nome do responsável"
                   />
-                  {errors.contactPerson && (
-                    <p className="text-red-500 text-xs mt-1">{errors.contactPerson}</p>
+                  {errors.nomeResponsavel && (
+                    <p className="text-red-500 text-xs mt-1">{errors.nomeResponsavel}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="email@exemplo.com"
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Telefone *
+                    WhatsApp Responsável *
                   </label>
                   <input
                     type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    value={formData.whatsappResponsavel}
+                    onChange={(e) => handleInputChange('whatsappResponsavel', e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.phone ? 'border-red-500' : 'border-gray-300'
+                      errors.whatsappResponsavel ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="(11) 99999-9999"
                   />
-                  {errors.phone && (
-                    <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                  {errors.whatsappResponsavel && (
+                    <p className="text-red-500 text-xs mt-1">{errors.whatsappResponsavel}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    WhatsApp
+                    Cidade
                   </label>
                   <input
-                    type="tel"
-                    value={formData.whatsapp}
-                    onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                    type="text"
+                    value={formData.cidade}
+                    onChange={(e) => handleInputChange('cidade', e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="(11) 99999-9999"
+                    placeholder="Cidade do negócio"
                   />
                 </div>
 
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Website
+                    Instagram
                   </label>
                   <input
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
+                    type="text"
+                    value={formData.instagram}
+                    onChange={(e) => handleInputChange('instagram', e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="https://www.exemplo.com"
+                    placeholder="@instagram_do_negocio"
                   />
                 </div>
               </div>
@@ -363,45 +349,112 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações Adicionais</h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Descrição do Negócio
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Descreva o negócio e seus produtos/serviços..."
-                  />
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Timeline Desejado
+                      Responsável
                     </label>
                     <input
                       type="text"
-                      value={formData.timeline}
-                      onChange={(e) => handleInputChange('timeline', e.target.value)}
+                      value={formData.responsavel}
+                      onChange={(e) => handleInputChange('responsavel', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ex: 3 meses"
+                      placeholder="Responsável interno"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Objetivos Principais
+                      Prospecção
                     </label>
                     <input
                       type="text"
-                      value={formData.objectives}
-                      onChange={(e) => handleInputChange('objectives', e.target.value)}
+                      value={formData.prospeccao}
+                      onChange={(e) => handleInputChange('prospeccao', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ex: Aumentar vendas, Brand awareness"
+                      placeholder="Origem da prospecção"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Grupo WhatsApp Criado
+                    </label>
+                    <select
+                      value={formData.grupoWhatsApp}
+                      onChange={(e) => handleInputChange('grupoWhatsApp', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Selecione</option>
+                      <option value="Sim">Sim</option>
+                      <option value="Não">Não</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contrato Assinado e Enviado
+                    </label>
+                    <select
+                      value={formData.contratoAssinado}
+                      onChange={(e) => handleInputChange('contratoAssinado', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Selecione</option>
+                      <option value="Sim">Sim</option>
+                      <option value="Não">Não</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Data Assinatura do Contrato
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.dataAssinatura}
+                      onChange={(e) => handleInputChange('dataAssinatura', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contrato Válido Até
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.contratoValidoAte}
+                      onChange={(e) => handleInputChange('contratoValidoAte', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Related Files
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.relatedFiles}
+                      onChange={(e) => handleInputChange('relatedFiles', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Links ou referências de arquivos"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Observações (Notes)
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Observações adicionais sobre o negócio..."
+                  />
                 </div>
               </div>
             </div>
@@ -420,6 +473,10 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
                 <button
                   type="submit"
                   disabled={isSubmitting}
+                  onClick={(e) => {
+                    console.log('🖱️ Botão clicado!', e);
+                    // Não previne o default, deixa o form submit acontecer
+                  }}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
                 >
                   {isSubmitting ? (

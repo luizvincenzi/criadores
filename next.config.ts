@@ -9,10 +9,8 @@ const nextConfig: NextConfig = {
     // Desabilita verificação de tipos durante o build para deploy
     ignoreBuildErrors: true,
   },
-  experimental: {
-    // Fix para problemas de build no Vercel com Next.js 15
-    serverComponentsExternalPackages: ['googleapis'],
-  },
+  // Fix para problemas de build no Vercel com Next.js 15
+  serverExternalPackages: ['googleapis'],
   // Configuração adicional para Vercel
   output: 'standalone',
 };

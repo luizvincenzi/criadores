@@ -3,6 +3,10 @@
 import React, { useState } from 'react';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import TestUserSheet from '@/components/TestUserSheet';
+import UserManager from '@/components/UserManager';
+import DebugUsers from '@/components/DebugUsers';
+import TestAddBusiness from '@/components/TestAddBusiness';
 
 export default function TestSheetsPage() {
   const [loading, setLoading] = useState(false);
@@ -74,6 +78,14 @@ export default function TestSheetsPage() {
             )}
           </CardContent>
         </Card>
+
+        <UserManager />
+
+        <TestAddBusiness />
+
+        <DebugUsers />
+
+        <TestUserSheet />
 
         <Card>
           <CardHeader>
