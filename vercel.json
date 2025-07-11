@@ -1,9 +1,18 @@
 {
-  "buildCommand": "cd crm-interno && npm run build",
-  "outputDirectory": "crm-interno/.next",
-  "installCommand": "cd crm-interno && npm install",
-  "framework": "nextjs",
-  "regions": [
-    "gru1"
+  "version": 2,
+  "builds": [
+    {
+      "src": "crm-interno/package.json",
+      "use": "@vercel/next@latest",
+      "config": {
+        "distDir": ".next"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/crm-interno/$1"
+    }
   ]
 }
