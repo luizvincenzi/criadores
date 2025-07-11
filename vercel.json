@@ -3,5 +3,7 @@
   "outputDirectory": "crm-interno/.next",
   "installCommand": "cd crm-interno && npm install",
   "framework": "nextjs",
-  "_comment": "Force rebuild with Next.js 14.2.18"
+  "regions": [
+    "gru1"
+  ]
 }
