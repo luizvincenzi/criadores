@@ -241,6 +241,12 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     setIsSaving(true);
     try {
       console.log('💾 Salvando alterações dos criadores...');
+      console.log('📊 Dados da campanha:', {
+        businessName: campaign.businessName,
+        mes: campaign.mes,
+        id: campaign.id
+      });
+      console.log('📝 Dados editados:', editedData);
 
       const response = await fetch('/api/update-campaign-creators', {
         method: 'POST',

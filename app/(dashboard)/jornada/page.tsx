@@ -19,6 +19,11 @@ export default function JornadaPage() {
       const data = await getCampaignJourneyData();
       setCampaigns(data);
       console.log(`✅ ${data.length} campanhas carregadas na jornada`);
+      console.log('📊 Campanhas carregadas:', data.map(c => ({
+        businessName: c.businessName,
+        mes: c.mes,
+        id: c.id
+      })));
     } catch (error) {
       console.error('❌ Erro ao carregar campanhas da jornada:', error);
     } finally {
