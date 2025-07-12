@@ -713,6 +713,18 @@ export interface GroupedCampaignData {
   totalCampanhas: number;
 }
 
+// Interface para jornada de campanhas (campanhas ativas por business/mês)
+export interface CampaignJourneyData {
+  id: string;
+  businessName: string;
+  mes: string;
+  journeyStage: 'Reunião Briefing' | 'Agendamentos' | 'Entrega Final';
+  campanhas: CampaignData[];
+  totalCampanhas: number;
+  quantidadeCriadores: number;
+  businessData?: BusinessData; // Dados do business para informações adicionais
+}
+
 // Interface para dados das campanhas - TODOS os campos da planilha
 export interface CampaignData {
   id: string;
@@ -979,6 +991,161 @@ export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> 
   } catch (error) {
     console.error('❌ Erro ao buscar campanhas agrupadas:', error);
     return [];
+  }
+}
+
+// Função para buscar campanhas da jornada (excluindo finalizadas)
+export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
+  try {
+    // Buscar dados das campanhas e dos negócios
+    const [campaignsData, businessesData] = await Promise.all([
+      getCampaignsData(),
+      getBusinessesData()
+    ]);
+
+    // Criar mapa de negócios para busca rápida
+    const businessMap = new Map<string, BusinessData>();
+    businessesData.forEach(business => {
+      businessMap.set(business.nome.toLowerCase(), business);
+    });
+
+    // Agrupar campanhas por business e mês, excluindo finalizadas
+    const journeyMap = new Map<string, CampaignJourneyData>();
+
+    campaignsData.forEach(campaign => {
+      const businessName = campaign.business || campaign.nome;
+      const mes = campaign.mes;
+      const status = campaign.status?.toLowerCase();
+
+      // Excluir campanhas finalizadas
+      if (!businessName || !mes || status === 'finalizado' || status === 'finalizada') {
+        return;
+      }
+
+      const groupKey = `${businessName.toLowerCase()}-${mes.toLowerCase()}`;
+
+      if (!journeyMap.has(groupKey)) {
+        // Buscar dados do business
+        const businessData = businessMap.get(businessName.toLowerCase());
+        const quantidadeCriadores = businessData?.quantidadeCriadores ?
+          parseInt(businessData.quantidadeCriadores) || 0 : 0;
+
+        // Determinar estágio da jornada baseado no status
+        let journeyStage: 'Reunião Briefing' | 'Agendamentos' | 'Entrega Final' = 'Reunião Briefing';
+        if (status === 'agendamentos' || status === 'agendamento') {
+          journeyStage = 'Agendamentos';
+        } else if (status === 'entrega final' || status === 'entrega') {
+          journeyStage = 'Entrega Final';
+        }
+
+        journeyMap.set(groupKey, {
+          id: groupKey,
+          businessName: businessName,
+          mes: mes,
+          journeyStage: journeyStage,
+          campanhas: [],
+          totalCampanhas: 0,
+          quantidadeCriadores: quantidadeCriadores,
+          businessData: businessData
+        });
+      }
+
+      const journey = journeyMap.get(groupKey)!;
+
+      // Adicionar campanha ao grupo
+      journey.campanhas.push(campaign);
+      journey.totalCampanhas++;
+
+      // Atualizar estágio da jornada se necessário (usar o mais avançado)
+      const status_lower = status || '';
+      if (status_lower === 'entrega final' || status_lower === 'entrega') {
+        journey.journeyStage = 'Entrega Final';
+      } else if ((status_lower === 'agendamentos' || status_lower === 'agendamento') && journey.journeyStage === 'Reunião Briefing') {
+        journey.journeyStage = 'Agendamentos';
+      }
+    });
+
+    const result = Array.from(journeyMap.values()).sort((a, b) => {
+      // Primeiro ordenar por mês (mais recente primeiro)
+      const monthCompare = getMonthOrder(a.mes) - getMonthOrder(b.mes);
+      if (monthCompare !== 0) return monthCompare;
+
+      // Depois ordenar por business name
+      return a.businessName.localeCompare(b.businessName);
+    });
+
+    console.log(`✅ ${result.length} campanhas na jornada (excluindo finalizadas)`);
+    return result;
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar campanhas da jornada:', error);
+    return [];
+  }
+}
+
+// Função para atualizar status de campanha
+export async function updateCampaignStatus(
+  businessName: string,
+  mes: string,
+  newStatus: string,
+  user: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const sheets = await getGoogleSheetsClient();
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      throw new Error('GOOGLE_SPREADSHEET_ID não configurado');
+    }
+
+    // Buscar todas as campanhas para encontrar as do business/mês específico
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'campanhas!A:Z',
+    });
+
+    const values = response.data.values;
+    if (!values || values.length <= 1) {
+      return { success: false, error: 'Nenhuma campanha encontrada' };
+    }
+
+    // Encontrar linhas que correspondem ao business e mês
+    const updates: any[] = [];
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const campaignBusiness = row[1]; // Coluna B - Business
+      const campaignMes = row[6]; // Coluna G - Mês
+
+      if (campaignBusiness?.toLowerCase() === businessName.toLowerCase() &&
+          campaignMes?.toLowerCase() === mes.toLowerCase()) {
+
+        // Atualizar status na coluna E (índice 4)
+        updates.push({
+          range: `campanhas!E${i + 1}`,
+          values: [[newStatus]]
+        });
+      }
+    }
+
+    if (updates.length === 0) {
+      return { success: false, error: 'Nenhuma campanha encontrada para atualizar' };
+    }
+
+    // Executar todas as atualizações
+    await sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        valueInputOption: 'RAW',
+        data: updates
+      }
+    });
+
+    console.log(`✅ Status atualizado para ${updates.length} campanhas: ${businessName} - ${mes} → ${newStatus}`);
+    return { success: true };
+
+  } catch (error) {
+    console.error('❌ Erro ao atualizar status da campanha:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
   }
 }
 
