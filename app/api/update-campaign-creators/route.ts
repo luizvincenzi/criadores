@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGoogleSheetsAuth } from '@/app/actions/sheetsActions';
-import { google } from 'googleapis';
+import { createGoogleSheetsClient } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,8 +8,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🔄 Atualizando dados dos criadores:', { businessName, mes, creatorsData });
 
-    const auth = getGoogleSheetsAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = await createGoogleSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
 
     if (!spreadsheetId) {

@@ -3,7 +3,7 @@
 import { google } from 'googleapis';
 
 // Configuração da autenticação
-export const getGoogleSheetsAuth = () => {
+const getGoogleSheetsAuth = () => {
   const credentials = {
     type: 'service_account',
     project_id: process.env.GOOGLE_PROJECT_ID,
@@ -24,6 +24,12 @@ export const getGoogleSheetsAuth = () => {
 
   return auth;
 };
+
+// Função helper para criar cliente Google Sheets (para uso em APIs)
+export async function createGoogleSheetsClient() {
+  const auth = getGoogleSheetsAuth();
+  return google.sheets({ version: 'v4', auth });
+}
 
 // Função para ler dados da planilha
 export async function getData(sheetName: string) {
