@@ -3,15 +3,120 @@
 import React, { useState } from 'react';
 import { CampaignJourneyData } from '@/app/actions/sheetsActions';
 import CampaignJourneyModal from './CampaignJourneyModal';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface CampaignJourneyKanbanProps {
   campaigns: CampaignJourneyData[];
   onRefresh: () => void;
 }
 
+// Componente para card arrastável
+function SortableCampaignCard({
+  campaign,
+  onClick
+}: {
+  campaign: CampaignJourneyData;
+  onClick: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: campaign.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={onClick}
+      className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
+    >
+      {/* Título: Nome do Business */}
+      <h4 className="font-semibold text-gray-900 mb-2 text-lg">
+        {campaign.businessName}
+      </h4>
+
+      {/* Subtítulo: Mês da Campanha */}
+      <div className="flex items-center space-x-2 mb-3">
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {campaign.mes}
+        </span>
+      </div>
+
+      {/* Informações da Campanha */}
+      <div className="space-y-2 text-sm text-gray-600">
+        <div className="flex items-center justify-between">
+          <span>Campanhas:</span>
+          <span className="font-medium">{campaign.totalCampanhas}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Criadores:</span>
+          <span className="font-medium">{campaign.quantidadeCriadores}</span>
+        </div>
+      </div>
+
+      {/* Plano do Business */}
+      {campaign.businessData?.planoAtual && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
+            {campaign.businessData.planoAtual}
+          </span>
+        </div>
+      )}
+
+      {/* Botão de Ação */}
+      <div className="mt-4 pt-3 border-t border-gray-100">
+        <button className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+          Ver Detalhes da Campanha →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CampaignJourneyKanban({ campaigns, onRefresh }: CampaignJourneyKanbanProps) {
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignJourneyData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   // Agrupar campanhas por estágio
   const stages = [
@@ -40,90 +145,147 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
     handleCloseModal();
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    setIsDragging(false);
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Encontrar a campanha que foi movida
+    const activeCampaign = campaigns.find(c => c.id === activeId);
+    if (!activeCampaign) return;
+
+    // Determinar o novo status baseado na coluna de destino
+    let newStatus = '';
+    if (overId === 'Reunião Briefing') {
+      newStatus = 'Reunião Briefing';
+    } else if (overId === 'Agendamentos') {
+      newStatus = 'Agendamentos';
+    } else if (overId === 'Entrega Final') {
+      newStatus = 'Entrega Final';
+    }
+
+    // Se o status não mudou, não fazer nada
+    if (newStatus === activeCampaign.journeyStage || !newStatus) return;
+
+    try {
+      console.log(`🔄 Movendo campanha via drag&drop: ${activeCampaign.businessName} - ${activeCampaign.mes}: ${activeCampaign.journeyStage} → ${newStatus}`);
+
+      const response = await fetch('/api/update-campaign-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName: activeCampaign.businessName,
+          mes: activeCampaign.mes,
+          newStatus: newStatus,
+          user: 'Drag&Drop'
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Status atualizado via drag&drop');
+        onRefresh(); // Recarregar dados
+      } else {
+        console.error('❌ Erro ao atualizar status via drag&drop:', result.error);
+        alert(`❌ Erro ao mover campanha: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro no drag&drop:', error);
+      alert('❌ Erro ao mover campanha. Tente novamente.');
+    }
+  };
+
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {stages.map((stage) => {
           const stageCampaigns = getCampaignsByStage(stage.id);
-          
+
           return (
-            <div key={stage.id} className={`${stage.color} rounded-lg border-2 border-dashed p-4`}>
-              {/* Header da Coluna */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl">{stage.icon}</span>
-                  <h3 className="font-semibold text-gray-900">{stage.title}</h3>
+            <SortableContext
+              key={stage.id}
+              id={stage.id}
+              items={stageCampaigns.map(c => c.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div
+                className={`${stage.color} rounded-lg border-2 border-dashed p-4 min-h-[400px]`}
+                data-stage={stage.id}
+              >
+                {/* Header da Coluna */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">{stage.icon}</span>
+                    <h3 className="font-semibold text-gray-900">{stage.title}</h3>
+                  </div>
+                  <span className="bg-white px-2 py-1 rounded-full text-sm font-medium text-gray-600">
+                    {stageCampaigns.length}
+                  </span>
                 </div>
-                <span className="bg-white px-2 py-1 rounded-full text-sm font-medium text-gray-600">
-                  {stageCampaigns.length}
-                </span>
+
+                {/* Cards das Campanhas */}
+                <div className="space-y-3">
+                  {stageCampaigns.map((campaign) => (
+                    <SortableCampaignCard
+                      key={campaign.id}
+                      campaign={campaign}
+                      onClick={() => handleCampaignClick(campaign)}
+                    />
+                  ))}
+
+                  {/* Estado vazio da coluna */}
+                  {stageCampaigns.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-3xl mb-2">{stage.icon}</div>
+                      <p className="text-sm">Nenhuma campanha neste estágio</p>
+                      <p className="text-xs mt-2">Arraste campanhas aqui</p>
+                    </div>
+                  )}
+                </div>
               </div>
-
-              {/* Cards das Campanhas */}
-              <div className="space-y-3">
-                {stageCampaigns.map((campaign) => (
-                  <div
-                    key={campaign.id}
-                    onClick={() => handleCampaignClick(campaign)}
-                    className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-                  >
-                    {/* Título: Nome do Business */}
-                    <h4 className="font-semibold text-gray-900 mb-2 text-lg">
-                      {campaign.businessName}
-                    </h4>
-                    
-                    {/* Subtítulo: Mês da Campanha */}
-                    <div className="flex items-center space-x-2 mb-3">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {campaign.mes}
-                      </span>
-                    </div>
-
-                    {/* Informações da Campanha */}
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-center justify-between">
-                        <span>Campanhas:</span>
-                        <span className="font-medium">{campaign.totalCampanhas}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Criadores:</span>
-                        <span className="font-medium">{campaign.quantidadeCriadores}</span>
-                      </div>
-                    </div>
-
-                    {/* Plano do Business */}
-                    {campaign.businessData?.planoAtual && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
-                          {campaign.businessData.planoAtual}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Botão de Ação */}
-                    <div className="mt-4 pt-3 border-t border-gray-100">
-                      <button className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-                        Ver Detalhes da Campanha →
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Estado vazio da coluna */}
-                {stageCampaigns.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-3xl mb-2">{stage.icon}</div>
-                    <p className="text-sm">Nenhuma campanha neste estágio</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            </SortableContext>
           );
         })}
-      </div>
+        </div>
+
+        <DragOverlay>
+          {activeId ? (
+            <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200 opacity-90 transform rotate-3">
+              {(() => {
+                const activeCampaign = campaigns.find(c => c.id === activeId);
+                return activeCampaign ? (
+                  <>
+                    <h4 className="font-semibold text-gray-900 mb-2 text-lg">
+                      {activeCampaign.businessName}
+                    </h4>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {activeCampaign.mes}
+                    </span>
+                  </>
+                ) : null;
+              })()}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* Modal de Detalhes da Campanha */}
       <CampaignJourneyModal

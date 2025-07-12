@@ -1149,6 +1149,82 @@ export async function updateCampaignStatus(
   }
 }
 
+// Função para buscar criadores disponíveis para seleção
+export async function getAvailableCreators(): Promise<CreatorData[]> {
+  try {
+    const creatorsData = await getCreatorsData();
+    // Retornar apenas criadores ativos
+    return creatorsData.filter(creator =>
+      creator.status?.toLowerCase() !== 'inativo' &&
+      creator.status?.toLowerCase() !== 'bloqueado'
+    );
+  } catch (error) {
+    console.error('❌ Erro ao buscar criadores disponíveis:', error);
+    return [];
+  }
+}
+
+// Função para gerar slots de criadores para uma campanha
+export async function generateCreatorSlots(
+  businessName: string,
+  mes: string,
+  quantidadeContratada: number
+): Promise<any[]> {
+  try {
+    // Buscar campanhas existentes para este business/mês
+    const campaignsData = await getCampaignsData();
+    const existingCampaigns = campaignsData.filter(campaign =>
+      campaign.business?.toLowerCase() === businessName.toLowerCase() &&
+      campaign.mes?.toLowerCase() === mes.toLowerCase()
+    );
+
+    // Buscar criadores disponíveis
+    const availableCreators = await getAvailableCreators();
+
+    // Criar array de slots baseado na quantidade contratada
+    const slots = [];
+
+    for (let i = 0; i < quantidadeContratada; i++) {
+      const existingCampaign = existingCampaigns[i];
+
+      if (existingCampaign) {
+        // Usar dados da campanha existente
+        slots.push({
+          index: i,
+          influenciador: existingCampaign.influenciador,
+          briefingCompleto: existingCampaign.briefingCompleto,
+          dataHoraVisita: existingCampaign.dataHoraVisita,
+          quantidadeConvidados: existingCampaign.quantidadeConvidados,
+          visitaConfirmado: existingCampaign.visitaConfirmado,
+          dataHoraPostagem: existingCampaign.dataHoraPostagem,
+          videoAprovado: existingCampaign.videoAprovado,
+          videoPostado: existingCampaign.videoPostado,
+          isExisting: true
+        });
+      } else {
+        // Criar slot vazio para novo criador
+        slots.push({
+          index: i,
+          influenciador: '',
+          briefingCompleto: 'pendente',
+          dataHoraVisita: '',
+          quantidadeConvidados: '',
+          visitaConfirmado: 'pendente',
+          dataHoraPostagem: '',
+          videoAprovado: 'pendente',
+          videoPostado: 'pendente',
+          isExisting: false
+        });
+      }
+    }
+
+    return slots;
+  } catch (error) {
+    console.error('❌ Erro ao gerar slots de criadores:', error);
+    return [];
+  }
+}
+
 // Função para adicionar novo negócio ao Google Sheets
 export async function addBusinessToSheet(businessData: any[]): Promise<void> {
   try {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CampaignJourneyData, updateCampaignStatus } from '@/app/actions/sheetsActions';
+import { CampaignJourneyData, updateCampaignStatus, generateCreatorSlots, getAvailableCreators } from '@/app/actions/sheetsActions';
 import { useAuthStore } from '@/store/authStore';
 
 interface CampaignJourneyModalProps {
@@ -18,23 +18,45 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editedData, setEditedData] = useState<any[]>([]);
+  const [creatorSlots, setCreatorSlots] = useState<any[]>([]);
+  const [availableCreators, setAvailableCreators] = useState<any[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   useEffect(() => {
     if (campaign) {
       setCurrentStatus(campaign.journeyStage);
-      // Inicializar dados editáveis
-      setEditedData(campaign.campanhas.map(campanha => ({
-        influenciador: campanha.influenciador,
-        briefingCompleto: campanha.briefingCompleto,
-        dataHoraVisita: campanha.dataHoraVisita,
-        quantidadeConvidados: campanha.quantidadeConvidados,
-        visitaConfirmada: campanha.visitaConfirmada,
-        dataHoraPostagem: campanha.dataHoraPostagem,
-        videoAprovado: campanha.videoAprovado,
-        videoPostado: campanha.videoPostado
-      })));
+      loadCreatorSlots();
     }
   }, [campaign]);
+
+  const loadCreatorSlots = async () => {
+    if (!campaign) return;
+
+    setIsLoadingSlots(true);
+    try {
+      console.log('🔄 Carregando slots de criadores...');
+
+      // Carregar slots e criadores disponíveis em paralelo
+      const [slots, creators] = await Promise.all([
+        generateCreatorSlots(
+          campaign.businessName,
+          campaign.mes,
+          campaign.quantidadeCriadores
+        ),
+        getAvailableCreators()
+      ]);
+
+      setCreatorSlots(slots);
+      setAvailableCreators(creators);
+      setEditedData(slots);
+
+      console.log(`✅ ${slots.length} slots de criadores carregados`);
+    } catch (error) {
+      console.error('❌ Erro ao carregar slots de criadores:', error);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  };
 
   if (!isOpen || !campaign) return null;
 
@@ -318,7 +340,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                   <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  Criadores da Campanha
+                  Criadores da Campanha ({campaign.quantidadeCriadores} contratados)
                 </h3>
                 <button
                   onClick={() => setIsEditMode(!isEditMode)}
@@ -338,7 +360,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Influenciador
+                          Criador
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Briefing Enviado
@@ -364,7 +386,17 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {campaign.campanhas.map((campanha, index) => (
+                      {isLoadingSlots ? (
+                        <tr>
+                          <td colSpan={8} className="px-6 py-8 text-center">
+                            <div className="flex items-center justify-center">
+                              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
+                              <span className="text-gray-600">Carregando criadores...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        creatorSlots.map((slot, index) => (
                         <tr key={index} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
@@ -373,8 +405,29 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                               </div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {campanha.influenciador || 'Não definido'}
+                              <div className="min-w-0 flex-1">
+                                {isEditMode ? (
+                                  <select
+                                    value={editedData[index]?.influenciador || ''}
+                                    onChange={(e) => updateCreatorData(index, 'influenciador', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  >
+                                    <option value="">Selecionar criador...</option>
+                                    {availableCreators.map((creator) => (
+                                      <option key={creator.id} value={creator.nome}>
+                                        {creator.nome} - {creator.cidade}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {slot.influenciador || (
+                                      <span className="text-gray-400 italic">
+                                        Criador não selecionado
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -391,13 +444,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                campanha.briefingCompleto?.toLowerCase() === 'sim'
+                                slot.briefingCompleto?.toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : campanha.briefingCompleto?.toLowerCase() === 'nao'
+                                  : slot.briefingCompleto?.toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {campanha.briefingCompleto || 'Pendente'}
+                                {slot.briefingCompleto || 'Pendente'}
                               </span>
                             )}
                           </td>
@@ -405,12 +458,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                             {isEditMode ? (
                               <input
                                 type="datetime-local"
-                                defaultValue={campanha.dataHoraVisita}
+                                value={editedData[index]?.dataHoraVisita || ''}
+                                onChange={(e) => updateCreatorData(index, 'dataHoraVisita', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             ) : (
                               <div className="text-sm text-gray-900">
-                                {campanha.dataHoraVisita || '-'}
+                                {slot.dataHoraVisita || '-'}
                               </div>
                             )}
                           </td>
@@ -418,32 +472,37 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                             {isEditMode ? (
                               <input
                                 type="number"
-                                defaultValue={campanha.quantidadeConvidados}
+                                value={editedData[index]?.quantidadeConvidados || ''}
+                                onChange={(e) => updateCreatorData(index, 'quantidadeConvidados', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 min="0"
                               />
                             ) : (
                               <div className="text-sm text-gray-900">
-                                {campanha.quantidadeConvidados || '0'}
+                                {slot.quantidadeConvidados || '0'}
                               </div>
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {isEditMode ? (
-                              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                              <select
+                                value={editedData[index]?.visitaConfirmado || 'pendente'}
+                                onChange={(e) => updateCreatorData(index, 'visitaConfirmado', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
                                 <option value="sim">✅ Confirmada</option>
                                 <option value="nao">❌ Não Confirmada</option>
                                 <option value="pendente">⏳ Pendente</option>
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                campanha.visitaConfirmada?.toLowerCase() === 'sim'
+                                slot.visitaConfirmado?.toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : campanha.visitaConfirmada?.toLowerCase() === 'nao'
+                                  : slot.visitaConfirmado?.toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {campanha.visitaConfirmada || 'Pendente'}
+                                {slot.visitaConfirmado || 'Pendente'}
                               </span>
                             )}
                           </td>
@@ -499,7 +558,8 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                             )}
                           </td>
                         </tr>
-                      ))}
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
