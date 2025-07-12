@@ -6,7 +6,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { businessName, mes, creatorsData, user, campaignId } = body;
 
-    console.log('🔄 Atualizando dados dos criadores:', { businessName, mes, creatorsData, campaignId });
+    console.log('🔄 DEBUG: Dados recebidos na API:', {
+      businessName,
+      mes,
+      campaignId,
+      user,
+      creatorsDataLength: creatorsData?.length,
+      creatorsData: creatorsData
+    });
 
     // Garantir que a planilha tenha IDs únicos
     await ensureCampaignUniqueIds();
@@ -33,8 +40,9 @@ export async function POST(request: NextRequest) {
     const headers = values[0] || [];
     const hasIdColumn = headers[0] && headers[0].toLowerCase().includes('id');
 
-    console.log(`📊 Estrutura da planilha: ${hasIdColumn ? 'COM' : 'SEM'} coluna ID`);
-    console.log(`📋 Cabeçalho: ${headers.slice(0, 7).join(', ')}`);
+    console.log(`📊 DEBUG: Estrutura da planilha: ${hasIdColumn ? 'COM' : 'SEM'} coluna ID`);
+    console.log(`📋 DEBUG: Cabeçalho: ${headers.slice(0, 10).join(', ')}`);
+    console.log(`📊 DEBUG: Total de linhas na planilha: ${values.length - 1}`);
 
     // Definir índices das colunas baseado na estrutura
     let businessCol, influenciadorCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
@@ -90,29 +98,33 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      console.log(`🔄 Processando criador: ${influenciador}`);
+      console.log(`🔄 DEBUG: Processando criador: ${influenciador}`);
 
       // Buscar diretamente na planilha com a estrutura correta
       let creatorResult = null;
 
-      console.log(`🔍 Buscando criador: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+      console.log(`🔍 DEBUG: Buscando criador: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+      console.log(`🔍 DEBUG: Usando colunas: businessCol=${businessCol}, influenciadorCol=${influenciadorCol}, mesCol=${mesCol}`);
 
       // Buscar linha por linha
-      for (let i = 1; i < values.length; i++) {
+      let foundAnyMatch = false;
+      for (let i = 1; i < Math.min(values.length, 10); i++) { // Limitar a 10 linhas para debug
         const row = values[i];
         const rowBusiness = row[businessCol] || '';
         const rowInfluenciador = row[influenciadorCol] || '';
         const rowMes = row[mesCol] || '';
 
-        console.log(`📋 Linha ${i}: Business="${rowBusiness}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
+        console.log(`📋 DEBUG: Linha ${i}: Business="${rowBusiness}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
 
         // Comparação flexível
         const businessMatch = rowBusiness.toLowerCase().trim() === businessName.toLowerCase().trim();
         const influenciadorMatch = rowInfluenciador.toLowerCase().trim() === influenciador.toLowerCase().trim();
         const mesMatch = rowMes.toLowerCase().trim() === mes.toLowerCase().trim();
 
+        console.log(`🔍 DEBUG: Matches - Business: ${businessMatch}, Influenciador: ${influenciadorMatch}, Mês: ${mesMatch}`);
+
         if (businessMatch && influenciadorMatch && mesMatch) {
-          console.log(`✅ Criador encontrado na linha ${i}!`);
+          console.log(`✅ DEBUG: Criador encontrado na linha ${i}!`);
           creatorResult = {
             found: true,
             rowIndex: i,
@@ -123,8 +135,14 @@ export async function POST(request: NextRequest) {
               fullRow: row
             }
           };
+          foundAnyMatch = true;
           break;
         }
+      }
+
+      if (!foundAnyMatch) {
+        console.log(`❌ DEBUG: Nenhuma correspondência encontrada para ${influenciador}`);
+        console.log(`❌ DEBUG: Procurando por Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
       }
 
       if (!creatorResult || !creatorResult.found) {
