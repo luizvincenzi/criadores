@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createGoogleSheetsClient, logCreatorChanges, findCreatorInCampaigns, generateCreatorUniqueId, logAction, logDetailedAction } from '@/app/actions/sheetsActions';
+import { createGoogleSheetsClient, logCreatorChanges, findCreatorInCampaigns, createCreatorUniqueId, logAction, logDetailedAction } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,10 +56,11 @@ export async function POST(request: NextRequest) {
         console.log(`❌ Criador ${influenciador} não encontrado na planilha`);
 
         // Log de erro detalhado
+        const uniqueId = await createCreatorUniqueId({ business: businessName, mes, influenciador });
         await logDetailedAction({
           action: 'creator_update_failed',
           entity_type: 'creator',
-          entity_id: generateCreatorUniqueId({ business: businessName, mes, influenciador }),
+          entity_id: uniqueId,
           entity_name: `${businessName}-${mes}-${influenciador}`,
           user_id: user,
           user_name: user,
@@ -113,11 +114,13 @@ export async function POST(request: NextRequest) {
 
       // Registrar mudanças no audit_log se houver alterações
       if (Object.keys(changes).length > 0) {
+        const uniqueId = await createCreatorUniqueId({ business: businessName, mes, influenciador });
+
         // Log no audit_log tradicional
         await logAction({
           action: 'creator_data_updated',
           entity_type: 'creator',
-          entity_id: generateCreatorUniqueId({ business: businessName, mes, influenciador }),
+          entity_id: uniqueId,
           entity_name: `${businessName}-${mes}-${influenciador}`,
           old_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.old]))),
           new_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.new]))),
@@ -130,7 +133,7 @@ export async function POST(request: NextRequest) {
         await logDetailedAction({
           action: 'creator_data_updated',
           entity_type: 'creator',
-          entity_id: generateCreatorUniqueId({ business: businessName, mes, influenciador }),
+          entity_id: uniqueId,
           entity_name: `${businessName}-${mes}-${influenciador}`,
           user_id: user,
           user_name: user,

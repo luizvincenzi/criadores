@@ -1009,7 +1009,7 @@ export async function getRawCampaignsData(): Promise<CampaignData[]> {
 }
 
 // Função para gerar ID único de criador baseado em múltiplos campos
-export function generateCreatorUniqueId(creatorData: any): string {
+function generateCreatorUniqueId(creatorData: any): string {
   const business = creatorData.business || '';
   const mes = creatorData.mes || '';
   const influenciador = creatorData.influenciador || '';
@@ -1022,6 +1022,11 @@ export function generateCreatorUniqueId(creatorData: any): string {
     .replace(/^_|_$/g, '');
 
   return `creator_${baseId}`;
+}
+
+// Função helper async para gerar ID único (para uso em APIs)
+export async function createCreatorUniqueId(creatorData: any): Promise<string> {
+  return generateCreatorUniqueId(creatorData);
 }
 
 // Função para encontrar criador na planilha com múltiplos critérios
