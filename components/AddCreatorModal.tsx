@@ -173,32 +173,30 @@ export default function AddCreatorModal({ isOpen, onClose, onSuccess }: AddCreat
   console.log('🔄 Modal de criador renderizado, isSubmitting:', isSubmitting);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
+        {/* Header Fixo */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-2xl">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Adicionar Novo Criador</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-2xl font-bold">Adicionar Novo Criador</h2>
+            <p className="text-blue-100 mt-1">
               Preencha as informações do criador para adicionar à base
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="p-3 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 backdrop-blur-sm border border-white/30"
+          >
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        {/* Form */}
-        <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        {/* Conteúdo com Scroll */}
+        <div className="flex-1 overflow-y-auto">
+          <form id="creator-form" onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Informações Básicas */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações Básicas</h3>
@@ -497,35 +495,46 @@ export default function AddCreatorModal({ isOpen, onClose, onSuccess }: AddCreat
               </div>
             </div>
 
-            {/* Botões */}
-            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                onClick={(e) => {
-                  console.log('🖱️ Botão de adicionar criador clicado!', e);
-                }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Salvando...
-                  </>
-                ) : (
-                  'Adicionar Criador'
-                )}
-              </button>
-            </div>
           </form>
+        </div>
+
+        {/* Footer Fixo com Botões */}
+        <div className="border-t border-gray-200 bg-gray-50 p-6 rounded-b-2xl">
+          <div className="flex items-center justify-end space-x-4">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all duration-200 font-medium disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="creator-form"
+              disabled={isSubmitting}
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('🖱️ Botão de adicionar criador clicado!', e);
+                handleSubmit(e);
+              }}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium disabled:opacity-50 flex items-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Adicionar Criador
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
