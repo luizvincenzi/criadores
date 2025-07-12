@@ -1,0 +1,65 @@
+/* Estilos customizados para cards compactos do kanban */
+
+.compact-card {
+  min-height: 80px;
+  max-height: 120px;
+}
+
+.compact-card h4 {
+  line-height: 1.2;
+  max-height: 2.4em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.compact-card:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.compact-card:active {
+  transform: scale(0.98) !important;
+}
+
+/* Estilos para drag overlay */
+.compact-card.dragging {
+  transform: rotate(5deg) scale(1.05) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25) !important;
+  z-index: 1000;
+}
+
+/* Responsividade para cards compactos */
+@media (max-width: 768px) {
+  .compact-card {
+    min-height: 70px;
+    max-height: 100px;
+    padding: 8px !important;
+  }
+  
+  .compact-card h4 {
+    font-size: 0.75rem;
+  }
+}
+
+/* Animações suaves para drag and drop */
+.compact-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover states para melhor UX */
+.compact-card:hover .text-blue-600 {
+  color: #1d4ed8 !important;
+}
+
+/* Estados de drop zone */
+.drop-zone-active {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: #3b82f6 !important;
+}
+
+.drop-zone-over {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  transform: scale(1.02);
+}
