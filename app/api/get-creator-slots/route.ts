@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCampaignsData, getCreatorsData } from '@/app/actions/sheetsActions';
+import { getRawCampaignsData, getCreatorsData } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Buscar campanhas existentes para este business/mês
-    const campaignsData = await getCampaignsData();
-    const existingCampaigns = campaignsData.filter(campaign => 
-      campaign.business?.toLowerCase() === businessName.toLowerCase() && 
+    // Buscar campanhas existentes para este business/mês (dados brutos, sem agrupamento)
+    const campaignsData = await getRawCampaignsData();
+    const existingCampaigns = campaignsData.filter(campaign =>
+      campaign.business?.toLowerCase() === businessName.toLowerCase() &&
       campaign.mes?.toLowerCase() === mes.toLowerCase()
     );
 
@@ -31,39 +31,44 @@ export async function POST(request: NextRequest) {
 
     // Criar array de slots baseado na quantidade contratada
     const slots = [];
-    
-    for (let i = 0; i < quantidadeContratada; i++) {
-      const existingCampaign = existingCampaigns[i];
-      
-      if (existingCampaign) {
-        // Usar dados da campanha existente
-        slots.push({
-          index: i,
-          influenciador: existingCampaign.influenciador,
-          briefingCompleto: existingCampaign.briefingCompleto,
-          dataHoraVisita: existingCampaign.dataHoraVisita,
-          quantidadeConvidados: existingCampaign.quantidadeConvidados,
-          visitaConfirmado: existingCampaign.visitaConfirmado,
-          dataHoraPostagem: existingCampaign.dataHoraPostagem,
-          videoAprovado: existingCampaign.videoAprovado,
-          videoPostado: existingCampaign.videoPostado,
-          isExisting: true
-        });
-      } else {
-        // Criar slot vazio para novo criador
-        slots.push({
-          index: i,
-          influenciador: '',
-          briefingCompleto: 'pendente',
-          dataHoraVisita: '',
-          quantidadeConvidados: '',
-          visitaConfirmado: 'pendente',
-          dataHoraPostagem: '',
-          videoAprovado: 'pendente',
-          videoPostado: 'pendente',
-          isExisting: false
-        });
-      }
+
+    console.log(`📊 Campanhas encontradas para ${businessName} - ${mes}:`, existingCampaigns.length);
+    console.log(`📊 Criadores contratados: ${quantidadeContratada}`);
+
+    // Primeiro, adicionar todas as campanhas existentes
+    existingCampaigns.forEach((campaign, index) => {
+      console.log(`📋 Campanha ${index + 1}: ${campaign.influenciador}`);
+      slots.push({
+        index: index,
+        influenciador: campaign.influenciador,
+        briefingCompleto: campaign.briefingCompleto,
+        dataHoraVisita: campaign.dataHoraVisita,
+        quantidadeConvidados: campaign.quantidadeConvidados,
+        visitaConfirmado: campaign.visitaConfirmado,
+        dataHoraPostagem: campaign.dataHoraPostagem,
+        videoAprovado: campaign.videoAprovado,
+        videoPostado: campaign.videoPostado,
+        isExisting: true
+      });
+    });
+
+    // Depois, adicionar slots vazios para completar a quantidade contratada
+    const remainingSlots = quantidadeContratada - existingCampaigns.length;
+    console.log(`📋 Slots vazios a criar: ${remainingSlots}`);
+
+    for (let i = 0; i < remainingSlots; i++) {
+      slots.push({
+        index: existingCampaigns.length + i,
+        influenciador: '',
+        briefingCompleto: 'pendente',
+        dataHoraVisita: '',
+        quantidadeConvidados: '',
+        visitaConfirmado: 'pendente',
+        dataHoraPostagem: '',
+        videoAprovado: 'pendente',
+        videoPostado: 'pendente',
+        isExisting: false
+      });
     }
 
     console.log(`✅ API: ${slots.length} slots de criadores gerados`);

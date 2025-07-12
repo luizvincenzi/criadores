@@ -904,6 +904,95 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
   }
 }
 
+// Função para buscar dados brutos das campanhas (sem agrupamento)
+export async function getRawCampaignsData(): Promise<CampaignData[]> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      console.log('GOOGLE_SPREADSHEET_ID não configurado, usando dados mock');
+      return [];
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AE',
+    });
+
+    const values = response.data.values || [];
+
+    if (values.length <= 1) {
+      console.log('Aba Campanhas vazia ou só com cabeçalho');
+      return [];
+    }
+
+    // Mapear dados SEM agrupamento
+    const rawCampaigns: CampaignData[] = values.slice(1)
+      .filter(row => {
+        // Filtrar apenas linhas com business e influenciador válidos
+        const business = row[1] && row[1].trim();
+        const influenciador = row[2] && row[2].trim();
+        const mes = row[5] && row[5].trim();
+
+        return business && business !== '' && business !== '-' &&
+               influenciador && influenciador !== '' && influenciador !== '-' &&
+               mes && mes !== '' && mes !== '-';
+      })
+      .map((row, index) => ({
+        id: `raw-campaign-${index + 1}`,
+        campanha: row[0] || '',
+        business: row[1] || '',
+        influenciador: row[2] || '',
+        responsavel: row[3] || '',
+        status: row[4] || 'Ativa',
+        mes: row[5] || '',
+        fim: row[6] || '',
+        briefingCompleto: row[7] || '',
+        dataHoraVisita: row[8] || '',
+        quantidadeConvidados: row[9] || '',
+        visitaConfirmado: row[10] || '',
+        dataHoraPostagem: row[11] || '',
+        videoAprovado: row[12] || '',
+        videoPostado: row[13] || '',
+        linkVideoInstagram: row[14] || '',
+        notas: row[15] || '',
+        arquivo: row[16] || '',
+        avaliacaoRestaurante: row[17] || '',
+        avaliacaoInfluenciador: row[18] || '',
+        statusCalendario: row[19] || '',
+        column22: row[20] || '',
+        idEvento: row[21] || '',
+        formato: row[22] || '',
+        perfilCriador: row[23] || '',
+        objetivo: row[24] || '',
+        comunicacaoSecundaria: row[25] || '',
+        datasHorariosGravacao: row[26] || '',
+        oQuePrecisaSerFalado: row[27] || '',
+        promocaoCTA: row[28] || '',
+        column31: row[29] || '',
+        objetivo1: row[30] || '',
+        nome: row[0] || '',
+        dataInicio: row[8] || '',
+        dataFim: row[6] || '',
+        orcamento: 0,
+        criadores: row[2] || '',
+        descricao: row[15] || '',
+        resultados: row[17] || '',
+        observacoes: row[15] || ''
+      }));
+
+    console.log(`✅ ${rawCampaigns.length} campanhas brutas carregadas (sem agrupamento)`);
+    return rawCampaigns;
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar campanhas brutas:', error);
+    return [];
+  }
+}
+
 // Função para ordenar meses (mais recente primeiro)
 function getMonthOrder(month: string): number {
   const monthOrder: { [key: string]: number } = {
