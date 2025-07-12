@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createGoogleSheetsClient, logCreatorChanges } from '@/app/actions/sheetsActions';
+import { createGoogleSheetsClient, logCreatorChanges, findCreatorInCampaigns, generateCreatorUniqueId, logAction, logDetailedAction } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,77 +26,132 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Nenhuma campanha encontrada' });
     }
 
-    // Encontrar linhas que correspondem ao business e mês
+    // Processar cada criador individualmente com busca robusta
     const updates: any[] = [];
     let updatedCount = 0;
+    const processedCreators: string[] = [];
 
-    console.log(`🔍 Procurando campanhas para: Business="${businessName}", Mês="${mes}"`);
-    console.log(`📊 Total de linhas na planilha: ${values.length - 1}`);
+    console.log(`🔍 Processando ${creatorsData.length} criadores para: Business="${businessName}", Mês="${mes}"`);
 
-    for (let i = 1; i < values.length; i++) {
-      const row = values[i];
-      const campaignBusiness = row[1]; // Coluna B - Business
-      const campaignMes = row[5]; // Coluna F - Mês
-      const influenciador = row[2]; // Coluna C - Influenciador
+    for (const creatorData of creatorsData) {
+      if (!creatorData.influenciador) {
+        console.log(`⚠️ Criador sem nome de influenciador, pulando...`);
+        continue;
+      }
 
-      console.log(`📋 Linha ${i}: Business="${campaignBusiness}", Mês="${campaignMes}", Influenciador="${influenciador}"`);
+      const influenciador = creatorData.influenciador;
 
-      if (campaignBusiness?.toLowerCase() === businessName.toLowerCase() &&
-          campaignMes?.toLowerCase() === mes.toLowerCase()) {
+      // Evitar processar o mesmo criador múltiplas vezes
+      if (processedCreators.includes(influenciador)) {
+        console.log(`⚠️ Criador ${influenciador} já processado, pulando...`);
+        continue;
+      }
 
-        console.log(`✅ Match encontrado na linha ${i}!`);
-        
-        // Encontrar dados correspondentes do criador
-        const creatorData = creatorsData.find((creator: any) => 
-          creator.influenciador === influenciador
-        );
+      console.log(`🔄 Processando criador: ${influenciador}`);
 
-        if (creatorData) {
-          console.log(`🔄 Atualizando criador: ${influenciador}`);
+      // Usar função robusta para encontrar o criador
+      const creatorResult = await findCreatorInCampaigns(businessName, mes, influenciador);
 
-          // Registrar mudanças para audit_log
-          const changes: { [key: string]: { old: string; new: string } } = {};
+      if (!creatorResult || !creatorResult.found) {
+        console.log(`❌ Criador ${influenciador} não encontrado na planilha`);
 
-          // Verificar mudanças e preparar atualizações
-          const rowUpdates = [];
+        // Log de erro detalhado
+        await logDetailedAction({
+          action: 'creator_update_failed',
+          entity_type: 'creator',
+          entity_id: generateCreatorUniqueId({ business: businessName, mes, influenciador }),
+          entity_name: `${businessName}-${mes}-${influenciador}`,
+          user_id: user,
+          user_name: user,
+          business_context: businessName,
+          campaign_context: mes,
+          creator_context: influenciador,
+          old_value: '',
+          new_value: JSON.stringify(creatorData),
+          change_reason: 'creator_not_found_in_sheets',
+          validation_status: 'failed',
+          details: `Criador ${influenciador} não encontrado na planilha para ${businessName} - ${mes}`
+        });
 
-          if (creatorData.briefingCompleto !== undefined && row[7] !== creatorData.briefingCompleto) {
-            changes.briefingCompleto = { old: row[7] || '', new: creatorData.briefingCompleto };
-            rowUpdates.push({ range: `campanhas!H${i + 1}`, values: [[creatorData.briefingCompleto || '']] });
-          }
-          if (creatorData.dataHoraVisita !== undefined && row[8] !== creatorData.dataHoraVisita) {
-            changes.dataHoraVisita = { old: row[8] || '', new: creatorData.dataHoraVisita };
-            rowUpdates.push({ range: `campanhas!I${i + 1}`, values: [[creatorData.dataHoraVisita || '']] });
-          }
-          if (creatorData.quantidadeConvidados !== undefined && row[9] !== creatorData.quantidadeConvidados) {
-            changes.quantidadeConvidados = { old: row[9] || '', new: creatorData.quantidadeConvidados };
-            rowUpdates.push({ range: `campanhas!J${i + 1}`, values: [[creatorData.quantidadeConvidados || '']] });
-          }
-          if (creatorData.visitaConfirmada !== undefined && row[10] !== creatorData.visitaConfirmada) {
-            changes.visitaConfirmada = { old: row[10] || '', new: creatorData.visitaConfirmada };
-            rowUpdates.push({ range: `campanhas!K${i + 1}`, values: [[creatorData.visitaConfirmada || '']] });
-          }
-          if (creatorData.dataHoraPostagem !== undefined && row[11] !== creatorData.dataHoraPostagem) {
-            changes.dataHoraPostagem = { old: row[11] || '', new: creatorData.dataHoraPostagem };
-            rowUpdates.push({ range: `campanhas!L${i + 1}`, values: [[creatorData.dataHoraPostagem || '']] });
-          }
-          if (creatorData.videoAprovado !== undefined && row[12] !== creatorData.videoAprovado) {
-            changes.videoAprovado = { old: row[12] || '', new: creatorData.videoAprovado };
-            rowUpdates.push({ range: `campanhas!M${i + 1}`, values: [[creatorData.videoAprovado || '']] });
-          }
-          if (creatorData.videoPostado !== undefined && row[13] !== creatorData.videoPostado) {
-            changes.videoPostado = { old: row[13] || '', new: creatorData.videoPostado };
-            rowUpdates.push({ range: `campanhas!N${i + 1}`, values: [[creatorData.videoPostado || '']] });
-          }
+        continue;
+      }
 
-          // Registrar mudanças no audit_log se houver alterações
-          if (Object.keys(changes).length > 0) {
-            await logCreatorChanges(businessName, mes, influenciador, changes, user);
-          }
+      const { rowIndex, data } = creatorResult;
+      const row = data.fullRow;
 
-          updates.push(...rowUpdates);
-          updatedCount++;
+      console.log(`✅ Criador ${influenciador} encontrado na linha ${rowIndex}`);
+
+      // Registrar mudanças para audit_log
+      const changes: { [key: string]: { old: string; new: string } } = {};
+      const rowUpdates = [];
+
+      // Verificar e registrar cada mudança
+      const fieldsToUpdate = [
+        { key: 'briefingCompleto', column: 7, range: 'H' },
+        { key: 'dataHoraVisita', column: 8, range: 'I' },
+        { key: 'quantidadeConvidados', column: 9, range: 'J' },
+        { key: 'visitaConfirmada', column: 10, range: 'K' },
+        { key: 'dataHoraPostagem', column: 11, range: 'L' },
+        { key: 'videoAprovado', column: 12, range: 'M' },
+        { key: 'videoPostado', column: 13, range: 'N' }
+      ];
+
+      for (const field of fieldsToUpdate) {
+        const newValue = creatorData[field.key];
+        const oldValue = row[field.column] || '';
+
+        if (newValue !== undefined && oldValue !== newValue) {
+          changes[field.key] = { old: oldValue, new: newValue };
+          rowUpdates.push({
+            range: `campanhas!${field.range}${rowIndex + 1}`,
+            values: [[newValue || '']]
+          });
+
+          console.log(`📝 Campo ${field.key}: "${oldValue}" → "${newValue}"`);
         }
+      }
+
+      // Registrar mudanças no audit_log se houver alterações
+      if (Object.keys(changes).length > 0) {
+        // Log no audit_log tradicional
+        await logAction({
+          action: 'creator_data_updated',
+          entity_type: 'creator',
+          entity_id: generateCreatorUniqueId({ business: businessName, mes, influenciador }),
+          entity_name: `${businessName}-${mes}-${influenciador}`,
+          old_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.old]))),
+          new_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.new]))),
+          user_id: user,
+          user_name: user,
+          details: `Campos alterados: ${Object.keys(changes).join(', ')}`
+        });
+
+        // Log detalhado na nova aba
+        await logDetailedAction({
+          action: 'creator_data_updated',
+          entity_type: 'creator',
+          entity_id: generateCreatorUniqueId({ business: businessName, mes, influenciador }),
+          entity_name: `${businessName}-${mes}-${influenciador}`,
+          user_id: user,
+          user_name: user,
+          business_context: businessName,
+          campaign_context: mes,
+          creator_context: influenciador,
+          field_changed: Object.keys(changes).join(','),
+          old_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.old]))),
+          new_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.new]))),
+          change_reason: 'user_edit_via_modal',
+          validation_status: 'success',
+          details: `${Object.keys(changes).length} campos atualizados: ${Object.entries(changes).map(([k, v]) => `${k}: "${v.old}" → "${v.new}"`).join('; ')}`
+        });
+
+        updates.push(...rowUpdates);
+        updatedCount++;
+        processedCreators.push(influenciador);
+
+        console.log(`✅ ${Object.keys(changes).length} campos atualizados para ${influenciador}`);
+      } else {
+        console.log(`ℹ️ Nenhuma alteração detectada para ${influenciador}`);
       }
     }
 

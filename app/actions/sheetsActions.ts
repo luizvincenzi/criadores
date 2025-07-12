@@ -171,7 +171,7 @@ export async function getBusinessNames() {
   }
 }
 
-// Interface para log de auditoria
+// Interface para log de auditoria expandida
 export interface AuditLogEntry {
   id: string;
   timestamp: string;
@@ -186,6 +186,15 @@ export interface AuditLogEntry {
   user_id: string;
   user_name: string;
   details?: string;
+  session_id?: string;
+  ip_address?: string;
+  user_agent?: string;
+  business_context?: string;
+  campaign_context?: string;
+  creator_context?: string;
+  field_changed?: string;
+  change_reason?: string;
+  validation_status?: string;
 }
 
 // Função para registrar ação na aba de auditoria
@@ -999,6 +1008,84 @@ export async function getRawCampaignsData(): Promise<CampaignData[]> {
   }
 }
 
+// Função para gerar ID único de criador baseado em múltiplos campos
+export function generateCreatorUniqueId(creatorData: any): string {
+  const business = creatorData.business || '';
+  const mes = creatorData.mes || '';
+  const influenciador = creatorData.influenciador || '';
+  const responsavel = creatorData.responsavel || '';
+
+  // Criar ID único baseado em business + mês + influenciador
+  const baseId = `${business}_${mes}_${influenciador}`.toLowerCase()
+    .replace(/[^a-z0-9]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+
+  return `creator_${baseId}`;
+}
+
+// Função para encontrar criador na planilha com múltiplos critérios
+export async function findCreatorInCampaigns(
+  businessName: string,
+  mes: string,
+  influenciador: string,
+  rowIndex?: number
+): Promise<{ found: boolean; rowIndex: number; data: any } | null> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      return null;
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AE',
+    });
+
+    const values = response.data.values || [];
+
+    console.log(`🔍 Procurando criador: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const campaignBusiness = row[1]; // Coluna B - Business
+      const campaignMes = row[5]; // Coluna F - Mês
+      const campaignInfluenciador = row[2]; // Coluna C - Influenciador
+
+      // Múltiplos critérios de matching
+      const businessMatch = campaignBusiness?.toLowerCase().trim() === businessName?.toLowerCase().trim();
+      const mesMatch = campaignMes?.toLowerCase().trim() === mes?.toLowerCase().trim();
+      const influenciadorMatch = campaignInfluenciador?.toLowerCase().trim() === influenciador?.toLowerCase().trim();
+
+      console.log(`📋 Linha ${i}: Business="${campaignBusiness}" (${businessMatch}), Mês="${campaignMes}" (${mesMatch}), Influenciador="${campaignInfluenciador}" (${influenciadorMatch})`);
+
+      if (businessMatch && mesMatch && influenciadorMatch) {
+        console.log(`✅ Criador encontrado na linha ${i}!`);
+        return {
+          found: true,
+          rowIndex: i,
+          data: {
+            business: campaignBusiness,
+            mes: campaignMes,
+            influenciador: campaignInfluenciador,
+            fullRow: row
+          }
+        };
+      }
+    }
+
+    console.log(`❌ Criador não encontrado: ${businessName} - ${mes} - ${influenciador}`);
+    return { found: false, rowIndex: -1, data: null };
+
+  } catch (error) {
+    console.error('❌ Erro ao procurar criador:', error);
+    return null;
+  }
+}
+
 // Função para buscar status mais recentes das campanhas do audit_log
 export async function getLatestCampaignStatuses(): Promise<{ [key: string]: string }> {
   try {
@@ -1147,6 +1234,146 @@ export async function logCreatorChanges(
   } catch (error) {
     console.error('❌ Erro ao registrar alterações do criador no audit_log:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
+// Função para criar/verificar aba de logs detalhados
+export async function ensureDetailedLogsSheet(): Promise<boolean> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      return false;
+    }
+
+    // Verificar se a aba já existe
+    const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+    const sheetExists = spreadsheet.data.sheets?.some(sheet =>
+      sheet.properties?.title === 'Detailed_Logs'
+    );
+
+    if (!sheetExists) {
+      // Criar nova aba
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [{
+            addSheet: {
+              properties: {
+                title: 'Detailed_Logs',
+                gridProperties: {
+                  rowCount: 1000,
+                  columnCount: 20
+                }
+              }
+            }
+          }]
+        }
+      });
+
+      // Adicionar cabeçalhos
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'Detailed_Logs!A1:T1',
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [[
+            'ID', 'Timestamp', 'Action', 'Entity_Type', 'Entity_ID', 'Entity_Name',
+            'User_ID', 'User_Name', 'Business_Context', 'Campaign_Context',
+            'Creator_Context', 'Field_Changed', 'Old_Value', 'New_Value',
+            'Change_Reason', 'Validation_Status', 'Session_ID', 'IP_Address',
+            'User_Agent', 'Details'
+          ]]
+        }
+      });
+
+      console.log('✅ Aba Detailed_Logs criada com sucesso');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao criar aba Detailed_Logs:', error);
+    return false;
+  }
+}
+
+// Função para registrar log detalhado
+export async function logDetailedAction(actionData: {
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  entity_name: string;
+  user_id: string;
+  user_name: string;
+  business_context?: string;
+  campaign_context?: string;
+  creator_context?: string;
+  field_changed?: string;
+  old_value?: string;
+  new_value?: string;
+  change_reason?: string;
+  validation_status?: string;
+  session_id?: string;
+  ip_address?: string;
+  user_agent?: string;
+  details?: string;
+}): Promise<boolean> {
+  try {
+    // Garantir que a aba existe
+    await ensureDetailedLogsSheet();
+
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      return false;
+    }
+
+    const logEntry = {
+      id: `detailed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+      ...actionData
+    };
+
+    const values = [[
+      logEntry.id,
+      logEntry.timestamp,
+      logEntry.action,
+      logEntry.entity_type,
+      logEntry.entity_id,
+      logEntry.entity_name,
+      logEntry.user_id,
+      logEntry.user_name,
+      logEntry.business_context || '',
+      logEntry.campaign_context || '',
+      logEntry.creator_context || '',
+      logEntry.field_changed || '',
+      logEntry.old_value || '',
+      logEntry.new_value || '',
+      logEntry.change_reason || '',
+      logEntry.validation_status || '',
+      logEntry.session_id || '',
+      logEntry.ip_address || '',
+      logEntry.user_agent || '',
+      logEntry.details || ''
+    ]];
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Detailed_Logs!A:T',
+      valueInputOption: 'RAW',
+      requestBody: { values }
+    });
+
+    console.log(`✅ Log detalhado registrado: ${logEntry.action} - ${logEntry.entity_name}`);
+    return true;
+
+  } catch (error) {
+    console.error('❌ Erro ao registrar log detalhado:', error);
+    return false;
   }
 }
 
