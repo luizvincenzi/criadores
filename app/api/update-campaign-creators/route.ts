@@ -44,18 +44,19 @@ export async function POST(request: NextRequest) {
     console.log(`📋 DEBUG: Cabeçalho: ${headers.slice(0, 10).join(', ')}`);
     console.log(`📊 DEBUG: Total de linhas na planilha: ${values.length - 1}`);
 
-    // Definir índices das colunas baseado na estrutura
-    let businessCol, influenciadorCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
+    // Definir índices das colunas baseado na estrutura REAL descoberta
+    let campanhaCol, businessCol, influenciadorCol, responsavelCol, statusCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
 
     if (hasIdColumn) {
-      // Estrutura atual: A=Campaign_ID, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM
-      // Mas baseado nos dados, parece que:
-      // A=Campaign_ID, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM
-      // Vamos usar a estrutura real observada:
-      businessCol = 1; // B = Business (mas na verdade é o nome da campanha/business)
-      influenciadorCol = 2; // C = Influenciador
-      mesCol = 5; // F = Mês
-      // Para os campos de edição, vamos assumir que estão nas colunas seguintes
+      // ESTRUTURA REAL DESCOBERTA:
+      // A=Campaign_ID, B=Campanha, C=Business(INFLUENCIADOR), D=Influenciador(RESPONSÁVEL), E=Responsável(STATUS), F=Status(MÊS), G=Mês(DATA_FIM)
+      campanhaCol = 1; // B = Campanha (ex: "Boussolé")
+      businessCol = 1; // B = Campanha (nome do business)
+      influenciadorCol = 2; // C = Business (na verdade é o INFLUENCIADOR)
+      responsavelCol = 3; // D = Influenciador (na verdade é o RESPONSÁVEL)
+      statusCol = 4; // E = Responsável (na verdade é o STATUS)
+      mesCol = 5; // F = Status (na verdade é o MÊS)
+      // Campos de edição
       briefingCol = 7; // H
       dataVisitaCol = 8; // I
       qtdConvidadosCol = 9; // J
@@ -64,17 +65,20 @@ export async function POST(request: NextRequest) {
       videoAprovadoCol = 12; // M
       videoPostadoCol = 13; // N
     } else {
-      // Estrutura antiga sem ID
-      businessCol = 1; // B
-      influenciadorCol = 2; // C
-      mesCol = 5; // F
-      briefingCol = 7; // H
-      dataVisitaCol = 8; // I
-      qtdConvidadosCol = 9; // J
-      visitaConfirmadaCol = 10; // K
-      dataPostagemCol = 11; // L
-      videoAprovadoCol = 12; // M
-      videoPostadoCol = 13; // N
+      // Estrutura antiga sem ID (ajustar se necessário)
+      campanhaCol = 0; // A
+      businessCol = 0; // A
+      influenciadorCol = 1; // B
+      responsavelCol = 2; // C
+      statusCol = 3; // D
+      mesCol = 4; // E
+      briefingCol = 6; // G
+      dataVisitaCol = 7; // H
+      qtdConvidadosCol = 8; // I
+      visitaConfirmadaCol = 9; // J
+      dataPostagemCol = 10; // K
+      videoAprovadoCol = 11; // L
+      videoPostadoCol = 12; // M
     }
 
     // Processar cada criador individualmente com busca robusta
@@ -106,30 +110,30 @@ export async function POST(request: NextRequest) {
       console.log(`🔍 DEBUG: Buscando criador: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
       console.log(`🔍 DEBUG: Usando colunas: businessCol=${businessCol}, influenciadorCol=${influenciadorCol}, mesCol=${mesCol}`);
 
-      // Buscar linha por linha
+      // Buscar linha por linha com estrutura correta
       let foundAnyMatch = false;
-      for (let i = 1; i < Math.min(values.length, 10); i++) { // Limitar a 10 linhas para debug
+      for (let i = 1; i < Math.min(values.length, 20); i++) { // Aumentar para 20 linhas
         const row = values[i];
-        const rowBusiness = row[businessCol] || '';
-        const rowInfluenciador = row[influenciadorCol] || '';
-        const rowMes = row[mesCol] || '';
+        const rowCampanha = row[campanhaCol] || ''; // Nome da campanha/business
+        const rowInfluenciador = row[influenciadorCol] || ''; // Nome do influenciador
+        const rowMes = row[mesCol] || ''; // Mês
 
-        console.log(`📋 DEBUG: Linha ${i}: Business="${rowBusiness}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
+        console.log(`📋 DEBUG: Linha ${i}: Campanha="${rowCampanha}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
 
-        // Comparação flexível
-        const businessMatch = rowBusiness.toLowerCase().trim() === businessName.toLowerCase().trim();
+        // Comparação flexível - buscar por campanha + influenciador + mês
+        const campanhaMatch = rowCampanha.toLowerCase().trim() === businessName.toLowerCase().trim();
         const influenciadorMatch = rowInfluenciador.toLowerCase().trim() === influenciador.toLowerCase().trim();
         const mesMatch = rowMes.toLowerCase().trim() === mes.toLowerCase().trim();
 
-        console.log(`🔍 DEBUG: Matches - Business: ${businessMatch}, Influenciador: ${influenciadorMatch}, Mês: ${mesMatch}`);
+        console.log(`🔍 DEBUG: Matches - Campanha: ${campanhaMatch}, Influenciador: ${influenciadorMatch}, Mês: ${mesMatch}`);
 
-        if (businessMatch && influenciadorMatch && mesMatch) {
+        if (campanhaMatch && influenciadorMatch && mesMatch) {
           console.log(`✅ DEBUG: Criador encontrado na linha ${i}!`);
           creatorResult = {
             found: true,
             rowIndex: i,
             data: {
-              business: rowBusiness,
+              business: rowCampanha,
               influenciador: rowInfluenciador,
               mes: rowMes,
               fullRow: row

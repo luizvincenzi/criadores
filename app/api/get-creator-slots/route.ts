@@ -44,14 +44,19 @@ export async function POST(request: NextRequest) {
     console.log(`📊 Estrutura da planilha: ${hasIdColumn ? 'COM' : 'SEM'} coluna ID`);
     console.log(`📋 Cabeçalho: ${headers.slice(0, 7).join(', ')}`);
 
-    // Definir índices das colunas baseado na estrutura real
-    let businessCol, influenciadorCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
+    // Definir índices das colunas baseado na estrutura REAL descoberta
+    let campanhaCol, businessCol, influenciadorCol, responsavelCol, statusCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
 
     if (hasIdColumn) {
-      // Estrutura atual: A=Campaign_ID, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM
-      businessCol = 1; // B = Business
-      influenciadorCol = 2; // C = Influenciador
-      mesCol = 5; // F = Mês
+      // ESTRUTURA REAL DESCOBERTA:
+      // A=Campaign_ID, B=Campanha, C=Business(INFLUENCIADOR), D=Influenciador(RESPONSÁVEL), E=Responsável(STATUS), F=Status(MÊS), G=Mês(DATA_FIM)
+      campanhaCol = 1; // B = Campanha (ex: "Boussolé")
+      businessCol = 1; // B = Campanha (nome do business)
+      influenciadorCol = 2; // C = Business (na verdade é o INFLUENCIADOR)
+      responsavelCol = 3; // D = Influenciador (na verdade é o RESPONSÁVEL)
+      statusCol = 4; // E = Responsável (na verdade é o STATUS)
+      mesCol = 5; // F = Status (na verdade é o MÊS)
+      // Campos de edição
       briefingCol = 7; // H
       dataVisitaCol = 8; // I
       qtdConvidadosCol = 9; // J
@@ -60,17 +65,20 @@ export async function POST(request: NextRequest) {
       videoAprovadoCol = 12; // M
       videoPostadoCol = 13; // N
     } else {
-      // Estrutura antiga sem ID
-      businessCol = 1; // B
-      influenciadorCol = 2; // C
-      mesCol = 5; // F
-      briefingCol = 7; // H
-      dataVisitaCol = 8; // I
-      qtdConvidadosCol = 9; // J
-      visitaConfirmadaCol = 10; // K
-      dataPostagemCol = 11; // L
-      videoAprovadoCol = 12; // M
-      videoPostadoCol = 13; // N
+      // Estrutura antiga sem ID (ajustar se necessário)
+      campanhaCol = 0; // A
+      businessCol = 0; // A
+      influenciadorCol = 1; // B
+      responsavelCol = 2; // C
+      statusCol = 3; // D
+      mesCol = 4; // E
+      briefingCol = 6; // G
+      dataVisitaCol = 7; // H
+      qtdConvidadosCol = 8; // I
+      visitaConfirmadaCol = 9; // J
+      dataPostagemCol = 10; // K
+      videoAprovadoCol = 11; // L
+      videoPostadoCol = 12; // M
     }
 
     // Buscar campanhas existentes para este business/mês
@@ -78,24 +86,24 @@ export async function POST(request: NextRequest) {
 
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
-      const rowBusiness = row[businessCol] || '';
-      const rowInfluenciador = row[influenciadorCol] || '';
-      const rowMes = row[mesCol] || '';
+      const rowCampanha = row[campanhaCol] || ''; // Nome da campanha/business
+      const rowInfluenciador = row[influenciadorCol] || ''; // Nome do influenciador
+      const rowMes = row[mesCol] || ''; // Mês
 
-      console.log(`📋 Linha ${i}: Business="${rowBusiness}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
+      console.log(`📋 Linha ${i}: Campanha="${rowCampanha}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
 
-      // Comparação flexível
-      const businessMatch = rowBusiness.toLowerCase().trim() === businessName.toLowerCase().trim();
+      // Comparação flexível - buscar por campanha + mês
+      const campanhaMatch = rowCampanha.toLowerCase().trim() === businessName.toLowerCase().trim();
       const mesMatch = rowMes.toLowerCase().trim() === mes.toLowerCase().trim();
 
-      if (businessMatch && mesMatch && rowInfluenciador.trim() !== '') {
+      if (campanhaMatch && mesMatch && rowInfluenciador.trim() !== '') {
         console.log(`✅ Campanha encontrada na linha ${i}: ${rowInfluenciador}`);
         existingCampaigns.push({
           influenciador: rowInfluenciador,
           briefingCompleto: row[briefingCol] || '',
           dataHoraVisita: row[dataVisitaCol] || '',
           quantidadeConvidados: row[qtdConvidadosCol] || '',
-          visitaConfirmado: row[visitaConfirmadaCol] || '',
+          visitaConfirmada: row[visitaConfirmadaCol] || '', // Corrigido nome do campo
           dataHoraPostagem: row[dataPostagemCol] || '',
           videoAprovado: row[videoAprovadoCol] || '',
           videoPostado: row[videoPostadoCol] || '',
