@@ -1353,6 +1353,39 @@ export async function updateUserLastLogin(userId: string): Promise<boolean> {
   }
 }
 
+// Função para adicionar entrada simples ao audit log (compatibilidade)
+export async function addToAuditLog(auditData: any[]): Promise<void> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      throw new Error('GOOGLE_SPREADSHEET_ID não configurado');
+    }
+
+    console.log('📝 Adicionando entrada ao audit log...');
+    console.log('📊 Dados do audit:', auditData);
+
+    // Adiciona diretamente à planilha
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Audit_Log!A:M',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [auditData]
+      }
+    });
+
+    console.log('✅ Entrada adicionada ao audit log:', response.data);
+
+  } catch (error) {
+    console.error('❌ Erro ao adicionar ao audit log:', error);
+    throw error;
+  }
+}
+
 // Função para adicionar nova campanha ao Google Sheets
 export async function addCampaignToSheet(campaignData: any[]): Promise<void> {
   try {
@@ -1380,20 +1413,21 @@ export async function addCampaignToSheet(campaignData: any[]): Promise<void> {
     console.log('✅ Campanha adicionada com sucesso:', response.data);
 
     // Adicionar ao audit log
+    // Estrutura: A=ID, B=Timestamp, C=Action, D=Entity_Type, E=Entity_ID, F=Entity_Name, G=Old_Value, H=New_Value, I=Old_Value_Status, J=New_Value_Status, K=User_ID, L=User_Name, M=Details
     const auditData = [
-      new Date().toISOString(),
-      'CAMPAIGN_ADDED',
-      campaignData[0], // Nome da campanha
-      '',
-      'Nova campanha adicionada',
-      'Sistema',
-      JSON.stringify({
-        campanha: campaignData[0],
-        business: campaignData[1],
-        influenciador: campaignData[2],
-        responsavel: campaignData[3],
-        status: campaignData[4]
-      })
+      `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // A = ID
+      new Date().toISOString(),                                             // B = Timestamp
+      'campaign_created',                                                   // C = Action
+      'campaign',                                                           // D = Entity_Type
+      `campaign_${Date.now()}`,                                             // E = Entity_ID
+      campaignData[0],                                                      // F = Entity_Name (Nome da campanha)
+      '',                                                                   // G = Old_Value
+      '',                                                                   // H = New_Value
+      '',                                                                   // I = Old_Value_Status
+      campaignData[4] || '',                                                // J = New_Value_Status (Status da campanha)
+      'system',                                                             // K = User_ID
+      'Sistema',                                                            // L = User_Name
+      `Nova campanha "${campaignData[0]}" criada para business "${campaignData[1]}" com influenciador "${campaignData[2]}"` // M = Details
     ];
 
     await addToAuditLog(auditData);
