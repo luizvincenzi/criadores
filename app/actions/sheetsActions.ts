@@ -1067,43 +1067,6 @@ export async function getRawCampaignsData(): Promise<CampaignData[]> {
           };
         }
       });
-        responsavel: row[3] || '',
-        status: row[4] || 'Ativa',
-        mes: row[5] || '',
-        fim: row[6] || '',
-        briefingCompleto: row[7] || '',
-        dataHoraVisita: row[8] || '',
-        quantidadeConvidados: row[9] || '',
-        visitaConfirmado: row[10] || '',
-        dataHoraPostagem: row[11] || '',
-        videoAprovado: row[12] || '',
-        videoPostado: row[13] || '',
-        linkVideoInstagram: row[14] || '',
-        notas: row[15] || '',
-        arquivo: row[16] || '',
-        avaliacaoRestaurante: row[17] || '',
-        avaliacaoInfluenciador: row[18] || '',
-        statusCalendario: row[19] || '',
-        column22: row[20] || '',
-        idEvento: row[21] || '',
-        formato: row[22] || '',
-        perfilCriador: row[23] || '',
-        objetivo: row[24] || '',
-        comunicacaoSecundaria: row[25] || '',
-        datasHorariosGravacao: row[26] || '',
-        oQuePrecisaSerFalado: row[27] || '',
-        promocaoCTA: row[28] || '',
-        column31: row[29] || '',
-        objetivo1: row[30] || '',
-        nome: row[0] || '',
-        dataInicio: row[8] || '',
-        dataFim: row[6] || '',
-        orcamento: 0,
-        criadores: row[2] || '',
-        descricao: row[15] || '',
-        resultados: row[17] || '',
-        observacoes: row[15] || ''
-      }));
 
     console.log(`✅ ${rawCampaigns.length} campanhas brutas carregadas (sem agrupamento)`);
     return rawCampaigns;
@@ -1233,13 +1196,18 @@ export async function ensureCampaignUniqueIds(): Promise<boolean> {
 }
 
 // Função para gerar ID único para nova campanha
-export function generateNewCampaignId(business: string, mes: string, influenciador: string): string {
+function generateNewCampaignId(business: string, mes: string, influenciador: string): string {
   const timestamp = Date.now();
   const businessClean = business.toLowerCase().replace(/[^a-z0-9]/g, '');
   const mesClean = mes.toLowerCase().replace(/[^a-z0-9]/g, '');
   const influenciadorClean = influenciador.toLowerCase().replace(/[^a-z0-9]/g, '');
 
   return `camp_${timestamp}_${businessClean}_${mesClean}_${influenciadorClean}`.substring(0, 50);
+}
+
+// Função helper async para gerar ID de campanha (para uso em APIs)
+export async function createNewCampaignId(business: string, mes: string, influenciador: string): Promise<string> {
+  return generateNewCampaignId(business, mes, influenciador);
 }
 
 // Função para encontrar campanha por ID único
