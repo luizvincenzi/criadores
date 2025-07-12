@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
-import { Business } from '@/store/businessStore';
+import React, { useState } from 'react';
+import { Business, useBusinessStore } from '@/store/businessStore';
+import { useAuthStore } from '@/store/authStore';
 import Button from './ui/Button';
 
 interface BusinessModalProps {
@@ -11,7 +12,26 @@ interface BusinessModalProps {
 }
 
 export default function BusinessModal({ business, isOpen, onClose }: BusinessModalProps) {
+  const { moveBusinessStage } = useBusinessStore();
+  const { user } = useAuthStore();
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(business?.journeyStage || '');
+
+  // Atualizar o status local quando o business mudar
+  React.useEffect(() => {
+    if (business) {
+      setCurrentStatus(business.journeyStage);
+    }
+  }, [business]);
+
   if (!isOpen || !business) return null;
+
+  // Opções de status do Kanban
+  const statusOptions = [
+    { value: 'Reunião Briefing', label: 'Reunião Briefing', icon: '📋', color: 'bg-blue-100 text-blue-800' },
+    { value: 'Agendamentos', label: 'Agendamentos', icon: '📅', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'Entrega Final', label: 'Entrega Final', icon: '✅', color: 'bg-green-100 text-green-800' }
+  ];
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -39,6 +59,56 @@ export default function BusinessModal({ business, isOpen, onClose }: BusinessMod
     if (whatsappLink) {
       window.open(whatsappLink, '_blank');
     }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (newStatus === currentStatus || isUpdatingStatus) return;
+
+    setIsUpdatingStatus(true);
+
+    try {
+      console.log(`🔄 Atualizando status de "${business.businessName}": ${currentStatus} → ${newStatus}`);
+
+      // Atualizar via API (audit log)
+      const response = await fetch('/api/update-business-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName: business.businessName,
+          oldStatus: currentStatus,
+          newStatus: newStatus,
+          user: user?.email || 'Sistema'
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Status atualizado no audit log');
+
+        // Atualizar no store local (Kanban)
+        moveBusinessStage(business.id, newStatus as Business['journeyStage']);
+
+        // Atualizar estado local
+        setCurrentStatus(newStatus);
+
+        console.log('✅ Status atualizado no Kanban');
+      } else {
+        console.error('❌ Erro ao atualizar status:', result.error);
+        alert(`Erro ao atualizar status: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao atualizar status:', error);
+      alert('Erro ao atualizar status. Tente novamente.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const getStatusOption = (status: string) => {
+    return statusOptions.find(option => option.value === status) || statusOptions[0];
   };
 
   return (
@@ -76,13 +146,48 @@ export default function BusinessModal({ business, isOpen, onClose }: BusinessMod
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
                 {business.businessName}
               </h3>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 mb-4">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                   {business.categoria || 'Sem categoria'}
                 </span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                  {business.journeyStage}
-                </span>
+              </div>
+
+              {/* Status Editável */}
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Status da Jornada
+                </label>
+                <div className="flex items-center space-x-3">
+                  <select
+                    value={currentStatus}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    disabled={isUpdatingStatus}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed bg-white"
+                  >
+                    {statusOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.icon} {option.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Badge visual do status atual */}
+                  <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium ${getStatusOption(currentStatus).color} border`}>
+                    <span className="mr-2">{getStatusOption(currentStatus).icon}</span>
+                    {getStatusOption(currentStatus).label}
+                  </span>
+
+                  {isUpdatingStatus && (
+                    <div className="flex items-center text-blue-600">
+                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <span className="text-sm">Atualizando...</span>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 Alterar o status aqui atualiza automaticamente o Kanban e o audit log
+                </p>
               </div>
             </div>
 
