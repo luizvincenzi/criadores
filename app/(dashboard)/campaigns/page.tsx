@@ -41,6 +41,48 @@ export default function CampaignsPage() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'ativa':
+      case 'ativo':
+        return 'bg-green-50 text-green-700 border-green-200';
+      case 'pausada':
+      case 'pausado':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'finalizada':
+      case 'finalizado':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'cancelada':
+      case 'cancelado':
+        return 'bg-red-50 text-red-700 border-red-200';
+      case 'planejamento':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'ativa':
+      case 'ativo':
+        return '🟢';
+      case 'pausada':
+      case 'pausado':
+        return '⏸️';
+      case 'finalizada':
+      case 'finalizado':
+        return '✅';
+      case 'cancelada':
+      case 'cancelado':
+        return '❌';
+      case 'planejamento':
+        return '📋';
+      default:
+        return '📄';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'ativa':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'pausada':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -249,6 +291,9 @@ export default function CampaignsPage() {
                   Mês
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Qtd. Criadores Contratados
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -278,6 +323,12 @@ export default function CampaignsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       {group.mes}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(group.status)}`}>
+                      <span className="mr-1">{getStatusIcon(group.status)}</span>
+                      {group.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

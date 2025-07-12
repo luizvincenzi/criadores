@@ -706,6 +706,7 @@ export interface GroupedCampaignData {
   id: string;
   businessName: string;
   mes: string;
+  status: string;
   quantidadeCriadores: number;
   criadores: string[];
   campanhas: CampaignData[];
@@ -891,6 +892,16 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
   }
 }
 
+// Função para ordenar meses (mais recente primeiro)
+function getMonthOrder(month: string): number {
+  const monthOrder: { [key: string]: number } = {
+    'dezembro': 0, 'novembro': 1, 'outubro': 2, 'setembro': 3,
+    'agosto': 4, 'julho': 5, 'junho': 6, 'maio': 7,
+    'abril': 8, 'março': 9, 'fevereiro': 10, 'janeiro': 11
+  };
+  return monthOrder[month.toLowerCase()] ?? 99;
+}
+
 // Função para buscar campanhas agrupadas por business e mês
 export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> {
   try {
@@ -912,6 +923,7 @@ export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> 
     campaignsData.forEach(campaign => {
       const businessName = campaign.business || campaign.nome;
       const mes = campaign.mes;
+      const status = campaign.status; // Status da coluna E
 
       if (!businessName || !mes) return;
 
@@ -927,6 +939,7 @@ export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> 
           id: groupKey,
           businessName: businessName,
           mes: mes,
+          status: status || 'Não definido',
           quantidadeCriadores: quantidadeCriadores,
           criadores: [],
           campanhas: [],
@@ -935,6 +948,11 @@ export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> 
       }
 
       const group = groupedMap.get(groupKey)!;
+
+      // Atualizar status se necessário (usar o mais recente)
+      if (status && status !== 'Não definido') {
+        group.status = status;
+      }
 
       // Adicionar campanha ao grupo
       group.campanhas.push(campaign);
@@ -947,13 +965,15 @@ export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> 
     });
 
     const result = Array.from(groupedMap.values()).sort((a, b) => {
-      // Ordenar por business name e depois por mês
-      const businessCompare = a.businessName.localeCompare(b.businessName);
-      if (businessCompare !== 0) return businessCompare;
-      return a.mes.localeCompare(b.mes);
+      // Primeiro ordenar por mês (mais recente primeiro)
+      const monthCompare = getMonthOrder(a.mes) - getMonthOrder(b.mes);
+      if (monthCompare !== 0) return monthCompare;
+
+      // Depois ordenar por business name
+      return a.businessName.localeCompare(b.businessName);
     });
 
-    console.log(`✅ ${result.length} campanhas agrupadas por business e mês`);
+    console.log(`✅ ${result.length} campanhas agrupadas por business e mês (ordenadas por mês mais recente)`);
     return result;
 
   } catch (error) {
