@@ -30,14 +30,21 @@ export async function POST(request: NextRequest) {
     const updates: any[] = [];
     let updatedCount = 0;
 
+    console.log(`🔍 Procurando campanhas para: Business="${businessName}", Mês="${mes}"`);
+    console.log(`📊 Total de linhas na planilha: ${values.length - 1}`);
+
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
       const campaignBusiness = row[1]; // Coluna B - Business
-      const campaignMes = row[6]; // Coluna G - Mês
+      const campaignMes = row[5]; // Coluna F - Mês
       const influenciador = row[2]; // Coluna C - Influenciador
-      
-      if (campaignBusiness?.toLowerCase() === businessName.toLowerCase() && 
+
+      console.log(`📋 Linha ${i}: Business="${campaignBusiness}", Mês="${campaignMes}", Influenciador="${influenciador}"`);
+
+      if (campaignBusiness?.toLowerCase() === businessName.toLowerCase() &&
           campaignMes?.toLowerCase() === mes.toLowerCase()) {
+
+        console.log(`✅ Match encontrado na linha ${i}!`);
         
         // Encontrar dados correspondentes do criador
         const creatorData = creatorsData.find((creator: any) => 
