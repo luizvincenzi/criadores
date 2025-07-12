@@ -1,19 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getCampaignsData, CampaignData } from '@/app/actions/sheetsActions';
-import CampaignModal from '@/components/CampaignModal';
+import { getGroupedCampaignsData, GroupedCampaignData } from '@/app/actions/sheetsActions';
+import CampaignGroupModal from '@/components/CampaignGroupModal';
 import AddCampaignModal from '@/components/AddCampaignModal';
 import Button from '@/components/ui/Button';
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
+  const [groupedCampaigns, setGroupedCampaigns] = useState<GroupedCampaignData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCampaign, setSelectedCampaign] = useState<CampaignData | null>(null);
+  const [selectedCampaignGroup, setSelectedCampaignGroup] = useState<GroupedCampaignData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
 
   useEffect(() => {
     loadCampaigns();
@@ -22,10 +22,10 @@ export default function CampaignsPage() {
   const loadCampaigns = async () => {
     setIsLoading(true);
     try {
-      const data = await getCampaignsData();
-      setCampaigns(data);
+      const data = await getGroupedCampaignsData();
+      setGroupedCampaigns(data);
     } catch (error) {
-      console.error('Erro ao carregar campanhas:', error);
+      console.error('Erro ao carregar campanhas agrupadas:', error);
     } finally {
       setIsLoading(false);
     }
@@ -53,13 +53,13 @@ export default function CampaignsPage() {
     }
   };
 
-  const openModal = (campaign: CampaignData) => {
-    setSelectedCampaign(campaign);
+  const openModal = (campaignGroup: GroupedCampaignData) => {
+    setSelectedCampaignGroup(campaignGroup);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setSelectedCampaign(null);
+    setSelectedCampaignGroup(null);
     setIsModalOpen(false);
   };
 
@@ -85,24 +85,23 @@ export default function CampaignsPage() {
     }
   };
 
-  // Filtrar campanhas
-  const filteredCampaigns = campaigns.filter(campaign => {
-    const matchesSearch = campaign.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         campaign.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         campaign.criadores.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || campaign.status.toLowerCase() === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+  // Filtrar campanhas agrupadas
+  const filteredCampaigns = groupedCampaigns.filter(group => {
+    const matchesSearch = group.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         group.criadores.some(criador => criador.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesMonth = monthFilter === 'all' || group.mes.toLowerCase().includes(monthFilter.toLowerCase());
+
+    return matchesSearch && matchesMonth;
   });
 
   // Estatísticas
   const stats = {
-    total: campaigns.length,
-    ativas: campaigns.filter(c => c.status.toLowerCase() === 'ativa').length,
-    pausadas: campaigns.filter(c => c.status.toLowerCase() === 'pausada').length,
-    finalizadas: campaigns.filter(c => c.status.toLowerCase() === 'finalizada').length,
-    orcamentoTotal: campaigns.reduce((acc, c) => acc + c.orcamento, 0)
+    totalBusinesses: groupedCampaigns.length,
+    totalCampaigns: groupedCampaigns.reduce((acc, group) => acc + group.totalCampanhas, 0),
+    totalCreators: groupedCampaigns.reduce((acc, group) => acc + group.quantidadeCriadores, 0),
+    uniqueCreators: new Set(groupedCampaigns.flatMap(group => group.criadores)).size,
+    monthsActive: new Set(groupedCampaigns.map(group => group.mes)).size
   };
 
   if (isLoading) {
@@ -121,9 +120,9 @@ export default function CampaignsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 mb-1">Campanhas</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-1">Campanhas por Business</h1>
           <p className="text-sm text-gray-600">
-            {filteredCampaigns.length} campanhas encontradas
+            {filteredCampaigns.length} negócios com campanhas ativas
           </p>
         </div>
         <div className="flex space-x-2">
@@ -153,50 +152,50 @@ export default function CampaignsPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-sm text-gray-600">Negócios</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalBusinesses}</p>
             </div>
-            <div className="text-2xl">📊</div>
+            <div className="text-2xl">🏢</div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Ativas</p>
-              <p className="text-2xl font-bold text-green-600">{stats.ativas}</p>
+              <p className="text-sm text-gray-600">Campanhas</p>
+              <p className="text-2xl font-bold text-blue-600">{stats.totalCampaigns}</p>
             </div>
-            <div className="text-2xl">🟢</div>
+            <div className="text-2xl">📹</div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Pausadas</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pausadas}</p>
+              <p className="text-sm text-gray-600">Criadores Contratados</p>
+              <p className="text-2xl font-bold text-green-600">{stats.totalCreators}</p>
             </div>
-            <div className="text-2xl">⏸️</div>
+            <div className="text-2xl">👥</div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Finalizadas</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.finalizadas}</p>
+              <p className="text-sm text-gray-600">Criadores Únicos</p>
+              <p className="text-2xl font-bold text-purple-600">{stats.uniqueCreators}</p>
             </div>
-            <div className="text-2xl">✅</div>
+            <div className="text-2xl">⭐</div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Orçamento Total</p>
-              <p className="text-2xl font-bold text-purple-600">{formatCurrency(stats.orcamentoTotal)}</p>
+              <p className="text-sm text-gray-600">Meses Ativos</p>
+              <p className="text-2xl font-bold text-orange-600">{stats.monthsActive}</p>
             </div>
-            <div className="text-2xl">💰</div>
+            <div className="text-2xl">📅</div>
           </div>
         </div>
       </div>
@@ -207,7 +206,7 @@ export default function CampaignsPage() {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Buscar por nome, descrição ou criadores..."
+              placeholder="Buscar por nome do negócio ou criadores..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -215,43 +214,48 @@ export default function CampaignsPage() {
           </div>
           <div>
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Todos os Status</option>
-              <option value="ativa">Ativa</option>
-              <option value="pausada">Pausada</option>
-              <option value="finalizada">Finalizada</option>
-              <option value="cancelada">Cancelada</option>
+              <option value="all">Todos os Meses</option>
+              <option value="janeiro">Janeiro</option>
+              <option value="fevereiro">Fevereiro</option>
+              <option value="março">Março</option>
+              <option value="abril">Abril</option>
+              <option value="maio">Maio</option>
+              <option value="junho">Junho</option>
+              <option value="julho">Julho</option>
+              <option value="agosto">Agosto</option>
+              <option value="setembro">Setembro</option>
+              <option value="outubro">Outubro</option>
+              <option value="novembro">Novembro</option>
+              <option value="dezembro">Dezembro</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Tabela de Campanhas */}
+      {/* Tabela de Campanhas Agrupadas */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Campanha
+                  Business
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mês
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  Qtd. Criadores Contratados
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Período
+                  Criadores Selecionados
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Orçamento
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Criadores
+                  Total Campanhas
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Detalhes
@@ -259,51 +263,58 @@ export default function CampaignsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCampaigns.map((campaign) => (
-                <tr key={campaign.id} className="hover:bg-gray-50 transition-colors">
+              {filteredCampaigns.map((group) => (
+                <tr key={group.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
-                        {campaign.nome}
-                        {campaign.count && campaign.count > 1 && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {campaign.count} campanhas
-                          </span>
-                        )}
+                        {group.businessName}
                       </div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">{campaign.descricao}</div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {campaign.mes || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(campaign.status)}`}>
-                      {campaign.status}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {group.mes}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div>
-                      <div>{formatDate(campaign.dataInicio)}</div>
-                      <div className="text-gray-500">até {formatDate(campaign.dataFim)}</div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        {group.quantidadeCriadores}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
-                    {formatCurrency(campaign.orcamento)}
-                    {campaign.count && campaign.count > 1 && (
-                      <div className="text-xs text-gray-500">
-                        (soma de {campaign.count} campanhas)
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div className="truncate max-w-xs" title={campaign.criadores}>
-                      {campaign.criadores || '-'}
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-1">
+                      {group.criadores.slice(0, 3).map((criador, index) => (
+                        <span key={index} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
+                          {criador}
+                        </span>
+                      ))}
+                      {group.criadores.length > 3 && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                          +{group.criadores.length - 3} mais
+                        </span>
+                      )}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      {group.totalCampanhas}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
-                      onClick={() => openModal(campaign)}
+                      onClick={() => openModal(group)}
                       className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
                     >
                       <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -335,9 +346,9 @@ export default function CampaignsPage() {
         )}
       </div>
 
-      {/* Modal de Detalhes */}
-      <CampaignModal
-        campaign={selectedCampaign}
+      {/* Modal de Detalhes do Grupo */}
+      <CampaignGroupModal
+        campaignGroup={selectedCampaignGroup}
         isOpen={isModalOpen}
         onClose={closeModal}
       />

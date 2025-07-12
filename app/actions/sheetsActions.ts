@@ -68,6 +68,7 @@ export interface BusinessData {
   contratoValidoAte: string;       // N = Contrato válido até
   relatedFiles: string;            // O = Related files
   notes: string;                   // P = Notes
+  quantidadeCriadores: string;     // Q = Quantidade de criadores
   row: number;                     // Linha na planilha
 
   // Campos para compatibilidade com código existente
@@ -97,7 +98,7 @@ export async function getBusinessesData(): Promise<BusinessData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Business!A:P', // A=Nome, B=Categoria, C=Plano atual, D=Comercial, E=Nome Responsável, F=Cidade, G=WhatsApp Responsável, H=Prospecção, I=Responsável, J=Instagram, K=Grupo WhatsApp criado, L=Contrato assinado e enviado, M=Data assinatura do contrato, N=Contrato válido até, O=Related files, P=Notes
+      range: 'Business!A:Q', // A=Nome, B=Categoria, C=Plano atual, D=Comercial, E=Nome Responsável, F=Cidade, G=WhatsApp Responsável, H=Prospecção, I=Responsável, J=Instagram, K=Grupo WhatsApp criado, L=Contrato assinado e enviado, M=Data assinatura do contrato, N=Contrato válido até, O=Related files, P=Notes, Q=Quantidade de criadores
     });
 
     const values = response.data.values || [];
@@ -129,6 +130,7 @@ export async function getBusinessesData(): Promise<BusinessData[]> {
         contratoValidoAte: row[13] || '',      // N = Contrato válido até
         relatedFiles: row[14] || '',           // O = Related files
         notes: row[15] || '',                  // P = Notes
+        quantidadeCriadores: row[16] || '',    // Q = Quantidade de criadores
         row: index + 2,
 
         // Campos para compatibilidade com código existente
@@ -699,6 +701,17 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
   }
 }
 
+// Interface para campanhas agrupadas por business e mês
+export interface GroupedCampaignData {
+  id: string;
+  businessName: string;
+  mes: string;
+  quantidadeCriadores: number;
+  criadores: string[];
+  campanhas: CampaignData[];
+  totalCampanhas: number;
+}
+
 // Interface para dados das campanhas - TODOS os campos da planilha
 export interface CampaignData {
   id: string;
@@ -874,6 +887,77 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
     return campaigns;
   } catch (error) {
     console.error('❌ Erro ao buscar campanhas:', error);
+    return [];
+  }
+}
+
+// Função para buscar campanhas agrupadas por business e mês
+export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> {
+  try {
+    // Buscar dados das campanhas e dos negócios
+    const [campaignsData, businessesData] = await Promise.all([
+      getCampaignsData(),
+      getBusinessesData()
+    ]);
+
+    // Criar mapa de negócios para busca rápida
+    const businessMap = new Map<string, BusinessData>();
+    businessesData.forEach(business => {
+      businessMap.set(business.nome.toLowerCase(), business);
+    });
+
+    // Agrupar campanhas por business e mês
+    const groupedMap = new Map<string, GroupedCampaignData>();
+
+    campaignsData.forEach(campaign => {
+      const businessName = campaign.business || campaign.nome;
+      const mes = campaign.mes;
+
+      if (!businessName || !mes) return;
+
+      const groupKey = `${businessName.toLowerCase()}-${mes.toLowerCase()}`;
+
+      if (!groupedMap.has(groupKey)) {
+        // Buscar dados do business
+        const businessData = businessMap.get(businessName.toLowerCase());
+        const quantidadeCriadores = businessData?.quantidadeCriadores ?
+          parseInt(businessData.quantidadeCriadores) || 0 : 0;
+
+        groupedMap.set(groupKey, {
+          id: groupKey,
+          businessName: businessName,
+          mes: mes,
+          quantidadeCriadores: quantidadeCriadores,
+          criadores: [],
+          campanhas: [],
+          totalCampanhas: 0
+        });
+      }
+
+      const group = groupedMap.get(groupKey)!;
+
+      // Adicionar campanha ao grupo
+      group.campanhas.push(campaign);
+      group.totalCampanhas++;
+
+      // Adicionar criador se não estiver na lista
+      if (campaign.influenciador && !group.criadores.includes(campaign.influenciador)) {
+        group.criadores.push(campaign.influenciador);
+      }
+    });
+
+    const result = Array.from(groupedMap.values()).sort((a, b) => {
+      // Ordenar por business name e depois por mês
+      const businessCompare = a.businessName.localeCompare(b.businessName);
+      if (businessCompare !== 0) return businessCompare;
+      return a.mes.localeCompare(b.mes);
+    });
+
+    console.log(`✅ ${result.length} campanhas agrupadas por business e mês`);
+    return result;
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar campanhas agrupadas:', error);
     return [];
   }
 }
