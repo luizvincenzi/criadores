@@ -549,50 +549,59 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                             {isEditMode ? (
                               <input
                                 type="datetime-local"
-                                defaultValue={campanha.dataHoraPostagem}
+                                value={editedData[index]?.dataHoraPostagem || ''}
+                                onChange={(e) => updateCreatorData(index, 'dataHoraPostagem', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             ) : (
                               <div className="text-sm text-gray-900">
-                                {campanha.dataHoraPostagem || '-'}
+                                {slot.dataHoraPostagem || '-'}
                               </div>
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {isEditMode ? (
-                              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                              <select
+                                value={editedData[index]?.videoAprovado || 'pendente'}
+                                onChange={(e) => updateCreatorData(index, 'videoAprovado', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
                                 <option value="sim">✅ Aprovado</option>
                                 <option value="nao">❌ Não Aprovado</option>
                                 <option value="pendente">⏳ Pendente</option>
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                campanha.videoAprovado?.toLowerCase() === 'sim'
+                                slot.videoAprovado?.toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : campanha.videoAprovado?.toLowerCase() === 'nao'
+                                  : slot.videoAprovado?.toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {campanha.videoAprovado || 'Pendente'}
+                                {slot.videoAprovado || 'Pendente'}
                               </span>
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {isEditMode ? (
-                              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                              <select
+                                value={editedData[index]?.videoPostado || 'pendente'}
+                                onChange={(e) => updateCreatorData(index, 'videoPostado', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
                                 <option value="sim">✅ Postado</option>
                                 <option value="nao">❌ Não Postado</option>
                                 <option value="pendente">⏳ Pendente</option>
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                campanha.videoPostado?.toLowerCase() === 'sim'
+                                slot.videoPostado?.toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : campanha.videoPostado?.toLowerCase() === 'nao'
+                                  : slot.videoPostado?.toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {campanha.videoPostado || 'Pendente'}
+                                {slot.videoPostado || 'Pendente'}
                               </span>
                             )}
                           </td>
