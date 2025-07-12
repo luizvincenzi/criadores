@@ -3,17 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useBusinessStore } from '@/store/businessStore';
 import { useAuthStore } from '@/store/authStore';
-import { getCreatorsData, getCampaignsData } from '@/app/actions/sheetsActions';
+import { getCreatorsData, getCampaignsData, getCampaignJourneyData } from '@/app/actions/sheetsActions';
 import Button from '@/components/ui/Button';
 
 interface DashboardStats {
   totalBusinesses: number;
   totalCreators: number;
   totalCampaigns: number;
-  businessesByStage: {
-    'Reunião Briefing': number;
+  campaignsByStage: {
+    'Reunião de briefing': number;
     'Agendamentos': number;
-    'Entrega Final': number;
+    'Entrega final': number;
+    'Finalizado': number;
   };
   totalRevenue: number;
   planDistribution: {
@@ -28,10 +29,11 @@ export default function DashboardPage() {
     totalBusinesses: 0,
     totalCreators: 0,
     totalCampaigns: 0,
-    businessesByStage: {
-      'Reunião Briefing': 0,
+    campaignsByStage: {
+      'Reunião de briefing': 0,
       'Agendamentos': 0,
-      'Entrega Final': 0
+      'Entrega final': 0,
+      'Finalizado': 0
     },
     totalRevenue: 0,
     planDistribution: {}
@@ -45,15 +47,32 @@ export default function DashboardPage() {
     try {
       // Carregar dados em paralelo
       console.log('📡 Buscando dados atualizados...');
-      const [businessesResult, creatorsResult, campaignsResult] = await Promise.all([
+      const [businessesResult, creatorsResult, campaignsResult, journeyResult] = await Promise.all([
         loadBusinessesFromSheet(),
         getCreatorsData(),
-        getCampaignsData()
+        getCampaignsData(),
+        getCampaignJourneyData()
       ]);
 
       console.log('📊 Dados atualizados recebidos:', {
         criadores: creatorsResult.length,
-        campanhas: campaignsResult.length
+        campanhas: campaignsResult.length,
+        jornada: journeyResult.length
+      });
+
+      // Calcular estatísticas das campanhas por estágio
+      const campaignsByStage = {
+        'Reunião de briefing': 0,
+        'Agendamentos': 0,
+        'Entrega final': 0,
+        'Finalizado': 0
+      };
+
+      journeyResult.forEach(campaign => {
+        const status = campaign.status || 'Reunião de briefing';
+        if (status in campaignsByStage) {
+          campaignsByStage[status as keyof typeof campaignsByStage]++;
+        }
       });
 
       // Atualizar contadores com dados reais
@@ -61,7 +80,8 @@ export default function DashboardPage() {
         const newStats = {
           ...prevStats,
           totalCreators: creatorsResult.length,
-          totalCampaigns: campaignsResult.length
+          totalCampaigns: campaignsResult.length,
+          campaignsByStage: campaignsByStage
         };
         console.log('📈 Stats após refresh:', newStats);
         return newStats;
@@ -94,12 +114,32 @@ export default function DashboardPage() {
         const campaignsResult = await getCampaignsData();
         console.log(`✅ Dashboard: ${campaignsResult.length} campanhas carregadas`);
 
+        console.log('📡 Dashboard: Buscando dados da jornada...');
+        const journeyResult = await getCampaignJourneyData();
+        console.log(`✅ Dashboard: ${journeyResult.length} campanhas da jornada carregadas`);
+
+        // Calcular estatísticas das campanhas por estágio
+        const campaignsByStage = {
+          'Reunião de briefing': 0,
+          'Agendamentos': 0,
+          'Entrega final': 0,
+          'Finalizado': 0
+        };
+
+        journeyResult.forEach(campaign => {
+          const status = campaign.status || 'Reunião de briefing';
+          if (status in campaignsByStage) {
+            campaignsByStage[status as keyof typeof campaignsByStage]++;
+          }
+        });
+
         // Atualizar stats
         setStats(prevStats => {
           const newStats = {
             ...prevStats,
             totalCreators: creatorsResult.length,
-            totalCampaigns: campaignsResult.length
+            totalCampaigns: campaignsResult.length,
+            campaignsByStage: campaignsByStage
           };
           console.log('📈 Dashboard: Stats finais:', newStats);
           return newStats;
@@ -120,23 +160,11 @@ export default function DashboardPage() {
     if (businesses.length > 0) {
       setStats(prevStats => {
         const newStats: DashboardStats = {
-          ...prevStats, // Preservar totalCreators e totalCampaigns
+          ...prevStats, // Preservar totalCreators, totalCampaigns e campaignsByStage
           totalBusinesses: businesses.length,
-          businessesByStage: {
-            'Reunião Briefing': 0,
-            'Agendamentos': 0,
-            'Entrega Final': 0
-          },
           totalRevenue: 0,
           planDistribution: {}
         };
-
-        // Calcular distribuição por estágio
-        businesses.forEach(business => {
-          if (business.journeyStage in newStats.businessesByStage) {
-            newStats.businessesByStage[business.journeyStage as keyof typeof newStats.businessesByStage]++;
-          }
-        });
 
         // Calcular distribuição por plano
         businesses.forEach(business => {
@@ -231,18 +259,27 @@ export default function DashboardPage() {
 
       {/* Gráficos e Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pipeline de Negócios */}
+        {/* Jornada das Campanhas */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Pipeline de Negócios</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Jornada das Campanhas</h3>
           <div className="space-y-3">
-            {Object.entries(stats.businessesByStage).map(([stage, count]) => {
-              const percentage = stats.totalBusinesses > 0 ? (count / stats.totalBusinesses) * 100 : 0;
+            {Object.entries(stats.campaignsByStage).map(([stage, count]) => {
+              const totalCampaigns = Object.values(stats.campaignsByStage).reduce((sum, c) => sum + c, 0);
+              const percentage = totalCampaigns > 0 ? (count / totalCampaigns) * 100 : 0;
               const stageIcons = {
-                'Reunião Briefing': '📋',
+                'Reunião de briefing': '📋',
                 'Agendamentos': '📅',
-                'Entrega Final': '✅'
+                'Entrega final': '✅',
+                'Finalizado': '🎯'
               };
-              
+
+              const stageColors = {
+                'Reunião de briefing': 'bg-blue-500',
+                'Agendamentos': 'bg-yellow-500',
+                'Entrega final': 'bg-orange-500',
+                'Finalizado': 'bg-green-500'
+              };
+
               return (
                 <div key={stage} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -251,8 +288,8 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-20 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${stageColors[stage as keyof typeof stageColors]}`}
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
@@ -317,7 +354,7 @@ export default function DashboardPage() {
           </Button>
           <Button variant="outlined" className="justify-start" href="/jornada">
             <span className="mr-2">🛤️</span>
-            Pipeline Kanban
+            Jornada Kanban
           </Button>
         </div>
       </div>
