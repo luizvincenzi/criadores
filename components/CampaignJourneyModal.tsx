@@ -248,18 +248,33 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       });
       console.log('📝 Dados editados:', editedData);
 
+      // DEBUG: Primeiro enviar para API de debug
+      const debugPayload = {
+        businessName: campaign.businessName,
+        mes: campaign.mes,
+        creatorsData: editedData,
+        user: user?.email || 'Sistema',
+        campaignId: campaign.id || campaign.campaignId
+      };
+
+      console.log('🔍 DEBUG: Enviando dados para debug:', debugPayload);
+
+      const debugResponse = await fetch('/api/debug-modal-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(debugPayload)
+      });
+
+      const debugResult = await debugResponse.json();
+      console.log('🔍 DEBUG: Resposta do debug:', debugResult);
+
+      // Agora enviar para a API real
       const response = await fetch('/api/update-campaign-creators', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          businessName: campaign.businessName,
-          mes: campaign.mes,
-          creatorsData: editedData,
-          user: user?.email || 'Sistema',
-          campaignId: campaign.id || campaign.campaignId // Incluir ID da campanha se disponível
-        })
+        body: JSON.stringify(debugPayload)
       });
 
       const result = await response.json();
