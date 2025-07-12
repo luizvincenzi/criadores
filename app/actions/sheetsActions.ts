@@ -814,7 +814,7 @@ export async function addCreatorToSheet(creatorData: any[]): Promise<void> {
 
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: 'Creators!A:S', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador
+      range: 'Criadores!A:S', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [creatorData]

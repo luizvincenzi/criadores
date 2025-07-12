@@ -7,6 +7,7 @@ import TestUserSheet from '@/components/TestUserSheet';
 import UserManager from '@/components/UserManager';
 import DebugUsers from '@/components/DebugUsers';
 import TestAddBusiness from '@/components/TestAddBusiness';
+import TestAddCreator from '@/components/TestAddCreator';
 
 export default function TestSheetsPage() {
   const [loading, setLoading] = useState(false);
@@ -82,6 +83,8 @@ export default function TestSheetsPage() {
         <UserManager />
 
         <TestAddBusiness />
+
+        <TestAddCreator />
 
         <DebugUsers />
 
