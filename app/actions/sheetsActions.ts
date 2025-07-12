@@ -1180,7 +1180,8 @@ export async function updateCampaignStatus(
   user: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const sheets = await getGoogleSheetsClient();
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
 
     if (!spreadsheetId) {

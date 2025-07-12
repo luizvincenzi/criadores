@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGoogleSheetsClient } from '@/app/actions/sheetsActions';
+import { getGoogleSheetsAuth } from '@/app/actions/sheetsActions';
+import { google } from 'googleapis';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +9,8 @@ export async function POST(request: NextRequest) {
 
     console.log('🔄 Adicionando criador à campanha:', { businessName, mes, creatorName });
 
-    const sheets = await getGoogleSheetsClient();
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
 
     if (!spreadsheetId) {

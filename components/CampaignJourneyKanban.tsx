@@ -190,17 +190,24 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
     // Determinar o novo status baseado na coluna de destino
     let newStatus = '';
 
+    console.log('🎯 Drag & Drop Debug:', { activeId, overId, activeCampaign: activeCampaign.businessName });
+
     // Verificar se foi dropado em uma coluna ou em um card dentro da coluna
     const stageIds = ['Reunião Briefing', 'Agendamentos', 'Entrega Final'];
 
     if (stageIds.includes(overId)) {
       // Dropado diretamente na coluna
       newStatus = overId;
+      console.log('✅ Dropado na coluna:', newStatus);
     } else {
       // Dropado em um card, encontrar a coluna do card
       const targetCampaign = campaigns.find(c => c.id === overId);
       if (targetCampaign) {
         newStatus = targetCampaign.journeyStage;
+        console.log('✅ Dropado em card, coluna:', newStatus);
+      } else {
+        console.log('❌ Não foi possível determinar a coluna de destino');
+        return;
       }
     }
 
