@@ -261,7 +261,9 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         console.log('✅ Dados dos criadores atualizados');
         alert(`✅ Dados atualizados com sucesso para ${result.updatedCount} criadores!`);
         setIsEditMode(false);
-        onStatusUpdate(); // Recarregar dados
+
+        // Recarregar apenas os slots de criadores sem fechar o modal
+        await loadCreatorSlots();
       } else {
         console.error('❌ Erro ao salvar:', result.error);
         alert(`❌ Erro ao salvar: ${result.error}`);

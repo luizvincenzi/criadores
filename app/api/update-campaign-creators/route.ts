@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createGoogleSheetsClient } from '@/app/actions/sheetsActions';
+import { createGoogleSheetsClient, logCreatorChanges } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,16 +52,47 @@ export async function POST(request: NextRequest) {
         );
 
         if (creatorData) {
-          // Preparar atualizações para as colunas específicas
-          const rowUpdates = [
-            { range: `campanhas!H${i + 1}`, values: [[creatorData.briefingCompleto || '']] }, // H = Briefing completo
-            { range: `campanhas!I${i + 1}`, values: [[creatorData.dataHoraVisita || '']] }, // I = Data e hora visita
-            { range: `campanhas!J${i + 1}`, values: [[creatorData.quantidadeConvidados || '']] }, // J = Quantidade convidados
-            { range: `campanhas!K${i + 1}`, values: [[creatorData.visitaConfirmada || '']] }, // K = Visita confirmada
-            { range: `campanhas!L${i + 1}`, values: [[creatorData.dataHoraPostagem || '']] }, // L = Data e hora postagem
-            { range: `campanhas!M${i + 1}`, values: [[creatorData.videoAprovado || '']] }, // M = Vídeo aprovado
-            { range: `campanhas!N${i + 1}`, values: [[creatorData.videoPostado || '']] }, // N = Vídeo postado
-          ];
+          console.log(`🔄 Atualizando criador: ${influenciador}`);
+
+          // Registrar mudanças para audit_log
+          const changes: { [key: string]: { old: string; new: string } } = {};
+
+          // Verificar mudanças e preparar atualizações
+          const rowUpdates = [];
+
+          if (creatorData.briefingCompleto !== undefined && row[7] !== creatorData.briefingCompleto) {
+            changes.briefingCompleto = { old: row[7] || '', new: creatorData.briefingCompleto };
+            rowUpdates.push({ range: `campanhas!H${i + 1}`, values: [[creatorData.briefingCompleto || '']] });
+          }
+          if (creatorData.dataHoraVisita !== undefined && row[8] !== creatorData.dataHoraVisita) {
+            changes.dataHoraVisita = { old: row[8] || '', new: creatorData.dataHoraVisita };
+            rowUpdates.push({ range: `campanhas!I${i + 1}`, values: [[creatorData.dataHoraVisita || '']] });
+          }
+          if (creatorData.quantidadeConvidados !== undefined && row[9] !== creatorData.quantidadeConvidados) {
+            changes.quantidadeConvidados = { old: row[9] || '', new: creatorData.quantidadeConvidados };
+            rowUpdates.push({ range: `campanhas!J${i + 1}`, values: [[creatorData.quantidadeConvidados || '']] });
+          }
+          if (creatorData.visitaConfirmada !== undefined && row[10] !== creatorData.visitaConfirmada) {
+            changes.visitaConfirmada = { old: row[10] || '', new: creatorData.visitaConfirmada };
+            rowUpdates.push({ range: `campanhas!K${i + 1}`, values: [[creatorData.visitaConfirmada || '']] });
+          }
+          if (creatorData.dataHoraPostagem !== undefined && row[11] !== creatorData.dataHoraPostagem) {
+            changes.dataHoraPostagem = { old: row[11] || '', new: creatorData.dataHoraPostagem };
+            rowUpdates.push({ range: `campanhas!L${i + 1}`, values: [[creatorData.dataHoraPostagem || '']] });
+          }
+          if (creatorData.videoAprovado !== undefined && row[12] !== creatorData.videoAprovado) {
+            changes.videoAprovado = { old: row[12] || '', new: creatorData.videoAprovado };
+            rowUpdates.push({ range: `campanhas!M${i + 1}`, values: [[creatorData.videoAprovado || '']] });
+          }
+          if (creatorData.videoPostado !== undefined && row[13] !== creatorData.videoPostado) {
+            changes.videoPostado = { old: row[13] || '', new: creatorData.videoPostado };
+            rowUpdates.push({ range: `campanhas!N${i + 1}`, values: [[creatorData.videoPostado || '']] });
+          }
+
+          // Registrar mudanças no audit_log se houver alterações
+          if (Object.keys(changes).length > 0) {
+            await logCreatorChanges(businessName, mes, influenciador, changes, user);
+          }
 
           updates.push(...rowUpdates);
           updatedCount++;

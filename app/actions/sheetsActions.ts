@@ -1109,6 +1109,47 @@ export async function updateCampaignStatusViaAuditLog(
   }
 }
 
+// Função para registrar alterações de criadores no audit_log
+export async function logCreatorChanges(
+  businessName: string,
+  mes: string,
+  creatorName: string,
+  changes: { [key: string]: { old: string; new: string } },
+  user: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const entityName = `${businessName}-${mes}-${creatorName}`;
+    const entityId = `creator_${businessName.toLowerCase().replace(/\s+/g, '_')}_${mes.toLowerCase()}_${creatorName.toLowerCase().replace(/\s+/g, '_')}`;
+
+    // Criar detalhes das mudanças
+    const changeDetails = Object.entries(changes)
+      .map(([field, change]) => `${field}: "${change.old}" → "${change.new}"`)
+      .join('; ');
+
+    // Registra a mudança no audit_log
+    await logAction({
+      action: 'creator_data_changed',
+      entity_type: 'creator',
+      entity_id: entityId,
+      entity_name: entityName,
+      old_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.old]))),
+      new_value: JSON.stringify(Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v.new]))),
+      old_value_status: '',
+      new_value_status: '',
+      user_id: user,
+      user_name: user,
+      details: `Dados do criador alterados: ${changeDetails}`
+    });
+
+    console.log(`✅ Alterações do criador registradas no audit_log: ${entityName}`);
+    return { success: true };
+
+  } catch (error) {
+    console.error('❌ Erro ao registrar alterações do criador no audit_log:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
 // Função para ordenar meses (mais recente primeiro)
 function getMonthOrder(month: string): number {
   const monthOrder: { [key: string]: number } = {
