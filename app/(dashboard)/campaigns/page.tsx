@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getCampaignsData, CampaignData } from '@/app/actions/sheetsActions';
 import CampaignModal from '@/components/CampaignModal';
+import AddCampaignModal from '@/components/AddCampaignModal';
 import Button from '@/components/ui/Button';
 
 export default function CampaignsPage() {
@@ -10,6 +11,7 @@ export default function CampaignsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -59,6 +61,18 @@ export default function CampaignsPage() {
   const closeModal = () => {
     setSelectedCampaign(null);
     setIsModalOpen(false);
+  };
+
+  const openAddModal = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+  };
+
+  const handleAddSuccess = () => {
+    loadCampaigns(); // Recarregar campanhas após adicionar
   };
 
   const formatDate = (dateString: string) => {
@@ -121,6 +135,15 @@ export default function CampaignsPage() {
           >
             <span className="hidden sm:inline">Atualizar</span>
             <span className="sm:hidden">Sync</span>
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            icon="📹"
+            onClick={openAddModal}
+          >
+            <span className="hidden sm:inline">Nova Campanha</span>
+            <span className="sm:hidden">Nova</span>
           </Button>
         </div>
       </div>
@@ -317,6 +340,13 @@ export default function CampaignsPage() {
         campaign={selectedCampaign}
         isOpen={isModalOpen}
         onClose={closeModal}
+      />
+
+      {/* Modal de Adicionar Campanha */}
+      <AddCampaignModal
+        isOpen={isAddModalOpen}
+        onClose={closeAddModal}
+        onSuccess={handleAddSuccess}
       />
     </div>
   );

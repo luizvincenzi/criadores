@@ -668,16 +668,47 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
   }
 }
 
-// Interface para dados das campanhas
+// Interface para dados das campanhas - TODOS os campos da planilha
 export interface CampaignData {
   id: string;
+  campanha: string;                           // A = Campanha
+  business: string;                           // B = Business
+  influenciador: string;                      // C = Influenciador
+  responsavel: string;                        // D = Responsável
+  status: string;                             // E = Status
+  mes: string;                                // F = Mês
+  fim: string;                                // G = FIM
+  briefingCompleto: string;                   // H = Briefing completo enviado para o influenciador?
+  dataHoraVisita: string;                     // I = Data e hora Visita
+  quantidadeConvidados: string;               // J = Quantidade de convidados
+  visitaConfirmado: string;                   // K = Visita Confirmado
+  dataHoraPostagem: string;                   // L = Data e hora da Postagem
+  videoAprovado: string;                      // M = Vídeo aprovado?
+  videoPostado: string;                       // N = Video/Reels postado?
+  linkVideoInstagram: string;                 // O = Link Video Instagram
+  notas: string;                              // P = Notas
+  arquivo: string;                            // Q = Arquivo
+  avaliacaoRestaurante: string;               // R = Avaliação Restaurante
+  avaliacaoInfluenciador: string;             // S = Avaliação Influenciador
+  statusCalendario: string;                   // T = Status do Calendário
+  column22: string;                           // U = Column 22
+  idEvento: string;                           // V = ID do Evento
+  formato: string;                            // W = Formato
+  perfilCriador: string;                      // X = Perfil do criador
+  objetivo: string;                           // Y = Objetivo
+  comunicacaoSecundaria: string;              // Z = Comunicação secundária
+  datasHorariosGravacao: string;              // AA = Datas e horários para gravação
+  oQuePrecisaSerFalado: string;               // AB = O que precisa ser falado no vídeo (de forma natural) - História
+  promocaoCTA: string;                        // AC = Promoção CTA
+  column31: string;                           // AD = Column 31
+  objetivo1: string;                          // AE = Objetivo 1
+
+  // Campos para compatibilidade com código existente
   nome: string;
   dataInicio: string;
   dataFim: string;
   orcamento: number;
   criadores: string;
-  status: string;
-  mes: string;
   descricao: string;
   resultados: string;
   observacoes: string;
@@ -699,7 +730,7 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Campanhas!A:J', // A=Nome, B=DataInicio, C=DataFim, D=Orçamento, E=Criadores, F=Status, G=Mês, H=Descrição, I=Resultados, J=Observações
+      range: 'Campanhas!A:AE', // A=Campanha, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM, H=Briefing completo enviado para o influenciador?, I=Data e hora Visita, J=Quantidade de convidados, K=Visita Confirmado, L=Data e hora da Postagem, M=Vídeo aprovado?, N=Video/Reels postado?, O=Link Video Instagram, P=Notas, Q=Arquivo, R=Avaliação Restaurante, S=Avaliação Influenciador, T=Status do Calendário, U=Column 22, V=ID do Evento, W=Formato, X=Perfil do criador, Y=Objetivo, Z=Comunicação secundária, AA=Datas e horários para gravação, AB=O que precisa ser falado no vídeo (de forma natural) - História, AC=Promoção CTA, AD=Column 31, AE=Objetivo 1
     });
 
     const values = response.data.values || [];
@@ -728,16 +759,48 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
       })
       .map((row, index) => ({
         id: `campaign-${index + 1}`,
-        nome: row[0] || '', // Coluna A = Nome
-        dataInicio: row[1] || '', // Coluna B = Data Início
-        dataFim: row[2] || '', // Coluna C = Data Fim
-        orcamento: parseFloat(row[3]) || 0, // Coluna D = Orçamento
-        criadores: row[4] || '', // Coluna E = Criadores
-        status: row[5] || 'Ativa', // Coluna F = Status (CORRIGIDO)
-        mes: row[6] || '', // Coluna G = Mês
-        descricao: row[7] || '', // Coluna H = Descrição
-        resultados: row[8] || '', // Coluna I = Resultados
-        observacoes: row[9] || '' // Coluna J = Observações
+        // Campos principais da planilha
+        campanha: row[0] || '',                           // A = Campanha
+        business: row[1] || '',                           // B = Business
+        influenciador: row[2] || '',                      // C = Influenciador
+        responsavel: row[3] || '',                        // D = Responsável
+        status: row[4] || 'Ativa',                        // E = Status
+        mes: row[5] || '',                                // F = Mês
+        fim: row[6] || '',                                // G = FIM
+        briefingCompleto: row[7] || '',                   // H = Briefing completo enviado para o influenciador?
+        dataHoraVisita: row[8] || '',                     // I = Data e hora Visita
+        quantidadeConvidados: row[9] || '',               // J = Quantidade de convidados
+        visitaConfirmado: row[10] || '',                  // K = Visita Confirmado
+        dataHoraPostagem: row[11] || '',                  // L = Data e hora da Postagem
+        videoAprovado: row[12] || '',                     // M = Vídeo aprovado?
+        videoPostado: row[13] || '',                      // N = Video/Reels postado?
+        linkVideoInstagram: row[14] || '',                // O = Link Video Instagram
+        notas: row[15] || '',                             // P = Notas
+        arquivo: row[16] || '',                           // Q = Arquivo
+        avaliacaoRestaurante: row[17] || '',              // R = Avaliação Restaurante
+        avaliacaoInfluenciador: row[18] || '',            // S = Avaliação Influenciador
+        statusCalendario: row[19] || '',                  // T = Status do Calendário
+        column22: row[20] || '',                          // U = Column 22
+        idEvento: row[21] || '',                          // V = ID do Evento
+        formato: row[22] || '',                           // W = Formato
+        perfilCriador: row[23] || '',                     // X = Perfil do criador
+        objetivo: row[24] || '',                          // Y = Objetivo
+        comunicacaoSecundaria: row[25] || '',             // Z = Comunicação secundária
+        datasHorariosGravacao: row[26] || '',             // AA = Datas e horários para gravação
+        oQuePrecisaSerFalado: row[27] || '',              // AB = O que precisa ser falado no vídeo (de forma natural) - História
+        promocaoCTA: row[28] || '',                       // AC = Promoção CTA
+        column31: row[29] || '',                          // AD = Column 31
+        objetivo1: row[30] || '',                         // AE = Objetivo 1
+
+        // Campos para compatibilidade com código existente
+        nome: row[0] || '',                               // Usar campanha como nome
+        dataInicio: row[8] || '',                         // Usar data e hora visita
+        dataFim: row[6] || '',                            // Usar FIM
+        orcamento: 0,                                     // Não disponível na nova estrutura
+        criadores: row[2] || '',                          // Usar influenciador
+        descricao: row[15] || '',                         // Usar notas
+        resultados: row[17] || '',                        // Usar avaliação restaurante
+        observacoes: row[15] || ''                        // Usar notas
       }));
 
     // Agrupar campanhas por nome e mês
@@ -1287,5 +1350,57 @@ export async function updateUserLastLogin(userId: string): Promise<boolean> {
   } catch (error) {
     console.error('❌ Erro ao atualizar último login:', error);
     return false;
+  }
+}
+
+// Função para adicionar nova campanha ao Google Sheets
+export async function addCampaignToSheet(campaignData: any[]): Promise<void> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      throw new Error('GOOGLE_SPREADSHEET_ID não configurado');
+    }
+
+    console.log('📝 Adicionando nova campanha ao Google Sheets...');
+    console.log('📊 Dados da campanha:', campaignData);
+
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Campanhas!A:AE', // A=Campanha, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM, H=Briefing completo enviado para o influenciador?, I=Data e hora Visita, J=Quantidade de convidados, K=Visita Confirmado, L=Data e hora da Postagem, M=Vídeo aprovado?, N=Video/Reels postado?, O=Link Video Instagram, P=Notas, Q=Arquivo, R=Avaliação Restaurante, S=Avaliação Influenciador, T=Status do Calendário, U=Column 22, V=ID do Evento, W=Formato, X=Perfil do criador, Y=Objetivo, Z=Comunicação secundária, AA=Datas e horários para gravação, AB=O que precisa ser falado no vídeo (de forma natural) - História, AC=Promoção CTA, AD=Column 31, AE=Objetivo 1
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [campaignData]
+      }
+    });
+
+    console.log('✅ Campanha adicionada com sucesso:', response.data);
+
+    // Adicionar ao audit log
+    const auditData = [
+      new Date().toISOString(),
+      'CAMPAIGN_ADDED',
+      campaignData[0], // Nome da campanha
+      '',
+      'Nova campanha adicionada',
+      'Sistema',
+      JSON.stringify({
+        campanha: campaignData[0],
+        business: campaignData[1],
+        influenciador: campaignData[2],
+        responsavel: campaignData[3],
+        status: campaignData[4]
+      })
+    ];
+
+    await addToAuditLog(auditData);
+    console.log('✅ Audit log da campanha registrado');
+
+  } catch (error) {
+    console.error('❌ Erro ao adicionar campanha:', error);
+    throw error;
   }
 }
