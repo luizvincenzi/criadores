@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createGoogleSheetsClient, logCreatorChanges, findCreatorInCampaigns, createCreatorUniqueId, logAction, logDetailedAction } from '@/app/actions/sheetsActions';
+import { createGoogleSheetsClient, logCreatorChanges, findCreatorInCampaigns, createCreatorUniqueId, logAction, logDetailedAction, findCampaignById, ensureCampaignUniqueIds } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { businessName, mes, creatorsData, user } = body;
+    const { businessName, mes, creatorsData, user, campaignId } = body;
 
-    console.log('🔄 Atualizando dados dos criadores:', { businessName, mes, creatorsData });
+    console.log('🔄 Atualizando dados dos criadores:', { businessName, mes, creatorsData, campaignId });
+
+    // Garantir que a planilha tenha IDs únicos
+    await ensureCampaignUniqueIds();
 
     const sheets = await createGoogleSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
@@ -49,8 +52,25 @@ export async function POST(request: NextRequest) {
 
       console.log(`🔄 Processando criador: ${influenciador}`);
 
-      // Usar função robusta para encontrar o criador
-      const creatorResult = await findCreatorInCampaigns(businessName, mes, influenciador);
+      // Tentar usar ID único primeiro, depois fallback para busca tradicional
+      let creatorResult = null;
+
+      if (campaignId) {
+        console.log(`🔍 Tentando buscar por ID da campanha: ${campaignId}`);
+        creatorResult = await findCampaignById(campaignId);
+
+        // Verificar se o criador corresponde
+        if (creatorResult?.found && creatorResult.data.influenciador !== influenciador) {
+          console.log(`⚠️ ID encontrado mas criador diferente: ${creatorResult.data.influenciador} vs ${influenciador}`);
+          creatorResult = null;
+        }
+      }
+
+      // Fallback para busca tradicional se ID não funcionou
+      if (!creatorResult || !creatorResult.found) {
+        console.log(`🔍 Fallback: Buscando por business/mês/influenciador`);
+        creatorResult = await findCreatorInCampaigns(businessName, mes, influenciador);
+      }
 
       if (!creatorResult || !creatorResult.found) {
         console.log(`❌ Criador ${influenciador} não encontrado na planilha`);

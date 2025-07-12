@@ -257,7 +257,8 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           businessName: campaign.businessName,
           mes: campaign.mes,
           creatorsData: editedData,
-          user: user?.email || 'Sistema'
+          user: user?.email || 'Sistema',
+          campaignId: campaign.id || campaign.campaignId // Incluir ID da campanha se disponível
         })
       });
 

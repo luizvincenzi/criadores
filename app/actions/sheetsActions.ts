@@ -944,23 +944,129 @@ export async function getRawCampaignsData(): Promise<CampaignData[]> {
       return [];
     }
 
+    // Verificar se a primeira linha tem ID (indicando nova estrutura)
+    const hasIdColumn = values.length > 0 && values[0][0] && values[0][0].toLowerCase().includes('id');
+
+    console.log(`📊 Estrutura da planilha: ${hasIdColumn ? 'COM' : 'SEM'} coluna ID`);
+
     // Mapear dados SEM agrupamento
     const rawCampaigns: CampaignData[] = values.slice(1)
       .filter(row => {
-        // Filtrar apenas linhas com business e influenciador válidos
-        const business = row[1] && row[1].trim();
-        const influenciador = row[2] && row[2].trim();
-        const mes = row[5] && row[5].trim();
+        if (hasIdColumn) {
+          // Nova estrutura com ID na coluna A
+          const campaignId = row[0] && row[0].trim();
+          const business = row[2] && row[2].trim(); // Coluna C
+          const influenciador = row[3] && row[3].trim(); // Coluna D
+          const mes = row[6] && row[6].trim(); // Coluna G
 
-        return business && business !== '' && business !== '-' &&
-               influenciador && influenciador !== '' && influenciador !== '-' &&
-               mes && mes !== '' && mes !== '-';
+          return campaignId && campaignId !== '' &&
+                 business && business !== '' && business !== '-' &&
+                 influenciador && influenciador !== '' && influenciador !== '-' &&
+                 mes && mes !== '' && mes !== '-';
+        } else {
+          // Estrutura antiga sem ID
+          const business = row[1] && row[1].trim();
+          const influenciador = row[2] && row[2].trim();
+          const mes = row[5] && row[5].trim();
+
+          return business && business !== '' && business !== '-' &&
+                 influenciador && influenciador !== '' && influenciador !== '-' &&
+                 mes && mes !== '' && mes !== '-';
+        }
       })
-      .map((row, index) => ({
-        id: `raw-campaign-${index + 1}`,
-        campanha: row[0] || '',
-        business: row[1] || '',
-        influenciador: row[2] || '',
+      .map((row, index) => {
+        if (hasIdColumn) {
+          // Nova estrutura com ID
+          return {
+            id: row[0] || `raw-campaign-${index + 1}`,
+            campaignId: row[0] || '',
+            campanha: row[1] || '',
+            business: row[2] || '',
+            influenciador: row[3] || '',
+            responsavel: row[4] || '',
+            status: row[5] || 'Ativa',
+            mes: row[6] || '',
+            fim: row[7] || '',
+            briefingCompleto: row[8] || '',
+            dataHoraVisita: row[9] || '',
+            quantidadeConvidados: row[10] || '',
+            visitaConfirmado: row[11] || '',
+            dataHoraPostagem: row[12] || '',
+            videoAprovado: row[13] || '',
+            videoPostado: row[14] || '',
+            linkVideoInstagram: row[15] || '',
+            notas: row[16] || '',
+            arquivo: row[17] || '',
+            avaliacaoRestaurante: row[18] || '',
+            avaliacaoInfluenciador: row[19] || '',
+            statusCalendario: row[20] || '',
+            column22: row[21] || '',
+            idEvento: row[22] || '',
+            formato: row[23] || '',
+            perfilCriador: row[24] || '',
+            objetivo: row[25] || '',
+            comunicacaoSecundaria: row[26] || '',
+            datasHorariosGravacao: row[27] || '',
+            oQuePrecisaSerFalado: row[28] || '',
+            promocaoCTA: row[29] || '',
+            column31: row[30] || '',
+            objetivo1: row[31] || '',
+            nome: row[1] || '',
+            dataInicio: row[9] || '',
+            dataFim: row[7] || '',
+            orcamento: 0,
+            criadores: row[3] || '',
+            descricao: row[16] || '',
+            resultados: row[18] || '',
+            observacoes: row[16] || ''
+          };
+        } else {
+          // Estrutura antiga sem ID
+          return {
+            id: `raw-campaign-${index + 1}`,
+            campaignId: '',
+            campanha: row[0] || '',
+            business: row[1] || '',
+            influenciador: row[2] || '',
+            responsavel: row[3] || '',
+            status: row[4] || 'Ativa',
+            mes: row[5] || '',
+            fim: row[6] || '',
+            briefingCompleto: row[7] || '',
+            dataHoraVisita: row[8] || '',
+            quantidadeConvidados: row[9] || '',
+            visitaConfirmado: row[10] || '',
+            dataHoraPostagem: row[11] || '',
+            videoAprovado: row[12] || '',
+            videoPostado: row[13] || '',
+            linkVideoInstagram: row[14] || '',
+            notas: row[15] || '',
+            arquivo: row[16] || '',
+            avaliacaoRestaurante: row[17] || '',
+            avaliacaoInfluenciador: row[18] || '',
+            statusCalendario: row[19] || '',
+            column22: row[20] || '',
+            idEvento: row[21] || '',
+            formato: row[22] || '',
+            perfilCriador: row[23] || '',
+            objetivo: row[24] || '',
+            comunicacaoSecundaria: row[25] || '',
+            datasHorariosGravacao: row[26] || '',
+            oQuePrecisaSerFalado: row[27] || '',
+            promocaoCTA: row[28] || '',
+            column31: row[29] || '',
+            objetivo1: row[30] || '',
+            nome: row[0] || '',
+            dataInicio: row[8] || '',
+            dataFim: row[6] || '',
+            orcamento: 0,
+            criadores: row[2] || '',
+            descricao: row[15] || '',
+            resultados: row[17] || '',
+            observacoes: row[15] || ''
+          };
+        }
+      });
         responsavel: row[3] || '',
         status: row[4] || 'Ativa',
         mes: row[5] || '',
@@ -1027,6 +1133,162 @@ function generateCreatorUniqueId(creatorData: any): string {
 // Função helper async para gerar ID único (para uso em APIs)
 export async function createCreatorUniqueId(creatorData: any): Promise<string> {
   return generateCreatorUniqueId(creatorData);
+}
+
+// Função para garantir que a aba Campanhas tenha coluna ID única
+export async function ensureCampaignUniqueIds(): Promise<boolean> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      return false;
+    }
+
+    // Buscar dados atuais da aba Campanhas
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AE',
+    });
+
+    const values = response.data.values || [];
+
+    if (values.length === 0) {
+      console.log('Aba Campanhas vazia');
+      return false;
+    }
+
+    const headers = values[0] || [];
+
+    // Verificar se já existe coluna ID (primeira coluna)
+    if (headers[0] && headers[0].toLowerCase().includes('id')) {
+      console.log('✅ Coluna ID já existe na aba Campanhas');
+      return true;
+    }
+
+    console.log('🔧 Adicionando coluna ID única na aba Campanhas...');
+
+    // Inserir nova coluna no início
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [{
+          insertDimension: {
+            range: {
+              sheetId: 0, // Assumindo que Campanhas é a primeira aba
+              dimension: 'COLUMNS',
+              startIndex: 0,
+              endIndex: 1
+            },
+            inheritFromBefore: false
+          }
+        }]
+      }
+    });
+
+    // Adicionar cabeçalho ID
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: 'Campanhas!A1',
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [['Campaign_ID']]
+      }
+    });
+
+    // Gerar IDs únicos para todas as linhas existentes
+    const idsToAdd = [];
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const business = row[1] || ''; // Agora será coluna B (era A)
+      const influenciador = row[2] || ''; // Agora será coluna C (era B)
+      const mes = row[5] || ''; // Agora será coluna F (era E)
+
+      // Gerar ID único baseado em timestamp + dados da campanha
+      const uniqueId = `camp_${Date.now()}_${i}_${business.toLowerCase().replace(/[^a-z0-9]/g, '')}_${mes.toLowerCase().replace(/[^a-z0-9]/g, '')}_${influenciador.toLowerCase().replace(/[^a-z0-9]/g, '')}`.substring(0, 50);
+
+      idsToAdd.push([uniqueId]);
+    }
+
+    // Adicionar IDs em lote
+    if (idsToAdd.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `Campanhas!A2:A${idsToAdd.length + 1}`,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: idsToAdd
+        }
+      });
+    }
+
+    console.log(`✅ ${idsToAdd.length} IDs únicos adicionados na aba Campanhas`);
+    return true;
+
+  } catch (error) {
+    console.error('❌ Erro ao adicionar IDs únicos:', error);
+    return false;
+  }
+}
+
+// Função para gerar ID único para nova campanha
+export function generateNewCampaignId(business: string, mes: string, influenciador: string): string {
+  const timestamp = Date.now();
+  const businessClean = business.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const mesClean = mes.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const influenciadorClean = influenciador.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  return `camp_${timestamp}_${businessClean}_${mesClean}_${influenciadorClean}`.substring(0, 50);
+}
+
+// Função para encontrar campanha por ID único
+export async function findCampaignById(campaignId: string): Promise<{ found: boolean; rowIndex: number; data: any } | null> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      return null;
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AE',
+    });
+
+    const values = response.data.values || [];
+
+    console.log(`🔍 Procurando campanha por ID: ${campaignId}`);
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const rowCampaignId = row[0]; // Coluna A - Campaign_ID
+
+      if (rowCampaignId === campaignId) {
+        console.log(`✅ Campanha encontrada por ID na linha ${i}!`);
+        return {
+          found: true,
+          rowIndex: i,
+          data: {
+            campaignId: rowCampaignId,
+            business: row[1], // Coluna B
+            influenciador: row[2], // Coluna C
+            mes: row[6], // Coluna G (ajustado após inserção da coluna ID)
+            fullRow: row
+          }
+        };
+      }
+    }
+
+    console.log(`❌ Campanha não encontrada por ID: ${campaignId}`);
+    return { found: false, rowIndex: -1, data: null };
+
+  } catch (error) {
+    console.error('❌ Erro ao procurar campanha por ID:', error);
+    return null;
+  }
 }
 
 // Função para encontrar criador na planilha com múltiplos critérios
