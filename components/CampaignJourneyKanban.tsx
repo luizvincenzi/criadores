@@ -217,7 +217,7 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
     try {
       console.log(`🔄 Movendo campanha via drag&drop: ${activeCampaign.businessName} - ${activeCampaign.mes}: ${activeCampaign.journeyStage} → ${newStatus}`);
 
-      const response = await fetch('/api/update-campaign-status', {
+      const response = await fetch('/api/update-campaign-status-audit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,6 +225,7 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
         body: JSON.stringify({
           businessName: activeCampaign.businessName,
           mes: activeCampaign.mes,
+          oldStatus: activeCampaign.journeyStage,
           newStatus: newStatus,
           user: 'Drag&Drop'
         })

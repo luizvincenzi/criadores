@@ -119,7 +119,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     try {
       console.log(`🔄 Atualizando status da campanha: ${campaign.businessName} - ${campaign.mes}: ${currentStatus} → ${newStatus}`);
 
-      const response = await fetch('/api/update-campaign-status', {
+      const response = await fetch('/api/update-campaign-status-audit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,6 +127,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         body: JSON.stringify({
           businessName: campaign.businessName,
           mes: campaign.mes,
+          oldStatus: currentStatus,
           newStatus: newStatus,
           user: user?.email || 'Sistema'
         })

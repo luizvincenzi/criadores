@@ -993,6 +993,113 @@ export async function getRawCampaignsData(): Promise<CampaignData[]> {
   }
 }
 
+// Função para buscar status mais recentes das campanhas do audit_log
+export async function getLatestCampaignStatuses(): Promise<{ [key: string]: string }> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      console.log('GOOGLE_SPREADSHEET_ID não configurado');
+      return {};
+    }
+
+    // Busca todos os dados da aba Audit_Log
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Audit_Log!A:M',
+    });
+
+    const rows = response.data.values || [];
+
+    if (rows.length <= 1) {
+      console.log('Audit_Log vazio ou só com cabeçalho');
+      return {};
+    }
+
+    // Mapeia os dados do audit log
+    const auditEntries = rows.slice(1).map((row: any[]) => ({
+      id: row[0] || '',
+      timestamp: row[1] || '',
+      action: row[2] || '',
+      entity_type: row[3] || '',
+      entity_id: row[4] || '',
+      entity_name: row[5] || '',
+      old_value: row[6] || '',
+      new_value: row[7] || '',
+      old_value_status: row[8] || '',
+      new_value_status: row[9] || '',
+      user_id: row[10] || '',
+      user_name: row[11] || '',
+      details: row[12] || ''
+    }));
+
+    // Filtra apenas entradas de campanhas com mudança de status
+    const campaignStatusEntries = auditEntries.filter(entry =>
+      entry.entity_type === 'campaign' &&
+      entry.action === 'campaign_status_changed' &&
+      entry.new_value_status
+    );
+
+    // Agrupa por entity_name (business-mês) e pega o mais recente
+    const latestStatuses: { [key: string]: string } = {};
+
+    campaignStatusEntries.forEach(entry => {
+      const key = entry.entity_name; // business-mês
+      const currentEntry = latestStatuses[key];
+
+      if (!currentEntry || new Date(entry.timestamp) > new Date(currentEntry)) {
+        latestStatuses[key] = entry.new_value_status;
+      }
+    });
+
+    console.log(`✅ ${Object.keys(latestStatuses).length} status de campanhas carregados do audit_log`);
+    return latestStatuses;
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar status das campanhas do audit_log:', error);
+    return {};
+  }
+}
+
+// Função para atualizar status de campanha via audit_log
+export async function updateCampaignStatusViaAuditLog(
+  businessName: string,
+  mes: string,
+  oldStatus: string,
+  newStatus: string,
+  user: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const entityName = `${businessName}-${mes}`;
+    const entityId = `campaign_${businessName.toLowerCase().replace(/\s+/g, '_')}_${mes.toLowerCase()}`;
+
+    // Registra a mudança no audit_log
+    await logAction({
+      action: 'campaign_status_changed',
+      entity_type: 'campaign',
+      entity_id: entityId,
+      entity_name: entityName,
+      old_value: oldStatus,
+      new_value: newStatus,
+      old_value_status: oldStatus,
+      new_value_status: newStatus,
+      user_id: user,
+      user_name: user,
+      details: `Status da campanha alterado de "${oldStatus}" para "${newStatus}"`
+    });
+
+    console.log(`✅ Status da campanha atualizado via audit_log: ${entityName} → ${newStatus}`);
+    return { success: true };
+
+  } catch (error) {
+    console.error('❌ Erro ao atualizar status via audit_log:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
 // Função para ordenar meses (mais recente primeiro)
 function getMonthOrder(month: string): number {
   const monthOrder: { [key: string]: number } = {
@@ -1086,10 +1193,11 @@ export async function getGroupedCampaignsData(): Promise<GroupedCampaignData[]> 
 // Função para buscar campanhas da jornada (excluindo finalizadas)
 export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
   try {
-    // Buscar dados das campanhas e dos negócios
-    const [campaignsData, businessesData] = await Promise.all([
+    // Buscar dados das campanhas, negócios e status do audit_log
+    const [campaignsData, businessesData, auditStatuses] = await Promise.all([
       getCampaignsData(),
-      getBusinessesData()
+      getBusinessesData(),
+      getLatestCampaignStatuses()
     ]);
 
     // Criar mapa de negócios para busca rápida
@@ -1104,14 +1212,24 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
     campaignsData.forEach(campaign => {
       const businessName = campaign.business || campaign.nome;
       const mes = campaign.mes;
-      const status = campaign.status?.toLowerCase();
 
-      // Excluir campanhas finalizadas
-      if (!businessName || !mes || status === 'finalizado' || status === 'finalizada') {
+      if (!businessName || !mes) {
         return;
       }
 
       const groupKey = `${businessName.toLowerCase()}-${mes.toLowerCase()}`;
+      const auditKey = `${businessName}-${mes}`;
+
+      // Usar status do audit_log se disponível, senão usar status da campanha
+      let currentStatus = auditStatuses[auditKey] || campaign.status || 'Reunião Briefing';
+
+      console.log(`📊 Campanha ${auditKey}: Status audit_log = ${auditStatuses[auditKey]}, Status campanha = ${campaign.status}, Status final = ${currentStatus}`);
+
+      // Excluir campanhas finalizadas
+      if (currentStatus.toLowerCase() === 'finalizado' || currentStatus.toLowerCase() === 'finalizada') {
+        console.log(`🏁 Campanha ${auditKey} finalizada, excluindo da jornada`);
+        return;
+      }
 
       if (!journeyMap.has(groupKey)) {
         // Buscar dados do business
@@ -1119,11 +1237,13 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
         const quantidadeCriadores = businessData?.quantidadeCriadores ?
           parseInt(businessData.quantidadeCriadores) || 0 : 0;
 
-        // Determinar estágio da jornada baseado no status
+        // Determinar estágio da jornada baseado no status do audit_log
         let journeyStage: 'Reunião Briefing' | 'Agendamentos' | 'Entrega Final' = 'Reunião Briefing';
-        if (status === 'agendamentos' || status === 'agendamento') {
+        const statusLower = currentStatus.toLowerCase();
+
+        if (statusLower === 'agendamentos' || statusLower === 'agendamento') {
           journeyStage = 'Agendamentos';
-        } else if (status === 'entrega final' || status === 'entrega') {
+        } else if (statusLower === 'entrega final' || statusLower === 'entrega') {
           journeyStage = 'Entrega Final';
         }
 
@@ -1145,11 +1265,11 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
       journey.campanhas.push(campaign);
       journey.totalCampanhas++;
 
-      // Atualizar estágio da jornada se necessário (usar o mais avançado)
-      const status_lower = status || '';
-      if (status_lower === 'entrega final' || status_lower === 'entrega') {
+      // Atualizar estágio da jornada baseado no status mais atual do audit_log
+      const statusLower = currentStatus.toLowerCase();
+      if (statusLower === 'entrega final' || statusLower === 'entrega') {
         journey.journeyStage = 'Entrega Final';
-      } else if ((status_lower === 'agendamentos' || status_lower === 'agendamento') && journey.journeyStage === 'Reunião Briefing') {
+      } else if ((statusLower === 'agendamentos' || statusLower === 'agendamento') && journey.journeyStage === 'Reunião Briefing') {
         journey.journeyStage = 'Agendamentos';
       }
     });
