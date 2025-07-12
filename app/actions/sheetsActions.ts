@@ -49,22 +49,37 @@ export async function getData(sheetName: string) {
   }
 }
 
-// Interface para dados completos do business
+// Interface para dados completos do business - TODOS os campos da planilha
 export interface BusinessData {
   id: string;
-  nome: string; // Coluna A
-  categoria: string; // Coluna B
-  plano: string; // Coluna C
-  valor: string; // Coluna D
-  descricao: string; // Coluna E
-  status: string; // Coluna F
-  responsavel: string; // Coluna G
-  whatsapp: string; // Coluna H
-  email: string; // Coluna I
-  observacoes: string; // Coluna J
-  dataInicio: string; // Coluna K
-  dataFim: string; // Coluna L
-  row: number; // Linha na planilha
+  nome: string;                    // A = Nome
+  categoria: string;               // B = Categoria
+  planoAtual: string;              // C = Plano atual
+  comercial: string;               // D = Comercial
+  nomeResponsavel: string;         // E = Nome Responsável
+  cidade: string;                  // F = Cidade
+  whatsappResponsavel: string;     // G = WhatsApp Responsável
+  prospeccao: string;              // H = Prospecção
+  responsavel: string;             // I = Responsável
+  instagram: string;               // J = Instagram
+  grupoWhatsappCriado: string;     // K = Grupo WhatsApp criado
+  contratoAssinadoEnviado: string; // L = Contrato assinado e enviado
+  dataAssinaturaContrato: string;  // M = Data assinatura do contrato
+  contratoValidoAte: string;       // N = Contrato válido até
+  relatedFiles: string;            // O = Related files
+  notes: string;                   // P = Notes
+  row: number;                     // Linha na planilha
+
+  // Campos para compatibilidade com código existente
+  plano: string;
+  valor: string;
+  descricao: string;
+  status: string;
+  whatsapp: string;
+  email: string;
+  observacoes: string;
+  dataInicio: string;
+  dataFim: string;
 }
 
 // Função para buscar todos os dados dos negócios da aba Business
@@ -82,7 +97,7 @@ export async function getBusinessesData(): Promise<BusinessData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Business!A:L', // Lê todas as colunas relevantes
+      range: 'Business!A:P', // A=Nome, B=Categoria, C=Plano atual, D=Comercial, E=Nome Responsável, F=Cidade, G=WhatsApp Responsável, H=Prospecção, I=Responsável, J=Instagram, K=Grupo WhatsApp criado, L=Contrato assinado e enviado, M=Data assinatura do contrato, N=Contrato válido até, O=Related files, P=Notes
     });
 
     const values = response.data.values || [];
@@ -97,19 +112,35 @@ export async function getBusinessesData(): Promise<BusinessData[]> {
       .slice(1)
       .map((row, index) => ({
         id: `sheet-${index + 2}`, // +2 porque pula cabeçalho e é 1-indexed
-        nome: row[0] || '',
-        categoria: row[1] || '',
-        plano: row[2] || '',
-        valor: row[3] || '',
-        descricao: row[4] || '',
-        status: row[5] || '',
-        responsavel: row[6] || '',
-        whatsapp: row[7] || '',
-        email: row[8] || '',
-        observacoes: row[9] || '',
-        dataInicio: row[10] || '',
-        dataFim: row[11] || '',
-        row: index + 2
+        // Campos principais da planilha
+        nome: row[0] || '',                    // A = Nome
+        categoria: row[1] || '',               // B = Categoria
+        planoAtual: row[2] || '',              // C = Plano atual
+        comercial: row[3] || '',               // D = Comercial
+        nomeResponsavel: row[4] || '',         // E = Nome Responsável
+        cidade: row[5] || '',                  // F = Cidade
+        whatsappResponsavel: row[6] || '',     // G = WhatsApp Responsável
+        prospeccao: row[7] || '',              // H = Prospecção
+        responsavel: row[8] || '',             // I = Responsável
+        instagram: row[9] || '',               // J = Instagram
+        grupoWhatsappCriado: row[10] || '',    // K = Grupo WhatsApp criado
+        contratoAssinadoEnviado: row[11] || '', // L = Contrato assinado e enviado
+        dataAssinaturaContrato: row[12] || '', // M = Data assinatura do contrato
+        contratoValidoAte: row[13] || '',      // N = Contrato válido até
+        relatedFiles: row[14] || '',           // O = Related files
+        notes: row[15] || '',                  // P = Notes
+        row: index + 2,
+
+        // Campos para compatibilidade com código existente
+        plano: row[2] || '',                   // Usar Plano atual
+        valor: row[3] || '',                   // Usar Comercial como valor
+        descricao: row[15] || '',              // Usar Notes como descrição
+        status: 'Ativo',                      // Status padrão
+        whatsapp: row[6] || '',                // Usar WhatsApp Responsável
+        email: '',                             // Não disponível na nova estrutura
+        observacoes: row[15] || '',            // Usar Notes como observações
+        dataInicio: row[12] || '',             // Usar Data assinatura do contrato
+        dataFim: row[13] || ''                 // Usar Contrato válido até
       }))
       .filter(business => business.nome.trim() !== ''); // Remove linhas vazias
 
