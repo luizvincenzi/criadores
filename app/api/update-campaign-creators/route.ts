@@ -21,12 +21,52 @@ export async function POST(request: NextRequest) {
     // Buscar todas as campanhas para encontrar as do business/mês específico
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'campanhas!A:Z',
+      range: 'campanhas!A:AE',
     });
 
     const values = response.data.values;
     if (!values || values.length <= 1) {
       return NextResponse.json({ success: false, error: 'Nenhuma campanha encontrada' });
+    }
+
+    // Verificar estrutura da planilha
+    const headers = values[0] || [];
+    const hasIdColumn = headers[0] && headers[0].toLowerCase().includes('id');
+
+    console.log(`📊 Estrutura da planilha: ${hasIdColumn ? 'COM' : 'SEM'} coluna ID`);
+    console.log(`📋 Cabeçalho: ${headers.slice(0, 7).join(', ')}`);
+
+    // Definir índices das colunas baseado na estrutura
+    let businessCol, influenciadorCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
+
+    if (hasIdColumn) {
+      // Estrutura atual: A=Campaign_ID, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM
+      // Mas baseado nos dados, parece que:
+      // A=Campaign_ID, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM
+      // Vamos usar a estrutura real observada:
+      businessCol = 1; // B = Business (mas na verdade é o nome da campanha/business)
+      influenciadorCol = 2; // C = Influenciador
+      mesCol = 5; // F = Mês
+      // Para os campos de edição, vamos assumir que estão nas colunas seguintes
+      briefingCol = 7; // H
+      dataVisitaCol = 8; // I
+      qtdConvidadosCol = 9; // J
+      visitaConfirmadaCol = 10; // K
+      dataPostagemCol = 11; // L
+      videoAprovadoCol = 12; // M
+      videoPostadoCol = 13; // N
+    } else {
+      // Estrutura antiga sem ID
+      businessCol = 1; // B
+      influenciadorCol = 2; // C
+      mesCol = 5; // F
+      briefingCol = 7; // H
+      dataVisitaCol = 8; // I
+      qtdConvidadosCol = 9; // J
+      visitaConfirmadaCol = 10; // K
+      dataPostagemCol = 11; // L
+      videoAprovadoCol = 12; // M
+      videoPostadoCol = 13; // N
     }
 
     // Processar cada criador individualmente com busca robusta
@@ -52,24 +92,39 @@ export async function POST(request: NextRequest) {
 
       console.log(`🔄 Processando criador: ${influenciador}`);
 
-      // Tentar usar ID único primeiro, depois fallback para busca tradicional
+      // Buscar diretamente na planilha com a estrutura correta
       let creatorResult = null;
 
-      if (campaignId) {
-        console.log(`🔍 Tentando buscar por ID da campanha: ${campaignId}`);
-        creatorResult = await findCampaignById(campaignId);
+      console.log(`🔍 Buscando criador: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
 
-        // Verificar se o criador corresponde
-        if (creatorResult?.found && creatorResult.data.influenciador !== influenciador) {
-          console.log(`⚠️ ID encontrado mas criador diferente: ${creatorResult.data.influenciador} vs ${influenciador}`);
-          creatorResult = null;
+      // Buscar linha por linha
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        const rowBusiness = row[businessCol] || '';
+        const rowInfluenciador = row[influenciadorCol] || '';
+        const rowMes = row[mesCol] || '';
+
+        console.log(`📋 Linha ${i}: Business="${rowBusiness}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
+
+        // Comparação flexível
+        const businessMatch = rowBusiness.toLowerCase().trim() === businessName.toLowerCase().trim();
+        const influenciadorMatch = rowInfluenciador.toLowerCase().trim() === influenciador.toLowerCase().trim();
+        const mesMatch = rowMes.toLowerCase().trim() === mes.toLowerCase().trim();
+
+        if (businessMatch && influenciadorMatch && mesMatch) {
+          console.log(`✅ Criador encontrado na linha ${i}!`);
+          creatorResult = {
+            found: true,
+            rowIndex: i,
+            data: {
+              business: rowBusiness,
+              influenciador: rowInfluenciador,
+              mes: rowMes,
+              fullRow: row
+            }
+          };
+          break;
         }
-      }
-
-      // Fallback para busca tradicional se ID não funcionou
-      if (!creatorResult || !creatorResult.found) {
-        console.log(`🔍 Fallback: Buscando por business/mês/influenciador`);
-        creatorResult = await findCreatorInCampaigns(businessName, mes, influenciador);
       }
 
       if (!creatorResult || !creatorResult.found) {
@@ -106,15 +161,15 @@ export async function POST(request: NextRequest) {
       const changes: { [key: string]: { old: string; new: string } } = {};
       const rowUpdates = [];
 
-      // Verificar e registrar cada mudança
+      // Verificar e registrar cada mudança usando os índices corretos
       const fieldsToUpdate = [
-        { key: 'briefingCompleto', column: 7, range: 'H' },
-        { key: 'dataHoraVisita', column: 8, range: 'I' },
-        { key: 'quantidadeConvidados', column: 9, range: 'J' },
-        { key: 'visitaConfirmada', column: 10, range: 'K' },
-        { key: 'dataHoraPostagem', column: 11, range: 'L' },
-        { key: 'videoAprovado', column: 12, range: 'M' },
-        { key: 'videoPostado', column: 13, range: 'N' }
+        { key: 'briefingCompleto', column: briefingCol, range: String.fromCharCode(65 + briefingCol) },
+        { key: 'dataHoraVisita', column: dataVisitaCol, range: String.fromCharCode(65 + dataVisitaCol) },
+        { key: 'quantidadeConvidados', column: qtdConvidadosCol, range: String.fromCharCode(65 + qtdConvidadosCol) },
+        { key: 'visitaConfirmada', column: visitaConfirmadaCol, range: String.fromCharCode(65 + visitaConfirmadaCol) },
+        { key: 'dataHoraPostagem', column: dataPostagemCol, range: String.fromCharCode(65 + dataPostagemCol) },
+        { key: 'videoAprovado', column: videoAprovadoCol, range: String.fromCharCode(65 + videoAprovadoCol) },
+        { key: 'videoPostado', column: videoPostadoCol, range: String.fromCharCode(65 + videoPostadoCol) }
       ];
 
       for (const field of fieldsToUpdate) {
