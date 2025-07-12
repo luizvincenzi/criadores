@@ -3,7 +3,7 @@
 import { google } from 'googleapis';
 
 // Configuração da autenticação
-const getGoogleSheetsAuth = () => {
+export const getGoogleSheetsAuth = () => {
   const credentials = {
     type: 'service_account',
     project_id: process.env.GOOGLE_PROJECT_ID,

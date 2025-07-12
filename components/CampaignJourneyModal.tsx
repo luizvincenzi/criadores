@@ -22,6 +22,58 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
   const [availableCreators, setAvailableCreators] = useState<any[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
+  // Função para converter data do formato brasileiro para datetime-local
+  const formatDateForInput = (dateString: string): string => {
+    if (!dateString || dateString === '-') return '';
+
+    try {
+      // Se já está no formato correto (yyyy-MM-ddThh:mm), retorna como está
+      if (dateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/)) {
+        return dateString;
+      }
+
+      // Tenta converter formatos brasileiros como "21/Jul 0:00" ou "21/07/2024 14:30"
+      let date: Date;
+
+      if (dateString.includes('/')) {
+        // Formato brasileiro: "21/Jul 0:00" ou "21/07/2024 14:30"
+        const parts = dateString.split(' ');
+        const datePart = parts[0];
+        const timePart = parts[1] || '00:00';
+
+        if (datePart.includes('Jul')) {
+          // Formato "21/Jul" - assumir ano atual
+          const day = datePart.split('/')[0];
+          const year = new Date().getFullYear();
+          date = new Date(`${year}-07-${day.padStart(2, '0')}T${timePart}`);
+        } else {
+          // Formato "21/07/2024"
+          const [day, month, year] = datePart.split('/');
+          date = new Date(`${year || new Date().getFullYear()}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}`);
+        }
+      } else {
+        // Tentar parse direto
+        date = new Date(dateString);
+      }
+
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+
+      // Retorna no formato yyyy-MM-ddThh:mm
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (error) {
+      console.warn('Erro ao formatar data:', dateString, error);
+      return '';
+    }
+  };
+
   useEffect(() => {
     if (campaign) {
       setCurrentStatus(campaign.journeyStage);
@@ -499,7 +551,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                             {isEditMode ? (
                               <input
                                 type="datetime-local"
-                                value={editedData[index]?.dataHoraVisita || ''}
+                                value={formatDateForInput(editedData[index]?.dataHoraVisita || slot.dataHoraVisita || '')}
                                 onChange={(e) => updateCreatorData(index, 'dataHoraVisita', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
@@ -551,7 +603,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                             {isEditMode ? (
                               <input
                                 type="datetime-local"
-                                value={editedData[index]?.dataHoraPostagem || ''}
+                                value={formatDateForInput(editedData[index]?.dataHoraPostagem || slot.dataHoraPostagem || '')}
                                 onChange={(e) => updateCreatorData(index, 'dataHoraPostagem', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
