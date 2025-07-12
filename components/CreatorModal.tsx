@@ -12,32 +12,75 @@ interface CreatorModalProps {
 export default function CreatorModal({ creator, isOpen, onClose }: CreatorModalProps) {
   if (!isOpen || !creator) return null;
 
-  const formatFollowers = (count: number): string => {
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1)}M`;
-    } else if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}K`;
+  const formatFollowers = (count: string | number): string => {
+    const num = typeof count === 'string' ? parseInt(count.replace(/[^\d]/g, '')) || 0 : count;
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
     }
-    return count.toString();
+    return num.toString();
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'ativo':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-emerald-100';
       case 'inativo':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-50 text-red-700 border-red-200 shadow-red-100';
       case 'pendente':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-amber-50 text-amber-700 border-amber-200 shadow-amber-100';
+      case 'bloqueado':
+        return 'bg-gray-50 text-gray-700 border-gray-200 shadow-gray-100';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-blue-50 text-blue-700 border-blue-200 shadow-blue-100';
     }
   };
 
-  const getEngagementColor = (rate: number) => {
-    if (rate >= 5) return 'text-green-600';
-    if (rate >= 2) return 'text-yellow-600';
-    return 'text-red-600';
+  const getPerfilColor = (perfil: string) => {
+    switch (perfil.toLowerCase()) {
+      case 'nano':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'micro':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'macro':
+        return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'mega':
+        return 'bg-red-50 text-red-700 border-red-200';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return 'Não definido';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('pt-BR');
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const openWhatsApp = () => {
+    if (creator.whatsapp) {
+      const cleanNumber = creator.whatsapp.replace(/[^\d]/g, '');
+      window.open(`https://wa.me/55${cleanNumber}`, '_blank');
+    }
+  };
+
+  const openInstagram = () => {
+    if (creator.instagram) {
+      const username = creator.instagram.replace('@', '');
+      window.open(`https://instagram.com/${username}`, '_blank');
+    }
+  };
+
+  const openTikTok = () => {
+    if (creator.tiktok) {
+      const username = creator.tiktok.replace('@', '');
+      window.open(`https://tiktok.com/@${username}`, '_blank');
+    }
   };
 
   return (

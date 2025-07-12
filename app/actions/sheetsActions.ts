@@ -550,14 +550,30 @@ export async function cleanIncorrectAuditLogs() {
   }
 }
 
-// Interface para dados dos criadores
+// Interface para dados dos criadores - TODOS os campos da planilha
 export interface CreatorData {
   id: string;
-  nome: string;
-  status: string;
-  whatsapp: string;
-  cidade: string;
-  instagram: string;
+  nome: string;                           // A = Nome
+  status: string;                         // B = Status
+  whatsapp: string;                       // C = WhatsApp
+  cidade: string;                         // D = Cidade
+  prospeccao: string;                     // E = Prospecção
+  responsavel: string;                    // F = Responsável
+  instagram: string;                      // G = Instagram
+  seguidoresInstagram: string;            // H = Seguidores instagram - Maio 2025
+  tiktok: string;                         // I = TikTok
+  seguidoresTiktok: string;               // J = Seguidores TikTok - julho 25
+  onboardingInicial: string;              // K = Onboarding Inicial
+  startDate: string;                      // L = Start date
+  endDate: string;                        // M = End date
+  relatedFiles: string;                   // N = Related files
+  notes: string;                          // O = Notes
+  perfil: string;                         // P = Perfil
+  preferencias: string;                   // Q = Preferências
+  naoAceita: string;                      // R = Não aceita
+  descricaoCriador: string;               // S = Descrição do criador
+
+  // Campos calculados para compatibilidade
   seguidores: number;
   engajamento: number;
   categoria: string;
@@ -580,7 +596,7 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Criadores!A:J', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Categoria, F=Engajamento, G=Instagram, H=Seguidores, I=Email, J=Observações
+      range: 'Criadores!A:S', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador
     });
 
     const values = response.data.values || [];
@@ -597,7 +613,7 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
     if (values[2]) console.log('Segunda linha:', values[2]);
 
     // Mapear dados e filtrar apenas criadores válidos:
-    // Estrutura: A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Categoria, F=?, G=Instagram, H=Seguidores (mostrado na coluna "Seguidores")
+    // Estrutura completa: A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador
     const creators: CreatorData[] = values.slice(1)
       .filter(row => {
         // Filtrar apenas linhas com nome válido e dados reais
@@ -615,16 +631,33 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
       })
       .map((row, index) => ({
         id: `creator-${index + 1}`,
-        nome: row[0] || '', // Coluna A = Nome
-        status: row[1] || 'Ativo', // Coluna B = Status
-        whatsapp: row[2] || '', // Coluna C = WhatsApp
-        cidade: row[3] || '', // Coluna D = Cidade
-        categoria: row[4] || '', // Coluna E = Categoria
-        engajamento: parseInt(row[7]) || 0, // Coluna H = Seguidores (mostrado como "Engajamento")
-        instagram: row[6] || '', // Coluna G = Instagram
-        seguidores: parseInt(row[7]) || 0, // Coluna H = Seguidores (duplicado para compatibilidade)
-        email: row[8] || '', // Coluna I = Email
-        observacoes: row[9] || '' // Coluna J = Observações
+        // Campos principais da planilha
+        nome: row[0] || '',                           // A = Nome
+        status: row[1] || 'Ativo',                    // B = Status
+        whatsapp: row[2] || '',                       // C = WhatsApp
+        cidade: row[3] || '',                         // D = Cidade
+        prospeccao: row[4] || '',                     // E = Prospecção
+        responsavel: row[5] || '',                    // F = Responsável
+        instagram: row[6] || '',                      // G = Instagram
+        seguidoresInstagram: row[7] || '',            // H = Seguidores instagram - Maio 2025
+        tiktok: row[8] || '',                         // I = TikTok
+        seguidoresTiktok: row[9] || '',               // J = Seguidores TikTok - julho 25
+        onboardingInicial: row[10] || '',             // K = Onboarding Inicial
+        startDate: row[11] || '',                     // L = Start date
+        endDate: row[12] || '',                       // M = End date
+        relatedFiles: row[13] || '',                  // N = Related files
+        notes: row[14] || '',                         // O = Notes
+        perfil: row[15] || '',                        // P = Perfil
+        preferencias: row[16] || '',                  // Q = Preferências
+        naoAceita: row[17] || '',                     // R = Não aceita
+        descricaoCriador: row[18] || '',              // S = Descrição do criador
+
+        // Campos calculados para compatibilidade com código existente
+        seguidores: parseInt(row[7]?.replace(/[^\d]/g, '')) || 0, // Seguidores do Instagram
+        engajamento: 0, // Pode ser calculado posteriormente
+        categoria: row[15] || '', // Usar Perfil como categoria
+        email: '', // Não disponível na nova estrutura
+        observacoes: row[14] || '' // Usar Notes como observações
       }));
 
     console.log(`✅ ${creators.length} criadores carregados do Google Sheets (filtrados)`);

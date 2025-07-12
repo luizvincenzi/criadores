@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getCreatorsData, CreatorData } from '@/app/actions/sheetsActions';
-import CreatorModal from '@/components/CreatorModal';
+import CreatorModalNew from '@/components/CreatorModalNew';
 import AddCreatorModal from '@/components/AddCreatorModal';
 import Button from '@/components/ui/Button';
 
@@ -337,7 +337,7 @@ export default function CreatorsPage() {
       </div>
 
       {/* Modal de Detalhes */}
-      <CreatorModal
+      <CreatorModalNew
         creator={selectedCreator}
         isOpen={isModalOpen}
         onClose={closeModal}
