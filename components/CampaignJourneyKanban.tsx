@@ -227,8 +227,12 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
       const result = await response.json();
 
       if (result.success) {
-        console.log('✅ Status atualizado via drag&drop');
-        onRefresh(); // Recarregar dados
+        console.log('✅ Status atualizado via drag&drop e audit_log');
+
+        // Aguardar um pouco para garantir que o audit_log foi processado
+        setTimeout(() => {
+          onRefresh(); // Recarregar dados
+        }, 1000);
       } else {
         console.error('❌ Erro ao atualizar status via drag&drop:', result.error);
         alert(`❌ Erro ao mover campanha: ${result.error}`);

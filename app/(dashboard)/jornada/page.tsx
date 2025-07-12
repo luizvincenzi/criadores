@@ -44,11 +44,22 @@ export default function JornadaPage() {
   return (
     <div className="space-y-6" style={{ backgroundColor: '#f5f5f5', minHeight: 'calc(100vh - 8rem)' }}>
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-gray-900 mb-1">Jornada das Campanhas</h1>
-        <p className="text-sm text-gray-600">
-          {campaigns.length} campanhas ativas • Arraste para mover entre estágios da jornada
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 mb-1">Jornada das Campanhas</h1>
+          <p className="text-sm text-gray-600">
+            {campaigns.length} campanhas ativas • Arraste para mover entre estágios da jornada
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          icon="🔄"
+          onClick={loadCampaignJourney}
+          className="text-sm"
+          disabled={loading}
+        >
+          {loading ? 'Carregando...' : 'Atualizar'}
+        </Button>
       </div>
 
       {/* Kanban de Campanhas */}

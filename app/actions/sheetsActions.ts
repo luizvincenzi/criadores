@@ -1045,17 +1045,20 @@ export async function getLatestCampaignStatuses(): Promise<{ [key: string]: stri
 
     // Agrupa por entity_name (business-mês) e pega o mais recente
     const latestStatuses: { [key: string]: string } = {};
+    const latestTimestamps: { [key: string]: string } = {};
 
     campaignStatusEntries.forEach(entry => {
       const key = entry.entity_name; // business-mês
-      const currentEntry = latestStatuses[key];
+      const currentTimestamp = latestTimestamps[key];
 
-      if (!currentEntry || new Date(entry.timestamp) > new Date(currentEntry)) {
+      if (!currentTimestamp || new Date(entry.timestamp) > new Date(currentTimestamp)) {
         latestStatuses[key] = entry.new_value_status;
+        latestTimestamps[key] = entry.timestamp;
       }
     });
 
     console.log(`✅ ${Object.keys(latestStatuses).length} status de campanhas carregados do audit_log`);
+    console.log('📊 Status encontrados no audit_log:', latestStatuses);
     return latestStatuses;
 
   } catch (error) {

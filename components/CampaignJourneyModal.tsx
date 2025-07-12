@@ -136,17 +136,18 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       const result = await response.json();
 
       if (result.success) {
-        console.log('✅ Status da campanha atualizado');
+        console.log('✅ Status da campanha atualizado via audit_log');
         setCurrentStatus(newStatus);
 
-        // Se foi finalizado, remover da jornada
-        if (newStatus === 'Finalizado') {
-          alert('✅ Campanha finalizada! Ela será removida da jornada.');
+        // Aguardar um pouco para garantir que o audit_log foi processado
+        setTimeout(() => {
+          if (newStatus === 'Finalizado') {
+            alert('✅ Campanha finalizada! Ela será removida da jornada.');
+          } else {
+            alert(`✅ Status atualizado para: ${newStatus}`);
+          }
           onStatusUpdate();
-        } else {
-          alert(`✅ Status atualizado para: ${newStatus}`);
-          onStatusUpdate();
-        }
+        }, 1000);
       } else {
         console.error('❌ Erro ao atualizar status:', result.error);
         alert(`❌ Erro ao atualizar status: ${result.error}`);
