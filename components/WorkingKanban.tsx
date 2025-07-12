@@ -16,7 +16,7 @@ import {
 import { useBusinessStore, Business } from '@/store/businessStore';
 import { useAuthStore } from '@/store/authStore';
 import SimpleBusinessCard from './SimpleBusinessCard';
-import BusinessModal from './BusinessModal';
+import BusinessModalNew from './BusinessModalNew';
 
 // Removido - agora usando SimpleBusinessCard
 
@@ -244,7 +244,7 @@ export default function WorkingKanban() {
       </DndContext>
 
       {/* Modal de Detalhes */}
-      <BusinessModal
+      <BusinessModalNew
         business={selectedBusiness}
         isOpen={isModalOpen}
         onClose={handleCloseModal}

@@ -292,24 +292,35 @@ export const useBusinessStore = create<BusinessState>()(
                 id: data.id,
                 businessName: data.nome,
                 categoria: data.categoria,
-                plano: data.plano,
-                descricao: data.descricao,
+                plano: data.planoAtual || data.plano, // Usar planoAtual da nova estrutura
+                descricao: data.notes || data.descricao, // Usar notes da nova estrutura
                 responsavel: data.responsavel,
-                whatsapp: data.whatsapp,
-                email: data.email,
-                observacoes: data.observacoes,
-                dataInicio: data.dataInicio,
-                dataFim: data.dataFim,
+                whatsapp: data.whatsappResponsavel || data.whatsapp, // Usar whatsappResponsavel da nova estrutura
+                email: data.email || '', // Email não está na nova estrutura
+                observacoes: data.notes || data.observacoes, // Usar notes da nova estrutura
+                dataInicio: data.dataAssinaturaContrato || data.dataInicio, // Usar dataAssinaturaContrato
+                dataFim: data.contratoValidoAte || data.dataFim, // Usar contratoValidoAte
                 row: data.row,
-                value: parseFloat(data.valor.replace(/[^\d,]/g, '').replace(',', '.')) || 0,
+                value: parseFloat((data.comercial || data.valor || '0').toString().replace(/[^\d,]/g, '').replace(',', '.')) || 0,
                 journeyStage: 'Reunião Briefing', // Padrão, será atualizado pelo Audit_Log
                 nextAction: 'Aguardando próximos passos',
                 contactDate: new Date().toISOString().split('T')[0],
                 creators: [],
                 campaigns: [],
                 lastUpdate: 'Agora',
-                priority: 'medium'
-              };
+                priority: 'medium',
+                // Adicionar campos da nova estrutura como propriedades extras
+                cidade: data.cidade,
+                nomeResponsavel: data.nomeResponsavel,
+                prospeccao: data.prospeccao,
+                instagram: data.instagram,
+                grupoWhatsappCriado: data.grupoWhatsappCriado,
+                contratoAssinadoEnviado: data.contratoAssinadoEnviado,
+                dataAssinaturaContrato: data.dataAssinaturaContrato,
+                contratoValidoAte: data.contratoValidoAte,
+                relatedFiles: data.relatedFiles,
+                comercial: data.comercial
+              } as Business & any; // Usar any para permitir campos extras
 
               // Atualiza o status com base no Audit_Log se disponível
               const latestStatus = latestStatuses[data.nome.trim()];
