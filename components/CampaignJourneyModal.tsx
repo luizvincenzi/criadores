@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CampaignJourneyData, updateCampaignStatus, generateCreatorSlots, getAvailableCreators } from '@/app/actions/sheetsActions';
+import { CampaignJourneyData } from '@/app/actions/sheetsActions';
 import { useAuthStore } from '@/store/authStore';
 
 interface CampaignJourneyModalProps {
@@ -36,23 +36,62 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     try {
       console.log('🔄 Carregando slots de criadores...');
 
-      // Carregar slots e criadores disponíveis em paralelo
-      const [slots, creators] = await Promise.all([
-        generateCreatorSlots(
-          campaign.businessName,
-          campaign.mes,
-          campaign.quantidadeCriadores
-        ),
-        getAvailableCreators()
-      ]);
+      const response = await fetch('/api/get-creator-slots', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName: campaign.businessName,
+          mes: campaign.mes,
+          quantidadeContratada: campaign.quantidadeCriadores
+        })
+      });
 
-      setCreatorSlots(slots);
-      setAvailableCreators(creators);
-      setEditedData(slots);
+      const result = await response.json();
 
-      console.log(`✅ ${slots.length} slots de criadores carregados`);
+      if (result.success) {
+        setCreatorSlots(result.slots);
+        setAvailableCreators(result.availableCreators);
+        setEditedData(result.slots);
+        console.log(`✅ ${result.slots.length} slots de criadores carregados`);
+      } else {
+        console.error('❌ Erro ao carregar slots:', result.error);
+        // Fallback para dados vazios
+        const emptySlots = Array.from({ length: campaign.quantidadeCriadores }, (_, i) => ({
+          index: i,
+          influenciador: '',
+          briefingCompleto: 'pendente',
+          dataHoraVisita: '',
+          quantidadeConvidados: '',
+          visitaConfirmado: 'pendente',
+          dataHoraPostagem: '',
+          videoAprovado: 'pendente',
+          videoPostado: 'pendente',
+          isExisting: false
+        }));
+        setCreatorSlots(emptySlots);
+        setEditedData(emptySlots);
+        setAvailableCreators([]);
+      }
     } catch (error) {
       console.error('❌ Erro ao carregar slots de criadores:', error);
+      // Fallback para dados vazios
+      const emptySlots = Array.from({ length: campaign.quantidadeCriadores }, (_, i) => ({
+        index: i,
+        influenciador: '',
+        briefingCompleto: 'pendente',
+        dataHoraVisita: '',
+        quantidadeConvidados: '',
+        visitaConfirmado: 'pendente',
+        dataHoraPostagem: '',
+        videoAprovado: 'pendente',
+        videoPostado: 'pendente',
+        isExisting: false
+      }));
+      setCreatorSlots(emptySlots);
+      setEditedData(emptySlots);
+      setAvailableCreators([]);
     } finally {
       setIsLoadingSlots(false);
     }

@@ -11,6 +11,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverEvent,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -24,6 +26,27 @@ import { CSS } from '@dnd-kit/utilities';
 interface CampaignJourneyKanbanProps {
   campaigns: CampaignJourneyData[];
   onRefresh: () => void;
+}
+
+// Componente para coluna droppable
+function DroppableColumn({
+  id,
+  children,
+  className
+}: {
+  id: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const { setNodeRef } = useDroppable({
+    id: id,
+  });
+
+  return (
+    <div ref={setNodeRef} className={className}>
+      {children}
+    </div>
+  );
 }
 
 // Componente para card arrastável
@@ -166,16 +189,23 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
 
     // Determinar o novo status baseado na coluna de destino
     let newStatus = '';
-    if (overId === 'Reunião Briefing') {
-      newStatus = 'Reunião Briefing';
-    } else if (overId === 'Agendamentos') {
-      newStatus = 'Agendamentos';
-    } else if (overId === 'Entrega Final') {
-      newStatus = 'Entrega Final';
+
+    // Verificar se foi dropado em uma coluna ou em um card dentro da coluna
+    const stageIds = ['Reunião Briefing', 'Agendamentos', 'Entrega Final'];
+
+    if (stageIds.includes(overId)) {
+      // Dropado diretamente na coluna
+      newStatus = overId;
+    } else {
+      // Dropado em um card, encontrar a coluna do card
+      const targetCampaign = campaigns.find(c => c.id === overId);
+      if (targetCampaign) {
+        newStatus = targetCampaign.journeyStage;
+      }
     }
 
     // Se o status não mudou, não fazer nada
-    if (newStatus === activeCampaign.journeyStage || !newStatus) return;
+    if (!newStatus || newStatus === activeCampaign.journeyStage) return;
 
     try {
       console.log(`🔄 Movendo campanha via drag&drop: ${activeCampaign.businessName} - ${activeCampaign.mes}: ${activeCampaign.journeyStage} → ${newStatus}`);
@@ -220,15 +250,14 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
           const stageCampaigns = getCampaignsByStage(stage.id);
 
           return (
-            <SortableContext
+            <DroppableColumn
               key={stage.id}
               id={stage.id}
-              items={stageCampaigns.map(c => c.id)}
-              strategy={verticalListSortingStrategy}
+              className={`${stage.color} rounded-lg border-2 border-dashed p-4 min-h-[400px]`}
             >
-              <div
-                className={`${stage.color} rounded-lg border-2 border-dashed p-4 min-h-[400px]`}
-                data-stage={stage.id}
+              <SortableContext
+                items={stageCampaigns.map(c => c.id)}
+                strategy={verticalListSortingStrategy}
               >
                 {/* Header da Coluna */}
                 <div className="flex items-center justify-between mb-4">
@@ -260,8 +289,8 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
                     </div>
                   )}
                 </div>
-              </div>
-            </SortableContext>
+              </SortableContext>
+            </DroppableColumn>
           );
         })}
         </div>
