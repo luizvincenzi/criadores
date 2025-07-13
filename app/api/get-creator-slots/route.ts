@@ -7,6 +7,11 @@ export async function POST(request: NextRequest) {
     const { businessName, mes, quantidadeContratada } = body;
 
     console.log('🔄 API: Buscando slots de criadores:', { businessName, mes, quantidadeContratada });
+    console.log('🔍 DEBUG: Parâmetros de busca detalhados:', {
+      businessName: `"${businessName}"`,
+      mes: `"${mes}"`,
+      quantidadeContratada: quantidadeContratada
+    });
 
     if (!businessName || !mes || !quantidadeContratada) {
       return NextResponse.json({ 
@@ -48,14 +53,14 @@ export async function POST(request: NextRequest) {
     let campanhaCol, businessCol, influenciadorCol, responsavelCol, statusCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
 
     if (hasIdColumn) {
-      // ESTRUTURA REAL DESCOBERTA:
-      // A=Campaign_ID, B=Campanha, C=Business(INFLUENCIADOR), D=Influenciador(RESPONSÁVEL), E=Responsável(STATUS), F=Status(MÊS), G=Mês(DATA_FIM)
-      campanhaCol = 1; // B = Campanha (ex: "Boussolé")
-      businessCol = 1; // B = Campanha (nome do business)
-      influenciadorCol = 2; // C = Business (na verdade é o INFLUENCIADOR)
-      responsavelCol = 3; // D = Influenciador (na verdade é o RESPONSÁVEL)
-      statusCol = 4; // E = Responsável (na verdade é o STATUS)
-      mesCol = 5; // F = Status (na verdade é o MÊS)
+      // ESTRUTURA REAL CORRIGIDA:
+      // A=Campaign_ID, B=Nome Campanha, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM
+      campanhaCol = 1; // B = Nome Campanha
+      businessCol = 1; // B = Nome Campanha (nome do business)
+      influenciadorCol = 2; // C = Influenciador
+      responsavelCol = 3; // D = Responsável
+      statusCol = 4; // E = Status
+      mesCol = 5; // F = Mês
       // Campos de edição
       briefingCol = 7; // H
       dataVisitaCol = 8; // I
@@ -92,12 +97,21 @@ export async function POST(request: NextRequest) {
 
       console.log(`📋 Linha ${i}: Campanha="${rowCampanha}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
 
-      // Comparação flexível - buscar por campanha + mês
+      // Comparação flexível - buscar por campanha + mês (incluindo slots vazios)
       const campanhaMatch = rowCampanha.toLowerCase().trim() === businessName.toLowerCase().trim();
-      const mesMatch = rowMes.toLowerCase().trim() === mes.toLowerCase().trim();
 
-      if (campanhaMatch && mesMatch && rowInfluenciador.trim() !== '') {
-        console.log(`✅ Campanha encontrada na linha ${i}: ${rowInfluenciador}`);
+      // Comparação de mês mais flexível (aceita "Julho 2025", "Jul", "julho", etc.)
+      const mesNormalizado = mes.toLowerCase().trim();
+      const rowMesNormalizado = rowMes.toLowerCase().trim();
+      const mesMatch = rowMesNormalizado === mesNormalizado ||
+                      rowMesNormalizado.includes(mesNormalizado) ||
+                      mesNormalizado.includes(rowMesNormalizado);
+
+      console.log(`🔍 DEBUG: Comparação - Campanha: "${rowCampanha}" === "${businessName}" = ${campanhaMatch}`);
+      console.log(`🔍 DEBUG: Comparação - Mês: "${rowMes}" ~= "${mes}" = ${mesMatch}`);
+
+      if (campanhaMatch && mesMatch) {
+        console.log(`✅ Slot encontrado na linha ${i}: Influenciador="${rowInfluenciador}" (${rowInfluenciador.trim() === '' ? 'VAZIO' : 'PREENCHIDO'})`);
         existingCampaigns.push({
           influenciador: rowInfluenciador,
           briefingCompleto: row[briefingCol] || '',
