@@ -252,6 +252,51 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     setEditedData(newEditedData);
   };
 
+  const handleAddNewCreator = () => {
+    const newSlot = {
+      index: creatorSlots.length,
+      influenciador: '',
+      briefingCompleto: 'pendente',
+      dataHoraVisita: '',
+      quantidadeConvidados: '',
+      visitaConfirmado: 'pendente',
+      dataHoraPostagem: '',
+      videoAprovado: 'pendente',
+      videoPostado: 'pendente',
+      isExisting: false
+    };
+
+    const newCreatorSlots = [...creatorSlots, newSlot];
+    const newEditedData = [...editedData, newSlot];
+
+    setCreatorSlots(newCreatorSlots);
+    setEditedData(newEditedData);
+
+    console.log(`➕ Novo slot de criador adicionado. Total: ${newCreatorSlots.length}`);
+  };
+
+  const handleDeleteCreator = (index: number) => {
+    if (creatorSlots.length <= 1) {
+      alert('Não é possível remover o último criador. Uma campanha deve ter pelo menos um slot.');
+      return;
+    }
+
+    const confirmDelete = window.confirm('Tem certeza que deseja remover este criador?');
+    if (!confirmDelete) return;
+
+    const newCreatorSlots = creatorSlots.filter((_, i) => i !== index);
+    const newEditedData = editedData.filter((_, i) => i !== index);
+
+    // Reindexar os slots restantes
+    const reindexedSlots = newCreatorSlots.map((slot, i) => ({ ...slot, index: i }));
+    const reindexedEditedData = newEditedData.map((slot, i) => ({ ...slot, index: i }));
+
+    setCreatorSlots(reindexedSlots);
+    setEditedData(reindexedEditedData);
+
+    console.log(`🗑️ Slot de criador removido. Total restante: ${reindexedSlots.length}`);
+  };
+
   const handleSaveChanges = async () => {
     if (!campaign) return;
 
@@ -285,9 +330,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       const debugResult = await debugResponse.json();
       console.log('🔍 DEBUG: Resposta do debug:', debugResult);
 
-      // Detectar se há troca de criadores
+      // Detectar mudanças: trocas, adições e remoções
       const creatorChanges = [];
-      for (let i = 0; i < editedData.length; i++) {
+      const addedCreators = [];
+      const removedCreators = [];
+
+      // Detectar trocas e atualizações
+      for (let i = 0; i < Math.min(editedData.length, creatorSlots.length); i++) {
         const editedCreator = editedData[i];
         const originalCreator = creatorSlots[i];
 
@@ -301,17 +350,44 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         }
       }
 
-      console.log('🔄 Trocas de criadores detectadas:', creatorChanges);
+      // Detectar criadores adicionados
+      if (editedData.length > creatorSlots.length) {
+        for (let i = creatorSlots.length; i < editedData.length; i++) {
+          addedCreators.push({
+            index: i,
+            creatorData: editedData[i]
+          });
+        }
+      }
+
+      // Detectar criadores removidos
+      if (creatorSlots.length > editedData.length) {
+        for (let i = editedData.length; i < creatorSlots.length; i++) {
+          removedCreators.push({
+            index: i,
+            creatorData: creatorSlots[i]
+          });
+        }
+      }
+
+      console.log('🔄 Mudanças detectadas:', {
+        trocas: creatorChanges,
+        adicionados: addedCreators,
+        removidos: removedCreators
+      });
 
       let response;
       let result;
 
-      // Se há trocas de criadores, usar API específica
-      if (creatorChanges.length > 0) {
-        console.log('🔄 Usando API de troca de criadores...');
+      // Processar todas as mudanças
+      const hasChanges = creatorChanges.length > 0 || addedCreators.length > 0 || removedCreators.length > 0;
 
-        // Processar cada troca individualmente
-        const changeResults = [];
+      if (hasChanges) {
+        console.log('🔄 Processando mudanças nos criadores...');
+
+        const allResults = [];
+
+        // 1. Processar trocas de criadores
         for (const change of creatorChanges) {
           const changeResponse = await fetch('/api/change-campaign-creator', {
             method: 'POST',
@@ -328,18 +404,54 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           });
 
           const changeResult = await changeResponse.json();
-          changeResults.push(changeResult);
+          allResults.push({ type: 'troca', result: changeResult });
+        }
+
+        // 2. Processar adições de criadores
+        for (const addition of addedCreators) {
+          const addResponse = await fetch('/api/add-campaign-creator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessName: campaign.businessName,
+              mes: campaign.mes,
+              creatorData: addition.creatorData,
+              user: user?.email || 'Sistema'
+            })
+          });
+
+          const addResult = await addResponse.json();
+          allResults.push({ type: 'adicao', result: addResult });
+        }
+
+        // 3. Processar remoções de criadores
+        for (const removal of removedCreators) {
+          const removeResponse = await fetch('/api/remove-campaign-creator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessName: campaign.businessName,
+              mes: campaign.mes,
+              creatorData: removal.creatorData,
+              user: user?.email || 'Sistema'
+            })
+          });
+
+          const removeResult = await removeResponse.json();
+          allResults.push({ type: 'remocao', result: removeResult });
         }
 
         // Consolidar resultados
-        const allSuccessful = changeResults.every(r => r.success);
+        const allSuccessful = allResults.every(r => r.result.success);
+        const totalChanges = creatorChanges.length + addedCreators.length + removedCreators.length;
+
         result = {
           success: allSuccessful,
           message: allSuccessful
-            ? `✅ ${creatorChanges.length} troca(s) de criador realizada(s) com sucesso!`
-            : `❌ Erro em algumas trocas de criadores`,
-          changeResults,
-          updatedCount: allSuccessful ? creatorChanges.length : 0
+            ? `✅ ${totalChanges} alteração(ões) realizada(s) com sucesso!`
+            : `❌ Erro em algumas alterações`,
+          allResults,
+          updatedCount: allSuccessful ? totalChanges : 0
         };
       } else {
         console.log('📝 Usando API de atualização normal...');
@@ -577,12 +689,17 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Vídeo Postado
                         </th>
+                        {isEditMode && (
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Ações
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {isLoadingSlots ? (
                         <tr>
-                          <td colSpan={8} className="px-6 py-8 text-center">
+                          <td colSpan={isEditMode ? 9 : 8} className="px-6 py-8 text-center">
                             <div className="flex items-center justify-center">
                               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
                               <span className="text-gray-600">Carregando criadores...</span>
@@ -592,29 +709,40 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                       ) : (
                         creatorSlots.map((slot, index) => (
                         <tr key={index} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                               </div>
                               <div className="min-w-0 flex-1">
                                 {isEditMode ? (
-                                  <select
-                                    value={editedData[index]?.influenciador || ''}
-                                    onChange={(e) => updateCreatorData(index, 'influenciador', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                  >
-                                    <option value="">Selecionar criador...</option>
-                                    {availableCreators.map((creator) => (
-                                      <option key={creator.id} value={creator.nome}>
-                                        {creator.nome} - {creator.cidade}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div className="space-y-1">
+                                    <select
+                                      value={editedData[index]?.influenciador || ''}
+                                      onChange={(e) => updateCreatorData(index, 'influenciador', e.target.value)}
+                                      className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base font-medium transition-all ${
+                                        editedData[index]?.influenciador
+                                          ? 'border-green-300 bg-green-50 text-green-900'
+                                          : 'border-gray-300 bg-white text-gray-700'
+                                      }`}
+                                    >
+                                      <option value="">🔍 Selecionar criador...</option>
+                                      {availableCreators.map((creator) => (
+                                        <option key={creator.id} value={creator.nome}>
+                                          👤 {creator.nome} - 📍 {creator.cidade}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {editedData[index]?.influenciador && (
+                                      <div className="text-xs text-green-600 font-medium">
+                                        ✅ Criador selecionado
+                                      </div>
+                                    )}
+                                  </div>
                                 ) : (
-                                  <div className="text-sm font-medium text-gray-900">
+                                  <div className="text-base font-medium text-gray-900">
                                     {slot.influenciador || (
                                       <span className="text-gray-400 italic">
                                         Criador não selecionado
@@ -760,12 +888,41 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                               </span>
                             )}
                           </td>
+                          {isEditMode && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <button
+                                onClick={() => handleDeleteCreator(index)}
+                                className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-lg hover:bg-red-200 transition-colors"
+                                title="Remover criador"
+                              >
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Remover
+                              </button>
+                            </td>
+                          )}
                         </tr>
                         ))
                       )}
                     </tbody>
                   </table>
                 </div>
+
+                {/* Botão para Adicionar Novo Criador */}
+                {isEditMode && (
+                  <div className="bg-blue-50 px-6 py-4 border-t border-gray-200">
+                    <button
+                      onClick={handleAddNewCreator}
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 border border-blue-300 rounded-lg hover:bg-blue-200 transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Adicionar Novo Criador
+                    </button>
+                  </div>
+                )}
 
                 {/* Botões de Ação para Modo de Edição */}
                 {isEditMode && (
