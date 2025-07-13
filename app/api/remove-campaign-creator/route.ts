@@ -71,14 +71,38 @@ export async function POST(request: NextRequest) {
         console.log(`📋 Linha ${i + 2}: Nome="${nomeCampanha}", Mês="${mes_planilha}"`);
       }
 
-      if (nomeCampanha?.toLowerCase() === businessName.toLowerCase() &&
-          mes_planilha?.toLowerCase() === mes.toLowerCase()) {
+      // Comparação mais flexível
+      const nomeMatch = nomeCampanha?.toLowerCase().trim() === businessName.toLowerCase().trim();
+      const mesNormalizado = mes.toLowerCase().trim();
+      const mesPlaNormalizado = mes_planilha?.toLowerCase().trim() || '';
+      const mesMatch = mesPlaNormalizado === mesNormalizado ||
+                      mesPlaNormalizado.includes(mesNormalizado) ||
+                      mesNormalizado.includes(mesPlaNormalizado);
+
+      if (nomeMatch && mesMatch) {
         campaignRows.push({ row, index: i + 2 }); // +2 porque começa na linha 2 (header é linha 1)
         console.log(`✅ Campanha encontrada na linha ${i + 2}: ${nomeCampanha} - ${mes_planilha}`);
       }
     }
 
     console.log(`📊 Total de campanhas encontradas: ${campaignRows.length}`);
+
+    if (campaignRows.length === 0) {
+      console.error('❌ Nenhuma campanha encontrada para os parâmetros fornecidos');
+      return NextResponse.json({
+        success: false,
+        error: `Nenhuma campanha encontrada para "${businessName}" em "${mes}"`,
+        debug: {
+          searchParams: { businessName, mes },
+          totalRows: rows.length,
+          sampleRows: rows.slice(0, 3).map((row, i) => ({
+            line: i + 2,
+            nomeCampanha: row[1],
+            mes: row[5]
+          }))
+        }
+      }, { status: 400 });
+    }
 
     // Contar apenas campanhas ativas
     const activeCampaigns = campaignRows.filter(item => {
