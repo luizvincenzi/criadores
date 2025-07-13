@@ -4,7 +4,8 @@ import { createGoogleSheetsClient } from '@/app/actions/sheetsActions';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { businessName, mes, creatorName, user } = body;
+    const { businessName, mes, creatorData, user } = body;
+    const creatorName = creatorData?.influenciador || '';
 
     console.log('🔄 Adicionando criador à campanha:', { businessName, mes, creatorName });
 
