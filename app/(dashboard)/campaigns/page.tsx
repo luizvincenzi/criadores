@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getGroupedCampaignsData, GroupedCampaignData } from '@/app/actions/sheetsActions';
 import CampaignGroupModal from '@/components/CampaignGroupModal';
-import AddCampaignModal from '@/components/AddCampaignModal';
+import AddCampaignModalNew from '@/components/AddCampaignModalNew';
 import Button from '@/components/ui/Button';
 
 export default function CampaignsPage() {
@@ -390,7 +390,7 @@ export default function CampaignsPage() {
       />
 
       {/* Modal de Adicionar Campanha */}
-      <AddCampaignModal
+      <AddCampaignModalNew
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
         onSuccess={handleAddSuccess}
