@@ -129,6 +129,9 @@ export async function POST(request: NextRequest) {
     console.log(`🔍 Passo 3b: Procurando slot vazio para editar`);
 
     let emptySlotRow = null;
+    let wasInPlaceEdit = false;
+    const nextRow = values.length + 1; // Definir aqui para evitar erro
+
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
       const rowBusiness = row[1]?.toLowerCase().trim(); // Coluna B
@@ -150,6 +153,7 @@ export async function POST(request: NextRequest) {
     if (emptySlotRow) {
       // Editar slot vazio existente
       console.log(`✏️ Editando slot vazio na linha ${emptySlotRow}`);
+      wasInPlaceEdit = true;
       operations.push({
         range: `campanhas!C${emptySlotRow}:N${emptySlotRow}`, // Colunas C até N
         values: [[
@@ -170,7 +174,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Fallback: Adicionar nova linha apenas se não houver slots vazios
       console.log(`⚠️ Nenhum slot vazio encontrado, adicionando nova linha`);
-      const nextRow = values.length + 1;
+      wasInPlaceEdit = false;
       operations.push({
         range: `campanhas!A${nextRow}:T${nextRow}`,
         values: [newRow]
@@ -254,7 +258,7 @@ export async function POST(request: NextRequest) {
           campaignId: newCampaignId,
           row: emptySlotRow || nextRow,
           status: 'Ativo',
-          action: emptySlotRow ? 'edited_existing_slot' : 'created_new_slot'
+          action: wasInPlaceEdit ? 'edited_existing_slot' : 'created_new_slot'
         },
         operations: operations.length,
         auditLogEntry: auditEntry[0]
