@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCampaignJourneyData } from '@/app/actions/sheetsActions';
+import { getCampaignJourneyData, getCampaignsData, getLatestCampaignStatuses } from '@/app/actions/sheetsActions';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 DEBUG: Carregando dados da jornada para análise...');
 
-    const journeyData = await getCampaignJourneyData();
+    // Carregar dados brutos também
+    const [journeyData, rawCampaigns, auditStatuses] = await Promise.all([
+      getCampaignJourneyData(),
+      getCampaignsData(),
+      getLatestCampaignStatuses()
+    ]);
     
     console.log(`📊 Total de campanhas na jornada: ${journeyData.length}`);
 
@@ -44,8 +49,8 @@ export async function GET(request: NextRequest) {
     });
 
     // Filtrar apenas julho para verificar
-    const julhoData = detailedBreakdown.filter(item => 
-      item.mes.toLowerCase().includes('jul') || 
+    const julhoData = detailedBreakdown.filter(item =>
+      item.mes.toLowerCase().includes('jul') ||
       item.mes.toLowerCase().includes('july') ||
       item.mes === 'Jul'
     );
@@ -63,6 +68,23 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Analisar campanhas brutas de julho
+    const rawJulhoCampaigns = rawCampaigns.filter(campaign =>
+      campaign.mes && (
+        campaign.mes.toLowerCase().includes('jul') ||
+        campaign.mes.toLowerCase().includes('july') ||
+        campaign.mes === 'Jul'
+      )
+    );
+
+    // Verificar status do audit_log para julho
+    const julhoAuditStatuses: any = {};
+    Object.entries(auditStatuses).forEach(([key, status]) => {
+      if (key.toLowerCase().includes('jul') || key.toLowerCase().includes('july')) {
+        julhoAuditStatuses[key] = status;
+      }
+    });
+
     return NextResponse.json({ 
       success: true,
       debug: {
@@ -71,7 +93,9 @@ export async function GET(request: NextRequest) {
         julhoSpecific: {
           totalJulho: julhoData.length,
           julhoStats: julhoStats,
-          julhoDetailed: julhoData
+          julhoDetailed: julhoData,
+          rawJulhoCampaigns: rawJulhoCampaigns.slice(0, 20),
+          julhoAuditStatuses: julhoAuditStatuses
         },
         allCampaigns: detailedBreakdown,
         rawJourneyData: journeyData.slice(0, 10) // Primeiras 10 para debug
