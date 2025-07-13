@@ -339,8 +339,6 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         result = await response.json();
       }
 
-      const result = await response.json();
-
       if (result.success) {
         console.log('✅ Dados dos criadores atualizados');
         alert(`✅ Dados atualizados com sucesso para ${result.updatedCount} criadores!`);
