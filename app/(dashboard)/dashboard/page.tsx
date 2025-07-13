@@ -69,10 +69,16 @@ export default function DashboardPage() {
       };
 
       journeyResult.forEach(campaign => {
-        const status = campaign.status || 'Reunião de briefing';
-        if (status in campaignsByStage) {
-          campaignsByStage[status as keyof typeof campaignsByStage]++;
+        const stage = campaign.journeyStage || 'Reunião de briefing';
+        // Mapear para as chaves corretas do dashboard
+        const stageKey = stage === 'Reunião Briefing' ? 'Reunião de briefing' :
+                        stage === 'Agendamentos' ? 'Agendamentos' :
+                        stage === 'Entrega Final' ? 'Entrega final' : 'Reunião de briefing';
+
+        if (stageKey in campaignsByStage) {
+          campaignsByStage[stageKey as keyof typeof campaignsByStage]++;
         }
+        console.log(`📊 Dashboard: Campanha ${campaign.businessName}-${campaign.mes} → Stage: ${stage} → Key: ${stageKey}`);
       });
 
       // Atualizar contadores com dados reais
@@ -127,10 +133,16 @@ export default function DashboardPage() {
         };
 
         journeyResult.forEach(campaign => {
-          const status = campaign.status || 'Reunião de briefing';
-          if (status in campaignsByStage) {
-            campaignsByStage[status as keyof typeof campaignsByStage]++;
+          const stage = campaign.journeyStage || 'Reunião de briefing';
+          // Mapear para as chaves corretas do dashboard
+          const stageKey = stage === 'Reunião Briefing' ? 'Reunião de briefing' :
+                          stage === 'Agendamentos' ? 'Agendamentos' :
+                          stage === 'Entrega Final' ? 'Entrega final' : 'Reunião de briefing';
+
+          if (stageKey in campaignsByStage) {
+            campaignsByStage[stageKey as keyof typeof campaignsByStage]++;
           }
+          console.log(`📊 Dashboard: Campanha ${campaign.businessName}-${campaign.mes} → Stage: ${stage} → Key: ${stageKey}`);
         });
 
         // Atualizar stats
