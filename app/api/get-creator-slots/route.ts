@@ -111,18 +111,29 @@ export async function POST(request: NextRequest) {
       console.log(`🔍 DEBUG: Comparação - Mês: "${rowMes}" ~= "${mes}" = ${mesMatch}`);
 
       if (campanhaMatch && mesMatch) {
-        console.log(`✅ Slot encontrado na linha ${i}: Influenciador="${rowInfluenciador}" (${rowInfluenciador.trim() === '' ? 'VAZIO' : 'PREENCHIDO'})`);
-        existingCampaigns.push({
-          influenciador: rowInfluenciador,
-          briefingCompleto: row[briefingCol] || '',
-          dataHoraVisita: row[dataVisitaCol] || '',
-          quantidadeConvidados: row[qtdConvidadosCol] || '',
-          visitaConfirmada: row[visitaConfirmadaCol] || '', // Corrigido nome do campo
-          dataHoraPostagem: row[dataPostagemCol] || '',
-          videoAprovado: row[videoAprovadoCol] || '',
-          videoPostado: row[videoPostadoCol] || '',
-          rowIndex: i
-        });
+        // Verificar se a campanha está ativa (coluna T = Status do Calendário)
+        const statusCalendario = row[19] || 'Ativo'; // Coluna T (índice 19)
+        const isActive = statusCalendario.toLowerCase() !== 'inativo';
+
+        console.log(`✅ Slot encontrado na linha ${i}: Influenciador="${rowInfluenciador}" Status="${statusCalendario}" (${isActive ? 'ATIVO' : 'INATIVO'})`);
+
+        // Só adicionar se estiver ativo
+        if (isActive) {
+          existingCampaigns.push({
+            influenciador: rowInfluenciador,
+            briefingCompleto: row[briefingCol] || '',
+            dataHoraVisita: row[dataVisitaCol] || '',
+            quantidadeConvidados: row[qtdConvidadosCol] || '',
+            visitaConfirmada: row[visitaConfirmadaCol] || '', // Corrigido nome do campo
+            dataHoraPostagem: row[dataPostagemCol] || '',
+            videoAprovado: row[videoAprovadoCol] || '',
+            videoPostado: row[videoPostadoCol] || '',
+            statusCalendario: statusCalendario,
+            rowIndex: i
+          });
+        } else {
+          console.log(`🚫 Slot inativo ignorado: ${rowInfluenciador || 'Slot vazio'}`);
+        }
       }
     }
 

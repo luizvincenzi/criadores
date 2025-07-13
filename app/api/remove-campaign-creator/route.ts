@@ -68,30 +68,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (campaignRows.length <= 1) {
+    // Contar apenas campanhas ativas
+    const activeCampaigns = campaignRows.filter(item => {
+      const statusCalendario = item.row[19] || 'Ativo'; // Coluna T
+      return statusCalendario.toLowerCase() !== 'inativo';
+    });
+
+    if (activeCampaigns.length <= 1) {
       return NextResponse.json({
         success: false,
-        error: 'Não é possível remover o último criador. Uma campanha deve ter pelo menos um slot.'
+        error: 'Não é possível remover o último criador ativo. Uma campanha deve ter pelo menos um slot ativo.'
       }, { status: 400 });
     }
 
-    // Encontrar a linha específica para remover
+    // Encontrar a linha específica para remover (apenas entre campanhas ativas)
     let rowToRemove = null;
 
     if (creatorData.influenciador) {
-      // Se tem criador específico, procurar por ele
-      rowToRemove = campaignRows.find(item =>
+      // Se tem criador específico, procurar por ele entre as campanhas ativas
+      rowToRemove = activeCampaigns.find(item =>
         item.row[2]?.toLowerCase() === creatorData.influenciador.toLowerCase() // Coluna C - Influenciador
       );
     }
 
     if (!rowToRemove) {
-      // Se não encontrou por criador específico, pegar o último slot vazio ou o último da lista
-      const emptySlots = campaignRows.filter(item => !item.row[2] || item.row[2].trim() === '');
-      if (emptySlots.length > 0) {
-        rowToRemove = emptySlots[emptySlots.length - 1];
+      // Se não encontrou por criador específico, pegar o último slot ativo vazio ou o último ativo
+      const activeEmptySlots = activeCampaigns.filter(item => !item.row[2] || item.row[2].trim() === '');
+      if (activeEmptySlots.length > 0) {
+        rowToRemove = activeEmptySlots[activeEmptySlots.length - 1];
       } else {
-        rowToRemove = campaignRows[campaignRows.length - 1];
+        rowToRemove = activeCampaigns[activeCampaigns.length - 1];
       }
     }
 
@@ -105,22 +111,20 @@ export async function POST(request: NextRequest) {
     const removedCampaignId = rowToRemove.row[0]; // Coluna A - Campaign_ID
     const removedInfluenciador = rowToRemove.row[2] || 'Slot vazio'; // Coluna C - Influenciador
 
-    // Remover a linha
-    await sheets.spreadsheets.batchUpdate({
+    // Em vez de deletar, marcar como inativo na coluna "Status do Calendário" (coluna T)
+    const statusCalendarioColumn = 'T'; // Coluna T = Status do Calendário
+    const cellRange = `campanhas!${statusCalendarioColumn}${rowToRemove.index}`;
+
+    await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
+      range: cellRange,
+      valueInputOption: 'RAW',
       requestBody: {
-        requests: [{
-          deleteDimension: {
-            range: {
-              sheetId: 0, // Assumindo que campanhas é a primeira aba
-              dimension: 'ROWS',
-              startIndex: rowToRemove.index - 1,
-              endIndex: rowToRemove.index
-            }
-          }
-        }]
+        values: [['Inativo']]
       }
     });
+
+    console.log(`✅ Criador marcado como inativo: ${removedInfluenciador} (${removedCampaignId})`);
     
     console.log('✅ Criador removido:', {
       campaignId: removedCampaignId,
@@ -134,13 +138,13 @@ export async function POST(request: NextRequest) {
       const auditData = [
         new Date().toISOString(),
         user || 'Sistema',
-        'Criador Removido',
+        'Criador Removido (Soft Delete)',
         businessName,
         mes,
         removedCampaignId,
-        rowToRemove.row[4] || '', // Status antigo
-        '',
-        `Criador removido: ${removedInfluenciador}`
+        'Ativo', // Status antigo
+        'Inativo', // Status novo
+        `Criador marcado como inativo: ${removedInfluenciador}. Dados preservados na planilha.`
       ];
 
       await sheets.spreadsheets.values.append({
@@ -159,10 +163,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Criador removido com sucesso',
+      message: 'Criador marcado como inativo com sucesso',
       removedCampaignId,
       removedInfluenciador,
-      remainingSlots: campaignRows.length - 1
+      action: 'soft_delete',
+      note: 'Dados preservados na planilha, apenas marcado como inativo',
+      remainingActiveSlots: activeCampaigns.length - 1
     });
 
   } catch (error) {
