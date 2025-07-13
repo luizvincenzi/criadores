@@ -125,13 +125,57 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Adicionar nova linha
-    console.log(`➕ Passo 3b: Adicionando novo criador`);
-    const nextRow = values.length + 1;
-    operations.push({
-      range: `campanhas!A${nextRow}:T${nextRow}`,
-      values: [newRow]
-    });
+    // CORREÇÃO: Encontrar slot vazio em vez de adicionar nova linha
+    console.log(`🔍 Passo 3b: Procurando slot vazio para editar`);
+
+    let emptySlotRow = null;
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const rowBusiness = row[1]?.toLowerCase().trim(); // Coluna B
+      const rowMes = row[5]?.toLowerCase().trim(); // Coluna F
+      const rowInfluenciador = row[2]?.trim(); // Coluna C
+      const rowStatus = row[19] || 'Ativo'; // Coluna T - Status do Calendário
+
+      // Procurar slot vazio (sem influenciador) da mesma campanha e ativo
+      if (rowBusiness === businessName.toLowerCase().trim() &&
+          rowMes === mes.toLowerCase().trim() &&
+          (!rowInfluenciador || rowInfluenciador === '') &&
+          rowStatus.toLowerCase() === 'ativo') {
+        emptySlotRow = i + 1; // +1 porque é 1-based
+        console.log(`✅ Slot vazio encontrado na linha ${emptySlotRow}`);
+        break;
+      }
+    }
+
+    if (emptySlotRow) {
+      // Editar slot vazio existente
+      console.log(`✏️ Editando slot vazio na linha ${emptySlotRow}`);
+      operations.push({
+        range: `campanhas!C${emptySlotRow}:N${emptySlotRow}`, // Colunas C até N
+        values: [[
+          newCreator, // C = Influenciador
+          'Sistema', // D = Responsável
+          'Ativo', // E = Status
+          mes, // F = Mês (manter)
+          '', // G = FIM
+          newCreatorData?.briefingCompleto || 'Pendente', // H
+          newCreatorData?.dataHoraVisita || '', // I
+          newCreatorData?.quantidadeConvidados || '', // J
+          newCreatorData?.visitaConfirmada || 'Pendente', // K
+          newCreatorData?.dataHoraPostagem || '', // L
+          newCreatorData?.videoAprovado || 'Pendente', // M
+          newCreatorData?.videoPostado || 'Não' // N
+        ]]
+      });
+    } else {
+      // Fallback: Adicionar nova linha apenas se não houver slots vazios
+      console.log(`⚠️ Nenhum slot vazio encontrado, adicionando nova linha`);
+      const nextRow = values.length + 1;
+      operations.push({
+        range: `campanhas!A${nextRow}:T${nextRow}`,
+        values: [newRow]
+      });
+    }
 
     // Executar todas as operações
     if (operations.length > 0) {
@@ -208,8 +252,9 @@ export async function POST(request: NextRequest) {
         newCreator: {
           name: newCreator,
           campaignId: newCampaignId,
-          row: nextRow,
-          status: 'Ativo'
+          row: emptySlotRow || nextRow,
+          status: 'Ativo',
+          action: emptySlotRow ? 'edited_existing_slot' : 'created_new_slot'
         },
         operations: operations.length,
         auditLogEntry: auditEntry[0]
