@@ -254,7 +254,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         mes: campaign.mes,
         creatorsData: editedData,
         user: user?.email || 'Sistema',
-        campaignId: campaign.id || campaign.campaignId
+        campaignId: campaign.primaryCampaignId || campaign.campaignIds?.[0] || campaign.id
       };
 
       console.log('🔍 DEBUG: Enviando dados para debug:', debugPayload);

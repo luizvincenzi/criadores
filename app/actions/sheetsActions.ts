@@ -738,6 +738,8 @@ export interface CampaignJourneyData {
   totalCampanhas: number;
   quantidadeCriadores: number;
   businessData?: BusinessData; // Dados do business para informações adicionais
+  campaignIds: string[]; // Array com todos os Campaign_IDs das campanhas deste grupo
+  primaryCampaignId?: string; // Campaign_ID principal (primeira campanha do grupo)
 }
 
 // Interface para dados das campanhas - TODOS os campos da planilha
@@ -1767,7 +1769,9 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
           campanhas: [],
           totalCampanhas: 0,
           quantidadeCriadores: quantidadeCriadores,
-          businessData: businessData
+          businessData: businessData,
+          campaignIds: [],
+          primaryCampaignId: undefined
         });
       }
 
@@ -1776,6 +1780,16 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
       // Adicionar campanha ao grupo
       journey.campanhas.push(campaign);
       journey.totalCampanhas++;
+
+      // Adicionar Campaign_ID ao array de IDs
+      if (campaign.id && !journey.campaignIds.includes(campaign.id)) {
+        journey.campaignIds.push(campaign.id);
+
+        // Definir o primeiro Campaign_ID como primário
+        if (!journey.primaryCampaignId) {
+          journey.primaryCampaignId = campaign.id;
+        }
+      }
 
       // Atualizar estágio da jornada baseado no status mais atual do audit_log
       const statusLower = currentStatus.toLowerCase();
