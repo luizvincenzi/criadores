@@ -1800,6 +1800,14 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
       }
     });
 
+    // Atualizar quantidadeCriadores baseado no número real de campanhas encontradas
+    journeyMap.forEach(journey => {
+      if (journey.quantidadeCriadores === 0 || !journey.quantidadeCriadores) {
+        journey.quantidadeCriadores = journey.totalCampanhas;
+        console.log(`📊 Atualizando quantidadeCriadores para ${journey.businessName}-${journey.mes}: ${journey.totalCampanhas} campanhas`);
+      }
+    });
+
     const result = Array.from(journeyMap.values()).sort((a, b) => {
       // Primeiro ordenar por mês (mais recente primeiro)
       const monthCompare = getMonthOrder(a.mes) - getMonthOrder(b.mes);

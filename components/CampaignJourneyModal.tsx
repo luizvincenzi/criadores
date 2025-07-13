@@ -87,6 +87,22 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     setIsLoadingSlots(true);
     try {
       console.log('🔄 Carregando slots de criadores...');
+      console.log('📊 DEBUG: Dados da campanha:', {
+        businessName: campaign.businessName,
+        mes: campaign.mes,
+        quantidadeCriadores: campaign.quantidadeCriadores,
+        totalCampaigns: campaign.totalCampaigns,
+        campaignObject: campaign
+      });
+
+      // Usar totalCampaigns como fallback se quantidadeCriadores não estiver disponível
+      const quantidadeContratada = campaign.quantidadeCriadores || campaign.totalCampaigns || 6;
+
+      console.log('📤 Enviando para API:', {
+        businessName: campaign.businessName,
+        mes: campaign.mes,
+        quantidadeContratada
+      });
 
       const response = await fetch('/api/get-creator-slots', {
         method: 'POST',
@@ -96,7 +112,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         body: JSON.stringify({
           businessName: campaign.businessName,
           mes: campaign.mes,
-          quantidadeContratada: campaign.quantidadeCriadores
+          quantidadeContratada
         })
       });
 
@@ -110,7 +126,8 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       } else {
         console.error('❌ Erro ao carregar slots:', result.error);
         // Fallback para dados vazios
-        const emptySlots = Array.from({ length: campaign.quantidadeCriadores }, (_, i) => ({
+        const quantidadeContratada = campaign.quantidadeCriadores || campaign.totalCampaigns || 6;
+        const emptySlots = Array.from({ length: quantidadeContratada }, (_, i) => ({
           index: i,
           influenciador: '',
           briefingCompleto: 'pendente',
