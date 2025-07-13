@@ -3,8 +3,12 @@
  * EXECUTAR APENAS UMA VEZ após implementar o sistema de hash
  */
 
+import { config } from 'dotenv';
 import { google } from 'googleapis';
 import bcrypt from 'bcryptjs';
+
+// Carregar variáveis de ambiente
+config({ path: '.env.local' });
 
 // Configuração da autenticação (usar as mesmas credenciais do sistema)
 function getGoogleSheetsAuth() {
