@@ -21,6 +21,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
   const [creatorSlots, setCreatorSlots] = useState<any[]>([]);
   const [availableCreators, setAvailableCreators] = useState<any[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [pendingRemovals, setPendingRemovals] = useState<any[]>([]);
 
   // Função para converter data do formato brasileiro para datetime-local
   const formatDateForInput = (dateString: string): string => {
@@ -284,6 +285,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     const confirmDelete = window.confirm('Tem certeza que deseja remover este criador?');
     if (!confirmDelete) return;
 
+    // Adicionar à lista de remoções pendentes
+    const creatorToRemove = creatorSlots[index];
+    setPendingRemovals(prev => [...prev, {
+      index: index,
+      creatorData: creatorToRemove
+    }]);
+
     const newCreatorSlots = creatorSlots.filter((_, i) => i !== index);
     const newEditedData = editedData.filter((_, i) => i !== index);
 
@@ -295,6 +303,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     setEditedData(reindexedEditedData);
 
     console.log(`🗑️ Slot de criador removido. Total restante: ${reindexedSlots.length}`);
+    console.log(`📝 Remoção pendente adicionada:`, creatorToRemove);
   };
 
   const handleSaveChanges = async () => {
@@ -333,11 +342,12 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       // Detectar mudanças: trocas, adições e remoções
       const creatorChanges = [];
       const addedCreators = [];
-      const removedCreators = [];
+      const removedCreators = [...pendingRemovals]; // Usar remoções pendentes
 
       // Detectar trocas e atualizações
-      for (let i = 0; i < Math.min(editedData.length, creatorSlots.length); i++) {
+      for (let i = 0; i < editedData.length; i++) {
         const editedCreator = editedData[i];
+        // Comparar com o estado original carregado, não com creatorSlots atual
         const originalCreator = creatorSlots[i];
 
         if (originalCreator && editedCreator.influenciador !== originalCreator.influenciador) {
@@ -350,22 +360,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         }
       }
 
-      // Detectar criadores adicionados
-      if (editedData.length > creatorSlots.length) {
-        for (let i = creatorSlots.length; i < editedData.length; i++) {
+      // Detectar criadores adicionados (comparar com estado original)
+      const originalSlotsCount = creatorSlots.length + pendingRemovals.length;
+      if (editedData.length > originalSlotsCount) {
+        for (let i = originalSlotsCount; i < editedData.length; i++) {
           addedCreators.push({
             index: i,
             creatorData: editedData[i]
-          });
-        }
-      }
-
-      // Detectar criadores removidos
-      if (creatorSlots.length > editedData.length) {
-        for (let i = editedData.length; i < creatorSlots.length; i++) {
-          removedCreators.push({
-            index: i,
-            creatorData: creatorSlots[i]
           });
         }
       }
@@ -472,6 +473,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         console.log('✅ Dados dos criadores atualizados');
         alert(`✅ Dados atualizados com sucesso para ${result.updatedCount} criadores!`);
         setIsEditMode(false);
+        setPendingRemovals([]); // Limpar remoções pendentes
 
         // Recarregar apenas os slots de criadores sem fechar o modal
         await loadCreatorSlots();
@@ -929,7 +931,11 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                   <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
                     <div className="flex items-center justify-end space-x-3">
                       <button
-                        onClick={() => setIsEditMode(false)}
+                        onClick={() => {
+                          setIsEditMode(false);
+                          setPendingRemovals([]); // Limpar remoções pendentes ao cancelar
+                          loadCreatorSlots(); // Recarregar dados originais
+                        }}
                         className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         Cancelar
