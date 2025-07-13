@@ -82,6 +82,30 @@ export default function DebugCampaignPage() {
     }
   };
 
+  const testCreatorChange = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/test-creator-change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignId: 'camp_1752358474605_1_boussol_jun_pietramantovani',
+          businessName: 'Boussolé',
+          mes: 'Jul',
+          oldCreator: 'Pietra Mantovani',
+          newCreator: 'João Silva'
+        })
+      });
+
+      const result = await response.json();
+      setResults({ type: 'creator-change', data: result });
+    } catch (error) {
+      setResults({ type: 'error', data: error });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
@@ -125,6 +149,14 @@ export default function DebugCampaignPage() {
                 className="w-full px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
               >
                 ✏️ Testar Atualização de Campanha
+              </button>
+
+              <button
+                onClick={testCreatorChange}
+                disabled={loading}
+                className="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                🔄 Testar Troca de Criador
               </button>
             </div>
 
