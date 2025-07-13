@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRawCampaignsData, getCreatorsData, createGoogleSheetsClient } from '@/app/actions/sheetsActions';
+import { getRawCampaignsData, getCreatorsData, getBusinessesData, createGoogleSheetsClient } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -126,18 +126,48 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Buscar criadores disponíveis
+    // Buscar dados do business para filtrar criadores por cidade
+    const businessesData = await getBusinessesData();
+    const businessData = businessesData.find(business =>
+      business.nome?.toLowerCase() === businessName.toLowerCase()
+    );
+
+    const businessCity = businessData?.cidade?.toLowerCase().trim();
+    console.log(`🏙️ Cidade do business ${businessName}: ${businessCity}`);
+
+    // Buscar criadores disponíveis filtrados por cidade
     const creatorsData = await getCreatorsData();
-    const availableCreators = creatorsData.filter(creator => 
-      creator.status?.toLowerCase() !== 'inativo' && 
+    let availableCreators = creatorsData.filter(creator =>
+      creator.status?.toLowerCase() !== 'inativo' &&
       creator.status?.toLowerCase() !== 'bloqueado'
     );
+
+    // Filtrar criadores pela mesma cidade do business
+    if (businessCity) {
+      const creatorsFromSameCity = availableCreators.filter(creator =>
+        creator.cidade?.toLowerCase().trim() === businessCity
+      );
+
+      if (creatorsFromSameCity.length > 0) {
+        availableCreators = creatorsFromSameCity;
+        console.log(`🎯 Filtrados ${creatorsFromSameCity.length} criadores de ${businessCity}`);
+      } else {
+        console.log(`⚠️ Nenhum criador encontrado em ${businessCity}, mostrando todos os criadores ativos`);
+      }
+    } else {
+      console.log(`⚠️ Cidade do business não encontrada, mostrando todos os criadores ativos`);
+    }
 
     // Criar array de slots baseado na quantidade contratada
     const slots = [];
 
     console.log(`📊 Campanhas encontradas para ${businessName} - ${mes}:`, existingCampaigns.length);
     console.log(`📊 Criadores contratados: ${quantidadeContratada}`);
+    console.log(`👥 Criadores disponíveis (filtrados por cidade): ${availableCreators.length}`);
+
+    if (availableCreators.length > 0) {
+      console.log(`📍 Criadores de ${businessCity}:`, availableCreators.map(c => `${c.nome} (${c.cidade})`).join(', '));
+    }
 
     // Primeiro, adicionar todas as campanhas existentes
     existingCampaigns.forEach((campaign, index) => {
