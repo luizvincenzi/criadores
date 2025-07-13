@@ -45,12 +45,13 @@ export async function POST(request: NextRequest) {
     const headers = values[0];
     console.log('📋 Headers encontrados:', headers);
 
-    // Encontrar índices das colunas
-    const campaignIdCol = 0; // Coluna A
-    const nomeCampanhaCol = 1; // Coluna B
-    const businessCol = headers.findIndex(h => h.toLowerCase() === 'business');
-    const influenciadorCol = headers.findIndex(h => h.toLowerCase() === 'influenciador');
-    const mesCol = headers.findIndex(h => h.toLowerCase() === 'mês');
+    // Encontrar índices das colunas baseado na estrutura REAL
+    const campaignIdCol = 0; // Coluna A = Campaign_ID
+    const nomeCampanhaCol = 1; // Coluna B = Nome Campanha
+    const influenciadorCol = 2; // Coluna C = Influenciador
+    const responsavelCol = 3; // Coluna D = Responsável
+    const statusCol = 4; // Coluna E = Status
+    const mesCol = 5; // Coluna F = Mês
 
     console.log('📊 Índices das colunas:', { campaignIdCol, nomeCampanhaCol, businessCol, influenciadorCol, mesCol });
 
@@ -88,11 +89,11 @@ export async function POST(request: NextRequest) {
       
       for (let i = 1; i < values.length; i++) {
         const row = values[i];
-        const rowBusiness = (row[businessCol] || '').toString().toLowerCase().trim();
+        const rowNomeCampanha = (row[nomeCampanhaCol] || '').toString().toLowerCase().trim();
         const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
         const rowMes = (row[mesCol] || '').toString().toLowerCase().trim();
-        
-        const businessMatch = rowBusiness === businessName.toLowerCase().trim();
+
+        const businessMatch = rowNomeCampanha === businessName.toLowerCase().trim();
         const influenciadorMatch = rowInfluenciador === influenciador.toLowerCase().trim();
         const mesMatch = rowMes.includes(mes.toLowerCase()) || mes.toLowerCase().includes(rowMes);
         
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
             rowIndex: i + 1,
             data: row,
             campaignId: row[campaignIdCol] || '',
-            business: row[businessCol] || '',
+            business: row[nomeCampanhaCol] || '',
             influenciador: row[influenciadorCol] || '',
             mes: row[mesCol] || ''
           };
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
           sampleData: values.slice(1, 4).map((row, index) => ({
             linha: index + 2,
             campaignId: row[campaignIdCol],
-            business: row[businessCol],
+            nomeCampanha: row[nomeCampanhaCol],
             influenciador: row[influenciadorCol],
             mes: row[mesCol]
           }))
