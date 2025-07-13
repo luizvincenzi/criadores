@@ -48,22 +48,23 @@ export async function POST(request: NextRequest) {
     let campanhaCol, businessCol, influenciadorCol, responsavelCol, statusCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
 
     if (hasIdColumn) {
-      // ESTRUTURA REAL DESCOBERTA:
-      // A=Campaign_ID, B=Campanha, C=Business(INFLUENCIADOR), D=Influenciador(RESPONSÁVEL), E=Responsável(STATUS), F=Status(MÊS), G=Mês(DATA_FIM)
-      campanhaCol = 1; // B = Campanha (ex: "Boussolé")
-      businessCol = 1; // B = Campanha (nome do business)
-      influenciadorCol = 2; // C = Business (na verdade é o INFLUENCIADOR)
-      responsavelCol = 3; // D = Influenciador (na verdade é o RESPONSÁVEL)
-      statusCol = 4; // E = Responsável (na verdade é o STATUS)
-      mesCol = 5; // F = Status (na verdade é o MÊS)
-      // Campos de edição
-      briefingCol = 7; // H
-      dataVisitaCol = 8; // I
-      qtdConvidadosCol = 9; // J
-      visitaConfirmadaCol = 10; // K
-      dataPostagemCol = 11; // L
-      videoAprovadoCol = 12; // M
-      videoPostadoCol = 13; // N
+      // ESTRUTURA REAL CORRIGIDA baseada nas colunas fornecidas:
+      // A=Campaign_ID, B=Nome Campanha, C=Influenciador, D=Responsável, E=Status, F=Mês
+      campanhaCol = 1; // B = Nome Campanha (ex: "Boussolé")
+      businessCol = 1; // B = Nome Campanha (nome do business)
+      influenciadorCol = 2; // C = Influenciador
+      responsavelCol = 3; // D = Responsável
+      statusCol = 4; // E = Status
+      mesCol = 5; // F = Mês
+      // Campos de edição baseados na estrutura real:
+      // G=FIM, H=Briefing completo, I=Data e hora Visita, J=Quantidade de convidados, etc.
+      briefingCol = 7; // H = Briefing completo enviado para o influenciador?
+      dataVisitaCol = 8; // I = Data e hora Visita
+      qtdConvidadosCol = 9; // J = Quantidade de convidados
+      visitaConfirmadaCol = 10; // K = Visita Confirmado
+      dataPostagemCol = 11; // L = Data e hora da Postagem
+      videoAprovadoCol = 12; // M = Vídeo aprovado?
+      videoPostadoCol = 13; // N = Video/Reels postado?
     } else {
       // Estrutura antiga sem ID (ajustar se necessário)
       campanhaCol = 0; // A
@@ -108,6 +109,7 @@ export async function POST(request: NextRequest) {
       let creatorResult = null;
 
       console.log(`🔍 DEBUG: Buscando criador: Campaign_ID="${campaignId}", Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+      console.log(`📊 DEBUG: Usando colunas: influenciadorCol=${influenciadorCol}, campanhaCol=${campanhaCol}, mesCol=${mesCol}`);
 
       // Estratégia 1: Buscar por Campaign_ID + Influenciador (mais preciso)
       if (campaignId) {
@@ -117,6 +119,8 @@ export async function POST(request: NextRequest) {
           const row = values[i];
           const rowCampaignId = (row[0] || '').toString().trim(); // Coluna A = Campaign_ID
           const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
+
+          console.log(`📋 DEBUG: Linha ${i + 1}: Campaign_ID="${rowCampaignId}", Influenciador="${rowInfluenciador}"`);
 
           if (rowCampaignId === campaignId && rowInfluenciador === influenciador.toLowerCase().trim()) {
             console.log(`✅ DEBUG: Criador encontrado por Campaign_ID na linha ${i + 1}!`);
