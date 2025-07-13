@@ -16,9 +16,11 @@ export async function POST(request: NextRequest) {
 
     // Validar parâmetros obrigatórios
     if (!businessName || !mes) {
+      console.error('❌ Parâmetros inválidos:', { businessName, mes, creatorData });
       return NextResponse.json({
         success: false,
-        error: 'Parâmetros obrigatórios: businessName, mes'
+        error: 'Parâmetros obrigatórios: businessName, mes',
+        received: { businessName, mes, creatorData }
       }, { status: 400 });
     }
 
@@ -57,27 +59,46 @@ export async function POST(request: NextRequest) {
 
     // Encontrar campanhas para este business/mês
     const campaignRows = [];
+    console.log(`🔍 Procurando campanhas para: "${businessName}" - "${mes}"`);
+    console.log(`📊 Total de linhas na planilha: ${rows.length}`);
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const nomeCampanha = row[1]; // Coluna B - Nome Campanha
       const mes_planilha = row[5]; // Coluna F - Mês
 
+      if (i < 5) { // Log das primeiras 5 linhas para debug
+        console.log(`📋 Linha ${i + 2}: Nome="${nomeCampanha}", Mês="${mes_planilha}"`);
+      }
+
       if (nomeCampanha?.toLowerCase() === businessName.toLowerCase() &&
           mes_planilha?.toLowerCase() === mes.toLowerCase()) {
         campaignRows.push({ row, index: i + 2 }); // +2 porque começa na linha 2 (header é linha 1)
+        console.log(`✅ Campanha encontrada na linha ${i + 2}: ${nomeCampanha} - ${mes_planilha}`);
       }
     }
+
+    console.log(`📊 Total de campanhas encontradas: ${campaignRows.length}`);
 
     // Contar apenas campanhas ativas
     const activeCampaigns = campaignRows.filter(item => {
       const statusCalendario = item.row[19] || 'Ativo'; // Coluna T
-      return statusCalendario.toLowerCase() !== 'inativo';
+      const isActive = statusCalendario.toLowerCase() !== 'inativo';
+      console.log(`📊 Linha ${item.index}: Status="${statusCalendario}" (${isActive ? 'ATIVO' : 'INATIVO'})`);
+      return isActive;
     });
 
+    console.log(`📊 Campanhas ativas: ${activeCampaigns.length} de ${campaignRows.length} total`);
+
     if (activeCampaigns.length <= 1) {
+      console.error('❌ Não é possível remover - apenas 1 campanha ativa restante');
       return NextResponse.json({
         success: false,
-        error: 'Não é possível remover o último criador ativo. Uma campanha deve ter pelo menos um slot ativo.'
+        error: 'Não é possível remover o último criador ativo. Uma campanha deve ter pelo menos um slot ativo.',
+        debug: {
+          totalCampaigns: campaignRows.length,
+          activeCampaigns: activeCampaigns.length
+        }
       }, { status: 400 });
     }
 
