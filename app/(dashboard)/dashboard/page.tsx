@@ -154,6 +154,8 @@ export default function DashboardPage() {
             campaignsByStage: campaignsByStage
           };
           console.log('📈 Dashboard: Stats finais:', newStats);
+          console.log('🔍 Dashboard: Campanhas por estágio detalhado:', campaignsByStage);
+          console.log('📊 Dashboard: Total de campanhas da jornada:', journeyResult.length);
           return newStats;
         });
 
@@ -211,6 +213,18 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex space-x-2">
+          <Button
+            variant="outlined"
+            size="sm"
+            icon="🔍"
+            onClick={() => {
+              console.log('🔍 DEBUG: Stats atuais:', stats);
+              console.log('🔍 DEBUG: Campanhas por estágio:', stats.campaignsByStage);
+              alert(`Debug: Agendamentos=${stats.campaignsByStage['Agendamentos']}, Entrega final=${stats.campaignsByStage['Entrega final']}`);
+            }}
+          >
+            Debug
+          </Button>
           <Button
             variant="outlined"
             size="sm"
