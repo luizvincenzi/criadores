@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Contar apenas campanhas ativas
+    // Contar apenas campanhas ativas DESTE BUSINESS/MÊS
     const activeCampaigns = campaignRows.filter(item => {
       const statusCalendario = item.row[19] || 'Ativo'; // Coluna T
       const isActive = statusCalendario.toLowerCase() !== 'inativo';
@@ -112,19 +112,43 @@ export async function POST(request: NextRequest) {
       return isActive;
     });
 
-    console.log(`📊 Campanhas ativas: ${activeCampaigns.length} de ${campaignRows.length} total`);
+    console.log(`📊 Campanhas ativas para ${businessName}-${mes}: ${activeCampaigns.length} de ${campaignRows.length} total`);
 
-    if (activeCampaigns.length <= 1) {
-      console.error('❌ Não é possível remover - apenas 1 campanha ativa restante');
+    // CORREÇÃO: Permitir remoção se a interface mostra múltiplos slots
+    // Se get-creator-slots retorna 6 slots, deve ser possível remover
+    console.log(`🔍 Análise de remoção:`);
+    console.log(`  - Campanhas totais encontradas: ${campaignRows.length}`);
+    console.log(`  - Campanhas ativas: ${activeCampaigns.length}`);
+    console.log(`  - Interface mostra: múltiplos slots disponíveis`);
+
+    // Só impedir se realmente há apenas 1 campanha E ela tem criador
+    const campaignsWithCreators = activeCampaigns.filter(item => {
+      const influenciador = item.row[2]; // Coluna C
+      return influenciador && influenciador.trim() !== '';
+    });
+
+    console.log(`  - Campanhas com criadores: ${campaignsWithCreators.length}`);
+
+    // Permitir remoção se há múltiplas campanhas OU se é um slot vazio
+    const shouldAllowRemoval = campaignRows.length > 1 || activeCampaigns.length > 1;
+
+    if (!shouldAllowRemoval && campaignsWithCreators.length <= 1) {
+      console.error(`❌ Bloqueando remoção - configuração mínima não atendida`);
       return NextResponse.json({
         success: false,
-        error: 'Não é possível remover o último criador ativo. Uma campanha deve ter pelo menos um slot ativo.',
+        error: `Não é possível remover - configuração mínima de slots não atendida.`,
         debug: {
+          businessName,
+          mes,
           totalCampaigns: campaignRows.length,
-          activeCampaigns: activeCampaigns.length
+          activeCampaigns: activeCampaigns.length,
+          campaignsWithCreators: campaignsWithCreators.length,
+          shouldAllowRemoval
         }
       }, { status: 400 });
     }
+
+    console.log(`✅ Remoção permitida - prosseguindo...`);
 
     // Encontrar a linha específica para remover (apenas entre campanhas ativas)
     let rowToRemove = null;
