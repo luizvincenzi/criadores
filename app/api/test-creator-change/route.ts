@@ -12,35 +12,36 @@ export async function POST(request: NextRequest) {
       campaignId
     });
 
-    // Simular a chamada para update-campaign-creators
-    const updatePayload = {
+    // Simular a chamada para change-campaign-creator
+    const changePayload = {
+      campaignId,
       businessName,
       mes,
-      creatorsData: [
-        {
-          influenciador: newCreator, // Novo criador
-          briefingCompleto: 'Sim',
-          dataHoraVisita: '2025-07-15T14:00',
-          quantidadeConvidados: '4',
-          visitaConfirmado: 'Sim',
-          dataHoraPostagem: '2025-07-16T18:00',
-          videoAprovado: 'Sim',
-          videoPostado: 'Sim'
-        }
-      ],
-      user: 'teste@sistema.com',
-      campaignId
+      oldCreator,
+      newCreator,
+      newCreatorData: {
+        briefingCompleto: 'Sim',
+        dataHoraVisita: '2025-07-15T14:00',
+        quantidadeConvidados: '4',
+        visitaConfirmada: 'Sim',
+        dataHoraPostagem: '2025-07-16T18:00',
+        videoAprovado: 'Sim',
+        videoPostado: 'Sim',
+        responsavel: 'Sistema',
+        notas: 'Troca de criador via teste'
+      },
+      user: 'teste@sistema.com'
     };
 
-    console.log('📤 Enviando payload para update-campaign-creators:', updatePayload);
+    console.log('📤 Enviando payload para change-campaign-creator:', changePayload);
 
-    // Chamar a API real
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://criadores.digital'}/api/update-campaign-creators`, {
+    // Chamar a nova API de troca de criadores
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://criadores.digital'}/api/change-campaign-creator`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(updatePayload)
+      body: JSON.stringify(changePayload)
     });
 
     const result = await response.json();
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
         newCreator,
         campaignId
       },
-      updatePayload,
+      changePayload,
       apiResponse: result,
       message: result.success 
         ? `✅ Troca de criador realizada: ${oldCreator} → ${newCreator}`

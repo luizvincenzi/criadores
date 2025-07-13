@@ -268,14 +268,76 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       const debugResult = await debugResponse.json();
       console.log('🔍 DEBUG: Resposta do debug:', debugResult);
 
-      // Agora enviar para a API real
-      const response = await fetch('/api/update-campaign-creators', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(debugPayload)
-      });
+      // Detectar se há troca de criadores
+      const creatorChanges = [];
+      for (let i = 0; i < editedData.length; i++) {
+        const editedCreator = editedData[i];
+        const originalCreator = creatorSlots[i];
+
+        if (originalCreator && editedCreator.influenciador !== originalCreator.influenciador) {
+          creatorChanges.push({
+            index: i,
+            oldCreator: originalCreator.influenciador,
+            newCreator: editedCreator.influenciador,
+            newCreatorData: editedCreator
+          });
+        }
+      }
+
+      console.log('🔄 Trocas de criadores detectadas:', creatorChanges);
+
+      let response;
+      let result;
+
+      // Se há trocas de criadores, usar API específica
+      if (creatorChanges.length > 0) {
+        console.log('🔄 Usando API de troca de criadores...');
+
+        // Processar cada troca individualmente
+        const changeResults = [];
+        for (const change of creatorChanges) {
+          const changeResponse = await fetch('/api/change-campaign-creator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              campaignId: campaign.primaryCampaignId || campaign.campaignIds?.[0] || campaign.id,
+              businessName: campaign.businessName,
+              mes: campaign.mes,
+              oldCreator: change.oldCreator,
+              newCreator: change.newCreator,
+              newCreatorData: change.newCreatorData,
+              user: user?.email || 'Sistema'
+            })
+          });
+
+          const changeResult = await changeResponse.json();
+          changeResults.push(changeResult);
+        }
+
+        // Consolidar resultados
+        const allSuccessful = changeResults.every(r => r.success);
+        result = {
+          success: allSuccessful,
+          message: allSuccessful
+            ? `✅ ${creatorChanges.length} troca(s) de criador realizada(s) com sucesso!`
+            : `❌ Erro em algumas trocas de criadores`,
+          changeResults,
+          updatedCount: allSuccessful ? creatorChanges.length : 0
+        };
+      } else {
+        console.log('📝 Usando API de atualização normal...');
+
+        // Usar API normal para atualizações
+        response = await fetch('/api/update-campaign-creators', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(debugPayload)
+        });
+
+        result = await response.json();
+      }
 
       const result = await response.json();
 
