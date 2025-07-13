@@ -104,49 +104,75 @@ export async function POST(request: NextRequest) {
 
       console.log(`🔄 DEBUG: Processando criador: ${influenciador}`);
 
-      // Buscar diretamente na planilha com a estrutura correta
+      // Buscar campanha usando Campaign_ID primeiro, depois fallback
       let creatorResult = null;
 
-      console.log(`🔍 DEBUG: Buscando criador: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
-      console.log(`🔍 DEBUG: Usando colunas: businessCol=${businessCol}, influenciadorCol=${influenciadorCol}, mesCol=${mesCol}`);
+      console.log(`🔍 DEBUG: Buscando criador: Campaign_ID="${campaignId}", Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
 
-      // Buscar linha por linha com estrutura correta
-      let foundAnyMatch = false;
-      for (let i = 1; i < Math.min(values.length, 20); i++) { // Aumentar para 20 linhas
-        const row = values[i];
-        const rowCampanha = row[campanhaCol] || ''; // Nome da campanha/business
-        const rowInfluenciador = row[influenciadorCol] || ''; // Nome do influenciador
-        const rowMes = row[mesCol] || ''; // Mês
+      // Estratégia 1: Buscar por Campaign_ID + Influenciador (mais preciso)
+      if (campaignId) {
+        console.log(`🆔 DEBUG: Tentativa 1 - Busca por Campaign_ID: ${campaignId}`);
 
-        console.log(`📋 DEBUG: Linha ${i}: Campanha="${rowCampanha}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
+        for (let i = 1; i < values.length; i++) {
+          const row = values[i];
+          const rowCampaignId = (row[0] || '').toString().trim(); // Coluna A = Campaign_ID
+          const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
 
-        // Comparação flexível - buscar por campanha + influenciador + mês
-        const campanhaMatch = rowCampanha.toLowerCase().trim() === businessName.toLowerCase().trim();
-        const influenciadorMatch = rowInfluenciador.toLowerCase().trim() === influenciador.toLowerCase().trim();
-        const mesMatch = rowMes.toLowerCase().trim() === mes.toLowerCase().trim();
-
-        console.log(`🔍 DEBUG: Matches - Campanha: ${campanhaMatch}, Influenciador: ${influenciadorMatch}, Mês: ${mesMatch}`);
-
-        if (campanhaMatch && influenciadorMatch && mesMatch) {
-          console.log(`✅ DEBUG: Criador encontrado na linha ${i}!`);
-          creatorResult = {
-            found: true,
-            rowIndex: i,
-            data: {
-              business: rowCampanha,
-              influenciador: rowInfluenciador,
-              mes: rowMes,
-              fullRow: row
-            }
-          };
-          foundAnyMatch = true;
-          break;
+          if (rowCampaignId === campaignId && rowInfluenciador === influenciador.toLowerCase().trim()) {
+            console.log(`✅ DEBUG: Criador encontrado por Campaign_ID na linha ${i + 1}!`);
+            creatorResult = {
+              found: true,
+              rowIndex: i,
+              data: {
+                campaignId: rowCampaignId,
+                business: row[campanhaCol] || '',
+                influenciador: row[influenciadorCol] || '',
+                mes: row[mesCol] || '',
+                fullRow: row
+              },
+              method: 'campaign_id'
+            };
+            break;
+          }
         }
       }
 
-      if (!foundAnyMatch) {
+      // Estratégia 2: Fallback - Buscar por Business + Mês + Influenciador
+      if (!creatorResult) {
+        console.log(`🔍 DEBUG: Tentativa 2 - Fallback por Business + Mês + Influenciador`);
+
+        for (let i = 1; i < Math.min(values.length, 50); i++) {
+          const row = values[i];
+          const rowCampanha = (row[campanhaCol] || '').toString().toLowerCase().trim();
+          const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
+          const rowMes = (row[mesCol] || '').toString().toLowerCase().trim();
+
+          const campanhaMatch = rowCampanha === businessName.toLowerCase().trim();
+          const influenciadorMatch = rowInfluenciador === influenciador.toLowerCase().trim();
+          const mesMatch = rowMes === mes.toLowerCase().trim();
+
+          if (campanhaMatch && influenciadorMatch && mesMatch) {
+            console.log(`✅ DEBUG: Criador encontrado por fallback na linha ${i + 1}!`);
+            creatorResult = {
+              found: true,
+              rowIndex: i,
+              data: {
+                campaignId: row[0] || '',
+                business: rowCampanha,
+                influenciador: rowInfluenciador,
+                mes: rowMes,
+                fullRow: row
+              },
+              method: 'business_mes_influenciador'
+            };
+            break;
+          }
+        }
+      }
+
+      if (!creatorResult) {
         console.log(`❌ DEBUG: Nenhuma correspondência encontrada para ${influenciador}`);
-        console.log(`❌ DEBUG: Procurando por Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+        console.log(`❌ DEBUG: Tentativas: Campaign_ID="${campaignId}", Business="${businessName}", Mês="${mes}"`);
       }
 
       if (!creatorResult || !creatorResult.found) {
