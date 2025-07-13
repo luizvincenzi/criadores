@@ -2278,12 +2278,13 @@ export async function createUsersSheet(): Promise<boolean> {
       'Role',
       'Status',
       'Created_At',
-      'Last_Login'
+      'Last_Login',
+      'Password_Hash'
     ];
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: 'Users!A1:H1',
+      range: 'Users!A1:I1',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [headers]
@@ -2332,10 +2333,10 @@ export async function getUserByEmail(email: string): Promise<UserData | null> {
       return null;
     }
 
-    // Busca todos os dados da aba Users
+    // Busca todos os dados da aba Users (incluindo Password_Hash na coluna I)
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Users!A:H',
+      range: 'Users!A:I',
     });
 
     const rows = response.data.values || [];
@@ -2357,7 +2358,7 @@ export async function getUserByEmail(email: string): Promise<UserData | null> {
         return {
           id: row[0] || '',
           email: row[1] || '',
-          password: row[2] || '',
+          password: row[8] || row[2] || '', // Usar Password_Hash (coluna I) ou fallback para Password (coluna C)
           name: row[3] || '',
           role: (row[4] as 'admin' | 'user') || 'user',
           status: (row[5] as 'active' | 'inactive') || 'inactive',
@@ -2393,8 +2394,11 @@ export async function validateLogin(email: string, password: string): Promise<Us
       return null;
     }
 
-    // Validação simples de senha (em produção, usar hash)
-    if (user.password !== password) {
+    // Validação de senha com hash bcrypt
+    const { verifyPassword } = await import('@/lib/auth');
+    const isValidPassword = await verifyPassword(password, user.password);
+
+    if (!isValidPassword) {
       console.log('Senha incorreta para:', email);
       return null;
     }
@@ -2435,7 +2439,7 @@ export async function updateUserLastLogin(userId: string): Promise<boolean> {
     // Busca todos os dados para encontrar a linha do usuário
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Users!A:H',
+      range: 'Users!A:I',
     });
 
     const rows = response.data.values || [];

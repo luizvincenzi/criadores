@@ -224,22 +224,27 @@ export async function POST(request: NextRequest) {
           // Gera ID único para o usuário
           const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
+          // Hash da senha usando bcrypt
+          const { hashPassword } = await import('@/lib/auth');
+          const hashedPassword = await hashPassword(userData.password);
+
           // Prepara dados do usuário
           const userRow = [
             userId,
             userData.email,
-            userData.password,
+            userData.password, // Manter senha original por compatibilidade
             userData.name,
             userData.role,
             'active',
             new Date().toISOString(),
-            '' // Last_Login vazio inicialmente
+            '', // Last_Login vazio inicialmente
+            hashedPassword // Password_Hash na coluna I
           ];
 
           // Adiciona o usuário à aba Users
           await sheets.spreadsheets.values.append({
             spreadsheetId,
-            range: 'Users!A:H',
+            range: 'Users!A:I',
             valueInputOption: 'RAW',
             requestBody: {
               values: [userRow]
