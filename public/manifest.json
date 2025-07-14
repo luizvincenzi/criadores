@@ -1,0 +1,69 @@
+{
+  "name": "CRM crIAdores - Gestão Inteligente de Influenciadores",
+  "short_name": "CRM crIAdores",
+  "description": "Sistema completo de gestão de influenciadores, campanhas e negócios",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00629B",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acesso rápido ao dashboard principal",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "64x64",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Negócios",
+      "short_name": "Negócios",
+      "description": "Gerenciar negócios e pipeline",
+      "url": "/negocios",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "64x64",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Criadores",
+      "short_name": "Criadores",
+      "description": "Gerenciar criadores de conteúdo",
+      "url": "/criadores",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "64x64",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
