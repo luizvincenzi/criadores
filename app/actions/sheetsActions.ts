@@ -31,6 +31,195 @@ export async function createGoogleSheetsClient() {
   return google.sheets({ version: 'v4', auth });
 }
 
+// ==========================================
+// SISTEMA DE IDs ÚNICOS
+// ==========================================
+
+/**
+ * Gera um ID único para Business
+ * Formato: bus_[timestamp]_[random]_[nome_normalizado]
+ */
+export async function generateBusinessId(businessName: string): Promise<string> {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  const normalizedName = businessName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .substring(0, 10);
+
+  return `bus_${timestamp}_${random}_${normalizedName}`;
+}
+
+/**
+ * Gera um ID único para Criador
+ * Formato: crt_[timestamp]_[random]_[nome_normalizado]
+ */
+export async function generateCreatorId(creatorName: string): Promise<string> {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  const normalizedName = creatorName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .substring(0, 10);
+
+  return `crt_${timestamp}_${random}_${normalizedName}`;
+}
+
+/**
+ * Busca Business ID pelo nome (para migração)
+ */
+export async function findBusinessIdByName(businessName: string): Promise<string | null> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) return null;
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Business!A:R', // Incluindo coluna R (business_id)
+    });
+
+    const values = response.data.values || [];
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const nome = row[0]?.toString().trim();
+      const businessId = row[17]; // Coluna R (business_id)
+
+      if (nome === businessName.trim() && businessId) {
+        return businessId;
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Erro ao buscar Business ID:', error);
+    return null;
+  }
+}
+
+/**
+ * Busca Criador ID pelo nome (para migração)
+ */
+export async function findCreatorIdByName(creatorName: string): Promise<string | null> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) return null;
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Criadores!A:V', // Incluindo coluna V (criador_id)
+    });
+
+    const values = response.data.values || [];
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const nome = row[0]?.toString().trim();
+      const criadorId = row[21]; // Coluna V (criador_id)
+
+      if (nome === creatorName.trim() && criadorId) {
+        return criadorId;
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Erro ao buscar Criador ID:', error);
+    return null;
+  }
+}
+
+/**
+ * Busca Business ou Creator por ID (função universal)
+ */
+export async function findEntityById(entityId: string, entityType: 'business' | 'creator'): Promise<any | null> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) return null;
+
+    let range: string;
+    let idColumn: number;
+
+    if (entityType === 'business') {
+      range = 'Business!A:R';
+      idColumn = 17; // Coluna R (business_id)
+    } else {
+      range = 'Criadores!A:V';
+      idColumn = 21; // Coluna V (criador_id)
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range
+    });
+
+    const values = response.data.values || [];
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const currentId = row[idColumn];
+
+      if (currentId === entityId) {
+        return {
+          row: i + 1,
+          data: row,
+          nome: row[0]?.toString().trim()
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Erro ao buscar ${entityType} por ID:`, error);
+    return null;
+  }
+}
+
+/**
+ * Busca híbrida: tenta por ID primeiro, depois por nome
+ */
+export async function findCreatorHybrid(identifier: string): Promise<any | null> {
+  // Se o identifier parece um ID (começa com crt_), busca por ID
+  if (identifier.startsWith('crt_')) {
+    return await findEntityById(identifier, 'creator');
+  }
+
+  // Senão, busca por nome (método antigo para compatibilidade)
+  const creatorId = await findCreatorIdByName(identifier);
+  if (creatorId) {
+    return await findEntityById(creatorId, 'creator');
+  }
+
+  return null;
+}
+
+/**
+ * Busca híbrida: tenta por ID primeiro, depois por nome
+ */
+export async function findBusinessHybrid(identifier: string): Promise<any | null> {
+  // Se o identifier parece um ID (começa com bus_), busca por ID
+  if (identifier.startsWith('bus_')) {
+    return await findEntityById(identifier, 'business');
+  }
+
+  // Senão, busca por nome (método antigo para compatibilidade)
+  const businessId = await findBusinessIdByName(identifier);
+  if (businessId) {
+    return await findEntityById(businessId, 'business');
+  }
+
+  return null;
+}
+
 // Função para ler dados da planilha
 export async function getData(sheetName: string) {
   try {
@@ -74,6 +263,8 @@ export interface BusinessData {
   contratoValidoAte: string;       // N = Contrato válido até
   relatedFiles: string;            // O = Related files
   notes: string;                   // P = Notes
+  // Coluna Q reservada para expansão futura
+  businessId: string;              // R = business_id (CHAVE PRIMÁRIA)
   quantidadeCriadores: string;     // Q = Quantidade de criadores
   row: number;                     // Linha na planilha
 
@@ -104,7 +295,7 @@ export async function getBusinessesData(): Promise<BusinessData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Business!A:Q', // A=Nome, B=Categoria, C=Plano atual, D=Comercial, E=Nome Responsável, F=Cidade, G=WhatsApp Responsável, H=Prospecção, I=Responsável, J=Instagram, K=Grupo WhatsApp criado, L=Contrato assinado e enviado, M=Data assinatura do contrato, N=Contrato válido até, O=Related files, P=Notes, Q=Quantidade de criadores
+      range: 'Business!A:R', // A=Nome, B=Categoria, C=Plano atual, D=Comercial, E=Nome Responsável, F=Cidade, G=WhatsApp Responsável, H=Prospecção, I=Responsável, J=Instagram, K=Grupo WhatsApp criado, L=Contrato assinado e enviado, M=Data assinatura do contrato, N=Contrato válido até, O=Related files, P=Notes, Q=Quantidade de criadores, R=business_id
     });
 
     const values = response.data.values || [];
@@ -137,6 +328,7 @@ export async function getBusinessesData(): Promise<BusinessData[]> {
         relatedFiles: row[14] || '',           // O = Related files
         notes: row[15] || '',                  // P = Notes
         quantidadeCriadores: row[16] || '',    // Q = Quantidade de criadores
+        businessId: row[17] || '',             // R = business_id (CHAVE PRIMÁRIA)
         row: index + 2,
 
         // Campos para compatibilidade com código existente
@@ -622,6 +814,7 @@ export interface CreatorData {
   descricaoCriador: string;               // S = Descrição do criador
   biografia: string;                      // T = Biografia
   categoria: string;                      // U = Categoria
+  criadorId: string;                      // V = criador_id (CHAVE PRIMÁRIA)
 
   // Campos calculados para compatibilidade
   seguidores: number;
@@ -645,7 +838,7 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Criadores!A:U', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador, T=Campo T, U=Campo U
+      range: 'Criadores!A:V', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador, T=Biografia, U=Categoria, V=criador_id
     });
 
     const values = response.data.values || [];
@@ -702,6 +895,7 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
         descricaoCriador: row[18] || '',              // S = Descrição do criador
         biografia: row[19] || '',                     // T = Biografia
         categoria: row[20] || '',                     // U = Categoria
+        criadorId: row[21] || '',                     // V = criador_id (CHAVE PRIMÁRIA)
 
         // Campos calculados para compatibilidade com código existente
         seguidores: parseInt(row[7]?.replace(/[^\d]/g, '')) || 0, // Seguidores do Instagram
@@ -1263,7 +1457,7 @@ export async function findCampaignById(campaignId: string): Promise<{ found: boo
   }
 }
 
-// Função para encontrar criador na planilha com múltiplos critérios
+// Função para encontrar criador na planilha com múltiplos critérios (VERSÃO HÍBRIDA COM IDs)
 export async function findCreatorInCampaigns(
   businessName: string,
   mes: string,
@@ -1279,6 +1473,14 @@ export async function findCreatorInCampaigns(
       return null;
     }
 
+    console.log(`🔍 BUSCA HÍBRIDA: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+
+    // ETAPA 1: Tentar buscar IDs únicos para Business e Creator
+    const businessId = await findBusinessIdByName(businessName);
+    const creatorId = await findCreatorIdByName(influenciador);
+
+    console.log(`🆔 IDs encontrados: Business ID="${businessId}", Creator ID="${creatorId}"`);
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: 'Campanhas!A:AE',
@@ -1286,23 +1488,62 @@ export async function findCreatorInCampaigns(
 
     const values = response.data.values || [];
 
-    console.log(`🔍 Procurando criador: Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+    // Verificar se há coluna Campaign_ID
+    const headers = values[0] || [];
+    const hasIdColumn = headers[0] && headers[0].toLowerCase().includes('id');
+
+    console.log(`📊 DEBUG findCreatorInCampaigns: Estrutura da planilha: ${hasIdColumn ? 'COM' : 'SEM'} coluna ID`);
+    console.log(`📋 DEBUG findCreatorInCampaigns: Cabeçalho: ${headers.slice(0, 10).join(', ')}`);
 
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
-      const campaignBusiness = row[1]; // Coluna B - Business
-      const campaignMes = row[5]; // Coluna F - Mês
-      const campaignInfluenciador = row[2]; // Coluna C - Influenciador
 
-      // Múltiplos critérios de matching
-      const businessMatch = campaignBusiness?.toLowerCase().trim() === businessName?.toLowerCase().trim();
-      const mesMatch = campaignMes?.toLowerCase().trim() === mes?.toLowerCase().trim();
-      const influenciadorMatch = campaignInfluenciador?.toLowerCase().trim() === influenciador?.toLowerCase().trim();
+      // Usar mapeamento correto baseado na estrutura real:
+      // Campaign_ID	Nome Campanha	Influenciador	Responsável	Status	Mês	FIM...
+      const campaignBusiness = hasIdColumn ? row[1] : row[0]; // B ou A - Nome Campanha (Business)
+      const campaignMes = hasIdColumn ? row[5] : row[4]; // F ou E - Mês
+      const campaignInfluenciador = hasIdColumn ? row[2] : row[1]; // C ou B - Influenciador
 
-      console.log(`📋 Linha ${i}: Business="${campaignBusiness}" (${businessMatch}), Mês="${campaignMes}" (${mesMatch}), Influenciador="${campaignInfluenciador}" (${influenciadorMatch})`);
+      // ESTRATÉGIA HÍBRIDA: Usar IDs quando disponíveis, fallback para nomes
+      let businessMatch = false;
+      let creatorMatch = false;
 
-      if (businessMatch && mesMatch && influenciadorMatch) {
-        console.log(`✅ Criador encontrado na linha ${i}!`);
+      // Verificar Business
+      if (businessId) {
+        // Se temos business_id, buscar por ele na campanha (futuro: quando campanhas tiverem business_id)
+        businessMatch = campaignBusiness?.toString().trim() === businessName.trim();
+      } else {
+        // Fallback: busca por nome
+        businessMatch = campaignBusiness?.toString().trim() === businessName.trim();
+      }
+
+      // Verificar Creator
+      if (creatorId) {
+        // Se temos criador_id, buscar por ele na campanha (futuro: quando campanhas tiverem criador_id)
+        creatorMatch = campaignInfluenciador?.toString().trim() === influenciador.trim();
+      } else {
+        // Fallback: busca flexível por nome
+        const influenciadorNormalizado = influenciador.toLowerCase().trim();
+        const campaignInfluenciadorNormalizado = campaignInfluenciador?.toString().toLowerCase().trim() || '';
+
+        creatorMatch = campaignInfluenciadorNormalizado === influenciadorNormalizado ||
+                      campaignInfluenciadorNormalizado.includes(influenciadorNormalizado) ||
+                      influenciadorNormalizado.includes(campaignInfluenciadorNormalizado);
+      }
+
+      // Busca flexível para o mês: aceita correspondência exata ou se um dos dois estiver vazio
+      const mesMatch = campaignMes?.toLowerCase().trim() === mes?.toLowerCase().trim() ||
+                       campaignMes?.toLowerCase().trim() === '' ||
+                       mes?.toLowerCase().trim() === '' ||
+                       mes?.toLowerCase().includes(campaignMes?.toLowerCase().trim() || '') ||
+                       campaignMes?.toLowerCase().includes(mes?.toLowerCase().trim() || '');
+
+      if (i <= 5) { // Log apenas as primeiras 5 linhas para debug
+        console.log(`📋 Linha ${i + 1}: Business="${campaignBusiness}" (${businessMatch}), Mês="${campaignMes}" (${mesMatch}), Influenciador="${campaignInfluenciador}" (${creatorMatch})`);
+      }
+
+      if (businessMatch && mesMatch && creatorMatch) {
+        console.log(`✅ Criador encontrado na linha ${i + 1}!`);
         return {
           found: true,
           rowIndex: i,
@@ -1828,7 +2069,7 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
   }
 }
 
-// Função para atualizar status de campanha
+// Função para atualizar status de campanha (VERSÃO HÍBRIDA COM IDs)
 export async function updateCampaignStatus(
   businessName: string,
   mes: string,
@@ -1844,6 +2085,12 @@ export async function updateCampaignStatus(
       throw new Error('GOOGLE_SPREADSHEET_ID não configurado');
     }
 
+    console.log(`🔄 ATUALIZAÇÃO HÍBRIDA: Business="${businessName}", Mês="${mes}", Novo Status="${newStatus}"`);
+
+    // ETAPA 1: Tentar buscar Business ID
+    const businessId = await findBusinessIdByName(businessName);
+    console.log(`🆔 Business ID encontrado: ${businessId}`);
+
     // Buscar todas as campanhas para encontrar as do business/mês específico
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -1855,26 +2102,65 @@ export async function updateCampaignStatus(
       return { success: false, error: 'Nenhuma campanha encontrada' };
     }
 
+    // Verificar se há coluna Campaign_ID
+    const headers = values[0] || [];
+    const hasIdColumn = headers[0] && headers[0].toLowerCase().includes('id');
+
+    console.log(`📊 DEBUG updateCampaignStatus: Estrutura da planilha: ${hasIdColumn ? 'COM' : 'SEM'} coluna ID`);
+
     // Encontrar linhas que correspondem ao business e mês
     const updates: any[] = [];
+    let matchedCampaigns = 0;
+
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
-      const campaignBusiness = row[1]; // Coluna B - Business
-      const campaignMes = row[6]; // Coluna G - Mês
 
-      if (campaignBusiness?.toLowerCase() === businessName.toLowerCase() &&
-          campaignMes?.toLowerCase() === mes.toLowerCase()) {
+      // Usar mapeamento correto baseado na estrutura real:
+      // Campaign_ID	Nome Campanha	Influenciador	Responsável	Status	Mês	FIM...
+      const campaignBusiness = hasIdColumn ? row[1] : row[0]; // B ou A - Nome Campanha (Business)
+      const campaignMes = hasIdColumn ? row[5] : row[4]; // F ou E - Mês
+      const statusCol = hasIdColumn ? 4 : 3; // E ou D - Status
 
-        // Atualizar status na coluna E (índice 4)
+      // BUSCA HÍBRIDA: Usar ID quando disponível, fallback para nome
+      let businessMatch = false;
+
+      if (businessId) {
+        // Futuro: quando campanhas tiverem business_id, usar aqui
+        // Por enquanto, ainda usar nome mas com busca mais robusta
+        businessMatch = campaignBusiness?.toString().trim().toLowerCase() === businessName.trim().toLowerCase();
+      } else {
+        // Fallback: busca por nome
+        businessMatch = campaignBusiness?.toString().trim().toLowerCase() === businessName.trim().toLowerCase();
+      }
+
+      // Busca flexível para mês
+      const mesMatch = campaignMes?.toLowerCase().trim() === mes?.toLowerCase().trim() ||
+                       campaignMes?.toLowerCase().trim() === '' ||
+                       mes?.toLowerCase().trim() === '' ||
+                       mes?.toLowerCase().includes(campaignMes?.toLowerCase().trim() || '') ||
+                       campaignMes?.toLowerCase().includes(mes?.toLowerCase().trim() || '');
+
+      if (businessMatch && mesMatch) {
+        matchedCampaigns++;
+
+        // Atualizar status na coluna correta
+        const statusRange = hasIdColumn ? `campanhas!E${i + 1}` : `campanhas!D${i + 1}`;
         updates.push({
-          range: `campanhas!E${i + 1}`,
+          range: statusRange,
           values: [[newStatus]]
         });
+
+        console.log(`📝 Campanha ${matchedCampaigns}: Business="${campaignBusiness}", Mês="${campaignMes}" → Status: ${newStatus}`);
       }
     }
 
+    console.log(`📊 RESULTADO: ${matchedCampaigns} campanhas encontradas, ${updates.length} atualizações preparadas`);
+
     if (updates.length === 0) {
-      return { success: false, error: 'Nenhuma campanha encontrada para atualizar' };
+      return {
+        success: false,
+        error: `Nenhuma campanha encontrada para Business="${businessName}", Mês="${mes}". Campanhas verificadas: ${matchedCampaigns}`
+      };
     }
 
     // Executar todas as atualizações
@@ -1886,12 +2172,124 @@ export async function updateCampaignStatus(
       }
     });
 
-    console.log(`✅ Status atualizado para ${updates.length} campanhas: ${businessName} - ${mes} → ${newStatus}`);
+    console.log(`✅ SUCESSO: Status atualizado para ${updates.length} campanhas: ${businessName} - ${mes} → ${newStatus}`);
+
+    // Log de auditoria melhorado
+    if (businessId) {
+      console.log(`🆔 Atualização realizada com Business ID: ${businessId}`);
+    }
+
     return { success: true };
 
   } catch (error) {
     console.error('❌ Erro ao atualizar status da campanha:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
+// ==========================================
+// FUNÇÕES AVANÇADAS COM SISTEMA HÍBRIDO
+// ==========================================
+
+/**
+ * Função para buscar campanhas por Business ID (futuro)
+ * Esta função será útil quando implementarmos business_id nas campanhas
+ */
+export async function findCampaignsByBusinessId(businessId: string): Promise<any[]> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) return [];
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AE',
+    });
+
+    const values = response.data.values || [];
+    const campaigns = [];
+
+    // Futuro: quando campanhas tiverem coluna business_id, usar aqui
+    // Por enquanto, buscar por nome usando o business_id para encontrar o nome
+    const businessData = await findEntityById(businessId, 'business');
+    if (!businessData) return [];
+
+    const businessName = businessData.nome;
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const campaignBusiness = row[1]; // Coluna B - Nome Campanha (Business)
+
+      if (campaignBusiness?.toString().trim().toLowerCase() === businessName.toLowerCase()) {
+        campaigns.push({
+          rowIndex: i,
+          data: row,
+          campaignId: row[0], // Campaign_ID
+          business: campaignBusiness,
+          influenciador: row[2], // Coluna C
+          status: row[4], // Coluna E
+          mes: row[5] // Coluna F
+        });
+      }
+    }
+
+    return campaigns;
+  } catch (error) {
+    console.error('Erro ao buscar campanhas por Business ID:', error);
+    return [];
+  }
+}
+
+/**
+ * Função para buscar campanhas por Creator ID (futuro)
+ * Esta função será útil quando implementarmos criador_id nas campanhas
+ */
+export async function findCampaignsByCreatorId(creatorId: string): Promise<any[]> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) return [];
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AE',
+    });
+
+    const values = response.data.values || [];
+    const campaigns = [];
+
+    // Futuro: quando campanhas tiverem coluna criador_id, usar aqui
+    // Por enquanto, buscar por nome usando o criador_id para encontrar o nome
+    const creatorData = await findEntityById(creatorId, 'creator');
+    if (!creatorData) return [];
+
+    const creatorName = creatorData.nome;
+
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const campaignInfluenciador = row[2]; // Coluna C - Influenciador
+
+      if (campaignInfluenciador?.toString().trim().toLowerCase() === creatorName.toLowerCase()) {
+        campaigns.push({
+          rowIndex: i,
+          data: row,
+          campaignId: row[0], // Campaign_ID
+          business: row[1], // Coluna B
+          influenciador: campaignInfluenciador,
+          status: row[4], // Coluna E
+          mes: row[5] // Coluna F
+        });
+      }
+    }
+
+    return campaigns;
+  } catch (error) {
+    console.error('Erro ao buscar campanhas por Creator ID:', error);
+    return [];
   }
 }
 

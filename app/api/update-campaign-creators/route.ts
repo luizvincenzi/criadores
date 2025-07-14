@@ -44,20 +44,20 @@ export async function POST(request: NextRequest) {
     console.log(`📋 DEBUG: Cabeçalho: ${headers.slice(0, 10).join(', ')}`);
     console.log(`📊 DEBUG: Total de linhas na planilha: ${values.length - 1}`);
 
-    // Definir índices das colunas baseado na estrutura REAL descoberta
+    // Definir índices das colunas baseado na estrutura REAL do Google Sheets
+    // Cabeçalho fornecido: Campaign_ID	Nome Campanha	Influenciador	Responsável	Status	Mês	FIM	Briefing completo enviado para o influenciador?	Data e hora Visita	Quantidade de convidados	Visita Confirmado	Data e hora da Postagem	Vídeo aprovado?	Video/Reels postado?
     let campanhaCol, businessCol, influenciadorCol, responsavelCol, statusCol, mesCol, briefingCol, dataVisitaCol, qtdConvidadosCol, visitaConfirmadaCol, dataPostagemCol, videoAprovadoCol, videoPostadoCol;
 
     if (hasIdColumn) {
-      // ESTRUTURA REAL CORRIGIDA baseada nas colunas fornecidas:
-      // A=Campaign_ID, B=Nome Campanha, C=Influenciador, D=Responsável, E=Status, F=Mês
-      campanhaCol = 1; // B = Nome Campanha (ex: "Boussolé")
+      // ESTRUTURA CORRIGIDA baseada no cabeçalho real fornecido:
+      // A=Campaign_ID, B=Nome Campanha, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM, H=Briefing completo, I=Data e hora Visita, J=Quantidade de convidados, K=Visita Confirmado, L=Data e hora da Postagem, M=Vídeo aprovado?, N=Video/Reels postado?
+      campanhaCol = 1; // B = Nome Campanha (nome do business)
       businessCol = 1; // B = Nome Campanha (nome do business)
       influenciadorCol = 2; // C = Influenciador
       responsavelCol = 3; // D = Responsável
       statusCol = 4; // E = Status
       mesCol = 5; // F = Mês
       // Campos de edição baseados na estrutura real:
-      // G=FIM, H=Briefing completo, I=Data e hora Visita, J=Quantidade de convidados, etc.
       briefingCol = 7; // H = Briefing completo enviado para o influenciador?
       dataVisitaCol = 8; // I = Data e hora Visita
       qtdConvidadosCol = 9; // J = Quantidade de convidados
@@ -120,7 +120,9 @@ export async function POST(request: NextRequest) {
           const rowCampaignId = (row[0] || '').toString().trim(); // Coluna A = Campaign_ID
           const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
 
-          console.log(`📋 DEBUG: Linha ${i + 1}: Campaign_ID="${rowCampaignId}", Influenciador="${rowInfluenciador}"`);
+          if (i <= 5) { // Log apenas as primeiras 5 linhas para debug
+            console.log(`📋 DEBUG: Linha ${i + 1}: Campaign_ID="${rowCampaignId}", Influenciador="${rowInfluenciador}", Business="${row[businessCol] || ''}", Mês="${row[mesCol] || ''}"`);
+          }
 
           if (rowCampaignId === campaignId && rowInfluenciador === influenciador.toLowerCase().trim()) {
             console.log(`✅ DEBUG: Criador encontrado por Campaign_ID na linha ${i + 1}!`);
@@ -144,8 +146,9 @@ export async function POST(request: NextRequest) {
       // Estratégia 2: Fallback - Buscar por Business + Mês + Influenciador
       if (!creatorResult) {
         console.log(`🔍 DEBUG: Tentativa 2 - Fallback por Business + Mês + Influenciador`);
+        console.log(`🔍 DEBUG: Procurando por: Business="${businessName.toLowerCase().trim()}", Mês="${mes.toLowerCase().trim()}", Influenciador="${influenciador.toLowerCase().trim()}"`);
 
-        for (let i = 1; i < Math.min(values.length, 50); i++) {
+        for (let i = 1; i < Math.min(values.length, 100); i++) {
           const row = values[i];
           const rowCampanha = (row[campanhaCol] || '').toString().toLowerCase().trim();
           const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
@@ -153,7 +156,17 @@ export async function POST(request: NextRequest) {
 
           const campanhaMatch = rowCampanha === businessName.toLowerCase().trim();
           const influenciadorMatch = rowInfluenciador === influenciador.toLowerCase().trim();
-          const mesMatch = rowMes === mes.toLowerCase().trim();
+
+          // Busca flexível para o mês: aceita correspondência exata ou se um dos dois estiver vazio
+          const mesMatch = rowMes === mes.toLowerCase().trim() ||
+                           rowMes === '' ||
+                           mes.toLowerCase().trim() === '' ||
+                           mes.toLowerCase().includes(rowMes) ||
+                           rowMes.includes(mes.toLowerCase().trim());
+
+          if (i <= 10) { // Log das primeiras 10 linhas para debug
+            console.log(`📋 DEBUG: Linha ${i + 1}: Business="${rowCampanha}" (match: ${campanhaMatch}), Influenciador="${rowInfluenciador}" (match: ${influenciadorMatch}), Mês="${rowMes}" (match: ${mesMatch})`);
+          }
 
           if (campanhaMatch && influenciadorMatch && mesMatch) {
             console.log(`✅ DEBUG: Criador encontrado por fallback na linha ${i + 1}!`);
@@ -167,7 +180,43 @@ export async function POST(request: NextRequest) {
                 mes: rowMes,
                 fullRow: row
               },
-              method: 'business_mes_influenciador'
+              method: 'business_mes_influenciador_flexible'
+            };
+            break;
+          }
+        }
+      }
+
+      // Estratégia 3: Busca mais flexível - por Influenciador + Business (ignorando mês)
+      if (!creatorResult) {
+        console.log(`🔍 DEBUG: Tentativa 3 - Busca flexível por Business + Influenciador (ignorando mês)`);
+
+        for (let i = 1; i < Math.min(values.length, 100); i++) {
+          const row = values[i];
+          const rowCampanha = (row[campanhaCol] || '').toString().toLowerCase().trim();
+          const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
+
+          const campanhaMatch = rowCampanha === businessName.toLowerCase().trim();
+
+          // Busca flexível para influenciador: aceita correspondência exata ou parcial
+          const influenciadorMatch = rowInfluenciador === influenciador.toLowerCase().trim() ||
+                                    rowInfluenciador.includes(influenciador.toLowerCase().trim()) ||
+                                    influenciador.toLowerCase().trim().includes(rowInfluenciador);
+
+          if (campanhaMatch && influenciadorMatch) {
+            console.log(`🔍 DEBUG: Influenciador encontrado na linha ${i + 1}: Business="${row[businessCol] || ''}", Mês="${row[mesCol] || ''}", Campaign_ID="${row[0] || ''}", Influenciador="${rowInfluenciador}"`);
+
+            creatorResult = {
+              found: true,
+              rowIndex: i,
+              data: {
+                campaignId: row[0] || '',
+                business: row[businessCol] || '',
+                influenciador: row[influenciadorCol] || '',
+                mes: row[mesCol] || '',
+                fullRow: row
+              },
+              method: 'business_influenciador_flexible'
             };
             break;
           }
@@ -177,6 +226,7 @@ export async function POST(request: NextRequest) {
       if (!creatorResult) {
         console.log(`❌ DEBUG: Nenhuma correspondência encontrada para ${influenciador}`);
         console.log(`❌ DEBUG: Tentativas: Campaign_ID="${campaignId}", Business="${businessName}", Mês="${mes}"`);
+        console.log(`❌ DEBUG: Total de linhas verificadas: ${Math.min(values.length - 1, 100)}`);
       }
 
       if (!creatorResult || !creatorResult.found) {
@@ -282,11 +332,41 @@ export async function POST(request: NextRequest) {
         console.log(`✅ ${Object.keys(changes).length} campos atualizados para ${influenciador}`);
       } else {
         console.log(`ℹ️ Nenhuma alteração detectada para ${influenciador}`);
+        processedCreators.push(influenciador); // Adicionar à lista mesmo sem alterações
       }
     }
 
     if (updates.length === 0) {
-      return NextResponse.json({ success: false, error: 'Nenhuma campanha encontrada para atualizar' });
+      console.log(`ℹ️ INFO: Nenhuma atualização foi preparada`);
+      console.log(`📊 DEBUG: Processados ${processedCreators.length} criadores: ${processedCreators.join(', ')}`);
+      console.log(`📊 DEBUG: Total de criadores recebidos: ${creatorsData.length}`);
+      console.log(`📊 DEBUG: Parâmetros de busca: Business="${businessName}", Mês="${mes}", Campaign_ID="${campaignId}"`);
+
+      // Se criadores foram processados mas não houve alterações, isso é um sucesso
+      if (processedCreators.length > 0) {
+        console.log(`✅ Todos os ${processedCreators.length} criadores foram verificados, mas não havia alterações para salvar`);
+        return NextResponse.json({
+          success: true,
+          message: `✅ Dados verificados para ${processedCreators.length} criadores. Nenhuma alteração necessária.`,
+          updatedCount: 0,
+          processedCreators,
+          noChangesNeeded: true
+        });
+      } else {
+        // Se nenhum criador foi processado, isso é um erro
+        return NextResponse.json({
+          success: false,
+          error: `Nenhuma campanha encontrada para atualizar. Verificados ${creatorsData.length} criadores para Business="${businessName}", Mês="${mes}". Processados: ${processedCreators.join(', ') || 'nenhum'}`,
+          debug: {
+            businessName,
+            mes,
+            campaignId,
+            creatorsCount: creatorsData.length,
+            processedCreators,
+            totalRows: values.length - 1
+          }
+        });
+      }
     }
 
     // Executar todas as atualizações
@@ -309,10 +389,12 @@ export async function POST(request: NextRequest) {
     //   details: `Atualizados ${updatedCount} criadores`
     // });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: `Dados atualizados para ${updatedCount} criadores`,
-      updatedCount 
+    return NextResponse.json({
+      success: true,
+      message: `✅ Dados atualizados com sucesso para ${updatedCount} criadores`,
+      updatedCount,
+      businessName,
+      mes
     });
 
   } catch (error) {

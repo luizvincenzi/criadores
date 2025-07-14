@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addBusinessToSheet } from '@/app/actions/sheetsActions';
+import { addBusinessToSheet, generateBusinessId } from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,8 +16,12 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Gerar ID único para o business
+    const businessId = await generateBusinessId(body.businessName);
+    console.log(`🆔 ID gerado para business "${body.businessName}": ${businessId}`);
+
     // Preparar dados seguindo EXATAMENTE o cabeçalho da planilha:
-    // Nome | Categoria | Plano atual | Comercial | Nome Responsável | Cidade | WhatsApp Responsável | Prospecção | Responsável | Instagram | Grupo WhatsApp criado | Contrato assinado e enviado | Data assinatura do contrato | Contrato válido até | Related files | Notes
+    // Nome | Categoria | Plano atual | Comercial | Nome Responsável | Cidade | WhatsApp Responsável | Prospecção | Responsável | Instagram | Grupo WhatsApp criado | Contrato assinado e enviado | Data assinatura do contrato | Contrato válido até | Related files | Notes | Quantidade de criadores | business_id
     const businessData = [
       body.businessName,                    // A = Nome
       body.category,                        // B = Categoria
@@ -34,7 +38,9 @@ export async function POST(request: NextRequest) {
       body.dataAssinatura || '',            // M = Data assinatura do contrato
       body.contratoValidoAte || '',         // N = Contrato válido até
       body.relatedFiles || '',              // O = Related files
-      body.notes || ''                      // P = Notes
+      body.notes || '',                     // P = Notes
+      '0',                                  // Q = Quantidade de criadores (padrão 0)
+      businessId                            // R = business_id (CHAVE PRIMÁRIA)
     ];
 
     console.log('📊 Dados preparados para Google Sheets:', businessData);

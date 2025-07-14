@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addCampaignToSheet } from '@/app/actions/sheetsActions';
+import {
+  addCampaignToSheet,
+  findBusinessHybrid,
+  findCreatorHybrid,
+  generateBusinessId
+} from '@/app/actions/sheetsActions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,11 +21,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // VALIDAÇÃO HÍBRIDA: Verificar se Business e Creator existem
+    console.log(`🔍 Validando Business: "${body.business}"`);
+    const businessData = await findBusinessHybrid(body.business);
+    if (!businessData) {
+      return NextResponse.json(
+        { success: false, error: `Business "${body.business}" não encontrado no sistema` },
+        { status: 400 }
+      );
+    }
+
+    console.log(`🔍 Validando Creator: "${body.influenciador}"`);
+    const creatorData = await findCreatorHybrid(body.influenciador);
+    if (!creatorData) {
+      return NextResponse.json(
+        { success: false, error: `Creator "${body.influenciador}" não encontrado no sistema` },
+        { status: 400 }
+      );
+    }
+
+    // Gerar Campaign_ID único
+    const campaignId = await generateBusinessId(`${body.business}_${body.influenciador}_${body.mes || 'sem_mes'}`);
+    console.log(`🆔 Campaign ID gerado: ${campaignId}`);
+
+    // Log dos IDs encontrados
+    console.log(`✅ Business encontrado: ID=${businessData.data[17]}, Nome="${businessData.nome}"`);
+    console.log(`✅ Creator encontrado: ID=${creatorData.data[21]}, Nome="${creatorData.nome}"`);
+
     // Preparar dados seguindo EXATAMENTE o cabeçalho da planilha:
-    // Campanha | Business | Influenciador | Responsável | Status | Mês | FIM | Briefing completo enviado para o influenciador? | Data e hora Visita | Quantidade de convidados | Visita Confirmado | Data e hora da Postagem | Vídeo aprovado? | Video/Reels postado? | Link Video Instagram | Notas | Arquivo | Avaliação Restaurante | Avaliação Influenciador | Status do Calendário | Column 22 | ID do Evento | Formato | Perfil do criador | Objetivo | Comunicação secundária | Datas e horários para gravação | O que precisa ser falado no vídeo (de forma natural) - História | Promoção CTA | Column 31 | Objetivo 1
+    // Campaign_ID | Nome Campanha | Influenciador | Responsável | Status | Mês | FIM | Briefing completo enviado para o influenciador? | Data e hora Visita | Quantidade de convidados | Visita Confirmado | Data e hora da Postagem | Vídeo aprovado? | Video/Reels postado? | Link Video Instagram | Notas | Arquivo | Avaliação Restaurante | Avaliação Influenciador | Status do Calendário | Column 22 | ID do Evento | Formato | Perfil do criador | Objetivo | Comunicação secundária | Datas e horários para gravação | O que precisa ser falado no vídeo (de forma natural) - História | Promoção CTA | Column 31 | Objetivo 1
     const campaignData = [
-      body.campanha,                          // A = Campanha
-      body.business,                          // B = Business
+      campaignId,                             // A = Campaign_ID (CHAVE PRIMÁRIA)
+      body.business,                          // B = Nome Campanha (Business)
       body.influenciador,                     // C = Influenciador
       body.responsavel || '',                 // D = Responsável
       body.status,                            // E = Status
