@@ -7,18 +7,35 @@ export async function POST(request: NextRequest) {
     const { businessName, mes, quantidadeContratada } = body;
 
     console.log('🔄 API: Buscando slots de criadores:', { businessName, mes, quantidadeContratada });
-    console.log('🔍 DEBUG: Parâmetros de busca detalhados:', {
-      businessName: `"${businessName}"`,
-      mes: `"${mes}"`,
-      quantidadeContratada: quantidadeContratada
-    });
 
     if (!businessName || !mes || !quantidadeContratada) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Parâmetros obrigatórios: businessName, mes, quantidadeContratada' 
+      return NextResponse.json({
+        success: false,
+        error: 'Parâmetros obrigatórios: businessName, mes, quantidadeContratada'
       });
     }
+
+    // 1. Primeiro buscar o business_id pelo nome
+    console.log('🔍 Buscando business_id para:', businessName);
+
+    const businessResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/get-business-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessName })
+    });
+
+    const businessResult = await businessResponse.json();
+
+    if (!businessResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: `Business "${businessName}" não encontrado: ${businessResult.error}`
+      });
+    }
+
+    const businessId = businessResult.businessId;
+    const businessDisplayName = businessResult.businessName; // Nome legível para o frontend
+    console.log('✅ Business ID encontrado:', businessId, 'Nome:', businessDisplayName);
 
     // Buscar campanhas diretamente da planilha com estrutura correta
     const sheets = await createGoogleSheetsClient();
@@ -100,8 +117,8 @@ export async function POST(request: NextRequest) {
 
       console.log(`📋 Linha ${i}: Campanha="${rowCampanha}", Influenciador="${rowInfluenciador}", Mês="${rowMes}"`);
 
-      // Comparação flexível - buscar por campanha + mês (incluindo slots vazios)
-      const campanhaMatch = rowCampanha.toLowerCase().trim() === businessName.toLowerCase().trim();
+      // Agora buscar por business_id em vez de nome
+      const campanhaMatch = rowCampanha === businessId;
 
       // Comparação de mês mais flexível (aceita "Julho 2025", "Jul", "julho", etc.)
       const mesNormalizado = mes.toLowerCase().trim();
@@ -110,7 +127,7 @@ export async function POST(request: NextRequest) {
                       rowMesNormalizado.includes(mesNormalizado) ||
                       mesNormalizado.includes(rowMesNormalizado);
 
-      console.log(`🔍 DEBUG: Comparação - Campanha: "${rowCampanha}" === "${businessName}" = ${campanhaMatch}`);
+      console.log(`🔍 DEBUG: Comparação - Business ID: "${rowCampanha}" === "${businessId}" = ${campanhaMatch}`);
       console.log(`🔍 DEBUG: Comparação - Mês: "${rowMes}" ~= "${mes}" = ${mesMatch}`);
 
       if (campanhaMatch && mesMatch) {
@@ -231,10 +248,45 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // 3. Resolver nomes dos criadores pelos IDs
+    const creatorIds = slots
+      .filter(slot => slot.influenciador && slot.influenciador.startsWith('crt_'))
+      .map(slot => slot.influenciador);
+
+    if (creatorIds.length > 0) {
+      console.log('🔍 Resolvendo nomes para IDs:', creatorIds);
+
+      const resolveResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/resolve-creator-names`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creatorIds })
+      });
+
+      const resolveResult = await resolveResponse.json();
+
+      if (resolveResult.success) {
+        // Substituir IDs pelos nomes nos slots
+        slots.forEach(slot => {
+          if (slot.influenciador && resolveResult.resolvedNames[slot.influenciador]) {
+            slot.influenciador = resolveResult.resolvedNames[slot.influenciador];
+          }
+        });
+        console.log('✅ Nomes dos criadores resolvidos');
+      } else {
+        console.error('❌ Erro ao resolver nomes:', resolveResult.error);
+      }
+    }
+
+    // 4. Adicionar informações do business para o frontend
+    slots.forEach(slot => {
+      slot.businessName = businessDisplayName; // Nome legível do business
+      slot.businessId = businessId; // ID para operações internas
+    });
+
     console.log(`✅ API: ${slots.length} slots de criadores gerados`);
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       slots,
       availableCreators: availableCreators.map(creator => ({
         id: creator.id,

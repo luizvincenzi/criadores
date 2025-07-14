@@ -1000,7 +1000,7 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Campanhas!A:AE', // A=Campanha, B=Business, C=Influenciador, D=Responsável, E=Status, F=Mês, G=FIM, H=Briefing completo enviado para o influenciador?, I=Data e hora Visita, J=Quantidade de convidados, K=Visita Confirmado, L=Data e hora da Postagem, M=Vídeo aprovado?, N=Video/Reels postado?, O=Link Video Instagram, P=Notas, Q=Arquivo, R=Avaliação Restaurante, S=Avaliação Influenciador, T=Status do Calendário, U=Column 22, V=ID do Evento, W=Formato, X=Perfil do criador, Y=Objetivo, Z=Comunicação secundária, AA=Datas e horários para gravação, AB=O que precisa ser falado no vídeo (de forma natural) - História, AC=Promoção CTA, AD=Column 31, AE=Objetivo 1
+      range: 'Campanhas!A:AE', // A=Campaign_ID, B=business_id, C=criador_id, D=Responsável, E=Status, F=Mês, G=FIM, H=Briefing completo enviado para o influenciador?, I=Data e hora Visita, J=Quantidade de convidados, K=Visita Confirmado, L=Data e hora da Postagem, M=Vídeo aprovado?, N=Video/Reels postado?, O=Link Video Instagram, P=Notas, Q=Arquivo, R=Avaliação Restaurante, S=Avaliação Influenciador, T=Status do Calendário, U=Column 22, V=ID do Evento, W=Formato, X=Perfil do criador, Y=Objetivo, Z=Comunicação secundária, AA=Datas e horários para gravação, AB=O que precisa ser falado no vídeo (de forma natural) - História, AC=Promoção CTA, AD=Column 31, AE=Objetivo 1
     });
 
     const values = response.data.values || [];
@@ -1028,11 +1028,11 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
         return temNomeValido;
       })
       .map((row, index) => ({
-        id: `campaign-${index + 1}`,
+        id: row[0] || `campaign-${index + 1}`,            // A = Campaign_ID
         // Campos principais da planilha
-        campanha: row[0] || '',                           // A = Campanha
-        business: row[1] || '',                           // B = Business
-        influenciador: row[2] || '',                      // C = Influenciador
+        campanha: row[0] || '',                           // A = Campaign_ID (usar como nome da campanha)
+        business: row[1] || '',                           // B = business_id (será resolvido para nome)
+        influenciador: row[2] || '',                      // C = criador_id (será resolvido para nome)
         responsavel: row[3] || '',                        // D = Responsável
         status: row[4] || 'Ativa',                        // E = Status
         mes: row[5] || '',                                // F = Mês
@@ -1072,6 +1072,30 @@ export async function getCampaignsData(): Promise<CampaignData[]> {
         resultados: row[17] || '',                        // Usar avaliação restaurante
         observacoes: row[15] || ''                        // Usar notas
       }));
+
+    // Resolver IDs para nomes legíveis
+    const [businessesData, criadoresData] = await Promise.all([
+      getBusinessesData(),
+      getCreatorsData()
+    ]);
+
+    // Resolver business_id para nome
+    rawCampaigns.forEach(campaign => {
+      if (campaign.business && campaign.business.startsWith('bus_')) {
+        const businessData = businessesData.find(b => b.businessId === campaign.business);
+        if (businessData) {
+          campaign.business = businessData.nome;
+        }
+      }
+
+      // Resolver criador_id para nome
+      if (campaign.influenciador && campaign.influenciador.startsWith('crt_')) {
+        const criadorData = criadoresData.find(c => c.criadorId === campaign.influenciador);
+        if (criadorData) {
+          campaign.influenciador = criadorData.nome;
+        }
+      }
+    });
 
     // Agrupar campanhas por nome e mês
     const groupedCampaigns = new Map<string, CampaignData>();
@@ -1649,8 +1673,15 @@ export async function updateCampaignStatusViaAuditLog(
   user: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // 1. Buscar business_id pelo nome
+    const businessData = await findBusinessHybrid(businessName);
+    if (!businessData) {
+      throw new Error(`Business "${businessName}" não encontrado`);
+    }
+
+    const businessId = businessData.data[17]; // Coluna R
+    const entityId = `camp_${businessId}_${mes.toLowerCase()}`;
     const entityName = `${businessName}-${mes}`;
-    const entityId = `campaign_${businessName.toLowerCase().replace(/\s+/g, '_')}_${mes.toLowerCase()}`;
 
     // Registra a mudança no audit_log
     await logAction({
@@ -1678,15 +1709,18 @@ export async function updateCampaignStatusViaAuditLog(
 
 // Função para registrar alterações de criadores no audit_log
 export async function logCreatorChanges(
+  businessId: string,
   businessName: string,
   mes: string,
+  creatorId: string,
   creatorName: string,
   changes: { [key: string]: { old: string; new: string } },
   user: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Usar IDs únicos para entity_id e entity_name
+    const entityId = `camp_${businessId}_${mes.toLowerCase()}_${creatorId}`;
     const entityName = `${businessName}-${mes}-${creatorName}`;
-    const entityId = `creator_${businessName.toLowerCase().replace(/\s+/g, '_')}_${mes.toLowerCase()}_${creatorName.toLowerCase().replace(/\s+/g, '_')}`;
 
     // Criar detalhes das mudanças
     const changeDetails = Object.entries(changes)
@@ -1967,8 +2001,18 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
     const journeyMap = new Map<string, CampaignJourneyData>();
 
     campaignsData.forEach(campaign => {
-      const businessName = campaign.business || campaign.nome;
+      let businessName = campaign.business || campaign.nome;
       const mes = campaign.mes;
+
+      // Se businessName é um ID (começa com 'bus_'), resolver para nome
+      if (businessName && businessName.startsWith('bus_')) {
+        const businessData = businessesData.find(b => b.businessId === businessName);
+        if (businessData) {
+          businessName = businessData.nome;
+        } else {
+          console.warn(`⚠️ Business ID ${businessName} não encontrado, usando ID como nome`);
+        }
+      }
 
       if (!businessName || !mes) {
         return;

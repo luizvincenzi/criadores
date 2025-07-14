@@ -106,6 +106,26 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Processando ${creatorsData.length} criadores para: Business="${businessName}", Mês="${mes}"`);
 
+    // 🆔 CONVERTER NOMES PARA IDs PRIMEIRO
+    console.log('🔄 Convertendo nomes para IDs...');
+
+    // Buscar business_id
+    const businessResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-business-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessName })
+    });
+    const businessResult = await businessResponse.json();
+
+    if (!businessResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: `Business "${businessName}" não encontrado: ${businessResult.error}`
+      });
+    }
+    const businessId = businessResult.businessId;
+    console.log(`✅ Business ID obtido: ${businessId}`);
+
     for (const creatorData of creatorsData) {
       if (!creatorData.influenciador) {
         console.log(`⚠️ Criador sem nome de influenciador, pulando...`);
@@ -122,131 +142,100 @@ export async function POST(request: NextRequest) {
 
       console.log(`🔄 DEBUG: Processando criador: ${influenciador}`);
 
-      // Buscar campanha usando Campaign_ID primeiro, depois fallback
-      let creatorResult = null;
+      // Buscar criador_id
+      const creatorResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-creator-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creatorName: influenciador })
+      });
+      const creatorResult = await creatorResponse.json();
 
-      console.log(`🔍 DEBUG: Buscando criador: Campaign_ID="${campaignId}", Business="${businessName}", Mês="${mes}", Influenciador="${influenciador}"`);
+      if (!creatorResult.success) {
+        console.log(`❌ Criador "${influenciador}" não encontrado: ${creatorResult.error}`);
+        continue;
+      }
+      const criadorId = creatorResult.criadorId;
+      console.log(`✅ Criador ID obtido: ${criadorId}`);
+
+      // Buscar campanha usando IDs (business_id e criador_id)
+      let campaignResult = null;
+
+      console.log(`🔍 DEBUG: Buscando criador: Campaign_ID="${campaignId}", Business_ID="${businessId}", Mês="${mes}", Criador_ID="${criadorId}"`);
       console.log(`📊 DEBUG: Usando colunas: influenciadorCol=${influenciadorCol}, campanhaCol=${campanhaCol}, mesCol=${mesCol}`);
 
-      // Estratégia 1: Buscar por Campaign_ID + Influenciador (mais preciso)
-      if (campaignId) {
-        console.log(`🆔 DEBUG: Tentativa 1 - Busca por Campaign_ID: ${campaignId}`);
+      // Estratégia 1: Buscar por business_id + criador_id + mês (mais preciso)
+      console.log(`🆔 DEBUG: Tentativa 1 - Busca por business_id + criador_id + mês`);
+
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        const rowCampaignId = (row[0] || '').toString().trim(); // Coluna A = Campaign_ID
+        const rowBusinessId = (row[campanhaCol] || '').toString().trim(); // Coluna B = business_id
+        const rowCriadorId = (row[influenciadorCol] || '').toString().trim(); // Coluna C = criador_id
+        const rowMes = (row[mesCol] || '').toString().trim(); // Coluna F = Mês
+
+        if (i <= 5) { // Log apenas as primeiras 5 linhas para debug
+          console.log(`📋 DEBUG: Linha ${i + 1}: Campaign_ID="${rowCampaignId}", Business_ID="${rowBusinessId}", Criador_ID="${rowCriadorId}", Mês="${rowMes}"`);
+        }
+
+        // Buscar por business_id + criador_id + mês
+        const businessMatch = rowBusinessId === businessId;
+        const criadorMatch = rowCriadorId === criadorId;
+        const mesMatch = rowMes.toLowerCase() === mes.toLowerCase() || rowMes === '' || mes === '';
+
+        if (businessMatch && criadorMatch && mesMatch) {
+          console.log(`✅ DEBUG: Criador encontrado por IDs na linha ${i + 1}!`);
+          campaignResult = {
+            found: true,
+            rowIndex: i,
+            data: {
+              campaignId: rowCampaignId,
+              businessId: rowBusinessId,
+              criadorId: rowCriadorId,
+              mes: rowMes,
+              fullRow: row
+            },
+            method: 'business_id_criador_id'
+          };
+          break;
+        }
+      }
+
+      // Se não encontrou, tentar busca mais flexível apenas por criador_id
+      if (!campaignResult) {
+        console.log(`🔍 DEBUG: Tentativa 2 - Busca flexível apenas por criador_id`);
 
         for (let i = 1; i < values.length; i++) {
           const row = values[i];
-          const rowCampaignId = (row[0] || '').toString().trim(); // Coluna A = Campaign_ID
-          const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
+          const rowCriadorId = (row[influenciadorCol] || '').toString().trim(); // Coluna C = criador_id
 
-          if (i <= 5) { // Log apenas as primeiras 5 linhas para debug
-            console.log(`📋 DEBUG: Linha ${i + 1}: Campaign_ID="${rowCampaignId}", Influenciador="${rowInfluenciador}", Business="${row[businessCol] || ''}", Mês="${row[mesCol] || ''}"`);
-          }
-
-          if (rowCampaignId === campaignId && rowInfluenciador === influenciador.toLowerCase().trim()) {
-            console.log(`✅ DEBUG: Criador encontrado por Campaign_ID na linha ${i + 1}!`);
-            creatorResult = {
-              found: true,
-              rowIndex: i,
-              data: {
-                campaignId: rowCampaignId,
-                business: row[campanhaCol] || '',
-                influenciador: row[influenciadorCol] || '',
-                mes: row[mesCol] || '',
-                fullRow: row
-              },
-              method: 'campaign_id'
-            };
-            break;
-          }
-        }
-      }
-
-      // Estratégia 2: Fallback - Buscar por Business + Mês + Influenciador
-      if (!creatorResult) {
-        console.log(`🔍 DEBUG: Tentativa 2 - Fallback por Business + Mês + Influenciador`);
-        console.log(`🔍 DEBUG: Procurando por: Business="${businessName.toLowerCase().trim()}", Mês="${mes.toLowerCase().trim()}", Influenciador="${influenciador.toLowerCase().trim()}"`);
-
-        for (let i = 1; i < Math.min(values.length, 100); i++) {
-          const row = values[i];
-          const rowCampanha = (row[campanhaCol] || '').toString().toLowerCase().trim();
-          const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
-          const rowMes = (row[mesCol] || '').toString().toLowerCase().trim();
-
-          const campanhaMatch = rowCampanha === businessName.toLowerCase().trim();
-          const influenciadorMatch = rowInfluenciador === influenciador.toLowerCase().trim();
-
-          // Busca flexível para o mês: aceita correspondência exata ou se um dos dois estiver vazio
-          const mesMatch = rowMes === mes.toLowerCase().trim() ||
-                           rowMes === '' ||
-                           mes.toLowerCase().trim() === '' ||
-                           mes.toLowerCase().includes(rowMes) ||
-                           rowMes.includes(mes.toLowerCase().trim());
-
-          if (i <= 10) { // Log das primeiras 10 linhas para debug
-            console.log(`📋 DEBUG: Linha ${i + 1}: Business="${rowCampanha}" (match: ${campanhaMatch}), Influenciador="${rowInfluenciador}" (match: ${influenciadorMatch}), Mês="${rowMes}" (match: ${mesMatch})`);
-          }
-
-          if (campanhaMatch && influenciadorMatch && mesMatch) {
-            console.log(`✅ DEBUG: Criador encontrado por fallback na linha ${i + 1}!`);
-            creatorResult = {
+          if (rowCriadorId === criadorId) {
+            console.log(`✅ DEBUG: Criador encontrado por criador_id na linha ${i + 1}!`);
+            campaignResult = {
               found: true,
               rowIndex: i,
               data: {
                 campaignId: row[0] || '',
-                business: rowCampanha,
-                influenciador: rowInfluenciador,
-                mes: rowMes,
-                fullRow: row
-              },
-              method: 'business_mes_influenciador_flexible'
-            };
-            break;
-          }
-        }
-      }
-
-      // Estratégia 3: Busca mais flexível - por Influenciador + Business (ignorando mês)
-      if (!creatorResult) {
-        console.log(`🔍 DEBUG: Tentativa 3 - Busca flexível por Business + Influenciador (ignorando mês)`);
-
-        for (let i = 1; i < Math.min(values.length, 100); i++) {
-          const row = values[i];
-          const rowCampanha = (row[campanhaCol] || '').toString().toLowerCase().trim();
-          const rowInfluenciador = (row[influenciadorCol] || '').toString().toLowerCase().trim();
-
-          const campanhaMatch = rowCampanha === businessName.toLowerCase().trim();
-
-          // Busca flexível para influenciador: aceita correspondência exata ou parcial
-          const influenciadorMatch = rowInfluenciador === influenciador.toLowerCase().trim() ||
-                                    rowInfluenciador.includes(influenciador.toLowerCase().trim()) ||
-                                    influenciador.toLowerCase().trim().includes(rowInfluenciador);
-
-          if (campanhaMatch && influenciadorMatch) {
-            console.log(`🔍 DEBUG: Influenciador encontrado na linha ${i + 1}: Business="${row[businessCol] || ''}", Mês="${row[mesCol] || ''}", Campaign_ID="${row[0] || ''}", Influenciador="${rowInfluenciador}"`);
-
-            creatorResult = {
-              found: true,
-              rowIndex: i,
-              data: {
-                campaignId: row[0] || '',
-                business: row[businessCol] || '',
-                influenciador: row[influenciadorCol] || '',
+                businessId: row[campanhaCol] || '',
+                criadorId: rowCriadorId,
                 mes: row[mesCol] || '',
                 fullRow: row
               },
-              method: 'business_influenciador_flexible'
+              method: 'criador_id_only'
             };
             break;
           }
         }
       }
 
-      if (!creatorResult) {
+
+
+      if (!campaignResult) {
         console.log(`❌ DEBUG: Nenhuma correspondência encontrada para ${influenciador}`);
         console.log(`❌ DEBUG: Tentativas: Campaign_ID="${campaignId}", Business="${businessName}", Mês="${mes}"`);
         console.log(`❌ DEBUG: Total de linhas verificadas: ${Math.min(values.length - 1, 100)}`);
       }
 
-      if (!creatorResult || !creatorResult.found) {
+      if (!campaignResult || !campaignResult.found) {
         console.log(`❌ Criador ${influenciador} não encontrado na planilha`);
 
         // Log de erro detalhado
@@ -271,7 +260,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const { rowIndex, data } = creatorResult;
+      const { rowIndex, data } = campaignResult;
       const row = data.fullRow;
 
       console.log(`✅ Criador ${influenciador} encontrado na linha ${rowIndex}`);
@@ -397,14 +386,36 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Dados atualizados para ${updatedCount} criadores: ${businessName} - ${mes}`);
 
-    // Log da atividade (opcional - pode ser implementado depois)
-    // await logActivity({
-    //   action: 'UPDATE_CAMPAIGN_CREATORS',
-    //   businessName,
-    //   mes,
-    //   user,
-    //   details: `Atualizados ${updatedCount} criadores`
-    // });
+    // Log da atividade com IDs únicos
+    try {
+      // Buscar business_id
+      const businessResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/get-business-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessName })
+      });
+
+      const businessResult = await businessResponse.json();
+
+      if (businessResult.success) {
+        const businessId = businessResult.businessId;
+        const entityId = `camp_${businessId}_${mes.toLowerCase()}`;
+
+        await logAction({
+          action: 'campaign_creators_updated',
+          entity_type: 'campaign',
+          entity_id: entityId,
+          entity_name: `${businessName}-${mes}`,
+          user_id: user || 'sistema',
+          user_name: user || 'Sistema',
+          details: `Atualizados ${updatedCount} criadores na campanha ${businessName} - ${mes}`
+        });
+
+        console.log('✅ Log de auditoria registrado');
+      }
+    } catch (logError) {
+      console.error('⚠️ Erro ao registrar log (não crítico):', logError);
+    }
 
     const successResult = {
       success: true,

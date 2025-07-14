@@ -16,6 +16,37 @@ export async function POST(request: NextRequest) {
       throw new Error('GOOGLE_SPREADSHEET_ID não configurado');
     }
 
+    // 🆔 CONVERTER NOMES PARA IDs
+    console.log('🔍 Convertendo nomes para IDs...');
+
+    // Buscar business_id
+    const businessResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-business-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessName })
+    });
+    const businessResult = await businessResponse.json();
+
+    if (!businessResult.success) {
+      throw new Error(`Business "${businessName}" não encontrado: ${businessResult.error}`);
+    }
+    const businessId = businessResult.businessId;
+
+    // Buscar criador_id
+    const creatorResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-creator-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ creatorName })
+    });
+    const creatorResult = await creatorResponse.json();
+
+    if (!creatorResult.success) {
+      throw new Error(`Criador "${creatorName}" não encontrado: ${creatorResult.error}`);
+    }
+    const criadorId = creatorResult.criadorId;
+
+    console.log('✅ IDs obtidos:', { businessId, criadorId });
+
     // Buscar dados da aba campanhas para encontrar o próximo ID
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -48,8 +79,8 @@ export async function POST(request: NextRequest) {
     // Preparar nova linha para o criador
     const newRow = [
       baseCampaign[0] || '', // A = Campanha
-      businessName, // B = Business
-      creatorName, // C = Influenciador (agora Criador)
+      businessId, // B = business_id (ID em vez de nome)
+      criadorId, // C = criador_id (ID em vez de nome)
       baseCampaign[3] || '', // D = Responsável
       baseCampaign[4] || 'Reunião Briefing', // E = Status
       mes, // F = Mês

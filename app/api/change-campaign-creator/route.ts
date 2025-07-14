@@ -15,6 +15,37 @@ export async function POST(request: NextRequest) {
       newCreator
     });
 
+    // 🆔 CONVERTER NOMES PARA IDs PRIMEIRO
+    console.log('🔄 Convertendo nomes para IDs...');
+
+    // Buscar business_id
+    const businessResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-business-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessName })
+    });
+    const businessResult = await businessResponse.json();
+
+    if (!businessResult.success) {
+      throw new Error(`Business "${businessName}" não encontrado: ${businessResult.error}`);
+    }
+    const businessId = businessResult.businessId;
+
+    // Buscar criador_id do novo criador
+    const newCreatorResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-creator-id`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ creatorName: newCreator })
+    });
+    const newCreatorResult = await newCreatorResponse.json();
+
+    if (!newCreatorResult.success) {
+      throw new Error(`Criador "${newCreator}" não encontrado: ${newCreatorResult.error}`);
+    }
+    const newCriadorId = newCreatorResult.criadorId;
+
+    console.log('✅ IDs obtidos:', { businessId, newCriadorId });
+
     // Configurar autenticação
     const auth = new google.auth.GoogleAuth({
       credentials: {
@@ -92,8 +123,8 @@ export async function POST(request: NextRequest) {
     // Preparar dados da nova linha
     const newRow = [
       newCampaignId, // A = Campaign_ID
-      businessName, // B = Nome Campanha
-      newCreator, // C = Influenciador
+      businessId, // B = business_id (ID em vez de nome)
+      newCriadorId, // C = criador_id (ID em vez de nome)
       newCreatorData?.responsavel || 'Sistema', // D = Responsável
       'Ativo', // E = Status
       mes, // F = Mês
@@ -157,7 +188,7 @@ export async function POST(request: NextRequest) {
       operations.push({
         range: `campanhas!C${emptySlotRow}:N${emptySlotRow}`, // Colunas C até N
         values: [[
-          newCreator, // C = Influenciador
+          newCriadorId, // C = criador_id (ID em vez de nome)
           'Sistema', // D = Responsável
           'Ativo', // E = Status
           mes, // F = Mês (manter)
