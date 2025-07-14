@@ -3,7 +3,11 @@ import { createGoogleSheetsClient, logCreatorChanges, findCreatorInCampaigns, cr
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 API update-campaign-creators iniciada');
+
     const body = await request.json();
+    console.log('📥 Body recebido:', body);
+
     const { businessName, mes, creatorsData, user, campaignId } = body;
 
     console.log('🔄 DEBUG: Dados recebidos na API:', {
@@ -14,6 +18,19 @@ export async function POST(request: NextRequest) {
       creatorsDataLength: creatorsData?.length,
       creatorsData: creatorsData
     });
+
+    // Validações básicas
+    if (!businessName) {
+      const errorMsg = 'businessName é obrigatório';
+      console.error('❌', errorMsg);
+      return NextResponse.json({ success: false, error: errorMsg });
+    }
+
+    if (!creatorsData || !Array.isArray(creatorsData)) {
+      const errorMsg = 'creatorsData deve ser um array válido';
+      console.error('❌', errorMsg);
+      return NextResponse.json({ success: false, error: errorMsg });
+    }
 
     // Garantir que a planilha tenha IDs únicos
     await ensureCampaignUniqueIds();
@@ -389,19 +406,31 @@ export async function POST(request: NextRequest) {
     //   details: `Atualizados ${updatedCount} criadores`
     // });
 
-    return NextResponse.json({
+    const successResult = {
       success: true,
       message: `✅ Dados atualizados com sucesso para ${updatedCount} criadores`,
       updatedCount,
       businessName,
       mes
-    });
+    };
+
+    console.log('🔍 DEBUG: Resultado final da API:', successResult);
+    console.log('🔍 DEBUG: Tipo do resultado:', typeof successResult);
+    console.log('🔍 DEBUG: Success value:', successResult.success);
+
+    return NextResponse.json(successResult);
 
   } catch (error) {
     console.error('❌ Erro ao atualizar dados dos criadores:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Erro desconhecido' 
-    });
+
+    const errorResult = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    };
+
+    console.log('🔍 DEBUG: Resultado de erro da API:', errorResult);
+    console.log('🔍 DEBUG: Tipo do resultado de erro:', typeof errorResult);
+
+    return NextResponse.json(errorResult);
   }
 }

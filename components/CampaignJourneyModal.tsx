@@ -467,23 +467,43 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error('❌ Erro HTTP:', response.status, response.statusText, errorText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
         }
 
         const responseText = await response.text();
         console.log('🔍 DEBUG: Resposta bruta da API:', responseText);
 
+        if (!responseText || responseText.trim() === '') {
+          throw new Error('Resposta vazia da API');
+        }
+
         try {
           result = JSON.parse(responseText);
+          if (!result) {
+            throw new Error('Resultado JSON é null ou undefined');
+          }
         } catch (parseError) {
           console.error('❌ Erro ao fazer parse da resposta:', parseError);
+          console.error('❌ Resposta recebida:', responseText);
           throw new Error(`Resposta inválida da API: ${responseText.substring(0, 100)}...`);
         }
       }
 
       console.log('🔍 DEBUG: Resultado final:', result);
+      console.log('🔍 DEBUG: Tipo do resultado:', typeof result);
+      console.log('🔍 DEBUG: Resultado é null?', result === null);
+      console.log('🔍 DEBUG: Resultado é undefined?', result === undefined);
 
-      if (result && result.success) {
+      if (!result) {
+        const errorMsg = 'Resultado da API é null ou undefined';
+        console.error('❌ Erro crítico:', errorMsg);
+        alert(`❌ Erro crítico: ${errorMsg}`);
+        return;
+      }
+
+      if (result.success === true) {
         console.log('✅ Dados dos criadores atualizados');
         const successMessage = result.message || `Dados atualizados com sucesso para ${result.updatedCount || 0} criadores!`;
         alert(`✅ ${successMessage}`);
@@ -493,7 +513,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         // Recarregar apenas os slots de criadores sem fechar o modal
         await loadCreatorSlots();
       } else {
-        const errorMessage = result?.error || result?.message || 'Erro desconhecido ao salvar';
+        const errorMessage = result?.error || result?.message || `Falha na operação (success: ${result?.success})`;
         console.error('❌ Erro ao salvar:', errorMessage);
         console.error('❌ Detalhes completos:', result);
         alert(`❌ Erro ao salvar: ${errorMessage}`);
