@@ -28,9 +28,12 @@ export async function POST(request: NextRequest) {
       throw new Error('GOOGLE_SPREADSHEET_ID não configurado');
     }
 
+    // Forçar atualização sem cache
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: 'campanhas!A:AE',
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING'
     });
 
     const values = response.data.values || [];
@@ -116,6 +119,17 @@ export async function POST(request: NextRequest) {
         const isActive = statusCalendario.toLowerCase() !== 'inativo';
 
         console.log(`✅ Slot encontrado na linha ${i}: Influenciador="${rowInfluenciador}" Status="${statusCalendario}" (${isActive ? 'ATIVO' : 'INATIVO'})`);
+
+        // Debug específico para Jean
+        if (rowInfluenciador && rowInfluenciador.toLowerCase().includes('jean')) {
+          console.log(`🔍 DEBUG JEAN - Linha ${i}:`, {
+            influenciador: rowInfluenciador,
+            visitaConfirmadoCol: visitaConfirmadaCol,
+            visitaConfirmadoValue: row[visitaConfirmadaCol],
+            rowData: row.slice(0, 15), // Primeiras 15 colunas
+            isActive: isActive
+          });
+        }
 
         // Só adicionar se estiver ativo
         if (isActive) {

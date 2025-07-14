@@ -105,15 +105,21 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         quantidadeContratada
       });
 
+      // Adicionar timestamp para evitar cache
+      const timestamp = Date.now();
       const response = await fetch('/api/get-creator-slots', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         body: JSON.stringify({
           businessName: campaign.businessName,
           mes: campaign.mes,
-          quantidadeContratada
+          quantidadeContratada,
+          _timestamp: timestamp // Cache busting
         })
       });
 
@@ -688,16 +694,25 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                   </svg>
                   Criadores da Campanha ({campaign.quantidadeCriadores} contratados)
                 </h3>
-                <button
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    isEditMode
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                  }`}
-                >
-                  {isEditMode ? '❌ Cancelar Edição' : '✏️ Habilitar Edição'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={loadCreatorSlots}
+                    disabled={isLoadingSlots}
+                    className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50"
+                  >
+                    {isLoadingSlots ? '🔄 Carregando...' : '🔄 Recarregar'}
+                  </button>
+                  <button
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      isEditMode
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    }`}
+                  >
+                    {isEditMode ? '❌ Cancelar Edição' : '✏️ Habilitar Edição'}
+                  </button>
+                </div>
               </div>
 
               <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
