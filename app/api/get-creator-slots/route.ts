@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     // 1. Primeiro buscar o business_id pelo nome
     console.log('🔍 Buscando business_id para:', businessName);
 
-    const businessResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/get-business-id`, {
+    const businessResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-business-id`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ businessName })
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
     if (creatorIds.length > 0) {
       console.log('🔍 Resolvendo nomes para IDs:', creatorIds);
 
-      const resolveResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/resolve-creator-names`, {
+      const resolveResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/resolve-creator-names`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ creatorIds })
