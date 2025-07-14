@@ -85,14 +85,20 @@ function SortableCampaignCard({
       style={style}
       {...attributes}
       {...listeners}
-      onClick={onClick}
       className={`
-        bg-white rounded-xl p-4 shadow-sm border border-gray-200 cursor-grab compact-card
+        bg-white rounded-xl p-4 shadow-sm border border-gray-200 compact-card
         hover:shadow-lg hover:border-gray-300 transition-all duration-200 transform
-        ${isDragging ? 'opacity-60 rotate-1 scale-105 shadow-xl border-blue-300 z-50' : 'hover:scale-[1.02]'}
-        active:scale-95 active:shadow-sm
+        ${isDragging ? 'opacity-60 rotate-1 scale-105 shadow-xl border-blue-300 z-50 cursor-grabbing' : 'hover:scale-[1.02] cursor-grab'}
+        active:scale-95 active:shadow-sm select-none
       `}
     >
+      {/* Drag Handle Visual */}
+      <div className="flex items-center justify-center mb-2 opacity-30 hover:opacity-60 transition-opacity">
+        <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm6-8h2v2h-2V6zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+        </svg>
+      </div>
+
       {/* Header Compacto */}
       <div className="flex items-center justify-between mb-2">
         <h4 className="font-semibold text-gray-900 text-sm truncate flex-1 mr-2">
@@ -125,7 +131,13 @@ function SortableCampaignCard({
       </div>
 
       {/* Botão Compacto */}
-      <button className="w-full text-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors py-1 border-t border-gray-100">
+      <button
+        onClick={(e) => {
+          e.stopPropagation(); // Previne o drag quando clica no botão
+          onClick(); // Chama a função de abrir modal
+        }}
+        className="w-full text-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors py-2 border-t border-gray-100 cursor-pointer hover:bg-blue-50 rounded-b-xl"
+      >
         Ver Detalhes →
       </button>
     </div>
@@ -141,9 +153,9 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 10, // Distância mínima para iniciar o drag
-        delay: 100,   // Pequeno delay para evitar drags acidentais
-        tolerance: 5, // Tolerância para movimento
+        distance: 8, // Distância mínima para iniciar o drag (reduzida para mais responsividade)
+        delay: 50,   // Delay reduzido para resposta mais rápida
+        tolerance: 3, // Tolerância menor para movimento mais preciso
       },
     })
   );
@@ -361,6 +373,13 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
                 const activeCampaign = campaigns.find(c => c.id === activeId);
                 return activeCampaign ? (
                   <>
+                    {/* Drag Handle Visual */}
+                    <div className="flex items-center justify-center mb-2 opacity-60">
+                      <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm6-8h2v2h-2V6zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+                      </svg>
+                    </div>
+
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-semibold text-gray-900 text-sm truncate flex-1 mr-2">
                         {activeCampaign.businessName}
@@ -376,7 +395,12 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
                         </svg>
                         {activeCampaign.totalCampanhas}
                       </span>
-                      <span className="text-blue-600 font-medium">Movendo...</span>
+                      <span className="text-blue-600 font-medium flex items-center">
+                        <svg className="w-3 h-3 mr-1 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                        </svg>
+                        Movendo...
+                      </span>
                     </div>
                   </>
                 ) : null;
