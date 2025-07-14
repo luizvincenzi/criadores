@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </svg>
       ),
       href: '/jornada',
-      count: 12,
+      count: 0,
       color: 'primary'
     },
     {
@@ -68,7 +68,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </svg>
       ),
       href: '/businesses',
-      count: 12,
+      count: 0,
       color: 'primary'
     },
     {
@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </svg>
       ),
       href: '/creators',
-      count: 8,
+      count: 0,
       color: 'secondary'
     },
     {
@@ -96,7 +96,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </svg>
       ),
       href: '/campaigns',
-      count: 5,
+      count: 0,
       color: 'tertiary'
     }
   ];

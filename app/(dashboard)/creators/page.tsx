@@ -111,11 +111,13 @@ export default function CreatorsPage() {
           </p>
         </div>
         <div className="flex space-x-2">
+          {/* Update button hidden in production */}
           <Button
             variant="outlined"
             size="sm"
             icon="🔄"
             onClick={loadCreators}
+            className="hidden"
           >
             <span className="hidden sm:inline">Atualizar</span>
             <span className="sm:hidden">Sync</span>

@@ -212,7 +212,9 @@ export default function DashboardPage() {
             Visão geral dos seus negócios, criadores e campanhas
           </p>
         </div>
-        <div className="flex space-x-2">
+        {/* Debug buttons hidden in production */}
+        <div className="hidden"
+          style={{ display: 'none' }}>
           <Button
             variant="outlined"
             size="sm"
