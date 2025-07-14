@@ -457,77 +457,51 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       } else {
         console.log('📝 Usando API de atualização normal...');
 
-        // Usar nova API que garante consistência com audit_log
-        const updatePromises = [];
+        // Usar API normal para atualizações (versão estável)
+        response = await fetch('/api/update-campaign-creators', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(debugPayload)
+        });
 
-        for (const creatorData of debugPayload.creatorsData) {
-          // Atualizar cada campo individualmente para garantir precisão
-          const fieldsToUpdate = [
-            { key: 'visitaConfirmado', value: creatorData.visitaConfirmado },
-            { key: 'dataHoraVisita', value: creatorData.dataHoraVisita },
-            { key: 'quantidadeConvidados', value: creatorData.quantidadeConvidados },
-            { key: 'dataHoraPostagem', value: creatorData.dataHoraPostagem },
-            { key: 'videoAprovado', value: creatorData.videoAprovado },
-            { key: 'videoPostado', value: creatorData.videoPostado }
-          ];
-
-          for (const field of fieldsToUpdate) {
-            if (field.value !== undefined && field.value !== null && field.value !== '') {
-              updatePromises.push(
-                fetch('/api/fix-campaign-updates', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    action: 'update_with_audit',
-                    businessName: debugPayload.businessName,
-                    mes: debugPayload.mes,
-                    influenciador: creatorData.influenciador,
-                    field: field.key,
-                    newValue: field.value,
-                    user: debugPayload.user
-                  })
-                })
-              );
-            }
-          }
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Executar todas as atualizações
-        const updateResults = await Promise.all(updatePromises);
-        const updateResponses = await Promise.all(updateResults.map(r => r.json()));
+        const responseText = await response.text();
+        console.log('🔍 DEBUG: Resposta bruta da API:', responseText);
 
-        const successfulUpdates = updateResponses.filter(r => r.success);
-        const failedUpdates = updateResponses.filter(r => !r.success);
-
-        result = {
-          success: failedUpdates.length === 0,
-          message: failedUpdates.length === 0
-            ? `✅ ${successfulUpdates.length} campo(s) atualizado(s) com sucesso!`
-            : `❌ ${failedUpdates.length} erro(s) de ${updateResponses.length} atualizações`,
-          updatedCount: successfulUpdates.length,
-          details: {
-            successful: successfulUpdates.length,
-            failed: failedUpdates.length,
-            errors: failedUpdates.map(f => f.error)
-          }
-        };
+        try {
+          result = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('❌ Erro ao fazer parse da resposta:', parseError);
+          throw new Error(`Resposta inválida da API: ${responseText.substring(0, 100)}...`);
+        }
       }
 
-      if (result.success) {
+      console.log('🔍 DEBUG: Resultado final:', result);
+
+      if (result && result.success) {
         console.log('✅ Dados dos criadores atualizados');
-        alert(`✅ Dados atualizados com sucesso para ${result.updatedCount} criadores!`);
+        const successMessage = result.message || `Dados atualizados com sucesso para ${result.updatedCount || 0} criadores!`;
+        alert(`✅ ${successMessage}`);
         setIsEditMode(false);
         setPendingRemovals([]); // Limpar remoções pendentes
 
         // Recarregar apenas os slots de criadores sem fechar o modal
         await loadCreatorSlots();
       } else {
-        console.error('❌ Erro ao salvar:', result.error);
-        alert(`❌ Erro ao salvar: ${result.error}`);
+        const errorMessage = result?.error || result?.message || 'Erro desconhecido ao salvar';
+        console.error('❌ Erro ao salvar:', errorMessage);
+        console.error('❌ Detalhes completos:', result);
+        alert(`❌ Erro ao salvar: ${errorMessage}`);
       }
     } catch (error) {
       console.error('❌ Erro ao salvar alterações:', error);
-      alert('❌ Erro ao salvar alterações. Tente novamente.');
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      alert(`❌ Erro ao salvar alterações: ${errorMessage}`);
     } finally {
       setIsSaving(false);
     }
