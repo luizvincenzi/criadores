@@ -14,12 +14,38 @@ export async function POST(request: NextRequest) {
       quantidadeCriadores
     });
 
+    console.log('🔍 DEBUG: businessData completo:', businessData);
+
     if (!businessData || !campaignName || !selectedMonth || !quantidadeCriadores) {
       return NextResponse.json({
         success: false,
         error: 'Dados obrigatórios: business, nome da campanha, mês e quantidade de criadores'
       });
     }
+
+    // 🆔 OBTER BUSINESS_ID
+    console.log('🔄 Obtendo business_id...');
+    let businessId = businessData.business_id;
+
+    if (!businessId) {
+      // Buscar business_id usando o nome
+      const businessResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-business-id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessName: businessData.nome })
+      });
+      const businessResult = await businessResponse.json();
+
+      if (!businessResult.success) {
+        return NextResponse.json({
+          success: false,
+          error: `Business "${businessData.nome}" não encontrado: ${businessResult.error}`
+        });
+      }
+      businessId = businessResult.businessId;
+    }
+
+    console.log('✅ Business ID obtido:', businessId);
 
     // Configurar autenticação
     const auth = new google.auth.GoogleAuth({
