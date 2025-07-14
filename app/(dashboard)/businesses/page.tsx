@@ -91,7 +91,6 @@ export default function BusinessesPage() {
           </Button>
           <Button
             variant="primary"
-            icon="➕"
             onClick={() => setIsAddModalOpen(true)}
           >
             Novo Negócio
@@ -110,7 +109,11 @@ export default function BusinessesPage() {
                 <p className="text-xs text-secondary mt-1">+12% este mês</p>
               </div>
               <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
-                <span className="text-2xl">🏢</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+                  <path d="M3 21h18"/>
+                  <path d="M5 21V7l8-4v18"/>
+                  <path d="M19 21V11l-6-4"/>
+                </svg>
               </div>
             </div>
           </CardContent>
@@ -293,7 +296,6 @@ export default function BusinessesPage() {
             </p>
             <Button
               variant="primary"
-              icon="➕"
               onClick={() => setIsAddModalOpen(true)}
             >
               Adicionar Primeiro Negócio

@@ -102,8 +102,13 @@ export default function CampaignCard({
       {/* Negócio associado */}
       {businessName && (
         <div className="mb-3">
-          <span className="text-xs text-primary font-medium bg-primary-container px-2 py-1 rounded-full">
-            🏢 {businessName}
+          <span className="text-xs text-primary font-medium bg-primary-container px-2 py-1 rounded-full flex items-center space-x-1">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+              <path d="M3 21h18"/>
+              <path d="M5 21V7l8-4v18"/>
+              <path d="M19 21V11l-6-4"/>
+            </svg>
+            <span>{businessName}</span>
           </span>
         </div>
       )}

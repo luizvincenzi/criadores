@@ -58,7 +58,6 @@ export default function JornadaPage() {
         </div>
         <Button
           variant="secondary"
-          icon="🔄"
           onClick={loadCampaignJourney}
           className="text-sm"
           disabled={loading}
@@ -85,7 +84,6 @@ export default function JornadaPage() {
           </p>
           <Button
             variant="primary"
-            icon="🔄"
             onClick={loadCampaignJourney}
             className="text-sm"
           >

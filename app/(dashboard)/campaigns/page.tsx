@@ -167,7 +167,6 @@ export default function CampaignsPage() {
           <Button
             variant="primary"
             size="sm"
-            icon="📹"
             onClick={openAddModal}
           >
             <span className="hidden sm:inline">Nova Campanha</span>
@@ -186,7 +185,11 @@ export default function CampaignsPage() {
               <p className="text-xs text-secondary mt-1">Com campanhas</p>
             </div>
             <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">🏢</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+                <path d="M3 21h18"/>
+                <path d="M5 21V7l8-4v18"/>
+                <path d="M19 21V11l-6-4"/>
+              </svg>
             </div>
           </div>
         </div>
@@ -199,7 +202,10 @@ export default function CampaignsPage() {
               <p className="text-xs text-tertiary mt-1">Ativas</p>
             </div>
             <div className="w-12 h-12 bg-tertiary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">📹</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-tertiary">
+                <path d="M3 11l18-5v12L3 14v-3z"/>
+                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+              </svg>
             </div>
           </div>
         </div>
@@ -212,7 +218,12 @@ export default function CampaignsPage() {
               <p className="text-xs text-secondary mt-1">Trabalhando</p>
             </div>
             <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">👥</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-secondary">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
             </div>
           </div>
         </div>

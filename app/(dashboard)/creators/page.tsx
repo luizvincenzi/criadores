@@ -125,7 +125,6 @@ export default function CreatorsPage() {
           <Button
             variant="primary"
             size="sm"
-            icon="➕"
             onClick={() => setIsAddModalOpen(true)}
           >
             <span className="hidden sm:inline">Novo Criador</span>
@@ -144,7 +143,12 @@ export default function CreatorsPage() {
               <p className="text-xs text-secondary mt-1">Cadastrados</p>
             </div>
             <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">👥</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
             </div>
           </div>
         </div>
@@ -157,7 +161,12 @@ export default function CreatorsPage() {
               <p className="text-xs text-secondary mt-1">Disponíveis</p>
             </div>
             <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">✅</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-secondary">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
             </div>
           </div>
         </div>
