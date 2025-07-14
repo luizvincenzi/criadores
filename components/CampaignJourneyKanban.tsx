@@ -47,7 +47,7 @@ function DroppableColumn({
       ref={setNodeRef}
       className={`
         ${className}
-        ${isOver ? 'border-blue-400 bg-blue-50/30 shadow-lg scale-[1.02]' : ''}
+        ${isOver ? 'bg-blue-50/50 shadow-lg scale-[1.02] ring-2 ring-blue-200' : ''}
         transition-all duration-200
       `}
     >
@@ -312,7 +312,7 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
             <DroppableColumn
               key={stage.id}
               id={stage.id}
-              className={`${stage.color} rounded-2xl border-2 border-dashed border-gray-300 p-6 min-h-[400px] transition-all duration-200 hover:border-gray-400 hover:shadow-md`}
+              className={`${stage.color} rounded-2xl p-6 min-h-[400px] transition-all duration-200 hover:shadow-md`}
             >
               <SortableContext
                 items={stageCampaigns.map(c => c.id)}

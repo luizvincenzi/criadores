@@ -56,10 +56,11 @@ export default function JornadaPage() {
             {campaigns.length} campanhas ativas • Arraste para mover entre estágios da jornada
           </p>
         </div>
+        {/* Update button hidden in production */}
         <Button
           variant="secondary"
           onClick={loadCampaignJourney}
-          className="text-sm"
+          className="text-sm hidden"
           disabled={loading}
         >
           {loading ? 'Carregando...' : 'Atualizar'}
@@ -82,10 +83,11 @@ export default function JornadaPage() {
           <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6 max-w-md mx-auto px-4">
             Todas as campanhas foram finalizadas ou não há campanhas cadastradas na aba "campanhas" da planilha.
           </p>
+          {/* Reload button hidden in production */}
           <Button
             variant="primary"
             onClick={loadCampaignJourney}
-            className="text-sm"
+            className="text-sm hidden"
           >
             Recarregar
           </Button>
