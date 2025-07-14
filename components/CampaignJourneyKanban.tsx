@@ -38,12 +38,19 @@ function DroppableColumn({
   children: React.ReactNode;
   className?: string;
 }) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: id,
   });
 
   return (
-    <div ref={setNodeRef} className={className}>
+    <div
+      ref={setNodeRef}
+      className={`
+        ${className}
+        ${isOver ? 'border-blue-400 bg-blue-50/30 shadow-lg scale-[1.02]' : ''}
+        transition-all duration-200
+      `}
+    >
       {children}
     </div>
   );
@@ -79,7 +86,12 @@ function SortableCampaignCard({
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] compact-card"
+      className={`
+        bg-white rounded-xl p-4 shadow-sm border border-gray-200 cursor-grab compact-card
+        hover:shadow-lg hover:border-gray-300 transition-all duration-200 transform
+        ${isDragging ? 'opacity-60 rotate-1 scale-105 shadow-xl border-blue-300 z-50' : 'hover:scale-[1.02]'}
+        active:scale-95 active:shadow-sm
+      `}
     >
       {/* Header Compacto */}
       <div className="flex items-center justify-between mb-2">
@@ -129,16 +141,58 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 10, // Distância mínima para iniciar o drag
+        delay: 100,   // Pequeno delay para evitar drags acidentais
+        tolerance: 5, // Tolerância para movimento
       },
     })
   );
 
   // Agrupar campanhas por estágio
   const stages = [
-    { id: 'Reunião Briefing', title: 'Reunião Briefing', icon: '📋', color: 'bg-blue-50 border-blue-200' },
-    { id: 'Agendamentos', title: 'Agendamentos', icon: '📅', color: 'bg-yellow-50 border-yellow-200' },
-    { id: 'Entrega Final', title: 'Entrega Final', icon: '✅', color: 'bg-green-50 border-green-200' }
+    {
+      id: 'Reunião Briefing',
+      title: 'Reunião Briefing',
+      icon: (
+        <div className="w-8 h-8 bg-blue-500 rounded-xl flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10,9 9,9 8,9"/>
+          </svg>
+        </div>
+      ),
+      color: 'bg-white border-gray-200 shadow-sm'
+    },
+    {
+      id: 'Agendamentos',
+      title: 'Agendamentos',
+      icon: (
+        <div className="w-8 h-8 bg-amber-500 rounded-xl flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+      ),
+      color: 'bg-white border-gray-200 shadow-sm'
+    },
+    {
+      id: 'Entrega Final',
+      title: 'Entrega Final',
+      icon: (
+        <div className="w-8 h-8 bg-green-500 rounded-xl flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <polyline points="20,6 9,17 4,12"/>
+          </svg>
+        </div>
+      ),
+      color: 'bg-white border-gray-200 shadow-sm'
+    }
   ];
 
   const getCampaignsByStage = (stageId: string) => {
@@ -258,19 +312,19 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
             <DroppableColumn
               key={stage.id}
               id={stage.id}
-              className={`${stage.color} rounded-lg border-2 border-dashed p-3 min-h-[300px]`}
+              className={`${stage.color} rounded-2xl border-2 border-dashed border-gray-300 p-6 min-h-[400px] transition-all duration-200 hover:border-gray-400 hover:shadow-md`}
             >
               <SortableContext
                 items={stageCampaigns.map(c => c.id)}
                 strategy={verticalListSortingStrategy}
               >
                 {/* Header da Coluna */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xl">{stage.icon}</span>
-                    <h3 className="font-medium text-gray-900 text-sm">{stage.title}</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    {stage.icon}
+                    <h3 className="font-semibold text-gray-900 text-base">{stage.title}</h3>
                   </div>
-                  <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-600">
+                  <span className="bg-gray-100 px-3 py-1.5 rounded-full text-sm font-semibold text-gray-700 min-w-[2rem] text-center">
                     {stageCampaigns.length}
                   </span>
                 </div>
@@ -287,10 +341,10 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
 
                   {/* Estado vazio da coluna */}
                   {stageCampaigns.length === 0 && (
-                    <div className="text-center py-6 text-gray-500">
-                      <div className="text-2xl mb-1">{stage.icon}</div>
-                      <p className="text-xs">Nenhuma campanha</p>
-                      <p className="text-xs mt-1 text-gray-400">Arraste aqui</p>
+                    <div className="text-center py-12 text-gray-400">
+                      <div className="mb-4 opacity-50">{stage.icon}</div>
+                      <p className="text-sm font-medium text-gray-500 mb-1">Nenhuma campanha</p>
+                      <p className="text-xs text-gray-400">Arraste campanhas para cá</p>
                     </div>
                   )}
                 </div>
@@ -302,18 +356,29 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
 
         <DragOverlay>
           {activeId ? (
-            <div className="bg-white rounded-lg p-3 shadow-lg border border-gray-200 opacity-90 transform rotate-2 compact-card">
+            <div className="bg-white rounded-xl p-4 shadow-2xl border-2 border-blue-300 opacity-95 transform rotate-2 scale-105 compact-card ring-4 ring-blue-100">
               {(() => {
                 const activeCampaign = campaigns.find(c => c.id === activeId);
                 return activeCampaign ? (
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-gray-900 text-sm truncate flex-1 mr-2">
-                      {activeCampaign.businessName}
-                    </h4>
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                      {activeCampaign.mes}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900 text-sm truncate flex-1 mr-2">
+                        {activeCampaign.businessName}
+                      </h4>
+                      <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-blue-500 text-white">
+                        {activeCampaign.mes}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <span className="flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        {activeCampaign.totalCampanhas}
+                      </span>
+                      <span className="text-blue-600 font-medium">Movendo...</span>
+                    </div>
+                  </>
                 ) : null;
               })()}
             </div>
