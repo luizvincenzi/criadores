@@ -457,16 +457,60 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       } else {
         console.log('📝 Usando API de atualização normal...');
 
-        // Usar API normal para atualizações
-        response = await fetch('/api/update-campaign-creators', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(debugPayload)
-        });
+        // Usar nova API que garante consistência com audit_log
+        const updatePromises = [];
 
-        result = await response.json();
+        for (const creatorData of debugPayload.creatorsData) {
+          // Atualizar cada campo individualmente para garantir precisão
+          const fieldsToUpdate = [
+            { key: 'visitaConfirmado', value: creatorData.visitaConfirmado },
+            { key: 'dataHoraVisita', value: creatorData.dataHoraVisita },
+            { key: 'quantidadeConvidados', value: creatorData.quantidadeConvidados },
+            { key: 'dataHoraPostagem', value: creatorData.dataHoraPostagem },
+            { key: 'videoAprovado', value: creatorData.videoAprovado },
+            { key: 'videoPostado', value: creatorData.videoPostado }
+          ];
+
+          for (const field of fieldsToUpdate) {
+            if (field.value !== undefined && field.value !== null && field.value !== '') {
+              updatePromises.push(
+                fetch('/api/fix-campaign-updates', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'update_with_audit',
+                    businessName: debugPayload.businessName,
+                    mes: debugPayload.mes,
+                    influenciador: creatorData.influenciador,
+                    field: field.key,
+                    newValue: field.value,
+                    user: debugPayload.user
+                  })
+                })
+              );
+            }
+          }
+        }
+
+        // Executar todas as atualizações
+        const updateResults = await Promise.all(updatePromises);
+        const updateResponses = await Promise.all(updateResults.map(r => r.json()));
+
+        const successfulUpdates = updateResponses.filter(r => r.success);
+        const failedUpdates = updateResponses.filter(r => !r.success);
+
+        result = {
+          success: failedUpdates.length === 0,
+          message: failedUpdates.length === 0
+            ? `✅ ${successfulUpdates.length} campo(s) atualizado(s) com sucesso!`
+            : `❌ ${failedUpdates.length} erro(s) de ${updateResponses.length} atualizações`,
+          updatedCount: successfulUpdates.length,
+          details: {
+            successful: successfulUpdates.length,
+            failed: failedUpdates.length,
+            errors: failedUpdates.map(f => f.error)
+          }
+        };
       }
 
       if (result.success) {
