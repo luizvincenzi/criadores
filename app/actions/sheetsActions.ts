@@ -620,11 +620,12 @@ export interface CreatorData {
   preferencias: string;                   // Q = Preferências
   naoAceita: string;                      // R = Não aceita
   descricaoCriador: string;               // S = Descrição do criador
+  biografia: string;                      // T = Biografia
+  categoria: string;                      // U = Categoria
 
   // Campos calculados para compatibilidade
   seguidores: number;
   engajamento: number;
-  categoria: string;
   email: string;
   observacoes: string;
 }
@@ -644,7 +645,7 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Criadores!A:S', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador
+      range: 'Criadores!A:U', // A=Nome, B=Status, C=WhatsApp, D=Cidade, E=Prospecção, F=Responsável, G=Instagram, H=Seguidores instagram - Maio 2025, I=TikTok, J=Seguidores TikTok - julho 25, K=Onboarding Inicial, L=Start date, M=End date, N=Related files, O=Notes, P=Perfil, Q=Preferências, R=Não aceita, S=Descrição do criador, T=Campo T, U=Campo U
     });
 
     const values = response.data.values || [];
@@ -699,11 +700,12 @@ export async function getCreatorsData(): Promise<CreatorData[]> {
         preferencias: row[16] || '',                  // Q = Preferências
         naoAceita: row[17] || '',                     // R = Não aceita
         descricaoCriador: row[18] || '',              // S = Descrição do criador
+        biografia: row[19] || '',                     // T = Biografia
+        categoria: row[20] || '',                     // U = Categoria
 
         // Campos calculados para compatibilidade com código existente
         seguidores: parseInt(row[7]?.replace(/[^\d]/g, '')) || 0, // Seguidores do Instagram
         engajamento: 0, // Pode ser calculado posteriormente
-        categoria: row[15] || '', // Usar Perfil como categoria
         email: '', // Não disponível na nova estrutura
         observacoes: row[14] || '' // Usar Notes como observações
       }));
@@ -2562,5 +2564,105 @@ export async function addCampaignToSheet(campaignData: any[]): Promise<void> {
   } catch (error) {
     console.error('❌ Erro ao adicionar campanha:', error);
     throw error;
+  }
+}
+
+// Função para buscar trabalhos realizados por um criador específico
+export async function getCreatorWorks(creatorName: string): Promise<any[]> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      return [];
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AF',
+    });
+
+    const values = response.data.values || [];
+
+    if (values.length <= 1) {
+      return [];
+    }
+
+    // Filtrar campanhas onde o criador está na coluna C (Influenciador) e tem link na coluna O
+    const works = values.slice(1)
+      .filter(row => {
+        const influenciador = row[2]; // Coluna C - Influenciador
+        const linkTrabalho = row[14]; // Coluna O - Link do trabalho
+        return influenciador?.toLowerCase() === creatorName.toLowerCase() && linkTrabalho;
+      })
+      .map(row => ({
+        campaignId: row[0] || '', // Coluna A - Campaign ID (não mostrar)
+        business: row[1] || '', // Coluna B - Business
+        mes: row[5] || '', // Coluna F - Mês
+        linkTrabalho: row[14] || '', // Coluna O - Link do trabalho
+        status: row[4] || '', // Coluna E - Status
+        titulo: row[31] || '' // Coluna AF - Título da campanha
+      }));
+
+    return works;
+  } catch (error) {
+    console.error('❌ Erro ao buscar trabalhos do criador:', error);
+    return [];
+  }
+}
+
+// Função para buscar ranking de criadores por trabalhos realizados no mês
+export async function getCreatorsRankingThisMonth(): Promise<any[]> {
+  try {
+    const auth = getGoogleSheetsAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!spreadsheetId) {
+      return [];
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Campanhas!A:AE',
+    });
+
+    const values = response.data.values || [];
+
+    if (values.length <= 1) {
+      return [];
+    }
+
+    // Obter mês atual
+    const currentMonth = new Date().toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+    const currentMonthCapitalized = currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1);
+
+    // Contar trabalhos por criador no mês atual
+    const creatorCounts: { [key: string]: number } = {};
+
+    values.slice(1).forEach(row => {
+      const influenciador = row[2]; // Coluna C - Influenciador
+      const mes = row[5]; // Coluna F - Mês
+      const status = row[4]; // Coluna E - Status
+
+      // Verificar se é do mês atual e está finalizada
+      if (mes === currentMonthCapitalized &&
+          influenciador &&
+          (status === 'FINALIZADA' || status === 'ATIVA')) {
+        creatorCounts[influenciador] = (creatorCounts[influenciador] || 0) + 1;
+      }
+    });
+
+    // Converter para array e ordenar por quantidade de trabalhos
+    const ranking = Object.entries(creatorCounts)
+      .map(([nome, trabalhos]) => ({ nome, trabalhos }))
+      .sort((a, b) => b.trabalhos - a.trabalhos)
+      .slice(0, 3); // Top 3
+
+    return ranking;
+  } catch (error) {
+    console.error('❌ Erro ao buscar ranking de criadores:', error);
+    return [];
   }
 }

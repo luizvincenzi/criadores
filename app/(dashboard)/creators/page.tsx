@@ -11,19 +11,43 @@ export default function CreatorsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCreator, setSelectedCreator] = useState<CreatorData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cityFilter, setCityFilter] = useState<string>('');
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [ranking, setRanking] = useState<any[]>([]);
 
 
   useEffect(() => {
     loadCreators();
+    loadRanking();
   }, []);
+
+  const loadRanking = async () => {
+    try {
+      const response = await fetch('/api/creators-ranking');
+      const data = await response.json();
+      if (data.success) {
+        setRanking(data.ranking);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar ranking:', error);
+    }
+  };
 
   const loadCreators = async () => {
     setIsLoading(true);
     try {
       const data = await getCreatorsData();
-      setCreators(data);
+      // Ordenar alfabeticamente por nome
+      const sortedCreators = data.sort((a: CreatorData, b: CreatorData) =>
+        a.nome.localeCompare(b.nome)
+      );
+      setCreators(sortedCreators);
+
+      // Extrair cidades únicas para o filtro
+      const cities = [...new Set(data.map((c: CreatorData) => c.cidade).filter(Boolean))].sort();
+      setAvailableCities(cities);
     } catch (error) {
       console.error('Erro ao carregar criadores:', error);
     } finally {
@@ -62,7 +86,10 @@ export default function CreatorsPage() {
     const allowedStatuses = ['ativo', 'precisa engajar'];
     const matchesStatus = allowedStatuses.includes(creator.status.toLowerCase());
 
-    return matchesSearch && matchesStatus;
+    // Filtrar por cidade se selecionada
+    const matchesCity = !cityFilter || creator.cidade.toLowerCase().includes(cityFilter.toLowerCase());
+
+    return matchesSearch && matchesStatus && matchesCity;
   });
 
   // Estatísticas - apenas dados relevantes
@@ -139,23 +166,7 @@ export default function CreatorsPage() {
           </div>
         </div>
 
-        <div className="card-elevated p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-on-surface-variant font-medium">Criadores Ativos</p>
-              <p className="text-3xl font-bold text-on-surface mt-1">{stats.ativos}</p>
-              <p className="text-xs text-secondary mt-1">Disponíveis</p>
-            </div>
-            <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-secondary">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-          </div>
-        </div>
+
 
         <div className="card-elevated p-6">
           <div className="flex items-center justify-between">
@@ -167,6 +178,46 @@ export default function CreatorsPage() {
             <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
               <span className="text-2xl">📊</span>
             </div>
+          </div>
+        </div>
+
+        <div className="card-elevated p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm text-on-surface-variant font-medium">Ranking - {new Date().toLocaleDateString('pt-BR', { month: 'long' }).charAt(0).toUpperCase() + new Date().toLocaleDateString('pt-BR', { month: 'long' }).slice(1)}</p>
+              <p className="text-xs text-secondary mt-1">Top criadores</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-yellow-600">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                <path d="M4 22h16"/>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {ranking.length > 0 ? (
+              ranking.map((creator, index) => (
+                <div key={creator.nome} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      index === 0 ? 'bg-yellow-500 text-white' :
+                      index === 1 ? 'bg-gray-400 text-white' :
+                      'bg-orange-500 text-white'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">{creator.nome}</span>
+                  </div>
+                  <span className="text-sm font-bold text-blue-600">{creator.trabalhos}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500 text-center py-4">Nenhum trabalho este mês</p>
+            )}
           </div>
         </div>
       </div>
@@ -182,6 +233,18 @@ export default function CreatorsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+          </div>
+          <div className="sm:w-64">
+            <select
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              <option value="">Todas as cidades</option>
+              {availableCities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -240,9 +303,21 @@ export default function CreatorsPage() {
                         href={creator.instagram.startsWith('http') ? creator.instagram : `https://instagram.com/${creator.instagram.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                        title={creator.instagram}
                       >
-                        {creator.instagram}
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                        {(() => {
+                          // Extrair apenas o nome do usuário do Instagram
+                          let username = creator.instagram;
+                          if (username.includes('instagram.com/')) {
+                            username = username.split('instagram.com/')[1].split('?')[0].split('/')[0];
+                          }
+                          username = username.replace('@', '');
+                          return `@${username}`;
+                        })()}
                       </a>
                     ) : (
                       <span className="text-gray-400">-</span>
