@@ -84,61 +84,73 @@ function SortableCampaignCard({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
       className={`
-        bg-white rounded-lg p-3 shadow-sm border border-gray-200 compact-card
+        bg-white rounded-lg shadow-sm border border-gray-200 compact-card
         hover:shadow-md hover:border-gray-300 transition-all duration-200 transform
-        ${isDragging ? 'opacity-60 rotate-1 scale-105 shadow-xl border-blue-300 z-50 cursor-grabbing' : 'hover:scale-[1.01] cursor-grab'}
+        ${isDragging ? 'opacity-60 rotate-1 scale-105 shadow-xl border-blue-300 z-50' : 'hover:scale-[1.01]'}
         active:scale-95 active:shadow-sm select-none w-full
       `}
     >
-      {/* Drag Handle Visual */}
-      <div className="flex items-center justify-center mb-1 opacity-20 hover:opacity-50 transition-opacity">
-        <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm6-8h2v2h-2V6zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
-        </svg>
-      </div>
+      {/* Área Draggable */}
+      <div
+        {...listeners}
+        className="p-3 cursor-grab active:cursor-grabbing"
+      >
+        {/* Drag Handle Visual */}
+        <div className="flex items-center justify-center mb-1 opacity-20 hover:opacity-50 transition-opacity">
+          <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 6h2v2H8V6zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm6-8h2v2h-2V6zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+          </svg>
+        </div>
 
-      {/* Header Compacto */}
-      <div className="flex items-start justify-between mb-1.5">
-        <h4 className="font-semibold text-gray-900 text-sm truncate flex-1 mr-2 leading-tight">
-          {campaign.businessName}
-        </h4>
-        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap flex-shrink-0">
-          {campaign.mes}
-        </span>
-      </div>
-
-      {/* Informações Compactas */}
-      <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-        <div className="flex items-center space-x-3">
-          <span className="flex items-center">
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            {campaign.totalCampanhas}
-          </span>
-          <span className="flex items-center">
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            {campaign.quantidadeCriadores}
+        {/* Header Compacto */}
+        <div className="flex items-start justify-between mb-1.5">
+          <h4 className="font-semibold text-gray-900 text-sm truncate flex-1 mr-2 leading-tight">
+            {campaign.businessName}
+          </h4>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap flex-shrink-0">
+            {campaign.mes}
           </span>
         </div>
-        {campaign.businessData?.planoAtual && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 truncate max-w-20">
-            {campaign.businessData.planoAtual}
-          </span>
-        )}
+
+        {/* Informações Compactas */}
+        <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+          <div className="flex items-center space-x-3">
+            <span className="flex items-center">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              {campaign.totalCampanhas}
+            </span>
+            <span className="flex items-center">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {campaign.quantidadeCriadores}
+            </span>
+          </div>
+          {campaign.businessData?.planoAtual && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 truncate max-w-20">
+              {campaign.businessData.planoAtual}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Botão Compacto */}
+      {/* Botão Compacto - Fora da área de drag */}
       <button
         onClick={(e) => {
-          e.stopPropagation(); // Previne o drag quando clica no botão
+          e.preventDefault();
+          e.stopPropagation();
           onClick(); // Chama a função de abrir modal
         }}
-        className="w-full text-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors py-1.5 border-t border-gray-100 cursor-pointer hover:bg-blue-50 rounded-b-lg mt-1"
+        onMouseDown={(e) => {
+          e.stopPropagation(); // Previne o início do drag
+        }}
+        onPointerDown={(e) => {
+          e.stopPropagation(); // Previne o início do drag em dispositivos touch
+        }}
+        className="w-full text-center text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors py-1.5 border-t border-gray-100 cursor-pointer hover:bg-blue-50 rounded-b-lg bg-white"
       >
         Ver Detalhes →
       </button>
@@ -155,9 +167,9 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Distância mínima para iniciar o drag (reduzida para mais responsividade)
-        delay: 50,   // Delay reduzido para resposta mais rápida
-        tolerance: 3, // Tolerância menor para movimento mais preciso
+        distance: 10, // Distância mínima para iniciar o drag
+        delay: 100,   // Delay para evitar conflitos com clicks
+        tolerance: 5, // Tolerância para movimento
       },
     })
   );
