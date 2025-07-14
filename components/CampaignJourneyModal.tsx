@@ -138,7 +138,16 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const result = await response.json();
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('📄 Resposta raw da API (primeiros 500 chars):', responseText.substring(0, 500));
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Erro ao fazer parse do JSON:', parseError);
+        console.error('❌ Resposta que causou o erro:', await response.text());
+        throw new Error(`Erro ao processar resposta da API: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      }
 
       if (result.success) {
         console.log('🔍 DEBUG: Dados recebidos da API:', result.slots);

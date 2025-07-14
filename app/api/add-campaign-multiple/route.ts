@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       `${campaignName}-${displayDate}`, // Entity_Name
       user || 'sistema', // User_ID
       user || 'sistema', // User_Name
-      businessData.nome, // Business_Context
+      businessId, // Business_Context
       displayDate, // Campaign_Context
       `${quantidadeCriadores} slots criados`, // Creator_Context
       'campanha', // Field_Changed

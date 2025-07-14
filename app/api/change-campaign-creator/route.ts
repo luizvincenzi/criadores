@@ -243,9 +243,9 @@ export async function POST(request: NextRequest) {
       `${businessName}-${mes}`, // Entity_Name
       user || 'sistema', // User_ID
       user || 'sistema', // User_Name
-      businessName, // Business_Context
+      businessId, // Business_Context
       mes, // Campaign_Context
-      `${oldCreator} → ${newCreator}`, // Creator_Context
+      newCriadorId, // Creator_Context
       'influenciador', // Field_Changed
       oldCreator, // Old_Value
       newCreator, // New_Value
