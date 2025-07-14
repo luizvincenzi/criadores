@@ -13,7 +13,7 @@ export default function CreatorsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+
 
   useEffect(() => {
     loadCreators();
@@ -40,24 +40,7 @@ export default function CreatorsPage() {
     return count.toString();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'ativo':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'inativo':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'pendente':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
 
-  const getEngagementColor = (rate: number) => {
-    if (rate >= 5) return 'text-green-600';
-    if (rate >= 2) return 'text-yellow-600';
-    return 'text-red-600';
-  };
 
   const openModal = (creator: CreatorData) => {
     setSelectedCreator(creator);
@@ -69,24 +52,27 @@ export default function CreatorsPage() {
     setIsModalOpen(false);
   };
 
-  // Filtrar criadores
+  // Filtrar criadores - APENAS ATIVO e PRECISA ENGAJAR
   const filteredCreators = creators.filter(creator => {
     const matchesSearch = creator.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          creator.instagram.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          creator.cidade.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === 'all' || creator.status.toLowerCase() === statusFilter;
+    // Filtrar apenas criadores ATIVO e PRECISA ENGAJAR
+    const allowedStatuses = ['ativo', 'precisa engajar'];
+    const matchesStatus = allowedStatuses.includes(creator.status.toLowerCase());
 
     return matchesSearch && matchesStatus;
   });
 
-  // Estatísticas
+  // Estatísticas - apenas dados relevantes
+  const allowedStatuses = ['ativo', 'precisa engajar'];
+  const activeCreators = creators.filter(c => allowedStatuses.includes(c.status.toLowerCase()));
+
   const stats = {
-    total: creators.length,
+    total: activeCreators.length,
     ativos: creators.filter(c => c.status.toLowerCase() === 'ativo').length,
-    altoEngajamento: creators.filter(c => c.engajamento >= 5).length,
-    totalSeguidores: creators.reduce((acc, c) => acc + c.seguidores, 0),
-    engajamentoMedio: creators.length > 0 ? creators.reduce((acc, c) => acc + c.engajamento, 0) / creators.length : 0
+    totalSeguidores: activeCreators.reduce((acc, c) => acc + c.seguidores, 0)
   };
 
   if (isLoading) {
@@ -134,8 +120,8 @@ export default function CreatorsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="card-elevated p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-on-surface-variant font-medium">Total de Criadores</p>
@@ -153,7 +139,7 @@ export default function CreatorsPage() {
           </div>
         </div>
 
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+        <div className="card-elevated p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-on-surface-variant font-medium">Criadores Ativos</p>
@@ -171,20 +157,7 @@ export default function CreatorsPage() {
           </div>
         </div>
 
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-on-surface-variant font-medium">Alto Engajamento</p>
-              <p className="text-3xl font-bold text-on-surface mt-1">{stats.altoEngajamento}</p>
-              <p className="text-xs text-tertiary mt-1">Top performers</p>
-            </div>
-            <div className="w-12 h-12 bg-tertiary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">🔥</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+        <div className="card-elevated p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-on-surface-variant font-medium">Total Seguidores</p>
@@ -196,23 +169,10 @@ export default function CreatorsPage() {
             </div>
           </div>
         </div>
-
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-on-surface-variant font-medium">Engajamento Médio</p>
-              <p className="text-3xl font-bold text-on-surface mt-1">{stats.engajamentoMedio.toFixed(1)}%</p>
-              <p className="text-xs text-secondary mt-1">Performance</p>
-            </div>
-            <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">⚡</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Filtros e Busca */}
-      <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+      <div className="card-elevated p-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input
@@ -223,95 +183,58 @@ export default function CreatorsPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Todos os Status</option>
-              <option value="ativo">Ativo</option>
-              <option value="inativo">Inativo</option>
-              <option value="pendente">Pendente</option>
-            </select>
-          </div>
         </div>
       </div>
 
       {/* Tabela de Criadores */}
-      <div className="card-elevated overflow-hidden hover:scale-105 transition-transform duration-200">
+      <div className="card-elevated overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Criador
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  WhatsApp
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Cidade
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Seguidores
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Instagram
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Seguidores
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  WhatsApp
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Detalhes
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredCreators.map((creator) => (
-                <tr key={creator.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={creator.id}>
+                  <td className="px-4 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">
+                      <div className="flex-shrink-0 h-8 w-8">
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
                           {creator.nome.charAt(0).toUpperCase()}
                         </div>
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-3">
                         <div className="text-sm font-medium text-gray-900">{creator.nome}</div>
-                        <div className="text-sm text-gray-500">{creator.categoria || 'Sem categoria'}</div>
+                        <div className="text-xs text-gray-500">{creator.categoria || 'Sem categoria'}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(creator.status)}`}>
-                      {creator.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {creator.whatsapp ? (
-                      <a
-                        href={`https://wa.me/${creator.whatsapp.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-800 font-medium"
-                      >
-                        {creator.whatsapp}
-                      </a>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                     {creator.cidade || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
-                    {formatFollowers(creator.engajamento)}
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
+                    {formatFollowers(creator.seguidores)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                     {creator.instagram ? (
                       <a
                         href={creator.instagram.startsWith('http') ? creator.instagram : `https://instagram.com/${creator.instagram.replace('@', '')}`}
@@ -325,10 +248,21 @@ export default function CreatorsPage() {
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
-                    {formatFollowers(creator.seguidores)}
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {creator.whatsapp ? (
+                      <a
+                        href={`https://wa.me/${creator.whatsapp.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-800 font-medium"
+                      >
+                        {creator.whatsapp}
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                     <button
                       onClick={() => openModal(creator)}
                       className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
