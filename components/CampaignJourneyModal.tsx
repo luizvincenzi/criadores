@@ -712,47 +712,92 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                         creatorSlots.map((slot, index) => (
                         <tr key={index} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="flex items-center">
-                              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4">
-                                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                              </div>
-                              <div className="min-w-0 flex-1">
+                            <div className="w-full">
                                 {isEditMode ? (
-                                  <div className="space-y-1">
+                                  <div className="space-y-2">
+                                    {/* Criador Selecionado - Visual Card */}
+                                    {editedData[index]?.influenciador ? (
+                                      <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center space-x-3">
+                                            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                              </svg>
+                                            </div>
+                                            <div>
+                                              <div className="font-semibold text-green-900 text-sm">
+                                                {editedData[index]?.influenciador}
+                                              </div>
+                                              <div className="text-xs text-green-700">
+                                                {availableCreators.find(c => c.nome === editedData[index]?.influenciador)?.cidade || 'Cidade não informada'}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">
+                                            ✅ Selecionado
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : null}
+
+                                    {/* Dropdown de Seleção */}
                                     <select
                                       value={editedData[index]?.influenciador || ''}
                                       onChange={(e) => updateCreatorData(index, 'influenciador', e.target.value)}
                                       className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base font-medium transition-all ${
                                         editedData[index]?.influenciador
-                                          ? 'border-green-300 bg-green-50 text-green-900'
+                                          ? 'border-green-300 bg-white text-gray-700'
                                           : 'border-gray-300 bg-white text-gray-700'
                                       }`}
                                     >
-                                      <option value="">🔍 Selecionar criador...</option>
+                                      <option value="">
+                                        {editedData[index]?.influenciador ? '🔄 Trocar criador...' : '🔍 Selecionar criador...'}
+                                      </option>
                                       {availableCreators.map((creator) => (
                                         <option key={creator.id} value={creator.nome}>
                                           👤 {creator.nome} - 📍 {creator.cidade}
                                         </option>
                                       ))}
                                     </select>
-                                    {editedData[index]?.influenciador && (
-                                      <div className="text-xs text-green-600 font-medium">
-                                        ✅ Criador selecionado
+                                  </div>
+                                ) : (
+                                  <div>
+                                    {slot.influenciador ? (
+                                      <div className="flex items-center space-x-3">
+                                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                          </svg>
+                                        </div>
+                                        <div>
+                                          <div className="font-semibold text-gray-900 text-base">
+                                            {slot.influenciador}
+                                          </div>
+                                          <div className="text-sm text-gray-600">
+                                            {availableCreators.find(c => c.nome === slot.influenciador)?.cidade || 'Cidade não informada'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center space-x-3">
+                                        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                          </svg>
+                                        </div>
+                                        <div>
+                                          <div className="text-gray-400 italic text-base">
+                                            Criador não selecionado
+                                          </div>
+                                          <div className="text-xs text-gray-400">
+                                            Clique em "Editar" para selecionar
+                                          </div>
+                                        </div>
                                       </div>
                                     )}
                                   </div>
-                                ) : (
-                                  <div className="text-base font-medium text-gray-900">
-                                    {slot.influenciador || (
-                                      <span className="text-gray-400 italic">
-                                        Criador não selecionado
-                                      </span>
-                                    )}
-                                  </div>
                                 )}
-                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
