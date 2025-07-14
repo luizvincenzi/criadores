@@ -389,7 +389,7 @@ export async function POST(request: NextRequest) {
     // Log da atividade com IDs únicos
     try {
       // Buscar business_id
-      const businessResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/get-business-id`, {
+      const businessResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-business-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessName })

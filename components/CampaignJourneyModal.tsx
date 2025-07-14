@@ -107,6 +107,15 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
 
       // Adicionar timestamp para evitar cache
       const timestamp = Date.now();
+      const requestPayload = {
+        businessName: campaign.businessName,
+        mes: campaign.mes,
+        quantidadeContratada,
+        _timestamp: timestamp
+      };
+
+      console.log('🚀 Fazendo fetch para /api/get-creator-slots com payload:', requestPayload);
+
       const response = await fetch('/api/get-creator-slots', {
         method: 'POST',
         headers: {
@@ -115,13 +124,19 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           'Pragma': 'no-cache',
           'Expires': '0'
         },
-        body: JSON.stringify({
-          businessName: campaign.businessName,
-          mes: campaign.mes,
-          quantidadeContratada,
-          _timestamp: timestamp // Cache busting
-        })
+        body: JSON.stringify(requestPayload)
       });
+
+      console.log('📡 Resposta da API recebida:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
       const result = await response.json();
 
@@ -163,7 +178,12 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         setAvailableCreators([]);
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar slots de criadores:', error);
+      console.error('❌ Erro ao carregar slots:', error);
+      console.error('❌ Detalhes do erro:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
+      });
       // Fallback para dados vazios
       const emptySlots = Array.from({ length: campaign.quantidadeCriadores }, (_, i) => ({
         index: i,
