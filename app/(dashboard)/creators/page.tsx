@@ -136,59 +136,74 @@ export default function CreatorsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Total de Criadores</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.total}</p>
+              <p className="text-xs text-secondary mt-1">Cadastrados</p>
             </div>
-            <div className="text-2xl">👥</div>
+            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">👥</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Ativos</p>
-              <p className="text-2xl font-bold text-green-600">{stats.ativos}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Criadores Ativos</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.ativos}</p>
+              <p className="text-xs text-secondary mt-1">Disponíveis</p>
             </div>
-            <div className="text-2xl">✅</div>
+            <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">✅</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Alto Engajamento</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.altoEngajamento}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Alto Engajamento</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.altoEngajamento}</p>
+              <p className="text-xs text-tertiary mt-1">Top performers</p>
             </div>
-            <div className="text-2xl">🔥</div>
+            <div className="w-12 h-12 bg-tertiary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">🔥</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Seguidores</p>
-              <p className="text-2xl font-bold text-blue-600">{formatFollowers(stats.totalSeguidores)}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Total Seguidores</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{formatFollowers(stats.totalSeguidores)}</p>
+              <p className="text-xs text-primary mt-1">Alcance total</p>
             </div>
-            <div className="text-2xl">📊</div>
+            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">📊</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Eng. Médio</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.engajamentoMedio.toFixed(1)}%</p>
+              <p className="text-sm text-on-surface-variant font-medium">Engajamento Médio</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.engajamentoMedio.toFixed(1)}%</p>
+              <p className="text-xs text-secondary mt-1">Performance</p>
             </div>
-            <div className="text-2xl">⚡</div>
+            <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">⚡</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Filtros e Busca */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+      <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input
@@ -215,7 +230,7 @@ export default function CreatorsPage() {
       </div>
 
       {/* Tabela de Criadores */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+      <div className="card-elevated overflow-hidden hover:scale-105 transition-transform duration-200">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

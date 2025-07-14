@@ -242,45 +242,55 @@ export default function DashboardPage() {
 
       {/* Cards de Estatísticas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total de Negócios</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalBusinesses}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Total de Negócios</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalBusinesses}</p>
+              <p className="text-xs text-secondary mt-1">+12% este mês</p>
             </div>
-            <div className="text-3xl">🏢</div>
+            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">🏢</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Criadores</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalCreators || 0}</p>
-              <p className="text-xs text-gray-500">Google Sheets</p>
+              <p className="text-sm text-on-surface-variant font-medium">Total de Criadores</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalCreators || 0}</p>
+              <p className="text-xs text-secondary mt-1">Ativos</p>
             </div>
-            <div className="text-3xl">👥</div>
+            <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">👥</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Campanhas</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalCampaigns || 0}</p>
-              <p className="text-xs text-gray-500">Google Sheets</p>
+              <p className="text-sm text-on-surface-variant font-medium">Campanhas Ativas</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalCampaigns || 0}</p>
+              <p className="text-xs text-tertiary mt-1">Em andamento</p>
             </div>
-            <div className="text-3xl">📢</div>
+            <div className="w-12 h-12 bg-tertiary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">📢</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Receita Total</p>
-              <p className="text-2xl font-bold text-gray-900">R$ {stats.totalRevenue.toLocaleString()}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Receita Total</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">R$ {stats.totalRevenue.toLocaleString()}</p>
+              <p className="text-xs text-primary mt-1">Sucesso!</p>
             </div>
-            <div className="text-3xl">💰</div>
+            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">💰</span>
+            </div>
           </div>
         </div>
       </div>
@@ -288,8 +298,8 @@ export default function DashboardPage() {
       {/* Gráficos e Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Jornada das Campanhas */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Jornada das Campanhas</h3>
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+          <h3 className="text-lg font-semibold text-on-surface mb-4">Jornada das Campanhas</h3>
           <div className="space-y-3">
             {Object.entries(stats.campaignsByStage).map(([stage, count]) => {
               const totalCampaigns = Object.values(stats.campaignsByStage).reduce((sum, c) => sum + c, 0);
@@ -330,8 +340,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Distribuição por Plano */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Distribuição por Plano</h3>
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+          <h3 className="text-lg font-semibold text-on-surface mb-4">Distribuição por Plano</h3>
           <div className="space-y-3">
             {Object.entries(stats.planDistribution).map(([plan, count]) => {
               const percentage = stats.totalBusinesses > 0 ? (count / stats.totalBusinesses) * 100 : 0;
@@ -365,8 +375,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Ações Rápidas */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Ações Rápidas</h3>
+      <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+        <h3 className="text-lg font-semibold text-on-surface mb-4">Ações Rápidas</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Button variant="outlined" className="justify-start" href="/businesses">
             <span className="mr-2">🏢</span>

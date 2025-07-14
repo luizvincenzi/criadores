@@ -178,59 +178,74 @@ export default function CampaignsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Negócios</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalBusinesses}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Total de Negócios</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalBusinesses}</p>
+              <p className="text-xs text-secondary mt-1">Com campanhas</p>
             </div>
-            <div className="text-2xl">🏢</div>
+            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">🏢</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Campanhas</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.totalCampaigns}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Total Campanhas</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalCampaigns}</p>
+              <p className="text-xs text-tertiary mt-1">Ativas</p>
             </div>
-            <div className="text-2xl">📹</div>
+            <div className="w-12 h-12 bg-tertiary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">📹</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Criadores Contratados</p>
-              <p className="text-2xl font-bold text-green-600">{stats.totalCreators}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Criadores Contratados</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalCreators}</p>
+              <p className="text-xs text-secondary mt-1">Trabalhando</p>
             </div>
-            <div className="text-2xl">👥</div>
+            <div className="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">👥</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Criadores Únicos</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.uniqueCreators}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Criadores Únicos</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.uniqueCreators}</p>
+              <p className="text-xs text-primary mt-1">Diferentes</p>
             </div>
-            <div className="text-2xl">⭐</div>
+            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">⭐</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Meses Ativos</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.monthsActive}</p>
+              <p className="text-sm text-on-surface-variant font-medium">Meses Ativos</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{stats.monthsActive}</p>
+              <p className="text-xs text-tertiary mt-1">Período</p>
             </div>
-            <div className="text-2xl">📅</div>
+            <div className="w-12 h-12 bg-tertiary-container rounded-2xl flex items-center justify-center">
+              <span className="text-2xl">📅</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Filtros e Busca */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+      <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input
@@ -266,7 +281,7 @@ export default function CampaignsPage() {
       </div>
 
       {/* Tabela de Campanhas Agrupadas */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+      <div className="card-elevated overflow-hidden hover:scale-105 transition-transform duration-200">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
