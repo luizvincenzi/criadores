@@ -126,6 +126,18 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       const result = await response.json();
 
       if (result.success) {
+        console.log('🔍 DEBUG: Dados recebidos da API:', result.slots);
+
+        // Verificar tipos de dados para debug
+        result.slots.forEach((slot, index) => {
+          console.log(`🔍 Slot ${index} (${slot.influenciador}):`, {
+            briefingCompleto: { value: slot.briefingCompleto, type: typeof slot.briefingCompleto },
+            visitaConfirmado: { value: slot.visitaConfirmado, type: typeof slot.visitaConfirmado },
+            videoAprovado: { value: slot.videoAprovado, type: typeof slot.videoAprovado },
+            videoPostado: { value: slot.videoPostado, type: typeof slot.videoPostado }
+          });
+        });
+
         setCreatorSlots(result.slots);
         setAvailableCreators(result.availableCreators);
         setEditedData(result.slots);
@@ -866,9 +878,9 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                slot.briefingCompleto?.toLowerCase() === 'sim'
+                                String(slot.briefingCompleto || '').toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : slot.briefingCompleto?.toLowerCase() === 'nao'
+                                  : String(slot.briefingCompleto || '').toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
@@ -918,9 +930,9 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                slot.visitaConfirmado?.toLowerCase() === 'sim'
+                                String(slot.visitaConfirmado || '').toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : slot.visitaConfirmado?.toLowerCase() === 'nao'
+                                  : String(slot.visitaConfirmado || '').toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
@@ -955,9 +967,9 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                slot.videoAprovado?.toLowerCase() === 'sim'
+                                String(slot.videoAprovado || '').toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : slot.videoAprovado?.toLowerCase() === 'nao'
+                                  : String(slot.videoAprovado || '').toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
@@ -978,9 +990,9 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                               </select>
                             ) : (
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                slot.videoPostado?.toLowerCase() === 'sim'
+                                String(slot.videoPostado || '').toLowerCase() === 'sim'
                                   ? 'bg-green-100 text-green-800'
-                                  : slot.videoPostado?.toLowerCase() === 'nao'
+                                  : String(slot.videoPostado || '').toLowerCase() === 'nao'
                                   ? 'bg-red-100 text-red-800'
                                   : 'bg-yellow-100 text-yellow-800'
                               }`}>
