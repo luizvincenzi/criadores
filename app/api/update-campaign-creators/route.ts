@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
         { key: 'briefingCompleto', column: briefingCol, range: String.fromCharCode(65 + briefingCol) },
         { key: 'dataHoraVisita', column: dataVisitaCol, range: String.fromCharCode(65 + dataVisitaCol) },
         { key: 'quantidadeConvidados', column: qtdConvidadosCol, range: String.fromCharCode(65 + qtdConvidadosCol) },
-        { key: 'visitaConfirmada', column: visitaConfirmadaCol, range: String.fromCharCode(65 + visitaConfirmadaCol) },
+        { key: 'visitaConfirmado', column: visitaConfirmadaCol, range: String.fromCharCode(65 + visitaConfirmadaCol) },
         { key: 'dataHoraPostagem', column: dataPostagemCol, range: String.fromCharCode(65 + dataPostagemCol) },
         { key: 'videoAprovado', column: videoAprovadoCol, range: String.fromCharCode(65 + videoAprovadoCol) },
         { key: 'videoPostado', column: videoPostadoCol, range: String.fromCharCode(65 + videoPostadoCol) }

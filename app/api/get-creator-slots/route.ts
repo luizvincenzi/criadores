@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
             briefingCompleto: row[briefingCol] || '',
             dataHoraVisita: row[dataVisitaCol] || '',
             quantidadeConvidados: row[qtdConvidadosCol] || '',
-            visitaConfirmada: row[visitaConfirmadaCol] || '', // Corrigido nome do campo
+            visitaConfirmado: row[visitaConfirmadaCol] || '', // Corrigido nome do campo
             dataHoraPostagem: row[dataPostagemCol] || '',
             videoAprovado: row[videoAprovadoCol] || '',
             videoPostado: row[videoPostadoCol] || '',
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
         briefingCompleto: campaign.briefingCompleto || 'pendente',
         dataHoraVisita: campaign.dataHoraVisita || '',
         quantidadeConvidados: campaign.quantidadeConvidados || '',
-        visitaConfirmada: campaign.visitaConfirmado || 'pendente', // Corrigido nome do campo
+        visitaConfirmado: campaign.visitaConfirmado || 'pendente', // Corrigido nome do campo
         dataHoraPostagem: campaign.dataHoraPostagem || '',
         videoAprovado: campaign.videoAprovado || 'pendente',
         videoPostado: campaign.videoPostado || 'pendente',
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
         briefingCompleto: 'pendente',
         dataHoraVisita: '',
         quantidadeConvidados: '',
-        visitaConfirmada: 'pendente', // Corrigido nome do campo
+        visitaConfirmado: 'pendente', // Corrigido nome do campo
         dataHoraPostagem: '',
         videoAprovado: 'pendente',
         videoPostado: 'pendente',
