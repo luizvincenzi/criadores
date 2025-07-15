@@ -158,16 +158,18 @@ export async function POST(request: NextRequest) {
 
     // CORREÇÃO: Se há criador antigo, editar a linha dele; senão, procurar slot vazio
     console.log(`🔍 Passo 3b: Determinando linha para editar`);
+    console.log(`🔍 DEBUG: oldCreatorRow =`, oldCreatorRow);
+    console.log(`🔍 DEBUG: values.length =`, values.length);
 
     let targetRow = null;
     let wasInPlaceEdit = false;
     let currentCampaignStatus = 'Reunião de briefing'; // Valor padrão
     const nextRow = values.length + 1; // Definir aqui para evitar erro
 
-    if (oldCreatorRow) {
+    if (oldCreatorRow && oldCreatorRow.data && oldCreatorRow.data.length > 4) {
       // Se há criador antigo, editar a linha dele
       targetRow = oldCreatorRow.index + 1;
-      currentCampaignStatus = oldCreatorRow.row[4] || 'Reunião de briefing'; // Preservar status atual da campanha (coluna E)
+      currentCampaignStatus = oldCreatorRow.data[4] || 'Reunião de briefing'; // Preservar status atual da campanha (coluna E)
       console.log(`✅ Editando linha existente ${targetRow} (status atual: ${currentCampaignStatus})`);
       wasInPlaceEdit = true;
     } else {
@@ -180,7 +182,8 @@ export async function POST(request: NextRequest) {
         const rowStatus = row[19] || 'Ativo'; // Coluna T - Status do Calendário
 
         // Procurar slot vazio (sem influenciador) da mesma campanha e ativo
-        if (rowBusiness === businessName.toLowerCase().trim() &&
+        if (row && row.length > 4 &&
+            rowBusiness === businessName.toLowerCase().trim() &&
             rowMes === mes.toLowerCase().trim() &&
             (!rowInfluenciador || rowInfluenciador === '') &&
             rowStatus.toLowerCase() === 'ativo') {
