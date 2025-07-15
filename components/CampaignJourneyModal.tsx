@@ -490,14 +490,22 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         }
 
         // Consolidar resultados
+        console.log('📊 Todos os resultados das operações:', allResults);
+
         const allSuccessful = allResults.every(r => r.result.success);
+        const failedResults = allResults.filter(r => !r.result.success);
+
+        if (!allSuccessful) {
+          console.error('❌ Operações que falharam:', failedResults);
+        }
+
         const totalChanges = creatorChanges.length + addedCreators.length + removedCreators.length;
 
         result = {
           success: allSuccessful,
           message: allSuccessful
             ? `✅ ${totalChanges} alteração(ões) realizada(s) com sucesso!`
-            : `❌ Erro em algumas alterações`,
+            : `❌ ${failedResults.length} de ${allResults.length} operações falharam. Verifique o console para detalhes.`,
           allResults,
           updatedCount: allSuccessful ? totalChanges : 0
         };
