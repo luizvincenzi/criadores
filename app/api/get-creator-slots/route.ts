@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRawCampaignsData, getCreatorsData, getBusinessesData, createGoogleSheetsClient } from '@/app/actions/sheetsActions';
+import { apiCache, cacheKeys } from '@/utils/cache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +14,15 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Parâmetros obrigatórios: businessName, mes, quantidadeContratada'
       });
+    }
+
+    // Verificar cache primeiro
+    const cacheKey = cacheKeys.creatorSlots(businessName, mes);
+    const cachedData = apiCache.get(cacheKey);
+
+    if (cachedData) {
+      console.log('📦 Retornando dados do cache para:', cacheKey);
+      return NextResponse.json(cachedData);
     }
 
     // 1. Primeiro buscar o business_id pelo nome
@@ -285,7 +295,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ API: ${slots.length} slots de criadores gerados`);
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       slots,
       availableCreators: availableCreators.map(creator => ({
@@ -294,7 +304,13 @@ export async function POST(request: NextRequest) {
         cidade: creator.cidade,
         status: creator.status
       }))
-    });
+    };
+
+    // Salvar no cache
+    apiCache.set(cacheKey, responseData, 'slots');
+    console.log('📦 Dados salvos no cache:', cacheKey);
+
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('❌ API: Erro ao buscar slots de criadores:', error);
