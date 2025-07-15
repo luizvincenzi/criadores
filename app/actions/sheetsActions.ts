@@ -929,7 +929,7 @@ export interface CampaignJourneyData {
   id: string;
   businessName: string;
   mes: string;
-  journeyStage: 'Reunião Briefing' | 'Agendamentos' | 'Entrega Final';
+  journeyStage: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final';
   campanhas: CampaignData[];
   totalCampanhas: number;
   quantidadeCriadores: number;
@@ -2022,7 +2022,7 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
       const auditKey = `${businessName}-${mes}`;
 
       // Usar status do audit_log se disponível, senão usar status da campanha
-      let currentStatus = auditStatuses[auditKey] || campaign.status || 'Reunião Briefing';
+      let currentStatus = auditStatuses[auditKey] || campaign.status || 'Reunião de briefing';
 
       console.log(`📊 Campanha ${auditKey}: Status audit_log = ${auditStatuses[auditKey]}, Status campanha = ${campaign.status}, Status final = ${currentStatus}`);
 
@@ -2039,13 +2039,13 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
           parseInt(businessData.quantidadeCriadores) || 0 : 0;
 
         // Determinar estágio da jornada baseado no status do audit_log
-        let journeyStage: 'Reunião Briefing' | 'Agendamentos' | 'Entrega Final' = 'Reunião Briefing';
+        let journeyStage: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' = 'Reunião de briefing';
         const statusLower = currentStatus.toLowerCase();
 
         if (statusLower === 'agendamentos' || statusLower === 'agendamento') {
           journeyStage = 'Agendamentos';
         } else if (statusLower === 'entrega final' || statusLower === 'entrega') {
-          journeyStage = 'Entrega Final';
+          journeyStage = 'Entrega final';
         }
 
         journeyMap.set(groupKey, {
