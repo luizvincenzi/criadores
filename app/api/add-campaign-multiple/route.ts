@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
       const row = [
         campaignId, // A = Campaign_ID
-        campaignName || businessId, // B = Nome Campanha
+        businessId, // B = Nome Campanha (sempre business_id)
         '', // C = Influenciador (será preenchido posteriormente)
         businessData.responsavel || businessData.nomeResponsavel || 'Sistema', // D = Responsável
         'Reunião Briefing', // E = Status (padrão inicial)
