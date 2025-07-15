@@ -114,9 +114,9 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         _timestamp: timestamp
       };
 
-      console.log('🚀 Fazendo fetch para /api/get-creator-slots com payload:', requestPayload);
+      console.log('🚀 Fazendo fetch para /api/test-slots com payload:', requestPayload);
 
-      const response = await fetch('/api/get-creator-slots', {
+      const response = await fetch('/api/test-slots', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
