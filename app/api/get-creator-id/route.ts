@@ -30,22 +30,54 @@ export async function POST(request: NextRequest) {
     const values = response.data.values || [];
     
     // Procurar pelo nome do criador (coluna A) e retornar o criador_id (coluna V)
+    const searchName = creatorName.trim().toLowerCase();
+    console.log(`🔍 Procurando por: "${searchName}"`);
+
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
       const nome = row[0]?.trim(); // Coluna A
       const criadorId = row[21]; // Coluna V
-      
-      if (nome && nome.toLowerCase() === creatorName.toLowerCase() && criadorId) {
-        console.log(`✅ Criador encontrado: "${nome}" → ${criadorId}`);
-        return NextResponse.json({
-          success: true,
-          criadorId: criadorId,
-          creatorName: nome
-        });
+
+      if (nome && criadorId) {
+        const nomeNormalizado = nome.trim().toLowerCase();
+        console.log(`🔍 Comparando: "${nomeNormalizado}" com "${searchName}"`);
+
+        if (nomeNormalizado === searchName) {
+          console.log(`✅ Criador encontrado: "${nome}" → ${criadorId}`);
+          return NextResponse.json({
+            success: true,
+            criadorId: criadorId,
+            creatorName: nome
+          });
+        }
+      }
+    }
+
+    // Busca mais flexível - tentar busca parcial
+    console.log('🔍 Tentando busca parcial...');
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const nome = row[0]?.trim(); // Coluna A
+      const criadorId = row[21]; // Coluna V
+
+      if (nome && criadorId) {
+        const nomeNormalizado = nome.trim().toLowerCase();
+
+        // Busca parcial - se o nome contém a busca ou vice-versa
+        if (nomeNormalizado.includes(searchName) || searchName.includes(nomeNormalizado)) {
+          console.log(`✅ Criador encontrado (busca parcial): "${nome}" → ${criadorId}`);
+          return NextResponse.json({
+            success: true,
+            criadorId: criadorId,
+            creatorName: nome
+          });
+        }
       }
     }
 
     console.log(`❌ Criador "${creatorName}" não encontrado na aba Criadores`);
+    console.log('📋 Criadores disponíveis:', values.slice(1, 6).map(row => row[0]?.trim()).filter(Boolean));
+
     return NextResponse.json({
       success: false,
       error: `Criador "${creatorName}" não encontrado na aba Criadores`
