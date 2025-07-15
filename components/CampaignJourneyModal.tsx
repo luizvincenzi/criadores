@@ -437,6 +437,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
 
         // 1. Processar trocas de criadores
         for (const change of creatorChanges) {
+          console.log('🔄 Processando troca de criador:', change);
           const changeResponse = await fetch('/api/change-campaign-creator', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -452,11 +453,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           });
 
           const changeResult = await changeResponse.json();
+          console.log('📊 Resultado da troca:', changeResult);
           allResults.push({ type: 'troca', result: changeResult });
         }
 
         // 2. Processar adições de criadores
         for (const addition of addedCreators) {
+          console.log('➕ Processando adição de criador:', addition);
           const addResponse = await fetch('/api/add-campaign-creator', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -469,11 +472,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           });
 
           const addResult = await addResponse.json();
+          console.log('📊 Resultado da adição:', addResult);
           allResults.push({ type: 'adicao', result: addResult });
         }
 
         // 3. Processar remoções de criadores
         for (const removal of removedCreators) {
+          console.log('🗑️ Processando remoção de criador:', removal);
           const removeResponse = await fetch('/api/remove-campaign-creator', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -486,6 +491,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           });
 
           const removeResult = await removeResponse.json();
+          console.log('📊 Resultado da remoção:', removeResult);
           allResults.push({ type: 'remocao', result: removeResult });
         }
 
@@ -497,6 +503,14 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
 
         if (!allSuccessful) {
           console.error('❌ Operações que falharam:', failedResults);
+          failedResults.forEach((failed, index) => {
+            console.error(`❌ Falha ${index + 1}:`, {
+              tipo: failed.type,
+              sucesso: failed.result.success,
+              erro: failed.result.error,
+              detalhes: failed.result
+            });
+          });
         }
 
         const totalChanges = creatorChanges.length + addedCreators.length + removedCreators.length;
