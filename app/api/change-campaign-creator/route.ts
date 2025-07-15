@@ -301,7 +301,7 @@ export async function POST(request: NextRequest) {
         newCreator: {
           name: newCreator,
           campaignId: newCampaignId,
-          row: emptySlotRow || nextRow,
+          row: targetRow || nextRow,
           status: 'Ativo',
           action: wasInPlaceEdit ? 'edited_existing_slot' : 'created_new_slot'
         },
