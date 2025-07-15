@@ -222,7 +222,14 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
   ];
 
   const getCampaignsByStage = (stageId: string) => {
-    return campaigns.filter(campaign => campaign.journeyStage === stageId);
+    console.log(`🔍 Filtrando campanhas para stage: "${stageId}"`);
+    const filtered = campaigns.filter(campaign => {
+      const match = campaign.journeyStage === stageId;
+      console.log(`📊 Campanha ${campaign.businessName}: stage="${campaign.journeyStage}" === "${stageId}" = ${match}`);
+      return match;
+    });
+    console.log(`✅ ${filtered.length} campanhas encontradas para stage "${stageId}"`);
+    return filtered;
   };
 
   const handleCampaignClick = (campaign: CampaignJourneyData) => {
