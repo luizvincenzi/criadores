@@ -218,9 +218,9 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
 
   // Opções de status da jornada
   const statusOptions = [
-    { value: 'Reunião Briefing', label: 'Reunião Briefing', icon: '📋', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+    { value: 'Reunião de briefing', label: 'Reunião de briefing', icon: '📋', color: 'bg-blue-50 text-blue-700 border-blue-200' },
     { value: 'Agendamentos', label: 'Agendamentos', icon: '📅', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-    { value: 'Entrega Final', label: 'Entrega Final', icon: '✅', color: 'bg-green-50 text-green-700 border-green-200' },
+    { value: 'Entrega final', label: 'Entrega final', icon: '✅', color: 'bg-green-50 text-green-700 border-green-200' },
     { value: 'Finalizado', label: 'Finalizado', icon: '🏁', color: 'bg-gray-50 text-gray-700 border-gray-200' }
   ];
 

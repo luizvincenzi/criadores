@@ -177,8 +177,8 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
   // Agrupar campanhas por estágio
   const stages = [
     {
-      id: 'Reunião Briefing',
-      title: 'Reunião Briefing',
+      id: 'Reunião de briefing',
+      title: 'Reunião de briefing',
       icon: (
         <div className="w-8 h-8 bg-blue-500 rounded-xl flex items-center justify-center">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -208,8 +208,8 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
       color: 'bg-white border-gray-200 shadow-sm'
     },
     {
-      id: 'Entrega Final',
-      title: 'Entrega Final',
+      id: 'Entrega final',
+      title: 'Entrega final',
       icon: (
         <div className="w-8 h-8 bg-green-500 rounded-xl flex items-center justify-center">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -266,7 +266,7 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
     console.log('🎯 Drag & Drop Debug:', { activeId, overId, activeCampaign: activeCampaign.businessName });
 
     // Verificar se foi dropado em uma coluna ou em um card dentro da coluna
-    const stageIds = ['Reunião Briefing', 'Agendamentos', 'Entrega Final'];
+    const stageIds = ['Reunião de briefing', 'Agendamentos', 'Entrega final'];
 
     if (stageIds.includes(overId)) {
       // Dropado diretamente na coluna

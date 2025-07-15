@@ -21,8 +21,8 @@ import SimpleKanbanCard from './SimpleKanbanCard';
 
 const KANBAN_STAGES = [
   {
-    id: 'Reunião Briefing',
-    title: 'Reunião Briefing',
+    id: 'Reunião de briefing',
+    title: 'Reunião de briefing',
     icon: '📋',
     color: 'bg-blue-100 text-blue-800',
     description: 'Definindo estratégias e objetivos'
@@ -35,8 +35,8 @@ const KANBAN_STAGES = [
     description: 'Coordenando cronogramas'
   },
   {
-    id: 'Entrega Final',
-    title: 'Entrega Final',
+    id: 'Entrega final',
+    title: 'Entrega final',
     icon: '✅',
     color: 'bg-green-100 text-green-800',
     description: 'Finalizando projetos'

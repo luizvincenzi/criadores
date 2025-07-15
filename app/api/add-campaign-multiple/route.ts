@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         businessId, // B = Nome Campanha (sempre business_id)
         '', // C = Influenciador (será preenchido posteriormente)
         businessData.responsavel || businessData.nomeResponsavel || 'Sistema', // D = Responsável
-        'Reunião Briefing', // E = Status (padrão inicial)
+        'Reunião de briefing', // E = Status_campaign (padrão inicial)
         displayDate, // F = Mês (formato: "Janeiro 2025")
         fullDate, // G = FIM (data completa: "2025-01-01")
         'Pendente', // H = Briefing completo enviado para o influenciador?
