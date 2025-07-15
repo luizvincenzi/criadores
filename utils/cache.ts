@@ -1,6 +1,4 @@
 // Sistema de cache para reduzir chamadas à API do Google Sheets
-import React from 'react';
-
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -86,57 +84,8 @@ class ApiCache {
 // Instância global do cache
 export const apiCache = new ApiCache();
 
-// Hook para usar cache em componentes React
-export function useCachedApi<T>(
-  key: string,
-  apiCall: () => Promise<T>,
-  category: keyof typeof apiCache['defaultTTL'] = 'campaigns'
-): {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-} {
-  const [data, setData] = React.useState<T | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const fetchData = React.useCallback(async () => {
-    // Tentar buscar do cache primeiro
-    const cachedData = apiCache.get<T>(key);
-    if (cachedData) {
-      setData(cachedData);
-      return;
-    }
-
-    // Se não estiver no cache, fazer chamada à API
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await apiCall();
-      apiCache.set(key, result, category);
-      setData(result);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      setError(errorMessage);
-      console.error(`❌ Erro na API ${key}:`, err);
-    } finally {
-      setLoading(false);
-    }
-  }, [key, apiCall, category]);
-
-  const refetch = React.useCallback(async () => {
-    apiCache.invalidate(key);
-    await fetchData();
-  }, [key, fetchData]);
-
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return { data, loading, error, refetch };
-}
+// Nota: Hook React removido para evitar problemas no servidor
+// Use o apiCache diretamente nas APIs do servidor
 
 // Utilitários para gerar chaves de cache consistentes
 export const cacheKeys = {
