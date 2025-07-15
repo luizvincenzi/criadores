@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     if (oldCreatorRow) {
       console.log(`🔄 Passo 3a: Desativando criador antigo na linha ${oldCreatorRow.index + 1}`);
       operations.push({
-        range: `campanhas!E${oldCreatorRow.index + 1}`, // Coluna Status
+        range: `campanhas!T${oldCreatorRow.index + 1}`, // Coluna T = Status do Calendário
         values: [['Inativo']]
       });
     }
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
         values: [[
           newCriadorId, // C = criador_id (ID em vez de nome)
           'Sistema', // D = Responsável
-          'Ativo', // E = Status
+          'Reunião de briefing', // E = Status_campaign (status da campanha, não do criador)
           mes, // F = Mês (manter)
           '', // G = FIM
           newCreatorData?.briefingCompleto || 'Pendente', // H

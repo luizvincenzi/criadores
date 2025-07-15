@@ -2044,7 +2044,7 @@ export async function getCampaignJourneyData(): Promise<CampaignJourneyData[]> {
 
         if (statusLower === 'agendamentos' || statusLower === 'agendamento') {
           journeyStage = 'Agendamentos';
-        } else if (statusLower === 'entrega final' || statusLower === 'entrega') {
+        } else if (statusLower === 'entrega final' || statusLower === 'entrega' || statusLower === 'entrega final') {
           journeyStage = 'Entrega final';
         }
 
