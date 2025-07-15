@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
         '', // AC = Promoção CTA
         '', // AD = Column 31
         '', // AE = Objetivo 1
-        '' // AF = Column 32
+        campaignName || '' // AF = Titulo campanha
       ];
 
       rows.push(row);
