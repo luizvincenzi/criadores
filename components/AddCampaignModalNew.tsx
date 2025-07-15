@@ -82,7 +82,7 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
 
   const handleBusinessSelect = (business: BusinessData) => {
     setSelectedBusiness(business);
-    setCampaignName(business.nome); // Usar nome do business como padrão
+    // Não preencher automaticamente o nome da campanha
     setQuantidadeCriadores(business.quantidadeCriadores || '1');
   };
 
