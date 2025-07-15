@@ -8,13 +8,13 @@ interface CacheEntry<T> {
 class ApiCache {
   private cache = new Map<string, CacheEntry<any>>();
   
-  // TTL padrão: 30 segundos para dados dinâmicos, 5 minutos para dados estáticos
+  // TTL aumentado para reduzir quota do Google Sheets
   private defaultTTL = {
-    campaigns: 30 * 1000, // 30 segundos
-    creators: 5 * 60 * 1000, // 5 minutos
-    businesses: 5 * 60 * 1000, // 5 minutos
-    journey: 30 * 1000, // 30 segundos
-    slots: 15 * 1000, // 15 segundos
+    campaigns: 2 * 60 * 1000, // 2 minutos
+    creators: 10 * 60 * 1000, // 10 minutos
+    businesses: 10 * 60 * 1000, // 10 minutos
+    journey: 2 * 60 * 1000, // 2 minutos
+    slots: 2 * 60 * 1000, // 2 minutos
   };
 
   set<T>(key: string, data: T, category: keyof typeof this.defaultTTL = 'campaigns'): void {
