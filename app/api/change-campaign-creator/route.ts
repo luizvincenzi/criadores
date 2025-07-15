@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       businessId, // B = business_id (ID em vez de nome)
       newCriadorId, // C = criador_id (ID em vez de nome)
       newCreatorData?.responsavel || 'Sistema', // D = Responsável
-      'Ativo', // E = Status
+      'Reunião de briefing', // E = Status_campaign (padrão para nova linha)
       mes, // F = Mês
       '', // G = FIM
       newCreatorData?.briefingCompleto || 'Pendente', // H = Briefing completo
@@ -156,41 +156,52 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // CORREÇÃO: Encontrar slot vazio em vez de adicionar nova linha
-    console.log(`🔍 Passo 3b: Procurando slot vazio para editar`);
+    // CORREÇÃO: Se há criador antigo, editar a linha dele; senão, procurar slot vazio
+    console.log(`🔍 Passo 3b: Determinando linha para editar`);
 
-    let emptySlotRow = null;
+    let targetRow = null;
     let wasInPlaceEdit = false;
+    let currentCampaignStatus = 'Reunião de briefing'; // Valor padrão
     const nextRow = values.length + 1; // Definir aqui para evitar erro
 
-    for (let i = 1; i < values.length; i++) {
-      const row = values[i];
-      const rowBusiness = row[1]?.toLowerCase().trim(); // Coluna B
-      const rowMes = row[5]?.toLowerCase().trim(); // Coluna F
-      const rowInfluenciador = row[2]?.trim(); // Coluna C
-      const rowStatus = row[19] || 'Ativo'; // Coluna T - Status do Calendário
+    if (oldCreatorRow) {
+      // Se há criador antigo, editar a linha dele
+      targetRow = oldCreatorRow.index + 1;
+      currentCampaignStatus = oldCreatorRow.row[4] || 'Reunião de briefing'; // Preservar status atual da campanha (coluna E)
+      console.log(`✅ Editando linha existente ${targetRow} (status atual: ${currentCampaignStatus})`);
+      wasInPlaceEdit = true;
+    } else {
+      // Se não há criador antigo, procurar slot vazio
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        const rowBusiness = row[1]?.toLowerCase().trim(); // Coluna B
+        const rowMes = row[5]?.toLowerCase().trim(); // Coluna F
+        const rowInfluenciador = row[2]?.trim(); // Coluna C
+        const rowStatus = row[19] || 'Ativo'; // Coluna T - Status do Calendário
 
-      // Procurar slot vazio (sem influenciador) da mesma campanha e ativo
-      if (rowBusiness === businessName.toLowerCase().trim() &&
-          rowMes === mes.toLowerCase().trim() &&
-          (!rowInfluenciador || rowInfluenciador === '') &&
-          rowStatus.toLowerCase() === 'ativo') {
-        emptySlotRow = i + 1; // +1 porque é 1-based
-        console.log(`✅ Slot vazio encontrado na linha ${emptySlotRow}`);
-        break;
+        // Procurar slot vazio (sem influenciador) da mesma campanha e ativo
+        if (rowBusiness === businessName.toLowerCase().trim() &&
+            rowMes === mes.toLowerCase().trim() &&
+            (!rowInfluenciador || rowInfluenciador === '') &&
+            rowStatus.toLowerCase() === 'ativo') {
+          targetRow = i + 1; // +1 porque é 1-based
+          currentCampaignStatus = row[4] || 'Reunião de briefing'; // Preservar status da campanha
+          console.log(`✅ Slot vazio encontrado na linha ${targetRow} (status: ${currentCampaignStatus})`);
+          wasInPlaceEdit = true;
+          break;
+        }
       }
     }
 
-    if (emptySlotRow) {
-      // Editar slot vazio existente
-      console.log(`✏️ Editando slot vazio na linha ${emptySlotRow}`);
-      wasInPlaceEdit = true;
+    if (targetRow) {
+      // Editar linha existente (criador antigo) ou slot vazio
+      console.log(`✏️ Editando linha ${targetRow} (preservando status: ${currentCampaignStatus})`);
       operations.push({
-        range: `campanhas!C${emptySlotRow}:N${emptySlotRow}`, // Colunas C até N
+        range: `campanhas!C${targetRow}:N${targetRow}`, // Colunas C até N
         values: [[
           newCriadorId, // C = criador_id (ID em vez de nome)
           'Sistema', // D = Responsável
-          'Reunião de briefing', // E = Status_campaign (status da campanha, não do criador)
+          currentCampaignStatus, // E = Status_campaign (preservar status atual da campanha)
           mes, // F = Mês (manter)
           '', // G = FIM
           newCreatorData?.briefingCompleto || 'Pendente', // H
