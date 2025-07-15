@@ -3,10 +3,13 @@ import { getRawCampaignsData, getCreatorsData, getBusinessesData, createGoogleSh
 import { apiCache, cacheKeys } from '@/utils/cache';
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 API get-creator-slots INICIADA');
   try {
+    console.log('📥 Recebendo request...');
     const body = await request.json();
-    const { businessName, mes, quantidadeContratada } = body;
+    console.log('📦 Body recebido:', body);
 
+    const { businessName, mes, quantidadeContratada } = body;
     console.log('🔄 API: Buscando slots de criadores:', { businessName, mes, quantidadeContratada });
 
     if (!businessName || !mes || !quantidadeContratada) {
@@ -314,9 +317,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ API: Erro ao buscar slots de criadores:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('❌ Tipo do erro:', typeof error);
+    console.error('❌ Erro completo:', JSON.stringify(error, null, 2));
+
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro interno do servidor'
     });
   }
 }
