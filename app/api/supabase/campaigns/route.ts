@@ -387,10 +387,9 @@ export async function POST(request: NextRequest) {
 
       if (creatorsError) {
         console.error('❌ Erro ao criar slots vazios:', creatorsError);
-          // Não falhar a operação, apenas logar o erro
-        } else {
-          console.log(`✅ ${campaignCreators?.length || 0} relacionamentos criados com sucesso`);
-        }
+        // Não falhar a operação, apenas logar o erro
+      } else {
+        console.log(`✅ ${campaignCreators?.length || 0} relacionamentos criados com sucesso`);
       }
     }
 
