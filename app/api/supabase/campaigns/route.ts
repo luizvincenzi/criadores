@@ -219,13 +219,42 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('🚀 Criando nova campanha:', body);
 
-    // Validação básica
-    if (!body.title || !body.business_id || !body.month) {
+    // Converter month para month_year_id se necessário
+    let monthYearId: number;
+
+    if (body.month_year_id) {
+      // Se month_year_id já foi enviado
+      monthYearId = parseInt(body.month_year_id.toString());
+    } else if (body.month) {
+      // Converter month string para month_year_id
+      if (typeof body.month === 'number' || /^\d{6}$/.test(body.month)) {
+        monthYearId = parseInt(body.month.toString());
+      } else if (/^\d{4}-\d{2}$/.test(body.month)) {
+        // Formato "2025-07"
+        const [year, month] = body.month.split('-').map(Number);
+        monthYearId = year * 100 + month;
+      } else {
+        return NextResponse.json(
+          { success: false, error: 'Formato de mês inválido. Use YYYYMM ou YYYY-MM' },
+          { status: 400 }
+        );
+      }
+    } else {
       return NextResponse.json(
-        { success: false, error: 'Campos obrigatórios: title, business_id, month' },
+        { success: false, error: 'Campos obrigatórios: title, business_id, month ou month_year_id' },
         { status: 400 }
       );
     }
+
+    // Validação do month_year_id
+    if (!monthYearId || monthYearId < 202001 || monthYearId > 203012) {
+      return NextResponse.json(
+        { success: false, error: 'month_year_id inválido. Use formato YYYYMM (ex: 202507)' },
+        { status: 400 }
+      );
+    }
+
+    console.log('📅 Month processado:', { original: body.month, monthYearId });
 
     // Verificar se business existe
     const { data: business, error: businessError } = await supabase
@@ -245,17 +274,23 @@ export async function POST(request: NextRequest) {
     // Verificar se já existe campanha para este business neste mês
     const { data: existingCampaign, error: checkError } = await supabase
       .from('campaigns')
-      .select('id, title')
+      .select('id, title, month_year_id')
       .eq('business_id', body.business_id)
-      .eq('month', body.month)
+      .eq('month_year_id', monthYearId)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
     if (existingCampaign) {
+      // Converter month_year_id para display
+      const year = Math.floor(monthYearId / 100);
+      const month = monthYearId % 100;
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const monthDisplay = `${monthNames[month - 1]} ${year}`;
+
       return NextResponse.json(
         {
           success: false,
-          error: `Já existe uma campanha para ${business.name} no mês ${body.month}: "${existingCampaign.title}"`
+          error: `Já existe uma campanha para ${business.name} em ${monthDisplay}: "${existingCampaign.title}"`
         },
         { status: 409 }
       );
@@ -290,7 +325,8 @@ export async function POST(request: NextRequest) {
       business_id: body.business_id,
       title: body.title,
       description: body.description || '',
-      month: body.month,
+      month: body.month, // Manter para compatibilidade
+      month_year_id: monthYearId, // Nova coluna principal
       start_date: body.start_date || null,
       end_date: body.end_date || null,
       budget: body.budget || 0,

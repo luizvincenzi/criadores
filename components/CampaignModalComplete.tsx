@@ -94,21 +94,23 @@ export default function CampaignModalComplete({ isOpen, onClose, onSuccess }: Ca
     }
   });
 
-  // Gerar meses disponíveis (atual + próximos 11)
+  // Gerar meses disponíveis usando month_year_id
   const generateAvailableMonths = () => {
     const months = [];
     const currentDate = new Date();
 
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 24; i++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const monthYearId = year * 100 + month;
       const monthName = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
       months.push({
-        value: monthKey, // Formato: "2025-07" para facilitar filtros
+        value: monthYearId.toString(), // Formato: "202507"
         label: monthName.charAt(0).toUpperCase() + monthName.slice(1),
         displayName: monthName,
-        timestamp: date.toISOString()
+        monthYearId: monthYearId
       });
     }
 
