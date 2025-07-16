@@ -152,12 +152,12 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    const { error: creatorError } = await supabase
+    const { error: campaignCreatorError } = await supabase
       .from('campaign_creators')
       .insert(campaignCreatorData);
 
-    if (creatorError) {
-      console.error('❌ Erro ao criar relacionamento criador-campanha:', creatorError);
+    if (campaignCreatorError) {
+      console.error('❌ Erro ao criar relacionamento criador-campanha:', campaignCreatorError);
       // Não falhar a operação principal
     }
 
