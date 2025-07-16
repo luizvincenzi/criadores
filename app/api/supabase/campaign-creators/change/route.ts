@@ -4,17 +4,40 @@ import { standardizeMonth } from '@/lib/month-utils';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
+// Função auxiliar para converter nome do mês para número
+function getMonthNumber(monthName: string): number {
+  const months: { [key: string]: number } = {
+    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
+    'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
+  };
+  return months[monthName.toLowerCase()] || 7;
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { businessName, mes, oldCreatorId, newCreatorId, userEmail } = body;
 
-    // Padronizar formato do mês
-    const standardMonth = standardizeMonth(mes);
+    // Converter mês para month_year_id
+    let monthYearId: number;
+
+    // Se mes já é um month_year_id (número)
+    if (typeof mes === 'number' || /^\d{6}$/.test(mes)) {
+      monthYearId = parseInt(mes.toString());
+    } else {
+      // Converter string para month_year_id
+      const standardMonth = standardizeMonth(mes);
+      // Assumir que standardMonth retorna formato "jul 25"
+      const [monthName, yearShort] = standardMonth.split(' ');
+      const year = 2000 + parseInt(yearShort);
+      const monthNum = getMonthNumber(monthName);
+      monthYearId = year * 100 + monthNum;
+    }
 
     console.log('🔄 Trocando criador na campanha:', {
       businessName,
-      mes: `${mes} → ${standardMonth}`,
+      mes,
+      monthYearId,
       oldCreatorId,
       newCreatorId,
       userEmail
@@ -43,12 +66,12 @@ export async function PUT(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // 2. Buscar campanha (agora garantido que há apenas 1 por business/mês)
+    // 2. Buscar campanha usando month_year_id
     const { data: campaign, error: campaignError } = await supabase
       .from('campaigns')
-      .select('id, title')
+      .select('id, title, month_year_id')
       .eq('business_id', business.id)
-      .eq('month', standardMonth)
+      .eq('month_year_id', monthYearId)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 

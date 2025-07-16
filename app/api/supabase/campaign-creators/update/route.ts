@@ -9,17 +9,40 @@ const supabase = createClient(
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
+// Função auxiliar para converter nome do mês para número
+function getMonthNumber(monthName: string): number {
+  const months: { [key: string]: number } = {
+    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
+    'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
+  };
+  return months[monthName.toLowerCase()] || 7;
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { businessName, mes, creatorsData, userEmail } = body;
 
-    // Padronizar formato do mês
-    const standardMonth = standardizeMonth(mes);
+    // Converter mês para month_year_id
+    let monthYearId: number;
+
+    // Se mes já é um month_year_id (número)
+    if (typeof mes === 'number' || /^\d{6}$/.test(mes)) {
+      monthYearId = parseInt(mes.toString());
+    } else {
+      // Converter string para month_year_id
+      const standardMonth = standardizeMonth(mes);
+      // Assumir que standardMonth retorna formato "jul 25"
+      const [monthName, yearShort] = standardMonth.split(' ');
+      const year = 2000 + parseInt(yearShort);
+      const monthNum = getMonthNumber(monthName);
+      monthYearId = year * 100 + monthNum;
+    }
 
     console.log('✏️ Atualizando dados dos criadores da campanha:', {
       businessName,
-      mes: `${mes} → ${standardMonth}`,
+      mes,
+      monthYearId,
       creatorsCount: creatorsData?.length,
       userEmail
     });
@@ -49,20 +72,20 @@ export async function PUT(request: NextRequest) {
 
     const business = businesses[0];
 
-    // 2. Buscar campanha
+    // 2. Buscar campanha usando month_year_id
     const { data: campaigns, error: campaignError } = await supabase
       .from('campaigns')
-      .select('id, title, month')
+      .select('id, title, month_year_id')
       .eq('organization_id', DEFAULT_ORG_ID)
       .eq('business_id', business.id)
-      .eq('month', standardMonth)
+      .eq('month_year_id', monthYearId)
       .limit(1);
 
     if (campaignError || !campaigns?.length) {
       console.error('❌ Campanha não encontrada:', campaignError);
       return NextResponse.json({
         success: false,
-        error: `Campanha para "${businessName}" no mês "${standardMonth}" não encontrada`
+        error: `Campanha para "${businessName}" no mês ${monthYearId} não encontrada`
       }, { status: 404 });
     }
 
