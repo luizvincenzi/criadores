@@ -125,12 +125,13 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Campanha criada:', campaign.id);
 
-    // Criar slots de criadores (campaign_creators)
+    // Criar slots VAZIOS de criadores (campaign_creators)
+    console.log(`🎯 Criando ${quantidadeCriadores} slots VAZIOS para criadores...`);
     const campaignCreatorSlots = [];
     for (let i = 0; i < parseInt(quantidadeCriadores); i++) {
       campaignCreatorSlots.push({
         campaign_id: campaign.id,
-        creator_id: null, // Será preenchido posteriormente
+        creator_id: null, // SLOT VAZIO - será preenchido pelo usuário
         role: 'primary',
         status: 'Pendente',
         fee: 0,
@@ -153,11 +154,11 @@ export async function POST(request: NextRequest) {
       .select();
 
     if (slotsError) {
-      console.error('❌ Erro ao criar slots de criadores:', slotsError);
+      console.error('❌ Erro ao criar slots vazios:', slotsError);
       // Não falhar a operação, apenas avisar
-      console.log('⚠️ Campanha criada, mas slots de criadores falharam');
+      console.log('⚠️ Campanha criada, mas slots vazios falharam');
     } else {
-      console.log(`✅ ${creatorSlots.length} slots de criadores criados`);
+      console.log(`✅ ${creatorSlots.length} slots VAZIOS criados com sucesso`);
     }
 
     // Registrar no audit log

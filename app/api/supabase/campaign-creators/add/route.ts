@@ -43,22 +43,53 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // 2. Buscar campanha (usando mês padronizado)
-    const { data: campaign, error: campaignError } = await supabase
+    // 2. Buscar campanha (tentar múltiplos formatos de mês)
+    console.log(`🔍 Buscando campanha para business_id: ${business.id}, mês original: "${mes}", mês padronizado: "${standardMonth}"`);
+
+    // Tentar primeiro com mês padronizado
+    let { data: campaign, error: campaignError } = await supabase
       .from('campaigns')
-      .select('id, title')
+      .select('id, title, month')
       .eq('business_id', business.id)
       .eq('month', standardMonth)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
+    // Se não encontrou, tentar com mês original
     if (campaignError || !campaign) {
-      console.error('❌ Campanha não encontrada:', { businessName, mes: standardMonth });
+      console.log(`⚠️ Não encontrou com mês padronizado "${standardMonth}", tentando com mês original "${mes}"`);
+
+      const result2 = await supabase
+        .from('campaigns')
+        .select('id, title, month')
+        .eq('business_id', business.id)
+        .eq('month', mes)
+        .eq('organization_id', DEFAULT_ORG_ID)
+        .single();
+
+      campaign = result2.data;
+      campaignError = result2.error;
+    }
+
+    // Se ainda não encontrou, listar todas as campanhas deste business para debug
+    if (campaignError || !campaign) {
+      console.log(`🔍 Listando todas as campanhas do business "${businessName}" para debug:`);
+
+      const { data: allCampaigns } = await supabase
+        .from('campaigns')
+        .select('id, title, month')
+        .eq('business_id', business.id)
+        .eq('organization_id', DEFAULT_ORG_ID);
+
+      console.log('📊 Campanhas encontradas:', allCampaigns);
+
       return NextResponse.json({
         success: false,
-        error: `Campanha não encontrada para ${businessName} - ${standardMonth}`
+        error: `Campanha não encontrada para ${businessName} - ${mes}. Campanhas disponíveis: ${allCampaigns?.map(c => `"${c.title}" (${c.month})`).join(', ') || 'nenhuma'}`
       }, { status: 404 });
     }
+
+    console.log(`✅ Campanha encontrada: "${campaign.title}" (ID: ${campaign.id}, mês: ${campaign.month})`);
 
     // 3. Verificar se o criador existe
     const { data: creator, error: creatorError } = await supabase

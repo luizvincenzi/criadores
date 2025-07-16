@@ -354,28 +354,16 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Campanha criada com sucesso:', campaign.id);
 
-    // Criar relacionamentos com criadores baseado na quantidade solicitada
+    // Criar slots vazios para criadores baseado na quantidade solicitada
     if (body.quantidade_criadores && body.quantidade_criadores > 0) {
-      console.log(`🎯 Criando relacionamentos com ${body.quantidade_criadores} criadores...`);
+      console.log(`🎯 Criando ${body.quantidade_criadores} slots vazios para criadores...`);
 
-      // Buscar criadores ativos da mesma cidade do business
-      const { data: creatorsAvailable } = await supabase
-        .from('creators')
-        .select('id, name, profile_info')
-        .eq('organization_id', DEFAULT_ORG_ID)
-        .eq('status', 'Ativo')
-        .limit(body.quantidade_criadores * 2); // Buscar mais para ter opções
-
-      if (!creatorsAvailable || creatorsAvailable.length === 0) {
-        console.log('⚠️ Nenhum criador ativo encontrado, mas campanha foi criada');
-      } else {
-        // Selecionar os primeiros N criadores disponíveis
-        const selectedCreators = creatorsAvailable.slice(0, body.quantidade_criadores);
-
-        // Criar relacionamentos na tabela campaign_creators
-        const campaignCreatorData = selectedCreators.map((creator: any) => ({
+      // Criar slots vazios (sem creator_id) para serem preenchidos posteriormente
+      const emptySlots = [];
+      for (let i = 0; i < body.quantidade_criadores; i++) {
+        emptySlots.push({
           campaign_id: campaign.id,
-          creator_id: creator.id,
+          creator_id: null, // SLOT VAZIO - será preenchido pelo usuário
           role: 'primary',
           status: 'Pendente',
           fee: 0,
@@ -389,15 +377,16 @@ export async function POST(request: NextRequest) {
             video_posted: 'Não',
             content_links: []
           }
-        }));
+        });
+      }
 
-        const { data: campaignCreators, error: creatorsError } = await supabase
-          .from('campaign_creators')
-          .insert(campaignCreatorData)
-          .select();
+      const { data: campaignCreators, error: creatorsError } = await supabase
+        .from('campaign_creators')
+        .insert(emptySlots)
+        .select();
 
-        if (creatorsError) {
-          console.error('❌ Erro ao criar relacionamentos com criadores:', creatorsError);
+      if (creatorsError) {
+        console.error('❌ Erro ao criar slots vazios:', creatorsError);
           // Não falhar a operação, apenas logar o erro
         } else {
           console.log(`✅ ${campaignCreators?.length || 0} relacionamentos criados com sucesso`);

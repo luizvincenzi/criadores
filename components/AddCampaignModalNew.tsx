@@ -30,22 +30,36 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingBusinesses, setIsLoadingBusinesses] = useState(false);
 
-  // Gerar lista de meses a partir do mês atual
+  // Gerar lista de meses no formato padronizado "MMM YY"
   const generateMonths = () => {
-    const months = [
+    const monthNames = [
+      'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+      'jul', 'ago', 'set', 'out', 'nov', 'dez'
+    ];
+
+    const monthLabels = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
-    
-    const currentMonth = new Date().getMonth();
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
     const availableMonths = [];
-    
-    // Adicionar meses a partir do mês atual
+
+    // Adicionar próximos 12 meses a partir do mês atual
     for (let i = 0; i < 12; i++) {
-      const monthIndex = (currentMonth + i) % 12;
-      availableMonths.push(months[monthIndex]);
+      const date = new Date(currentYear, currentMonth + i, 1);
+      const monthIndex = date.getMonth();
+      const year = date.getFullYear();
+      const yearShort = year.toString().slice(-2);
+
+      availableMonths.push({
+        value: `${monthNames[monthIndex]} ${yearShort}`, // Formato: "jul 25"
+        label: `${monthLabels[monthIndex]} ${year}` // Display: "Julho 2025"
+      });
     }
-    
+
     return availableMonths;
   };
 
@@ -55,8 +69,8 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
   useEffect(() => {
     if (isOpen) {
       loadBusinesses();
-      // Definir mês atual como padrão
-      setSelectedMonth(availableMonths[0]);
+      // Definir mês atual como padrão (usar o value, não o objeto)
+      setSelectedMonth(availableMonths[0]?.value || '');
     }
   }, [isOpen]);
 
@@ -125,7 +139,7 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
         setSelectedBusiness(null);
         setCampaignName('');
         setQuantidadeCriadores('');
-        setSelectedMonth(availableMonths[0]);
+        setSelectedMonth(availableMonths[0]?.value || '');
         
         onSuccess();
         onClose();
@@ -245,8 +259,8 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
                 required
               >
                 {availableMonths.map((month) => (
-                  <option key={month} value={month}>
-                    {month} {new Date().getFullYear()}
+                  <option key={month.value} value={month.value}>
+                    {month.label}
                   </option>
                 ))}
               </select>
