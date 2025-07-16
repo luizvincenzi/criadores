@@ -12,10 +12,14 @@ export async function POST(request: NextRequest) {
   try {
     const { businessData, campaignName, selectedMonth, quantidadeCriadores, user } = await request.json();
 
+    // Converter selectedMonth para month_year_id
+    const monthYearId = parseInt(selectedMonth); // selectedMonth agora vem como "202507"
+
     console.log('➕ Adicionando nova campanha via Supabase:', {
       businessName: businessData.nome,
       campaignName,
       selectedMonth,
+      monthYearId,
       quantidadeCriadores
     });
 
@@ -23,6 +27,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: 'Dados obrigatórios: business, nome da campanha, mês e quantidade de criadores'
+      });
+    }
+
+    if (!monthYearId || monthYearId < 202001 || monthYearId > 203012) {
+      return NextResponse.json({
+        success: false,
+        error: 'Formato de mês inválido. Use YYYYMM (ex: 202507)'
       });
     }
 
@@ -53,16 +64,22 @@ export async function POST(request: NextRequest) {
     // Verificar se já existe campanha para este business neste mês
     const { data: existingCampaign, error: checkError } = await supabase
       .from('campaigns')
-      .select('id, title')
+      .select('id, title, month_year_id')
       .eq('business_id', businessId)
-      .eq('month', selectedMonth)
+      .eq('month_year_id', monthYearId)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
     if (existingCampaign) {
+      // Converter month_year_id de volta para display
+      const year = Math.floor(monthYearId / 100);
+      const month = monthYearId % 100;
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const monthDisplay = `${monthNames[month - 1]} ${year}`;
+
       return NextResponse.json({
         success: false,
-        error: `Já existe uma campanha para este business no mês ${selectedMonth}: "${existingCampaign.title}"`
+        error: `Já existe uma campanha para este business em ${monthDisplay}: "${existingCampaign.title}"`
       });
     }
 
@@ -72,7 +89,8 @@ export async function POST(request: NextRequest) {
       business_id: businessId,
       title: campaignName,
       description: `Campanha ${campaignName} para ${businessData.nome}`,
-      month: selectedMonth,
+      month: selectedMonth, // Manter para compatibilidade
+      month_year_id: monthYearId, // Nova coluna principal
       status: 'Reunião de briefing',
       budget: 0,
       objectives: {
@@ -192,13 +210,20 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Campanha criada com sucesso!');
 
+    // Converter month_year_id para display
+    const year = Math.floor(monthYearId / 100);
+    const month = monthYearId % 100;
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const monthDisplay = `${monthNames[month - 1]} de ${year}`;
+
     return NextResponse.json({
       success: true,
       message: `Campanha "${campaignName}" criada com sucesso!`,
       data: {
         campaignName,
         businessName: businessData.nome,
-        month: selectedMonth,
+        month: monthDisplay,
+        monthYearId,
         quantidadeCriadores: parseInt(quantidadeCriadores),
         campaignId: campaign.id,
         rowsCreated: parseInt(quantidadeCriadores)
