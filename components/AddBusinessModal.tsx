@@ -112,12 +112,29 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
       console.log('🚀 Enviando dados via API...');
 
       // Usar a API em vez de chamar a função diretamente
-      const response = await fetch('/api/add-business', {
+      const response = await fetch('/api/supabase/businesses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          nome: formData.businessName,
+          categoria: formData.category,
+          planoAtual: formData.currentPlan,
+          comercial: formData.comercial,
+          nomeResponsavel: formData.nomeResponsavel,
+          cidade: formData.cidade,
+          whatsappResponsavel: formData.whatsappResponsavel,
+          prospeccao: formData.prospeccao || 'Reunião Briefing',
+          responsavel: formData.responsavel,
+          instagram: formData.instagram,
+          grupoWhatsappCriado: formData.grupoWhatsappCriado,
+          contratoAssinadoEnviado: formData.contratoAssinadoEnviado,
+          dataAssinaturaContrato: formData.dataAssinaturaContrato,
+          contratoValidoAte: formData.contratoValidoAte,
+          relatedFiles: formData.relatedFiles,
+          notes: formData.notes
+        })
       });
 
       const result = await response.json();
@@ -175,17 +192,17 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden">
         {/* Header Fixo */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-blue-600 text-white rounded-t-2xl">
           <div>
             <h2 className="text-2xl font-bold">Adicionar Novo Negócio</h2>
-            <p className="text-green-100 mt-1">
+            <p className="text-blue-100 mt-1">
               Preencha as informações do negócio para adicionar à base
             </p>
           </div>
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-3 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 backdrop-blur-sm border border-white/30"
+            className="p-3 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50"
           >
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -198,10 +215,15 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
           <form id="business-form" onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Informações Básicas */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações Básicas</h3>
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                Informações Básicas
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-blue-700 mb-2">
                     Nome do Negócio *
                   </label>
                   <input
@@ -219,7 +241,7 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-blue-700 mb-2">
                     Categoria *
                   </label>
                   <select
@@ -272,7 +294,12 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
 
             {/* Informações de Contato */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações de Contato</h3>
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Informações de Contato
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -340,7 +367,12 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
 
             {/* Informações Adicionais */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações Adicionais</h3>
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Informações Adicionais
+              </h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -475,7 +507,7 @@ export default function AddBusinessModal({ isOpen, onClose, onSuccess }: AddBusi
                 console.log('🖱️ Botão de adicionar negócio clicado!', e);
                 handleSubmit(e);
               }}
-              className="px-8 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl hover:from-green-700 hover:to-blue-700 transition-all duration-200 font-medium disabled:opacity-50 flex items-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+              className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium disabled:opacity-50 flex items-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
             >
               {isSubmitting ? (
                 <>

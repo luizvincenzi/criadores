@@ -116,13 +116,40 @@ export default function AddCreatorModal({ isOpen, onClose, onSuccess }: AddCreat
     try {
       console.log('🚀 Enviando dados via API...');
 
-      // Usar a API para adicionar criador
-      const response = await fetch('/api/add-creator', {
+      // Preparar dados para a API do Supabase
+      const creatorData = {
+        name: formData.nome,
+        contact_info: {
+          whatsapp: formData.whatsapp
+        },
+        profile_info: {
+          biography: formData.descricaoCriador,
+          category: formData.perfil,
+          location: {
+            city: formData.cidade
+          }
+        },
+        social_media: {
+          instagram: {
+            username: formData.instagram,
+            followers: parseInt(formData.seguidoresInstagram.replace(/[^\d]/g, '')) || 0
+          },
+          tiktok: {
+            username: formData.tiktok,
+            followers: parseInt(formData.seguidoresTiktok.replace(/[^\d]/g, '')) || 0
+          }
+        },
+        status: formData.status,
+        notes: `${formData.notes}\n\nDados adicionais:\n- Prospecção: ${formData.prospeccao}\n- Responsável: ${formData.responsavel}\n- Onboarding: ${formData.onboardingInicial}\n- Preferências: ${formData.preferencias}\n- Não aceita: ${formData.naoAceita}`
+      };
+
+      // Usar a API do Supabase para adicionar criador
+      const response = await fetch('/api/supabase/creators', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(creatorData)
       });
 
       const result = await response.json();

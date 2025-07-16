@@ -1,10 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getCampaignJourneyData, CampaignJourneyData } from '@/app/actions/sheetsActions';
+import { fetchCampaignJourney, isUsingSupabase } from '@/lib/dataSource';
 import { useAuthStore } from '@/store/authStore';
 import CampaignJourneyKanban from '@/components/CampaignJourneyKanban';
 import Button from '@/components/ui/Button';
+
+// Tipo para dados da jornada de campanhas
+interface CampaignJourneyData {
+  id: string;
+  businessName: string;
+  businessId: string;
+  mes: string;
+  journeyStage: string;
+  totalCampanhas: number;
+  quantidadeCriadores: number;
+  criadores: any[];
+  campanhas: any[];
+}
 
 export default function JornadaPage() {
   const [campaigns, setCampaigns] = useState<CampaignJourneyData[]>([]);
@@ -15,15 +28,29 @@ export default function JornadaPage() {
   const loadCampaignJourney = async () => {
     setLoading(true);
     try {
-      console.log('🚀 Carregando campanhas da jornada...');
-      const data = await getCampaignJourneyData();
+      console.log(`🚀 Carregando campanhas da jornada do ${isUsingSupabase() ? 'Supabase' : 'Google Sheets'}...`);
+
+      const data = await fetchCampaignJourney();
       setCampaigns(data);
+
       console.log(`✅ ${data.length} campanhas carregadas na jornada`);
       console.log('📊 Campanhas carregadas:', data.map(c => ({
         businessName: c.businessName,
         mes: c.mes,
-        id: c.id
+        id: c.id,
+        journeyStage: c.journeyStage,
+        totalCampanhas: c.totalCampanhas
       })));
+
+      // Debug adicional
+      console.log('🔍 Dados brutos recebidos:', data);
+
+      // Verificar se há campanhas por estágio
+      const stages = ['Reunião de briefing', 'Agendamentos', 'Entrega final', 'Finalizado'];
+      stages.forEach(stage => {
+        const campaignsInStage = data.filter(c => c.journeyStage === stage);
+        console.log(`📋 ${stage}: ${campaignsInStage.length} campanhas`);
+      });
     } catch (error) {
       console.error('❌ Erro ao carregar campanhas da jornada:', error);
     } finally {

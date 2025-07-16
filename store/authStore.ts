@@ -3,10 +3,11 @@ import { persist } from 'zustand/middleware';
 
 interface User {
   id: string;
-  name: string;
+  full_name: string;
   email: string;
   role: 'admin' | 'user';
-  avatar?: string;
+  permissions?: string[];
+  organization?: any;
 }
 
 interface AuthState {
@@ -29,21 +30,14 @@ export const useAuthStore = create<AuthState>()(
           user: userData,
         });
 
-        // Registra o login no log de auditoria
+        // Registra o login no log de auditoria (Supabase)
         setTimeout(() => {
-          import('@/app/actions/sheetsActions').then(({ logAction, createAuditLogSheet }) => {
-            createAuditLogSheet().then(() => {
-              logAction({
-                action: 'user_login',
-                entity_type: 'user',
-                entity_id: userData.id,
-                entity_name: userData.name,
-                user_id: userData.id,
-                user_name: userData.name,
-                details: `Login realizado - ${userData.email} (${userData.role})`
-              }).catch(error => {
-                console.error('Erro ao registrar log de login:', error);
-              });
+          import('@/lib/auditLogger').then(({ logUserLogin }) => {
+            logUserLogin(userData.email, {
+              role: userData.role,
+              organization: userData.organization?.name || 'CRM Criadores'
+            }).catch(error => {
+              console.error('Erro ao registrar log de login:', error);
             });
           });
         }, 100);
@@ -57,19 +51,11 @@ export const useAuthStore = create<AuthState>()(
           user: null,
         });
 
-        // Registra o logout no log de auditoria
+        // Registra o logout no log de auditoria (Supabase)
         if (currentUser) {
           setTimeout(() => {
-            import('@/app/actions/sheetsActions').then(({ logAction }) => {
-              logAction({
-                action: 'user_logout',
-                entity_type: 'user',
-                entity_id: currentUser.id,
-                entity_name: currentUser.name,
-                user_id: currentUser.id,
-                user_name: currentUser.name,
-                details: `Logout realizado - ${currentUser.email}`
-              }).catch(error => {
+            import('@/lib/auditLogger').then(({ logUserLogout }) => {
+              logUserLogout(currentUser.email).catch(error => {
                 console.error('Erro ao registrar log de logout:', error);
               });
             });

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import AuthGuard from '@/components/AuthGuard';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     else if (pathname.includes('creators')) setActiveSection('creators');
     else if (pathname.includes('campaigns')) setActiveSection('campaigns');
     else if (pathname.includes('jornada')) setActiveSection('jornada');
+
     else setActiveSection('dashboard');
   }, [pathname]);
 
@@ -103,7 +105,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-surface-dim">
+      <NotificationProvider>
+        <div className="min-h-screen bg-surface-dim">
       {/* Top Header - Fixo e Compacto */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-outline-variant">
         <div className="px-6 py-3 pb-0">
@@ -176,6 +179,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </main>
       </div>
+      </NotificationProvider>
     </AuthGuard>
   );
 }

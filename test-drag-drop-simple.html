@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Simples - Drag and Drop</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Funcionalidade da Jornada</h1>
+    
+    <button onclick="testJourneyData()">1. Testar Dados da Jornada</button>
+    <button onclick="testStatusUpdate()">2. Testar Atualização de Status</button>
+    <button onclick="testDragDrop()">3. Simular Drag & Drop</button>
+    
+    <div id="result">Clique em um botão para testar...</div>
+
+    <script>
+        async function testJourneyData() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando dados da jornada...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/test-journey');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>✅ Dados da Jornada</h3>
+                    <p><strong>Total de campanhas:</strong> ${data.totalCampaigns}</p>
+                    <h4>Campanhas por estágio:</h4>
+                    <ul>
+                        <li>Reunião de briefing: ${data.campaigns.filter(c => c.journeyStage === 'Reunião de briefing').length}</li>
+                        <li>Agendamentos: ${data.campaigns.filter(c => c.journeyStage === 'Agendamentos').length}</li>
+                        <li>Entrega final: ${data.campaigns.filter(c => c.journeyStage === 'Entrega final').length}</li>
+                        <li>Finalizado: ${data.campaigns.filter(c => c.journeyStage === 'Finalizado').length}</li>
+                    </ul>
+                    <details>
+                        <summary>Ver dados completos</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testStatusUpdate() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando atualização de status...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/test-status-update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        businessName: 'Boussolé',
+                        mes: '2025-09',
+                        newStatus: 'Entrega final'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ Atualização de Status</h3>
+                        <p><strong>Mensagem:</strong> ${data.message}</p>
+                        <p><strong>Business:</strong> ${data.business?.name}</p>
+                        <p><strong>Campanhas encontradas:</strong> ${data.campaignsFound}</p>
+                        <p><strong>Campanhas atualizadas:</strong> ${data.campaignsUpdated}</p>
+                        <details>
+                            <summary>Ver detalhes</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro na atualização: ${data.error}`;
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testDragDrop() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Simulando drag & drop...';
+            
+            try {
+                // Primeiro, buscar dados da jornada
+                const journeyResponse = await fetch('http://localhost:3001/api/test-journey');
+                const journeyData = await journeyResponse.json();
+                
+                if (journeyData.campaigns.length === 0) {
+                    result.innerHTML = '❌ Nenhuma campanha encontrada para testar drag & drop';
+                    return;
+                }
+                
+                // Pegar a primeira campanha
+                const campaign = journeyData.campaigns[0];
+                const currentStatus = campaign.journeyStage;
+                
+                // Definir próximo status
+                const statusFlow = {
+                    'Reunião de briefing': 'Agendamentos',
+                    'Agendamentos': 'Entrega final',
+                    'Entrega final': 'Finalizado',
+                    'Finalizado': 'Reunião de briefing'
+                };
+                
+                const newStatus = statusFlow[currentStatus];
+                
+                // Simular drag & drop
+                const dragResponse = await fetch('http://localhost:3001/api/supabase/campaigns/status', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        businessName: campaign.businessName,
+                        mes: campaign.mes,
+                        newStatus: newStatus,
+                        userEmail: 'teste-drag-drop@example.com'
+                    })
+                });
+                
+                const dragResult = await dragResponse.json();
+                
+                result.innerHTML = `
+                    <h3>🎯 Simulação de Drag & Drop</h3>
+                    <p><strong>Campanha:</strong> ${campaign.businessName} - ${campaign.mes}</p>
+                    <p><strong>Status anterior:</strong> ${currentStatus}</p>
+                    <p><strong>Novo status:</strong> ${newStatus}</p>
+                    <p><strong>Resultado:</strong> ${dragResult.success ? '✅ Sucesso' : '❌ Falhou'}</p>
+                    ${dragResult.message ? `<p><strong>Mensagem:</strong> ${dragResult.message}</p>` : ''}
+                    <details>
+                        <summary>Ver detalhes</summary>
+                        <pre>${JSON.stringify(dragResult, null, 2)}</pre>
+                    </details>
+                `;
+                
+                // Aguardar um pouco e verificar se a mudança foi aplicada
+                setTimeout(async () => {
+                    const verifyResponse = await fetch('http://localhost:3001/api/test-journey');
+                    const verifyData = await verifyResponse.json();
+                    const updatedCampaign = verifyData.campaigns.find(c => 
+                        c.businessName === campaign.businessName && c.mes === campaign.mes
+                    );
+                    
+                    if (updatedCampaign && updatedCampaign.journeyStage === newStatus) {
+                        result.innerHTML += '<p>🎉 <strong>Verificação:</strong> Status atualizado com sucesso no banco!</p>';
+                    } else {
+                        result.innerHTML += '<p>⚠️ <strong>Verificação:</strong> Status pode não ter sido atualizado no banco.</p>';
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                result.innerHTML = `❌ Erro no drag & drop: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

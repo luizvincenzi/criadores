@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste - Adicionar Criador à Campanha</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button.success { background: #28a745; }
+        button.danger { background: #dc3545; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .creator-list { max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        .creator-item { padding: 5px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .creator-item:hover { background: #f0f0f0; }
+        .creator-item.selected { background: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Teste - Adicionar Criador à Campanha</h1>
+    
+    <div class="test-section">
+        <h3>1. Testar Creator Slots</h3>
+        <button onclick="testCreatorSlots()">Buscar Slots da Campanha</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Listar Criadores Disponíveis</h3>
+        <button onclick="listAvailableCreators()">Listar Criadores</button>
+        <div id="creators-list" class="creator-list" style="display: none;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Adicionar Criador Selecionado</h3>
+        <button class="success" onclick="addSelectedCreator()" id="add-btn" disabled>Adicionar Criador</button>
+        <p id="selected-creator">Nenhum criador selecionado</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Teste Completo</h3>
+        <button onclick="runFullTest()">Executar Fluxo Completo</button>
+    </div>
+    
+    <div id="result">Clique em um botão para testar...</div>
+
+    <script>
+        let selectedCreator = null;
+        
+        async function testCreatorSlots() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando creator slots...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/creator-slots?businessName=Boussolé&mes=2025-07&quantidadeContratada=6');
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ Creator Slots</h3>
+                        <p><strong>Slots criados:</strong> ${data.slots?.length || 0}</p>
+                        <p><strong>Criadores disponíveis:</strong> ${data.availableCreators?.length || 0}</p>
+                        <p><strong>Campaign ID:</strong> ${data.campaignId}</p>
+                        <details>
+                            <summary>Ver dados completos</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro: ${data.error}`;
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function listAvailableCreators() {
+            const result = document.getElementById('result');
+            const creatorsList = document.getElementById('creators-list');
+            
+            result.innerHTML = '🔄 Buscando criadores disponíveis...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/creators/available');
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    creatorsList.style.display = 'block';
+                    creatorsList.innerHTML = data.data.map(creator => `
+                        <div class="creator-item" onclick="selectCreator('${creator.id}', '${creator.nome}')">
+                            <strong>${creator.nome}</strong> - ${creator.instagram} - ${creator.seguidores} seguidores
+                        </div>
+                    `).join('');
+                    
+                    result.innerHTML = `
+                        <h3>✅ Criadores Disponíveis</h3>
+                        <p><strong>Total:</strong> ${data.data.length} criadores</p>
+                        <p>Clique em um criador na lista acima para selecioná-lo</p>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro: ${data.error}`;
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        function selectCreator(id, name) {
+            selectedCreator = { id, name };
+            document.getElementById('selected-creator').textContent = `Selecionado: ${name}`;
+            document.getElementById('add-btn').disabled = false;
+            
+            // Atualizar visual da seleção
+            document.querySelectorAll('.creator-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+        
+        async function addSelectedCreator() {
+            if (!selectedCreator) {
+                alert('Selecione um criador primeiro');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            result.innerHTML = `🔄 Adicionando ${selectedCreator.name} à campanha...`;
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/campaign-creators/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        businessName: 'Boussolé',
+                        mes: '2025-07',
+                        creatorId: selectedCreator.id,
+                        creatorData: {
+                            id: selectedCreator.id,
+                            nome: selectedCreator.name
+                        },
+                        userEmail: 'teste@example.com'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ Criador Adicionado</h3>
+                        <p><strong>Criador:</strong> ${data.data?.creatorName}</p>
+                        <p><strong>Campanha:</strong> ${data.data?.campaignTitle}</p>
+                        <p><strong>Relation ID:</strong> ${data.data?.relationId}</p>
+                        <p><strong>Mensagem:</strong> ${data.message}</p>
+                        <details>
+                            <summary>Ver detalhes</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                    
+                    // Resetar seleção
+                    selectedCreator = null;
+                    document.getElementById('selected-creator').textContent = 'Nenhum criador selecionado';
+                    document.getElementById('add-btn').disabled = true;
+                    
+                } else {
+                    result.innerHTML = `❌ Erro ao adicionar: ${data.error}`;
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function runFullTest() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Executando teste completo...';
+            
+            try {
+                // 1. Testar creator slots
+                result.innerHTML = '🔄 1/3 - Testando creator slots...';
+                await testCreatorSlots();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 2. Listar criadores
+                result.innerHTML = '🔄 2/3 - Listando criadores...';
+                await listAvailableCreators();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 3. Resultado final
+                result.innerHTML = `
+                    <h3>🎯 Teste Completo Finalizado</h3>
+                    <p>✅ Creator slots testado</p>
+                    <p>✅ Criadores listados</p>
+                    <p>📋 Selecione um criador e clique em "Adicionar Criador" para completar o teste</p>
+                `;
+                
+            } catch (error) {
+                result.innerHTML = `❌ Erro no teste completo: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

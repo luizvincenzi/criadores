@@ -274,18 +274,57 @@ export const useBusinessStore = create<BusinessState>()(
       loadBusinessesFromSheet: async () => {
         set({ loading: true, error: null });
         try {
-          const { getBusinessesData, createAuditLogSheet, getLatestBusinessStatuses } = await import('@/app/actions/sheetsActions');
+          // Usar sistema de data source (Supabase ou Google Sheets)
+          const { fetchBusinesses, isUsingSupabase } = await import('@/lib/dataSource');
 
-          // Garante que a aba de auditoria existe
-          await createAuditLogSheet();
+          console.log(`📊 Carregando negócios do ${isUsingSupabase() ? 'Supabase' : 'Google Sheets'}...`);
 
-          // Busca todos os dados dos negócios
-          const businessesData = await getBusinessesData();
+          if (isUsingSupabase()) {
+            // Usar dados do Supabase
+            const businessesData = await fetchBusinesses();
 
-          // Busca os status mais recentes do Audit_Log
-          const latestStatuses = await getLatestBusinessStatuses();
+            // Transformar dados do Supabase para formato do store
+            const transformedBusinesses: Business[] = businessesData.map((business: any) => ({
+              id: business.id,
+              businessName: business.name,
+              categoria: business.category || '',
+              plano: business.current_plan || '',
+              descricao: business.description || '',
+              responsavel: business.contact_info?.responsible_name || '',
+              whatsapp: business.contact_info?.whatsapp || '',
+              email: business.contact_info?.email || '',
+              observacoes: business.notes || '',
+              dataInicio: business.created_at || '',
+              dataFim: '',
+              row: 0, // Não aplicável no Supabase
+              journeyStage: business.status as Business['journeyStage'] || 'Reunião Briefing',
+              nextAction: '',
+              contactDate: '',
+              value: 0,
+              description: business.description || '',
+              creators: [],
+              campaigns: [],
+              lastUpdate: business.updated_at,
+              priority: 'medium'
+            }));
 
-          if (businessesData.length > 0) {
+            set({ businesses: transformedBusinesses, loading: false });
+            console.log(`✅ ${transformedBusinesses.length} negócios carregados do Supabase`);
+
+          } else {
+            // Usar dados do Google Sheets (código original)
+            const { getBusinessesData, createAuditLogSheet, getLatestBusinessStatuses } = await import('@/app/actions/sheetsActions');
+
+            // Garante que a aba de auditoria existe
+            await createAuditLogSheet();
+
+            // Busca todos os dados dos negócios
+            const businessesData = await getBusinessesData();
+
+            // Busca os status mais recentes do Audit_Log
+            const latestStatuses = await getLatestBusinessStatuses();
+
+            if (businessesData.length > 0) {
             const businesses: Business[] = businessesData.map((data) => {
               // Converte os dados da planilha para o formato do Business
               const business: Business = {
@@ -355,13 +394,14 @@ export const useBusinessStore = create<BusinessState>()(
                 }
               });
             });
-          } else {
-            // Se não conseguir carregar da planilha, mantém os dados mock
-            set({ loading: false });
+            } else {
+              // Se não conseguir carregar da planilha, mantém os dados mock
+              set({ loading: false });
+            }
           }
         } catch (error) {
-          console.error('Erro ao carregar negócios da planilha:', error);
-          set({ error: 'Erro ao carregar dados da planilha', loading: false });
+          console.error('Erro ao carregar negócios:', error);
+          set({ error: 'Erro ao carregar dados', loading: false });
         }
       },
 

@@ -1,8 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CampaignJourneyData } from '@/app/actions/sheetsActions';
 import CampaignJourneyModal from './CampaignJourneyModal';
+
+// Tipo local para dados da jornada de campanhas
+interface CampaignJourneyData {
+  id: string;
+  businessName: string;
+  businessId: string;
+  mes: string;
+  journeyStage: string;
+  totalCampanhas: number;
+  quantidadeCriadores: number;
+  criadores: any[];
+  campanhas: any[];
+}
 import {
   DndContext,
   DragEndEvent,
@@ -129,11 +141,9 @@ function SortableCampaignCard({
               {campaign.quantidadeCriadores}
             </span>
           </div>
-          {campaign.businessData?.planoAtual && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 truncate max-w-20">
-              {campaign.businessData.planoAtual}
-            </span>
-          )}
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 truncate max-w-20">
+            Ativa
+          </span>
         </div>
       </div>
 
@@ -164,6 +174,17 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Debug: Log das campanhas recebidas
+  console.log('🎯 CampaignJourneyKanban recebeu:', {
+    totalCampaigns: campaigns.length,
+    campaigns: campaigns.map(c => ({
+      id: c.id,
+      businessName: c.businessName,
+      mes: c.mes,
+      journeyStage: c.journeyStage
+    }))
+  });
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -174,7 +195,7 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
     })
   );
 
-  // Agrupar campanhas por estágio
+  // Agrupar campanhas por estágio (sem Finalizado)
   const stages = [
     {
       id: 'Reunião de briefing',
@@ -220,6 +241,9 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
       color: 'bg-white border-gray-200 shadow-sm'
     }
   ];
+
+  // Contar campanhas finalizadas
+  const finalizadasCount = campaigns.filter(campaign => campaign.journeyStage === 'Finalizado').length;
 
   const getCampaignsByStage = (stageId: string) => {
     console.log(`🔍 Filtrando campanhas para stage: "${stageId}"`);
@@ -297,17 +321,16 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
     try {
       console.log(`🔄 Movendo campanha via drag&drop: ${activeCampaign.businessName} - ${activeCampaign.mes}: ${activeCampaign.journeyStage} → ${newStatus}`);
 
-      const response = await fetch('/api/update-campaign-status-audit', {
-        method: 'POST',
+      const response = await fetch('/api/supabase/campaigns/status', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           businessName: activeCampaign.businessName,
           mes: activeCampaign.mes,
-          oldStatus: activeCampaign.journeyStage,
           newStatus: newStatus,
-          user: 'Drag&Drop'
+          userEmail: 'Drag&Drop'
         })
       });
 
@@ -337,6 +360,24 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
+        {/* Contador de Campanhas Finalizadas */}
+        {finalizadasCount > 0 && (
+          <div className="mb-4 bg-gray-100 rounded-xl p-4 border border-gray-200">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-8 h-8 bg-gray-500 rounded-xl flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                  <path d="M9 12l2 2 4-4"/>
+                  <circle cx="12" cy="12" r="10"/>
+                </svg>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-700">{finalizadasCount}</div>
+                <div className="text-sm text-gray-600">Campanhas Finalizadas</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {stages.map((stage) => {
           const stageCampaigns = getCampaignsByStage(stage.id);

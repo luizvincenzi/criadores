@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste - Criar Campanha</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button.success { background: #28a745; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .form-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Teste - Criar Campanha com Criadores</h1>
+    
+    <div class="form-section">
+        <h3>Criar Nova Campanha</h3>
+        
+        <label>Business ID:</label>
+        <input type="text" id="business_id" value="55310ebd-0e0d-492e-8c34-cd4740000000" placeholder="ID do business (Boussolé)">
+        
+        <label>Título da Campanha:</label>
+        <input type="text" id="title" value="Campanha Teste - Criadores" placeholder="Título da campanha">
+        
+        <label>Mês:</label>
+        <input type="text" id="month" value="2025-07" placeholder="2025-07">
+        
+        <label>Quantidade de Criadores:</label>
+        <input type="number" id="creators_count" value="6" min="1" max="20">
+        
+        <label>Orçamento:</label>
+        <input type="number" id="budget" value="5000" min="0">
+        
+        <label>Descrição:</label>
+        <textarea id="description" placeholder="Descrição da campanha">Campanha de teste para verificar a funcionalidade de criadores na jornada</textarea>
+        
+        <button class="success" onclick="createCampaign()">Criar Campanha</button>
+    </div>
+    
+    <div class="form-section">
+        <h3>Testar Fluxo Completo</h3>
+        <button onclick="testFullFlow()">1. Criar Campanha → 2. Ver na Jornada → 3. Adicionar Criadores</button>
+    </div>
+    
+    <div id="result">Preencha os dados e clique em "Criar Campanha"...</div>
+
+    <script>
+        async function createCampaign() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Criando campanha...';
+            
+            const campaignData = {
+                business_id: document.getElementById('business_id').value,
+                title: document.getElementById('title').value,
+                month: document.getElementById('month').value,
+                creators_count: parseInt(document.getElementById('creators_count').value),
+                budget: parseFloat(document.getElementById('budget').value),
+                description: document.getElementById('description').value,
+                status: 'Reunião de briefing'
+            };
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/campaigns', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(campaignData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ Campanha Criada</h3>
+                        <p><strong>ID:</strong> ${data.data?.id}</p>
+                        <p><strong>Título:</strong> ${data.data?.title}</p>
+                        <p><strong>Business:</strong> ${data.data?.business?.name}</p>
+                        <p><strong>Mês:</strong> ${data.data?.month}</p>
+                        <p><strong>Status:</strong> ${data.data?.status}</p>
+                        <p><strong>Criadores:</strong> ${campaignData.creators_count}</p>
+                        <p><strong>Orçamento:</strong> R$ ${campaignData.budget}</p>
+                        
+                        <h4>Próximos Passos:</h4>
+                        <ol>
+                            <li>Abrir a <a href="http://localhost:3001/jornada" target="_blank">Jornada</a></li>
+                            <li>Encontrar a campanha "${data.data?.title}"</li>
+                            <li>Clicar em "Ver Detalhes"</li>
+                            <li>Selecionar ${campaignData.creators_count} criadores</li>
+                        </ol>
+                        
+                        <details>
+                            <summary>Ver dados completos</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro ao criar campanha: ${data.error}`;
+                }
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testFullFlow() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Executando fluxo completo...';
+            
+            try {
+                // 1. Criar campanha
+                result.innerHTML = '🔄 1/3 - Criando campanha...';
+                await createCampaign();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // 2. Verificar se aparece na jornada
+                result.innerHTML += '<br>🔄 2/3 - Verificando na jornada...';
+                const journeyResponse = await fetch('http://localhost:3001/api/test-journey');
+                const journeyData = await journeyResponse.json();
+                
+                const testCampaign = journeyData.campaigns?.find(c => 
+                    c.businessName.includes('Teste') || c.businessName.includes('Boussolé')
+                );
+                
+                if (testCampaign) {
+                    result.innerHTML += '<br>✅ Campanha encontrada na jornada!';
+                } else {
+                    result.innerHTML += '<br>⚠️ Campanha não encontrada na jornada';
+                }
+                
+                // 3. Testar creator slots
+                result.innerHTML += '<br>🔄 3/3 - Testando creator slots...';
+                const slotsResponse = await fetch(`http://localhost:3001/api/supabase/creator-slots?businessName=Boussolé&mes=2025-07&quantidadeContratada=6`);
+                const slotsData = await slotsResponse.json();
+                
+                if (slotsData.success) {
+                    result.innerHTML += `<br>✅ Creator slots funcionando! ${slotsData.slots?.length || 0} slots, ${slotsData.availableCreators?.length || 0} criadores disponíveis`;
+                } else {
+                    result.innerHTML += `<br>❌ Erro nos creator slots: ${slotsData.error}`;
+                }
+                
+                result.innerHTML += `
+                    <br><br><h3>🎯 Fluxo Completo Testado</h3>
+                    <p>✅ Campanha criada</p>
+                    <p>${testCampaign ? '✅' : '⚠️'} Campanha na jornada</p>
+                    <p>${slotsData.success ? '✅' : '❌'} Creator slots funcionando</p>
+                    <p><strong>Agora você pode:</strong></p>
+                    <ol>
+                        <li>Abrir a <a href="http://localhost:3001/jornada" target="_blank">Jornada</a></li>
+                        <li>Clicar em "Ver Detalhes" na campanha</li>
+                        <li>Selecionar criadores na lista</li>
+                    </ol>
+                `;
+                
+            } catch (error) {
+                result.innerHTML += `<br>❌ Erro no fluxo: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

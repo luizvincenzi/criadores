@@ -1,8 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GroupedCampaignData } from '@/app/actions/sheetsActions';
 import Button from '@/components/ui/Button';
+
+// Tipo para dados agrupados de campanhas
+interface GroupedCampaignData {
+  businessName: string;
+  businessId: string;
+  month: string;
+  campaigns: any[];
+  criadores: string[];
+  totalCreators: number;
+  status: string;
+  mes?: string; // Para compatibilidade
+  campanhas?: any[]; // Para compatibilidade
+  quantidadeCriadores?: number; // Para compatibilidade
+  totalCampanhas?: number; // Para compatibilidade
+}
 
 interface CampaignGroupModalProps {
   campaignGroup: GroupedCampaignData | null;
@@ -178,7 +192,7 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {campaignGroup.mes}
+                    {campaignGroup.mes || campaignGroup.month || 'N/A'}
                   </span>
                   <div
                     className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"
@@ -200,13 +214,13 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    {campaignGroup.quantidadeCriadores} criadores contratados
+                    {campaignGroup.quantidadeCriadores || campaignGroup.totalCreators || (campaignGroup.criadores || []).length || 0} criadores contratados
                   </span>
                   <span className="flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    {campaignGroup.totalCampanhas} campanhas
+                    {campaignGroup.totalCampanhas || (campaignGroup.campanhas || campaignGroup.campaigns || []).length || 0} campanhas
                   </span>
                 </div>
               </div>
@@ -294,8 +308,8 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {campaignGroup.criadores.map((criador, index) => (
-                  <div key={index} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                {(campaignGroup.criadores || []).map((criador, index) => (
+                  <div key={`criador-${index}-${criador}`} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,8 +361,8 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {campaignGroup.campanhas.map((campaign, index) => (
-                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      {(campaignGroup.campanhas || campaignGroup.campaigns || []).map((campaign, index) => (
+                        <tr key={`campaign-${index}-${campaign.id || campaign.campanha || index}`} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">
                               {campaign.campanha || campaign.nome}

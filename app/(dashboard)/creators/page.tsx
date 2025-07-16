@@ -1,7 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getCreatorsData, CreatorData } from '@/app/actions/sheetsActions';
+// Tipo para dados de criadores
+interface CreatorData {
+  id: string;
+  nome: string;
+  cidade: string;
+  status: string;
+  seguidores_instagram: string;
+  instagram: string;
+  whatsapp: string;
+  biografia?: string;
+  categoria?: string;
+}
+import { fetchCreators, isUsingSupabase } from '@/lib/dataSource';
 import CreatorModalNew from '@/components/CreatorModalNew';
 import AddCreatorModal from '@/components/AddCreatorModal';
 import Button from '@/components/ui/Button';
@@ -38,7 +50,9 @@ export default function CreatorsPage() {
   const loadCreators = async () => {
     setIsLoading(true);
     try {
-      const data = await getCreatorsData();
+      // Usar dados do Supabase (única fonte agora)
+      const data = await fetchCreators();
+
       // Ordenar alfabeticamente por nome
       const sortedCreators = data.sort((a: CreatorData, b: CreatorData) =>
         a.nome.localeCompare(b.nome)
@@ -74,6 +88,43 @@ export default function CreatorsPage() {
   const closeModal = () => {
     setSelectedCreator(null);
     setIsModalOpen(false);
+  };
+
+  const handleCreatorUpdated = async (updatedCreator: any) => {
+    console.log('🔄 Criador atualizado, recarregando lista...', updatedCreator);
+
+    // Recarregar a lista de criadores para refletir as mudanças
+    try {
+      if (isUsingSupabase()) {
+        const creatorsData = await fetchCreators();
+        setCreators(creatorsData);
+      } else {
+        await loadCreatorsFromSheet();
+        setCreators(storeCreators);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao recarregar criadores após atualização:', error);
+    }
+  };
+
+  const handleCreatorAdded = async () => {
+    console.log('🔄 Criador adicionado, recarregando lista...');
+
+    // Recarregar a lista de criadores para refletir as mudanças
+    try {
+      if (isUsingSupabase()) {
+        const creatorsData = await fetchCreators();
+        setCreators(creatorsData);
+      } else {
+        await loadCreatorsFromSheet();
+        setCreators(storeCreators);
+      }
+
+      // Fechar modal de adicionar
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error('❌ Erro ao recarregar criadores após adição:', error);
+    }
   };
 
   // Filtrar criadores - APENAS ATIVO e PRECISA ENGAJAR
@@ -118,7 +169,16 @@ export default function CreatorsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 mb-1">Criadores</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-xl font-bold text-gray-900">Criadores</h1>
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+              isUsingSupabase()
+                ? 'bg-green-100 text-green-800'
+                : 'bg-blue-100 text-blue-800'
+            }`}>
+              {isUsingSupabase() ? '🚀 Supabase' : '📊 Google Sheets'}
+            </span>
+          </div>
           <p className="text-sm text-gray-600">
             {filteredCreators.length} criadores encontrados
           </p>
@@ -376,16 +436,14 @@ export default function CreatorsPage() {
         creator={selectedCreator}
         isOpen={isModalOpen}
         onClose={closeModal}
+        onCreatorUpdated={handleCreatorUpdated}
       />
 
       {/* Modal de Adicionar Criador */}
       <AddCreatorModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => {
-          loadCreators(); // Recarrega a lista após adicionar
-          setIsAddModalOpen(false);
-        }}
+        onSuccess={handleCreatorAdded}
       />
     </div>
   );

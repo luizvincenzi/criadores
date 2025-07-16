@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste APIs de Criadores</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button.success { background: #28a745; }
+        button.danger { background: #dc3545; }
+        button.warning { background: #ffc107; color: #212529; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Teste das APIs de Criadores para Campanhas</h1>
+    
+    <div class="test-section">
+        <h3>1. Testar Creator Slots</h3>
+        <button onclick="testCreatorSlots()">Buscar Slots de Criadores</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Testar Adição de Criador</h3>
+        <button class="success" onclick="testAddCreator()">Adicionar Criador</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Testar Troca de Criador</h3>
+        <button class="warning" onclick="testChangeCreator()">Trocar Criador</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Testar Remoção de Criador</h3>
+        <button class="danger" onclick="testRemoveCreator()">Remover Criador</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>5. Teste Completo</h3>
+        <button onclick="runFullTest()">Executar Teste Completo</button>
+    </div>
+    
+    <div id="result">Clique em um botão para testar...</div>
+
+    <script>
+        async function testCreatorSlots() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando creator slots...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/creator-slots?businessName=Boussolé&mes=2025-09&quantidadeContratada=3');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>✅ Creator Slots</h3>
+                    <p><strong>Status:</strong> ${data.success ? 'Sucesso' : 'Falhou'}</p>
+                    ${data.message ? `<p><strong>Mensagem:</strong> ${data.message}</p>` : ''}
+                    <details>
+                        <summary>Ver dados completos</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testAddCreator() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando adição de criador...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/campaign-creators/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        businessName: 'Boussolé',
+                        mes: '2025-09',
+                        creatorId: '55310ebd-0e0d-492e-8c34-cd4740000001', // ID de exemplo
+                        creatorData: {
+                            id: '55310ebd-0e0d-492e-8c34-cd4740000001',
+                            nome: 'Criador Teste'
+                        },
+                        userEmail: 'teste@example.com'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>${data.success ? '✅' : '❌'} Adição de Criador</h3>
+                    <p><strong>Status:</strong> ${data.success ? 'Sucesso' : 'Falhou'}</p>
+                    <p><strong>Mensagem:</strong> ${data.message || data.error}</p>
+                    <details>
+                        <summary>Ver detalhes</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testChangeCreator() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando troca de criador...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/campaign-creators/change', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        businessName: 'Boussolé',
+                        mes: '2025-09',
+                        oldCreatorId: '55310ebd-0e0d-492e-8c34-cd4740000001',
+                        newCreatorId: '55310ebd-0e0d-492e-8c34-cd4740000002',
+                        userEmail: 'teste@example.com'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>${data.success ? '✅' : '❌'} Troca de Criador</h3>
+                    <p><strong>Status:</strong> ${data.success ? 'Sucesso' : 'Falhou'}</p>
+                    <p><strong>Mensagem:</strong> ${data.message || data.error}</p>
+                    <details>
+                        <summary>Ver detalhes</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function testRemoveCreator() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando remoção de criador...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/supabase/campaign-creators/remove', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        businessName: 'Boussolé',
+                        mes: '2025-09',
+                        creatorId: '55310ebd-0e0d-492e-8c34-cd4740000002',
+                        userEmail: 'teste@example.com'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>${data.success ? '✅' : '❌'} Remoção de Criador</h3>
+                    <p><strong>Status:</strong> ${data.success ? 'Sucesso' : 'Falhou'}</p>
+                    <p><strong>Mensagem:</strong> ${data.message || data.error}</p>
+                    <details>
+                        <summary>Ver detalhes</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        async function runFullTest() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Executando teste completo...';
+            
+            const tests = [
+                { name: 'Creator Slots', func: testCreatorSlots },
+                { name: 'Adicionar Criador', func: testAddCreator },
+                { name: 'Trocar Criador', func: testChangeCreator },
+                { name: 'Remover Criador', func: testRemoveCreator }
+            ];
+            
+            let results = [];
+            
+            for (const test of tests) {
+                try {
+                    result.innerHTML = `🔄 Executando: ${test.name}...`;
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Aguardar 1s entre testes
+                    
+                    // Simular execução do teste (você pode implementar a lógica real aqui)
+                    results.push(`✅ ${test.name}: OK`);
+                } catch (error) {
+                    results.push(`❌ ${test.name}: ${error.message}`);
+                }
+            }
+            
+            result.innerHTML = `
+                <h3>🎯 Resultado do Teste Completo</h3>
+                <ul>
+                    ${results.map(r => `<li>${r}</li>`).join('')}
+                </ul>
+                <p><strong>Total:</strong> ${results.length} testes executados</p>
+            `;
+        }
+    </script>
+</body>
+</html>

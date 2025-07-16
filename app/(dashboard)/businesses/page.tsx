@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useBusinessStore, Business } from '@/store/businessStore';
+import { fetchBusinesses, isUsingSupabase } from '@/lib/dataSource';
 import BusinessCard from '@/components/BusinessCard';
 import AddBusinessModal from '@/components/AddBusinessModal';
 import BusinessModalNew from '@/components/BusinessModalNew';
@@ -11,7 +12,9 @@ import Button from '@/components/ui/Button';
 
 
 export default function BusinessesPage() {
-  const { businesses, getStats, loadBusinessesFromSheet } = useBusinessStore();
+  const { businesses: storeBusinesses, getStats, loadBusinessesFromSheet } = useBusinessStore();
+  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
@@ -22,7 +25,44 @@ export default function BusinessesPage() {
     setIsClient(true);
   }, []);
 
-  const stats = isClient ? getStats() : {
+  // Carregar negócios do Supabase
+  useEffect(() => {
+    const loadBusinesses = async () => {
+      try {
+        setIsLoading(true);
+        console.log('🏢 Carregando negócios...');
+
+        if (isUsingSupabase()) {
+          const businessesData = await fetchBusinesses();
+          console.log('✅ Negócios carregados:', businessesData);
+          setBusinesses(businessesData);
+        } else {
+          // Fallback para store
+          await loadBusinessesFromSheet();
+          setBusinesses(storeBusinesses);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar negócios:', error);
+        setBusinesses([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBusinesses();
+  }, [loadBusinessesFromSheet, storeBusinesses]);
+
+  // Calcular estatísticas dos negócios carregados
+  const stats = isClient ? {
+    total: businesses.length,
+    byStage: businesses.reduce((acc: any, business: any) => {
+      const stage = business.prospeccao || business.status || 'Reunião Briefing';
+      acc[stage] = (acc[stage] || 0) + 1;
+      return acc;
+    }, {}),
+    totalValue: 0,
+    conversionRate: businesses.length > 0 ? Math.round((businesses.filter((b: any) => b.prospeccao === 'Entrega Final').length / businesses.length) * 100) : 0
+  } : {
     total: 0,
     byStage: {},
     totalValue: 0,
@@ -31,7 +71,17 @@ export default function BusinessesPage() {
 
   const handleAddSuccess = async () => {
     // Recarregar a lista de negócios após adicionar um novo
-    await loadBusinessesFromSheet();
+    try {
+      if (isUsingSupabase()) {
+        const businessesData = await fetchBusinesses();
+        setBusinesses(businessesData);
+      } else {
+        await loadBusinessesFromSheet();
+        setBusinesses(storeBusinesses);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao recarregar negócios:', error);
+    }
   };
 
   const handleOpenDetails = (business: Business) => {
@@ -42,6 +92,23 @@ export default function BusinessesPage() {
   const handleCloseDetails = () => {
     setSelectedBusiness(null);
     setIsDetailModalOpen(false);
+  };
+
+  const handleBusinessUpdated = async (updatedBusiness: any) => {
+    console.log('🔄 Negócio atualizado, recarregando lista...', updatedBusiness);
+
+    // Recarregar a lista de negócios para refletir as mudanças
+    try {
+      if (isUsingSupabase()) {
+        const businessesData = await fetchBusinesses();
+        setBusinesses(businessesData);
+      } else {
+        await loadBusinessesFromSheet();
+        setBusinesses(storeBusinesses);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao recarregar negócios após atualização:', error);
+    }
   };
 
   const formatCurrency = (value: number): string => {
@@ -186,51 +253,57 @@ export default function BusinessesPage() {
         </div>
 
         {/* Lista de Negócios */}
-        <div className="space-y-4">
-          {businesses.map((business) => (
-            <Card key={business.id} className="hover:shadow-lg transition-all duration-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  {/* Informações principais */}
-                  <div className="flex items-center space-x-6 flex-1">
-                    {/* Nome e Categoria */}
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
-                        {business.businessName}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {business.categoria}
-                      </p>
-                    </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3 text-gray-600">Carregando negócios...</span>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {businesses.map((business) => (
+              <Card key={business.id} className="hover:shadow-lg transition-all duration-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    {/* Informações principais */}
+                    <div className="flex items-center space-x-6 flex-1">
+                      {/* Nome e Categoria */}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          {business.name || business.nome || business.businessName || 'Sem Nome'}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {business.categoria || business.category || 'Sem Categoria'}
+                        </p>
+                      </div>
 
-                    {/* Status */}
-                    <div className="flex items-center">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(business.journeyStage)}`}>
-                        <span className="mr-2">{getStatusIcon(business.journeyStage)}</span>
-                        {business.journeyStage}
-                      </span>
-                    </div>
+                      {/* Status */}
+                      <div className="flex items-center">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(business.prospeccao || business.status || 'Reunião Briefing')}`}>
+                          <span className="mr-2">{getStatusIcon(business.prospeccao || business.status || 'Reunião Briefing')}</span>
+                          {business.prospeccao || business.status || 'Reunião Briefing'}
+                        </span>
+                      </div>
 
                     {/* Informações adicionais */}
                     <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
                       {/* Cidade */}
-                      {(business as any).cidade && (
+                      {(business.cidade || business.address?.city) && (
                         <div className="flex items-center">
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
-                          <span>{(business as any).cidade}</span>
+                          <span>{business.cidade || business.address?.city}</span>
                         </div>
                       )}
 
                       {/* Responsável */}
-                      {business.responsavel && (
+                      {(business.responsavel || business.contact_info?.responsible_name) && (
                         <div className="flex items-center">
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                          <span>{business.responsavel}</span>
+                          <span>{business.responsavel || business.contact_info?.responsible_name}</span>
                         </div>
                       )}
 
@@ -249,11 +322,11 @@ export default function BusinessesPage() {
                   {/* Botão de ação */}
                   <div className="flex items-center space-x-3">
                     {/* WhatsApp (se disponível) */}
-                    {((business as any).whatsappResponsavel || business.whatsapp) && (
+                    {(business.whatsappResponsavel || business.whatsapp || business.contact_info?.whatsapp) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          const whatsappNumber = (business as any).whatsappResponsavel || business.whatsapp;
+                          const whatsappNumber = business.whatsappResponsavel || business.whatsapp || business.contact_info?.whatsapp;
                           const cleanNumber = whatsappNumber.replace(/[^\d]/g, '');
                           if (cleanNumber.length >= 10) {
                             window.open(`https://wa.me/55${cleanNumber}`, '_blank');
@@ -281,10 +354,11 @@ export default function BusinessesPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
-      {businesses.length === 0 && (
+      {!isLoading && businesses.length === 0 && (
         <Card className="text-center py-16">
           <CardContent>
             <div className="text-6xl mb-6">🏢</div>
@@ -316,6 +390,7 @@ export default function BusinessesPage() {
         business={selectedBusiness}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetails}
+        onBusinessUpdated={handleBusinessUpdated}
       />
     </div>
   );

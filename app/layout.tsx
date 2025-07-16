@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "../styles/kanban.css";
@@ -29,9 +29,6 @@ export const metadata: Metadata = {
     apple: "/icon.svg"
   },
   manifest: "/manifest.json",
-  viewport: "width=device-width, initial-scale=1",
-  themeColor: "#00629B",
-  colorScheme: "light",
   openGraph: {
     title: "CRM crIAdores - Gestão Inteligente de Influenciadores",
     description: "Sistema completo de gestão de influenciadores, campanhas e negócios.",
@@ -40,13 +37,26 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#00629B',
+  colorScheme: 'light'
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+          rel="stylesheet"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

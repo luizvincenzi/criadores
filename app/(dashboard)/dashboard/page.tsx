@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useBusinessStore } from '@/store/businessStore';
 import { useAuthStore } from '@/store/authStore';
-import { getCreatorsData, getCampaignsData, getCampaignJourneyData } from '@/app/actions/sheetsActions';
+import { fetchBusinesses, fetchCreators, fetchCampaigns, fetchCampaignJourney, isUsingSupabase } from '@/lib/dataSource';
 import Button from '@/components/ui/Button';
+import ReportsModal from '@/components/ReportsModal';
 
 interface DashboardStats {
   totalBusinesses: number;
@@ -20,6 +21,12 @@ interface DashboardStats {
   planDistribution: {
     [key: string]: number;
   };
+  totalViews: number;
+  topCampaigns: Array<{
+    businessName: string;
+    month: string;
+    totalViews: number;
+  }>;
 }
 
 export default function DashboardPage() {
@@ -36,64 +43,140 @@ export default function DashboardPage() {
       'Finalizado': 0
     },
     totalRevenue: 0,
-    planDistribution: {}
+    planDistribution: {},
+    totalViews: 0,
+    topCampaigns: []
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
+
+  // Função auxiliar para processar dados do dashboard
+  const processDashboardData = async (businessesData: any[], creatorsData: any[], campaignsData: any[], journeyData: any[]) => {
+    // Calcular estatísticas das campanhas por estágio
+    const campaignsByStage = {
+      'Reunião de briefing': 0,
+      'Agendamentos': 0,
+      'Entrega final': 0,
+      'Finalizado': 0
+    };
+
+    journeyData.forEach(campaign => {
+      const stage = campaign.journeyStage || 'Reunião de briefing';
+      // Mapear para as chaves corretas do dashboard
+      let stageKey = stage;
+
+      // Normalizar nomes de estágios
+      if (stage === 'Reunião Briefing' || stage === 'Reunião de Briefing') {
+        stageKey = 'Reunião de briefing';
+      } else if (stage === 'Entrega Final') {
+        stageKey = 'Entrega final';
+      }
+
+      if (stageKey in campaignsByStage) {
+        campaignsByStage[stageKey as keyof typeof campaignsByStage]++;
+      }
+      console.log(`📊 Dashboard: Campanha ${campaign.businessName}-${campaign.mes} → Stage: ${stage} → Key: ${stageKey}`);
+    });
+
+    // Calcular distribuição de planos (se usando Supabase)
+    const planDistribution: { [key: string]: number } = {};
+    if (isUsingSupabase()) {
+      businessesData.forEach(business => {
+        const plan = business.current_plan || business.planoAtual || 'Sem Plano';
+        planDistribution[plan] = (planDistribution[plan] || 0) + 1;
+      });
+    } else {
+      // Para Google Sheets, usar dados do businessStore
+      businesses.forEach(business => {
+        const plan = business.plano || 'Sem Plano';
+        planDistribution[plan] = (planDistribution[plan] || 0) + 1;
+      });
+    }
+
+    // Calcular receita total (simulada baseada no número de campanhas)
+    const totalRevenue = campaignsData.length * 2500; // R$ 2.500 por campanha (média)
+
+    // Calcular visualizações totais e ranking de campanhas
+    let totalViews = 0;
+    const campaignViews: Array<{businessName: string, month: string, totalViews: number}> = [];
+
+    // Buscar dados de performance das campanhas
+    try {
+      const performanceResponse = await fetch('/api/supabase/campaign-performance');
+      if (performanceResponse.ok) {
+        const performanceData = await performanceResponse.json();
+        if (performanceData.success && performanceData.summary) {
+          totalViews = performanceData.summary.total_views || 0;
+
+          // Usar top campaigns do summary
+          if (performanceData.summary.top_campaigns) {
+            performanceData.summary.top_campaigns.slice(0, 3).forEach((campaign: any) => {
+              campaignViews.push({
+                businessName: campaign.business_name || 'N/A',
+                month: campaign.month || 'N/A',
+                totalViews: campaign.performance_data?.total_views || 0
+              });
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('⚠️ Erro ao buscar dados de performance:', error);
+    }
+
+    // Ordenar campanhas por visualizações e pegar top 3
+    const topCampaigns = campaignViews
+      .sort((a, b) => b.totalViews - a.totalViews)
+      .slice(0, 3);
+
+    // Atualizar contadores com dados reais
+    setStats(prevStats => {
+      const newStats = {
+        ...prevStats,
+        totalBusinesses: businessesData.length || 0,
+        totalCreators: creatorsData.length || 0,
+        totalCampaigns: campaignsData.length || 0,
+        totalRevenue: totalRevenue || 0,
+        campaignsByStage: campaignsByStage,
+        planDistribution: planDistribution,
+        totalViews: totalViews,
+        topCampaigns: topCampaigns
+      };
+      console.log('📈 Stats após processamento:', newStats);
+      return newStats;
+    });
+
+    console.log(`✅ Dashboard processado: ${businessesData.length} negócios, ${creatorsData.length} criadores, ${campaignsData.length} campanhas`);
+  };
 
   const refreshDashboard = async () => {
     setIsLoading(true);
-    console.log('🔄 Refresh manual do dashboard...');
+    console.log(`🔄 Refresh manual do dashboard (${isUsingSupabase() ? 'Supabase' : 'Google Sheets'})...`);
 
     try {
-      // Carregar dados em paralelo
+      // Carregar dados em paralelo usando sistema de data source
       console.log('📡 Buscando dados atualizados...');
+
+      // Usar dados do Supabase (única fonte agora)
       const [businessesResult, creatorsResult, campaignsResult, journeyResult] = await Promise.all([
-        loadBusinessesFromSheet(),
-        getCreatorsData(),
-        getCampaignsData(),
-        getCampaignJourneyData()
+        fetchBusinesses(),
+        fetchCreators(),
+        fetchCampaigns(),
+        fetchCampaignJourney()
       ]);
 
-      console.log('📊 Dados atualizados recebidos:', {
+      // Atualizar também o businessStore
+      await loadBusinessesFromSheet();
+
+      console.log('📊 Dados do Supabase recebidos:', {
+        negócios: businessesResult.length,
         criadores: creatorsResult.length,
         campanhas: campaignsResult.length,
         jornada: journeyResult.length
       });
 
-      // Calcular estatísticas das campanhas por estágio
-      const campaignsByStage = {
-        'Reunião de briefing': 0,
-        'Agendamentos': 0,
-        'Entrega final': 0,
-        'Finalizado': 0
-      };
-
-      journeyResult.forEach(campaign => {
-        const stage = campaign.journeyStage || 'Reunião de briefing';
-        // Mapear para as chaves corretas do dashboard
-        const stageKey = stage === 'Reunião Briefing' ? 'Reunião de briefing' :
-                        stage === 'Agendamentos' ? 'Agendamentos' :
-                        stage === 'Entrega Final' ? 'Entrega final' : 'Reunião de briefing';
-
-        if (stageKey in campaignsByStage) {
-          campaignsByStage[stageKey as keyof typeof campaignsByStage]++;
-        }
-        console.log(`📊 Dashboard: Campanha ${campaign.businessName}-${campaign.mes} → Stage: ${stage} → Key: ${stageKey}`);
-      });
-
-      // Atualizar contadores com dados reais
-      setStats(prevStats => {
-        const newStats = {
-          ...prevStats,
-          totalCreators: creatorsResult.length,
-          totalCampaigns: campaignsResult.length,
-          campaignsByStage: campaignsByStage
-        };
-        console.log('📈 Stats após refresh:', newStats);
-        return newStats;
-      });
-
-      console.log(`✅ Dashboard atualizado manualmente: ${creatorsResult.length} criadores, ${campaignsResult.length} campanhas`);
+      // Processar dados do Supabase
+      await processDashboardData(businessesResult, creatorsResult, campaignsResult, journeyResult);
     } catch (error) {
       console.error('❌ Erro ao atualizar dashboard:', error);
     } finally {
@@ -104,60 +187,31 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      console.log('🔄 Dashboard: Iniciando carregamento...');
+      console.log(`🔄 Dashboard: Iniciando carregamento (${isUsingSupabase() ? 'Supabase' : 'Google Sheets'})...`);
 
       try {
-        // Carregar negócios primeiro
+        // Usar dados do Supabase (única fonte agora)
+        console.log('📡 Dashboard: Carregando dados do Supabase...');
+
+        const [businessesResult, creatorsResult, campaignsResult, journeyResult] = await Promise.all([
+          fetchBusinesses(),
+          fetchCreators(),
+          fetchCampaigns(),
+          fetchCampaignJourney()
+        ]);
+
+        // Carregar também no businessStore
         await loadBusinessesFromSheet();
-        console.log('✅ Dashboard: Negócios carregados');
 
-        // Carregar criadores e campanhas
-        console.log('📡 Dashboard: Buscando criadores...');
-        const creatorsResult = await getCreatorsData();
-        console.log(`✅ Dashboard: ${creatorsResult.length} criadores carregados`);
-
-        console.log('📡 Dashboard: Buscando campanhas...');
-        const campaignsResult = await getCampaignsData();
-        console.log(`✅ Dashboard: ${campaignsResult.length} campanhas carregadas`);
-
-        console.log('📡 Dashboard: Buscando dados da jornada...');
-        const journeyResult = await getCampaignJourneyData();
-        console.log(`✅ Dashboard: ${journeyResult.length} campanhas da jornada carregadas`);
-
-        // Calcular estatísticas das campanhas por estágio
-        const campaignsByStage = {
-          'Reunião de briefing': 0,
-          'Agendamentos': 0,
-          'Entrega final': 0,
-          'Finalizado': 0
-        };
-
-        journeyResult.forEach(campaign => {
-          const stage = campaign.journeyStage || 'Reunião de briefing';
-          // Mapear para as chaves corretas do dashboard
-          const stageKey = stage === 'Reunião Briefing' ? 'Reunião de briefing' :
-                          stage === 'Agendamentos' ? 'Agendamentos' :
-                          stage === 'Entrega Final' ? 'Entrega final' : 'Reunião de briefing';
-
-          if (stageKey in campaignsByStage) {
-            campaignsByStage[stageKey as keyof typeof campaignsByStage]++;
-          }
-          console.log(`📊 Dashboard: Campanha ${campaign.businessName}-${campaign.mes} → Stage: ${stage} → Key: ${stageKey}`);
+        console.log('✅ Dashboard: Dados do Supabase carregados:', {
+          negócios: businessesResult.length,
+          criadores: creatorsResult.length,
+          campanhas: campaignsResult.length,
+          jornada: journeyResult.length
         });
 
-        // Atualizar stats
-        setStats(prevStats => {
-          const newStats = {
-            ...prevStats,
-            totalCreators: creatorsResult.length,
-            totalCampaigns: campaignsResult.length,
-            campaignsByStage: campaignsByStage
-          };
-          console.log('📈 Dashboard: Stats finais:', newStats);
-          console.log('🔍 Dashboard: Campanhas por estágio detalhado:', campaignsByStage);
-          console.log('📊 Dashboard: Total de campanhas da jornada:', journeyResult.length);
-          return newStats;
-        });
+        // Processar dados
+        await processDashboardData(businessesResult, creatorsResult, campaignsResult, journeyResult);
 
       } catch (error) {
         console.error('❌ Dashboard: Erro ao carregar:', error);
@@ -211,6 +265,19 @@ export default function DashboardPage() {
           <p className="text-sm text-gray-600">
             Visão geral dos seus negócios, criadores e campanhas
           </p>
+        </div>
+
+        {/* Botão Relatórios */}
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setIsReportsModalOpen(true)}
+            className="bg-green-800 hover:bg-green-900 text-white px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span className="font-semibold">Relatórios</span>
+          </button>
         </div>
         {/* Debug buttons hidden in production */}
         <div className="hidden"
@@ -296,12 +363,15 @@ export default function DashboardPage() {
         <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-on-surface-variant font-medium">Receita Total</p>
-              <p className="text-3xl font-bold text-on-surface mt-1">R$ {stats.totalRevenue.toLocaleString()}</p>
-              <p className="text-xs text-primary mt-1">Sucesso!</p>
+              <p className="text-sm text-on-surface-variant font-medium">Total de Visualizações</p>
+              <p className="text-3xl font-bold text-on-surface mt-1">{(stats.totalViews || 0).toLocaleString()}</p>
+              <p className="text-xs text-purple-600 mt-1">Todas as campanhas</p>
             </div>
-            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
-              <span className="text-2xl">💰</span>
+            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
             </div>
           </div>
         </div>
@@ -314,8 +384,8 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold text-on-surface mb-4">Jornada das Campanhas</h3>
           <div className="space-y-3">
             {Object.entries(stats.campaignsByStage).map(([stage, count]) => {
-              const totalCampaigns = Object.values(stats.campaignsByStage).reduce((sum, c) => sum + c, 0);
-              const percentage = totalCampaigns > 0 ? (count / totalCampaigns) * 100 : 0;
+              const totalCampaigns = Object.values(stats.campaignsByStage).reduce((sum, c) => sum + (c || 0), 0);
+              const percentage = totalCampaigns > 0 ? ((count || 0) / totalCampaigns) * 100 : 0;
               const stageIcons = {
                 'Reunião de briefing': '📋',
                 'Agendamentos': '📅',
@@ -340,14 +410,55 @@ export default function DashboardPage() {
                     <div className="w-20 bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all duration-300 ${stageColors[stage as keyof typeof stageColors]}`}
-                        style={{ width: `${percentage}%` }}
+                        style={{ width: `${Math.max(0, Math.min(100, percentage || 0))}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900 w-8">{count}</span>
+                    <span className="text-sm font-semibold text-gray-900 w-8">{count || 0}</span>
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Ranking de Campanhas */}
+        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
+          <h3 className="text-lg font-semibold text-on-surface mb-4">Top 3 Campanhas</h3>
+          <div className="space-y-3">
+            {stats.topCampaigns.length > 0 ? (
+              stats.topCampaigns.map((campaign, index) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const colors = ['text-yellow-600', 'text-gray-500', 'text-orange-600'];
+
+                return (
+                  <div key={`${campaign.businessName}-${campaign.month}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xl">{medals[index]}</span>
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm">{campaign.businessName}</p>
+                        <p className="text-xs text-gray-600">{campaign.month}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-bold text-sm ${colors[index]}`}>
+                        {campaign.totalViews.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500">visualizações</p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                <div className="mb-3">
+                  <svg className="w-12 h-12 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-500 mb-1">Nenhum trabalho esse mês</p>
+                <p className="text-xs text-gray-400">Dados de performance serão exibidos aqui</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -356,7 +467,7 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold text-on-surface mb-4">Distribuição por Plano</h3>
           <div className="space-y-3">
             {Object.entries(stats.planDistribution).map(([plan, count]) => {
-              const percentage = stats.totalBusinesses > 0 ? (count / stats.totalBusinesses) * 100 : 0;
+              const percentage = (stats.totalBusinesses || 0) > 0 ? ((count || 0) / (stats.totalBusinesses || 1)) * 100 : 0;
               const planColors = {
                 'Gold - 6': 'bg-yellow-500',
                 'Silver - 4': 'bg-gray-400',
@@ -372,12 +483,12 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-20 bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className={`h-2 rounded-full transition-all duration-300 ${planColors[plan as keyof typeof planColors] || 'bg-gray-300'}`}
-                        style={{ width: `${percentage}%` }}
+                        style={{ width: `${Math.max(0, Math.min(100, percentage || 0))}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900 w-8">{count}</span>
+                    <span className="text-sm font-semibold text-gray-900 w-8">{count || 0}</span>
                   </div>
                 </div>
               );
@@ -408,6 +519,12 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
+
+      {/* Modal de Relatórios */}
+      <ReportsModal
+        isOpen={isReportsModalOpen}
+        onClose={() => setIsReportsModalOpen(false)}
+      />
     </div>
   );
 }

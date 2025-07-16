@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Drag and Drop - Jornada</title>
+</head>
+<body>
+    <h1>Teste de Atualização de Status</h1>
+    
+    <button onclick="testStatusUpdate()">Testar Atualização de Status</button>
+    <button onclick="testJourneyData()">Testar Dados da Jornada</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testStatusUpdate() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testando atualização de status...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/test-status-update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        businessName: 'Boussolé',
+                        mes: '2025-09',
+                        newStatus: 'Entrega final'
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                result.innerHTML = 'Erro: ' + error.message;
+            }
+        }
+        
+        async function testJourneyData() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testando dados da jornada...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/test-journey');
+                const data = await response.json();
+                result.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                result.innerHTML = 'Erro: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "migrated_at": "2025-07-15T14:49:14.761Z",
+  "version": "1.0.0",
+  "data_source": "supabase_only",
+  "google_sheets_removed": true,
+  "files_updated": [
+    "lib/dataSource.ts",
+    "app/(dashboard)/dashboard/page.tsx",
+    "app/(dashboard)/jornada/page.tsx",
+    "app/(dashboard)/campaigns/page.tsx",
+    "app/(dashboard)/creators/page.tsx",
+    "app/api/reports/route.ts",
+    "lib/auditLogger.ts",
+    "store/businessStore.ts"
+  ],
+  "files_backed_up": [
+    "app/actions/sheetsActions.ts",
+    "components/TestGoogleConnection.tsx",
+    "components/TestAuditSheet.tsx",
+    "app/test-sheets/page.tsx",
+    "CONFIGURACAO_GOOGLE_SHEETS.md",
+    "INTEGRACAO_GOOGLE_SHEETS_CALENDAR.md"
+  ],
+  "supabase_data": {
+    "businesses": 11,
+    "creators": 70,
+    "campaigns": 4
+  }
+}
