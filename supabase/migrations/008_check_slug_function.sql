@@ -10,11 +10,29 @@ BEGIN
     RETURN lower(
         regexp_replace(
             regexp_replace(
-                regexp_replace(input_text, '[áàâãäå]', 'a', 'gi'),
-                '[éèêë]', 'e', 'gi'
+                regexp_replace(
+                    regexp_replace(
+                        regexp_replace(
+                            regexp_replace(
+                                regexp_replace(
+                                    regexp_replace(input_text, '[áàâãäå]', 'a', 'gi'),
+                                    '[éèêë]', 'e', 'gi'
+                                ),
+                                '[íìîï]', 'i', 'gi'
+                            ),
+                            '[óòôõö]', 'o', 'gi'
+                        ),
+                        '[úùûü]', 'u', 'gi'
+                    ),
+                    '[ç]', 'c', 'gi'
+                ),
+                '[^a-z0-9\s]', '', 'g'
             ),
-            '[^a-z0-9]+', '-', 'gi'
+            '\s+', '-', 'g'
         )
     );
 END;
 $$ LANGUAGE plpgsql;
+
+-- Testar a função
+SELECT generate_slug('Clínica Odontológica Natália') as test_slug;

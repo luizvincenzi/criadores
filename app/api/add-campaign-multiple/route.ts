@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { google } from 'googleapis';
+import { createClient } from '@supabase/supabase-js';
 
-const SPREADSHEET_ID = '14yzga-y6A-3kae92Lr3knQGDaVVXMZv3tOggUL43dCI';
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 export async function POST(request: NextRequest) {
   try {
     const { businessData, campaignName, selectedMonth, quantidadeCriadores, user } = await request.json();
-    
-    console.log('➕ Adicionando nova campanha:', {
+
+    console.log('➕ Adicionando nova campanha via Supabase:', {
       businessName: businessData.nome,
       campaignName,
       selectedMonth,
       quantidadeCriadores
     });
-
-    console.log('🔍 DEBUG: businessData completo:', businessData);
 
     if (!businessData || !campaignName || !selectedMonth || !quantidadeCriadores) {
       return NextResponse.json({
@@ -23,171 +26,168 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 🆔 OBTER BUSINESS_ID
-    console.log('🔄 Obtendo business_id...');
+    // 🆔 OBTER BUSINESS_ID do Supabase
+    console.log('🔄 Buscando business no Supabase...');
     let businessId = businessData.business_id;
 
     if (!businessId) {
-      // Buscar business_id usando o nome
-      const businessResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3002'}/api/get-business-id`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName: businessData.nome })
-      });
-      const businessResult = await businessResponse.json();
+      // Buscar business_id usando o nome no Supabase
+      const { data: business, error: businessError } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('name', businessData.nome)
+        .eq('organization_id', DEFAULT_ORG_ID)
+        .single();
 
-      if (!businessResult.success) {
+      if (businessError || !business) {
         return NextResponse.json({
           success: false,
-          error: `Business "${businessData.nome}" não encontrado: ${businessResult.error}`
+          error: `Business "${businessData.nome}" não encontrado no Supabase`
         });
       }
-      businessId = businessResult.businessId;
+      businessId = business.id;
     }
 
     console.log('✅ Business ID obtido:', businessId);
 
-    // Configurar autenticação
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        type: 'service_account',
-        project_id: 'crmcriadores',
-        private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        client_email: 'crm-criadores@crmcriadores.iam.gserviceaccount.com',
-        client_id: '113660609859941708871',
-        auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-        token_uri: 'https://oauth2.googleapis.com/token',
-        auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-        client_x509_cert_url: 'https://www.googleapis.com/service_accounts/v1/metadata/x509/crm-criadores%40crmcriadores.iam.gserviceaccount.com'
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
-    });
+    // Verificar se já existe campanha para este business neste mês
+    const { data: existingCampaign, error: checkError } = await supabase
+      .from('campaigns')
+      .select('id, title')
+      .eq('business_id', businessId)
+      .eq('month', selectedMonth)
+      .eq('organization_id', DEFAULT_ORG_ID)
+      .single();
 
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    // Gerar data completa (dia 1 + mês + ano)
-    const currentYear = new Date().getFullYear();
-    const monthNumber = getMonthNumber(selectedMonth);
-    const fullDate = `${currentYear}-${monthNumber.toString().padStart(2, '0')}-01`;
-    const displayDate = `${selectedMonth} ${currentYear}`;
-
-    console.log('📅 Data gerada:', { fullDate, displayDate });
-
-    // Preparar linhas para inserção
-    const rows = [];
-    const timestamp = Date.now();
-    
-    for (let i = 0; i < parseInt(quantidadeCriadores); i++) {
-      // Gerar Campaign_ID único para cada linha
-      const businessSlug = businessData.nome.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15);
-      const monthSlug = selectedMonth.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const campaignId = `camp_${timestamp}_${i + 1}_${businessSlug}_${monthSlug}_slot${i + 1}`;
-
-      const row = [
-        campaignId, // A = Campaign_ID
-        businessId, // B = Nome Campanha (sempre business_id)
-        '', // C = Influenciador (será preenchido posteriormente)
-        businessData.responsavel || businessData.nomeResponsavel || 'Sistema', // D = Responsável
-        'Reunião de briefing', // E = Status_campaign (padrão inicial)
-        displayDate, // F = Mês (formato: "Janeiro 2025")
-        fullDate, // G = FIM (data completa: "2025-01-01")
-        'Pendente', // H = Briefing completo enviado para o influenciador?
-        '', // I = Data e hora Visita
-        '', // J = Quantidade de convidados
-        'Pendente', // K = Visita Confirmado
-        '', // L = Data e hora da Postagem
-        'Pendente', // M = Vídeo aprovado?
-        'Não', // N = Video/Reels postado?
-        '', // O = Link Video Instagram
-        '', // P = Notas
-        '', // Q = Arquivo
-        '', // R = Avaliação Restaurante
-        '', // S = Avaliação Influenciador
-        'Ativo', // T = Status do Calendário
-        '', // U = Column 22
-        '', // V = ID do Evento
-        '', // W = Formato
-        '', // X = Perfil do criador
-        '', // Y = Objetivo
-        '', // Z = Comunicação secundária
-        '', // AA = Datas e horários para gravação
-        '', // AB = O que precisa ser falado no vídeo
-        '', // AC = Promoção CTA
-        '', // AD = Column 31
-        '', // AE = Objetivo 1
-        campaignName || '' // AF = Titulo campanha
-      ];
-
-      rows.push(row);
+    if (existingCampaign) {
+      return NextResponse.json({
+        success: false,
+        error: `Já existe uma campanha para este business no mês ${selectedMonth}: "${existingCampaign.title}"`
+      });
     }
 
-    console.log(`📊 Preparando ${rows.length} linhas para inserção`);
-
-    // Inserir todas as linhas na planilha
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'campanhas!A:AF',
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: rows
+    // Criar campanha no Supabase
+    const campaignData = {
+      organization_id: DEFAULT_ORG_ID,
+      business_id: businessId,
+      title: campaignName,
+      description: `Campanha ${campaignName} para ${businessData.nome}`,
+      month: selectedMonth,
+      status: 'Reunião de briefing',
+      budget: 0,
+      objectives: {
+        primary: '',
+        secondary: [],
+        kpis: { reach: 0, engagement: 0, conversions: 0 }
+      },
+      deliverables: {
+        posts: 1,
+        stories: 3,
+        reels: 1,
+        events: 0,
+        requirements: [],
+        creators_count: parseInt(quantidadeCriadores)
+      },
+      briefing_details: {
+        formatos: [],
+        perfil_criador: '',
+        objetivo_detalhado: '',
+        comunicacao_secundaria: '',
+        datas_gravacao: {
+          data_inicio: null,
+          data_fim: null,
+          horarios_preferenciais: [],
+          observacoes: ''
+        },
+        roteiro_video: {
+          o_que_falar: '',
+          historia: '',
+          promocao_cta: '',
+          tom_comunicacao: '',
+          pontos_obrigatorios: []
+        }
       }
-    });
+    };
+
+    const { data: campaign, error: campaignError } = await supabase
+      .from('campaigns')
+      .insert(campaignData)
+      .select()
+      .single();
+
+    if (campaignError) {
+      console.error('❌ Erro ao criar campanha:', campaignError);
+      return NextResponse.json({
+        success: false,
+        error: `Erro ao criar campanha: ${campaignError.message}`
+      });
+    }
+
+    console.log('✅ Campanha criada:', campaign.id);
+
+    // Criar slots de criadores (campaign_creators)
+    const campaignCreatorSlots = [];
+    for (let i = 0; i < parseInt(quantidadeCriadores); i++) {
+      campaignCreatorSlots.push({
+        campaign_id: campaign.id,
+        creator_id: null, // Será preenchido posteriormente
+        role: 'primary',
+        status: 'Pendente',
+        fee: 0,
+        deliverables: {
+          briefing_complete: 'Pendente',
+          visit_datetime: null,
+          guest_quantity: 0,
+          visit_confirmed: 'Pendente',
+          post_datetime: null,
+          video_approved: 'Pendente',
+          video_posted: 'Não',
+          content_links: []
+        }
+      });
+    }
+
+    const { data: creatorSlots, error: slotsError } = await supabase
+      .from('campaign_creators')
+      .insert(campaignCreatorSlots)
+      .select();
+
+    if (slotsError) {
+      console.error('❌ Erro ao criar slots de criadores:', slotsError);
+      // Não falhar a operação, apenas avisar
+      console.log('⚠️ Campanha criada, mas slots de criadores falharam');
+    } else {
+      console.log(`✅ ${creatorSlots.length} slots de criadores criados`);
+    }
 
     // Registrar no audit log
-    const auditLogData = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'detailed_logs!A:Z'
-    });
-
-    const auditRows = auditLogData.data.values || [];
-    const nextAuditRow = auditRows.length + 1;
-
-    const auditEntry = [
-      `detailed_${timestamp}_campaign_created`, // ID
-      new Date().toISOString(), // Timestamp
-      'campaign_created', // Action
-      'campaign', // Entity_Type
-      rows[0][0], // Entity_ID (primeiro Campaign_ID)
-      `${campaignName}-${displayDate}`, // Entity_Name
-      user || 'sistema', // User_ID
-      user || 'sistema', // User_Name
-      businessId, // Business_Context
-      displayDate, // Campaign_Context
-      `${quantidadeCriadores} slots criados`, // Creator_Context
-      'campanha', // Field_Changed
-      '', // Old_Value
-      campaignName, // New_Value
-      `Nova campanha criada com ${quantidadeCriadores} slots`, // Change_Reason
-      'success', // Validation_Status
-      '', // Session_ID
-      '', // IP_Address
-      '', // User_Agent
-      JSON.stringify({
-        businessData: {
-          nome: businessData.nome,
-          categoria: businessData.categoria,
-          responsavel: businessData.responsavel
-        },
-        campaignDetails: {
-          name: campaignName,
-          month: selectedMonth,
-          fullDate,
-          displayDate,
-          quantidadeCriadores
-        },
-        campaignIds: rows.map(row => row[0])
-      }) // Details
-    ];
-
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'detailed_logs!A:Z',
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [auditEntry]
-      }
-    });
+    try {
+      await supabase
+        .from('audit_log')
+        .insert({
+          organization_id: DEFAULT_ORG_ID,
+          entity_type: 'campaign',
+          entity_id: campaign.id,
+          entity_name: campaignName,
+          action: 'create',
+          user_email: user || 'sistema',
+          details: {
+            businessData: {
+              nome: businessData.nome,
+              categoria: businessData.categoria,
+              responsavel: businessData.responsavel
+            },
+            campaignDetails: {
+              name: campaignName,
+              month: selectedMonth,
+              quantidadeCriadores: parseInt(quantidadeCriadores)
+            }
+          }
+        });
+    } catch (auditError) {
+      console.error('⚠️ Erro no audit log:', auditError);
+      // Não falhar a operação principal
+    }
 
     console.log('✅ Campanha criada com sucesso!');
 
@@ -197,12 +197,10 @@ export async function POST(request: NextRequest) {
       data: {
         campaignName,
         businessName: businessData.nome,
-        month: displayDate,
-        fullDate,
+        month: selectedMonth,
         quantidadeCriadores: parseInt(quantidadeCriadores),
-        campaignIds: rows.map(row => row[0]),
-        rowsCreated: rows.length,
-        auditLogEntry: auditEntry[0]
+        campaignId: campaign.id,
+        rowsCreated: parseInt(quantidadeCriadores)
       }
     });
 

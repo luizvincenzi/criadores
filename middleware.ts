@@ -64,10 +64,10 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js precisa de unsafe-eval
-    "style-src 'self' 'unsafe-inline'", // Tailwind precisa de unsafe-inline
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Permitir Google Fonts
     "img-src 'self' data: https:",
-    "font-src 'self'",
-    "connect-src 'self' https://sheets.googleapis.com https://www.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com", // Permitir fontes do Google
+    "connect-src 'self' https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com",
     "frame-ancestors 'none'"
   ].join('; ');
   
