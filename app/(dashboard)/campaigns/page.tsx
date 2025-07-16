@@ -570,11 +570,11 @@ export default function CampaignsPage() {
           <div className="text-center py-12">
             <div className="text-4xl mb-4">📊</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {campaigns.length === 0 ? 'Nenhuma campanha encontrada' : 'Nenhum resultado encontrado'}
+              {groupedCampaigns.length === 0 ? 'Nenhuma campanha encontrada' : 'Nenhum resultado encontrado'}
             </h3>
             <p className="text-gray-500">
-              {campaigns.length === 0 
-                ? 'Configure o Google Sheets para ver os dados das campanhas.'
+              {groupedCampaigns.length === 0
+                ? 'Adicione campanhas para ver os dados aqui.'
                 : 'Tente ajustar os filtros de busca.'
               }
             </p>
