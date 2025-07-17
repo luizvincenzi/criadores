@@ -97,6 +97,8 @@ export async function GET(request: NextRequest) {
 
         console.log(`💥 [VALIDATION] Erro: ${campaign.seoUrl} - ${error}`);
       }
+    }
+
     // ETAPA 3: Gerar relatório
     const report = {
       total: allCampaigns.length,
