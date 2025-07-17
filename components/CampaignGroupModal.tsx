@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
+import CreatorAdvancedCard from '@/components/CreatorAdvancedCard';
+import CampaignSharePanel from '@/components/CampaignSharePanel';
 
 // Tipo para dados agrupados de campanhas
 interface GroupedCampaignData {
@@ -27,6 +29,47 @@ interface CampaignGroupModalProps {
 export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: CampaignGroupModalProps) {
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
   const [campaignUrl, setCampaignUrl] = useState<string | null>(null);
+  const [creatorsData, setCreatorsData] = useState<any[]>([]);
+  const [isLoadingCreators, setIsLoadingCreators] = useState(false);
+  const [expandedCreators, setExpandedCreators] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (isOpen && campaignGroup) {
+      loadCreatorsData();
+    }
+  }, [isOpen, campaignGroup]);
+
+  const loadCreatorsData = async () => {
+    if (!campaignGroup) return;
+
+    try {
+      setIsLoadingCreators(true);
+
+      // Buscar dados detalhados dos criadores via API
+      const response = await fetch(`/api/supabase/creator-slots?businessName=${encodeURIComponent(campaignGroup.businessName)}&mes=${encodeURIComponent(campaignGroup.mes || campaignGroup.month)}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.slots) {
+          setCreatorsData(data.slots.filter((slot: any) => slot.influenciador && slot.influenciador.trim() !== ''));
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados dos criadores:', error);
+    } finally {
+      setIsLoadingCreators(false);
+    }
+  };
+
+  const toggleCreatorExpansion = (creatorId: string) => {
+    const newExpanded = new Set(expandedCreators);
+    if (newExpanded.has(creatorId)) {
+      newExpanded.delete(creatorId);
+    } else {
+      newExpanded.add(creatorId);
+    }
+    setExpandedCreators(newExpanded);
+  };
 
   if (!isOpen || !campaignGroup) return null;
 
@@ -224,64 +267,7 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                   </span>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                {/* Botões de Ação da Landing Page - Material Design 3 */}
-                <button
-                  onClick={openLandingPage}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-full transition-all duration-200 hover:shadow-md"
-                  style={{ backgroundColor: '#00629B' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#004d7a';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#00629B';
-                  }}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                  Ver Landing Page
-                </button>
-
-                <button
-                  onClick={generateCampaignUrl}
-                  disabled={isGeneratingUrl}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-full transition-all duration-200 hover:shadow-md disabled:opacity-50"
-                  style={{ backgroundColor: '#4CAF50' }}
-                  onMouseEnter={(e) => {
-                    if (!isGeneratingUrl) {
-                      e.currentTarget.style.backgroundColor = '#45a049';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isGeneratingUrl) {
-                      e.currentTarget.style.backgroundColor = '#4CAF50';
-                    }
-                  }}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  {isGeneratingUrl ? 'Gerando...' : 'Copiar URL'}
-                </button>
-
-                <button
-                  onClick={shareCampaign}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-full transition-all duration-200 hover:shadow-md"
-                  style={{ backgroundColor: '#25D366' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#20BA5A';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#25D366';
-                  }}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
-                  </svg>
-                  Compartilhar
-                </button>
-
+              <div className="flex items-center justify-end">
                 <button
                   onClick={onClose}
                   className="p-3 hover:bg-gray-100 rounded-full transition-colors"
@@ -297,33 +283,114 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
 
           {/* Content */}
           <div className="p-6 max-h-[calc(95vh-200px)] overflow-y-auto">
-            
-            {/* Resumo dos Criadores */}
+
+            {/* Painel de Compartilhamento e Landing Page */}
             <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Criadores Selecionados
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(campaignGroup.criadores || []).map((criador, index) => (
-                  <div key={`criador-${index}-${criador}`} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{criador}</p>
-                        <p className="text-sm text-gray-500">Criador</p>
-                      </div>
-                    </div>
+              <CampaignSharePanel
+                businessName={campaignGroup.businessName}
+                month={campaignGroup.mes || campaignGroup.month}
+                campaignUrl={campaignUrl || undefined}
+                onUrlGenerated={setCampaignUrl}
+              />
+            </div>
+            
+            {/* Gestão Avançada de Criadores */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Criadores Selecionados
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                    {creatorsData.length}
+                  </span>
+                </h3>
+
+                {isLoadingCreators && (
+                  <div className="flex items-center text-sm text-gray-500">
+                    <svg className="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Carregando dados...
                   </div>
-                ))}
+                )}
               </div>
+
+              {creatorsData.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {creatorsData.map((creatorSlot, index) => {
+                    // Simular dados do criador baseado no que temos
+                    const mockCreatorData = {
+                      id: creatorSlot.creatorId || `creator-${index}`,
+                      name: creatorSlot.influenciador,
+                      social_media: {
+                        instagram: {
+                          username: creatorSlot.influenciador.toLowerCase().replace(/\s+/g, ''),
+                          followers: Math.floor(Math.random() * 100000) + 10000, // Mock data
+                          engagement_rate: Math.random() * 5 + 2,
+                          verified: Math.random() > 0.7
+                        },
+                        tiktok: {
+                          username: creatorSlot.influenciador.toLowerCase().replace(/\s+/g, ''),
+                          followers: Math.floor(Math.random() * 50000) + 5000
+                        }
+                      },
+                      contact_info: {
+                        whatsapp: '5511999999999', // Mock data
+                        email: `${creatorSlot.influenciador.toLowerCase().replace(/\s+/g, '')}@email.com`
+                      },
+                      profile_info: {
+                        category: 'Lifestyle',
+                        location: {
+                          city: 'São Paulo',
+                          state: 'SP'
+                        },
+                        rates: {
+                          post: 500,
+                          story: 200,
+                          reel: 800
+                        }
+                      },
+                      performance_metrics: {
+                        total_campaigns: Math.floor(Math.random() * 20) + 5,
+                        avg_engagement: Math.random() * 5 + 2,
+                        completion_rate: Math.floor(Math.random() * 20) + 80,
+                        rating: Math.random() * 1 + 4
+                      },
+                      status: 'Ativo'
+                    };
+
+                    const deliverables = {
+                      briefing_complete: creatorSlot.briefingCompleto || 'Pendente',
+                      visit_datetime: creatorSlot.dataHoraVisita || '',
+                      guest_quantity: parseInt(creatorSlot.quantidadeConvidados) || 0,
+                      visit_confirmed: creatorSlot.visitaConfirmado || 'Pendente',
+                      post_datetime: creatorSlot.dataHoraPostagem || '',
+                      video_approved: creatorSlot.videoAprovado || 'Pendente',
+                      video_posted: creatorSlot.videoPostado || 'Não'
+                    };
+
+                    return (
+                      <CreatorAdvancedCard
+                        key={mockCreatorData.id}
+                        creator={mockCreatorData}
+                        deliverables={deliverables}
+                        campaignData={creatorSlot}
+                        isExpanded={expandedCreators.has(mockCreatorData.id)}
+                        onToggleExpand={() => toggleCreatorExpansion(mockCreatorData.id)}
+                      />
+                    );
+                  })}
+                </div>
+              ) : !isLoadingCreators ? (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-4">👥</div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Nenhum criador encontrado</h4>
+                  <p className="text-gray-500">Os dados dos criadores serão carregados quando disponíveis.</p>
+                </div>
+              ) : null}
             </div>
 
             {/* Detalhes das Campanhas */}
