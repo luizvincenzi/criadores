@@ -23,21 +23,22 @@ export async function GET(request: NextRequest) {
     console.log('🚀 [SEO API] Processando URL:', seoUrl);
 
     // ETAPA 1: Buscar campanha usando sistema híbrido
-    const campaignData = await getCampaignBySeoUrl(seoUrl);
+    const campaignResult = await getCampaignBySeoUrl(seoUrl);
 
-    if (!campaignData) {
+    if (!campaignResult.success || !campaignResult.data) {
       console.log('❌ [SEO API] Campanha não encontrada para URL:', seoUrl);
       return NextResponse.json({
         success: false,
-        error: 'Campanha não encontrada',
+        error: campaignResult.error || 'Campanha não encontrada',
         debug: { seoUrl }
       }, { status: 404 });
     }
 
+    const campaignData = campaignResult.data;
     console.log('✅ [SEO API] Campanha encontrada:', {
-      campaignId: campaignData.campaignId,
-      businessName: campaignData.businessName,
-      campaignTitle: campaignData.campaignTitle
+      campaignId: campaignData.campaign.id,
+      businessName: campaignData.business.name,
+      campaignTitle: campaignData.campaign.title
     });
 
     // ETAPA 2: Buscar criadores da campanha
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
           profile_info
         )
       `)
-      .eq('campaign_id', campaignData.campaignId)
+      .eq('campaign_id', campaignData.campaign.id)
       .neq('status', 'Removido')
       .eq('organization_id', DEFAULT_ORG_ID)
       .order('assigned_at', { ascending: true });
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
           address
         )
       `)
-      .eq('id', campaignData.campaignId)
+      .eq('id', campaignData.campaign.id)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
@@ -142,10 +143,10 @@ export async function GET(request: NextRequest) {
     // ETAPA 5: Montar resposta final com dados de briefing
     const landingPageData = {
       campaign: {
-        id: campaignData.campaignId,
-        title: campaignData.campaignTitle,
+        id: campaignData.campaign.id,
+        title: campaignData.campaign.title,
         description: fullCampaignData.description,
-        month_year_id: campaignData.monthYearId,
+        month_year_id: campaignData.campaign.month_year_id,
         month: fullCampaignData.month,
         status: fullCampaignData.status,
         budget: fullCampaignData.budget,
@@ -155,11 +156,11 @@ export async function GET(request: NextRequest) {
         deliverables: fullCampaignData.deliverables,
         briefing_details: fullCampaignData.briefing_details,
         created_at: fullCampaignData.created_at,
-        seo_url: campaignData.seoUrl
+        seo_url: seoUrl
       },
       business: {
-        id: campaignData.businessId,
-        name: campaignData.businessName,
+        id: campaignData.business.id,
+        name: campaignData.business.name,
         contact_info: fullCampaignData.business?.contact_info,
         address: fullCampaignData.business?.address
       },
@@ -174,8 +175,8 @@ export async function GET(request: NextRequest) {
         system: 'hybrid_seo_system',
         generated_at: new Date().toISOString(),
         seo_url: seoUrl,
-        campaign_id: campaignData.campaignId,
-        business_id: campaignData.businessId
+        campaign_id: campaignData.campaign.id,
+        business_id: campaignData.business.id
       }
     };
 
