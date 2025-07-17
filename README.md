@@ -40,47 +40,12 @@ Um sistema CRM moderno e completo para gerenciamento de criadores de conteúdo e
 - **React Hook Form** para formulários
 - **Lucide React** para ícones
 
-## 🚀 Como Executar
-
-### Pré-requisitos
-- Node.js 18+
-- npm ou yarn
-- Conta no Supabase (gratuita)
-
-### Instalação
-```bash
-# Clone o repositório
-git clone https://github.com/luizvincenzi/crmcriadores.git
-cd crmcriadores
-
-# Instale as dependências
-npm install --legacy-peer-deps
-
-# Configure as variáveis de ambiente
-cp .env.example .env.local
-# Edite .env.local com suas credenciais do Supabase
-
-# Execute o projeto
-npm run dev
-```
-
-### Configuração do Supabase
-1. Crie um projeto no [Supabase](https://supabase.com)
-2. Execute as migrações SQL em `supabase/migrations/`
-3. Configure as variáveis no `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-NEXT_PUBLIC_DATA_SOURCE=supabase
-```
 
 ### Acesse a aplicação
-- **Dashboard:** http://localhost:3000
-- **Jornada Kanban:** http://localhost:3000/jornada
-- **Criadores:** http://localhost:3000/criadores
-- **Negócios:** http://localhost:3000/negocios
+- **Dashboard:** http://criadores.digital/dashboard
+- **Jornada Kanban:** http://criadores.digital/jornada
+- **Criadores:** http://criadores.digital/criadores
+- **Negócios:** http://criadores.digital/negocios
 
 ## 🎯 Funcionalidades Detalhadas
 
@@ -141,24 +106,23 @@ NEXT_PUBLIC_DATA_SOURCE=supabase
 ✅ **100% Funcional e Pronto para Produção**
 - ✅ Sistema Kanban com drag & drop
 - ✅ Migração completa para Supabase
-- ✅ Interface Material Design 3
+- ✅ Interface Google Material Design 3
 - ✅ Sistema de autenticação
 - ✅ Gestão completa de criadores
 - ✅ Dashboard com métricas
 - ✅ Audit log e segurança
 - ✅ APIs RESTful completas
 - ✅ Validação e integridade de dados
+- ✅ Relatórios personalizados no dashboard
+- ✅ Relatórios por campanhas 
 
 ## 🚀 Deploy
 
-O projeto está configurado para deploy automático no Vercel:
-- **Push para main** → Deploy automático
-- **Variáveis de ambiente** configuradas no Vercel
-- **Domínio personalizado** disponível
+O projeto está configurado para deploy automático no Vercel
 
 ---
 
-**Desenvolvido com ❤️ para criadores de conteúdo**
+**Desenvolvido com ❤️ para crIAdores de conteúdo**
 
 🔗 **Repositório:** [https://github.com/luizvincenzi/crmcriadores](https://github.com/luizvincenzi/crmcriadores)
-🌐 **Demo Live:** [Em breve no Vercel]
+🌐 **Demo Live:** http://criadores.digital
