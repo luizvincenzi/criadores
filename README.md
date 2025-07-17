@@ -42,7 +42,7 @@ Um sistema CRM moderno e completo para gerenciamento de criadores de conteúdo e
 
 
 ### Acesse a aplicação
-- **Dashboard:** criadores.digital/dashboard
+- **Dashboard:** http://criadores.digital/dashboard
 - **Jornada Kanban:** http://criadores.digital/jornada
 - **Criadores:** http://criadores.digital/criadores
 - **Negócios:** http://criadores.digital/negocios
