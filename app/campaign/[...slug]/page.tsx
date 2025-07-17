@@ -147,23 +147,62 @@ export default function CampaignLandingPage() {
     }).format(value);
   };
 
+  // Função para formatar mês/ano
+  const formatMonthYear = (monthYearId?: string | number) => {
+    if (!monthYearId) return 'Não definido';
+    const monthYear = monthYearId.toString();
+
+    if (monthYear.length === 6) {
+      const year = monthYear.substring(0, 4);
+      const month = monthYear.substring(4, 6);
+
+      const months = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      ];
+
+      const monthIndex = parseInt(month) - 1;
+      const monthName = months[monthIndex] || 'Mês inválido';
+
+      return `${monthName} ${year}`;
+    }
+
+    return monthYear;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <header className="bg-gradient-to-br from-white via-blue-50 to-indigo-50 shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <div className="mb-4">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                {campaignData.campaign.status}
-              </span>
+            {/* Logo crIAdores */}
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-lg mb-4">
+                <span className="text-2xl font-bold text-gray-800">
+                  cr<span className="text-blue-600">IA</span>dores
+                </span>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
               {campaignData.campaign.title}
             </h1>
-            <p className="text-xl text-gray-600 mb-4">
+            <p className="text-2xl text-gray-600 mb-8">
               {campaignData.business.name}
             </p>
+
+            {/* Data da Campanha - Mais Visível */}
+            <div className="mb-8">
+              <div className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-lg">
+                <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-xl font-bold">
+                  {formatMonthYear(campaignData.campaign.month)}
+                </span>
+              </div>
+            </div>
 
             {/* Links do Business */}
             <div className="flex items-center justify-center space-x-4 mb-6">
@@ -196,24 +235,14 @@ export default function CampaignLandingPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                {campaignData.campaign.month}
-              </div>
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-                {formatCurrency(campaignData.campaign.budget)}
-              </div>
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center justify-center space-x-8">
+              <div className="flex items-center bg-white px-6 py-3 rounded-xl shadow-sm">
+                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                {campaignData.stats.totalCreators} criadores
+                <span className="text-lg font-semibold text-gray-800">
+                  {campaignData.stats.totalCreators} criadores
+                </span>
               </div>
             </div>
           </div>
@@ -482,17 +511,27 @@ export default function CampaignLandingPage() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="bg-white border-t mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center text-gray-600">
-            <p>CRM crIAdores - Sistema de Gestão de Campanhas</p>
-            <p className="text-sm mt-1">
-              Campanha ID: {campaignData.campaign.id}
-            </p>
-            <p className="text-xs mt-1 text-gray-500">
-              Criada em: {formatDate(campaignData.campaign.created_at)}
-            </p>
+      {/* Footer Premium */}
+      <footer className="bg-gradient-to-r from-gray-900 to-blue-900 text-white mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            {/* Logo crIAdores Grande */}
+            <div className="mb-6">
+              <h2 className="text-4xl font-bold">
+                cr<span className="text-blue-400">IA</span>dores
+              </h2>
+              <p className="text-blue-200 mt-2 text-lg">Sistema de Gestão de Campanhas</p>
+            </div>
+
+            {/* Informações da Campanha */}
+            <div className="border-t border-gray-700 pt-6">
+              <p className="text-gray-300">
+                Criada em: {formatDate(campaignData.campaign.created_at)}
+              </p>
+              <p className="text-xs mt-2 text-gray-400">
+                Powered by crIAdores © 2025
+              </p>
+            </div>
           </div>
         </div>
       </footer>
