@@ -2,40 +2,81 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getGroupedCampaignsData, GroupedCampaignData } from '@/app/actions/sheetsActions';
 import Button from '@/components/ui/Button';
+
+interface LandingPageData {
+  campaign: {
+    id: string;
+    title: string;
+    status: string;
+    month: string;
+    monthYear: number;
+    quantidadeCriadores: number;
+    createdAt: string;
+  };
+  business: {
+    id: string;
+    name: string;
+    category: string;
+    currentPlan: string;
+    commercial: string;
+    whatsapp: string;
+    email: string;
+    city: string;
+    state: string;
+    responsavel: string;
+    whatsappResponsavel: string;
+  };
+  creators: Array<{
+    id: string;
+    name: string;
+    status: string;
+    social_media: any;
+    contact_info: any;
+    profile_info: any;
+    deliverables: any;
+  }>;
+  stats: {
+    totalCreators: number;
+    confirmedCreators: number;
+    completedBriefings: number;
+    approvedVideos: number;
+    postedVideos: number;
+  };
+}
 
 export default function CampaignLandingPage() {
   const params = useParams();
-  const [campaignData, setCampaignData] = useState<GroupedCampaignData | null>(null);
+  const [campaignData, setCampaignData] = useState<LandingPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const businessName = decodeURIComponent(params.business as string);
-  const month = decodeURIComponent(params.month as string);
+  const businessSlug = params.business as string;
+  const monthSlug = params.month as string;
 
   useEffect(() => {
     loadCampaignData();
-  }, [businessName, month]);
+  }, [businessSlug, monthSlug]);
 
   const loadCampaignData = async () => {
     try {
       setIsLoading(true);
-      const allCampaigns = await getGroupedCampaignsData();
-      
-      // Buscar campanha específica por business e mês
-      const campaign = allCampaigns.find(c => 
-        c.businessName.toLowerCase().replace(/\s+/g, '-') === businessName.toLowerCase() &&
-        c.mes.toLowerCase() === month.toLowerCase()
-      );
+      setError(null);
 
-      if (campaign) {
-        setCampaignData(campaign);
+      console.log('🔍 Carregando campanha:', { businessSlug, monthSlug });
+
+      const response = await fetch(`/api/campaign/${businessSlug}/${monthSlug}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setCampaignData(result.data);
+        console.log('✅ Dados carregados:', result.data);
       } else {
-        setError('Campanha não encontrada');
+        setError(result.error || 'Campanha não encontrada');
+        console.error('❌ Erro da API:', result.error);
       }
     } catch (err) {
-      console.error('Erro ao carregar campanha:', err);
+      console.error('❌ Erro ao carregar campanha:', err);
       setError('Erro ao carregar dados da campanha');
     } finally {
       setIsLoading(false);
@@ -54,13 +95,13 @@ export default function CampaignLandingPage() {
   };
 
   const openWhatsApp = () => {
-    if (!campaignData?.businessData?.whatsappResponsavel) return;
-    
-    const whatsappNumber = formatWhatsAppNumber(campaignData.businessData.whatsappResponsavel);
+    if (!campaignData?.business?.whatsappResponsavel) return;
+
+    const whatsappNumber = formatWhatsAppNumber(campaignData.business.whatsappResponsavel);
     const message = encodeURIComponent(
-      `Olá! Vim através da landing page da campanha ${campaignData.businessName} - ${campaignData.mes}. Gostaria de saber mais informações sobre a campanha.`
+      `Olá! Vim através da landing page da campanha ${campaignData.business.name} - ${campaignData.campaign.month}. Gostaria de saber mais informações sobre a campanha.`
     );
-    
+
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
@@ -122,15 +163,15 @@ export default function CampaignLandingPage() {
                 style={{ backgroundColor: '#00629B' }}
               >
                 <span className="text-white font-medium text-xl">
-                  {campaignData.businessName.charAt(0).toUpperCase()}
+                  {campaignData.business.name.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
                 <h1 className="text-2xl font-medium text-gray-900 mb-1">
-                  {campaignData.businessName}
+                  {campaignData.business.name}
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Campanha {campaignData.mes} • {campaignData.quantidadeCriadores} criadores selecionados
+                  Campanha {campaignData.campaign.month} • {campaignData.campaign.quantidadeCriadores} criadores selecionados
                 </p>
               </div>
             </div>
@@ -138,18 +179,18 @@ export default function CampaignLandingPage() {
               <div
                 className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"
                 style={{
-                  backgroundColor: campaignData.status.toLowerCase() === 'ativa' ? '#e8f5e8' : '#f3f4f6',
-                  color: campaignData.status.toLowerCase() === 'ativa' ? '#2e7d32' : '#6b7280',
-                  border: `1px solid ${campaignData.status.toLowerCase() === 'ativa' ? '#c8e6c9' : '#d1d5db'}`
+                  backgroundColor: campaignData.campaign.status.toLowerCase().includes('ativa') ? '#e8f5e8' : '#f3f4f6',
+                  color: campaignData.campaign.status.toLowerCase().includes('ativa') ? '#2e7d32' : '#6b7280',
+                  border: `1px solid ${campaignData.campaign.status.toLowerCase().includes('ativa') ? '#c8e6c9' : '#d1d5db'}`
                 }}
               >
                 <div
                   className="w-2 h-2 rounded-full mr-2"
                   style={{
-                    backgroundColor: campaignData.status.toLowerCase() === 'ativa' ? '#4caf50' : '#9ca3af'
+                    backgroundColor: campaignData.campaign.status.toLowerCase().includes('ativa') ? '#4caf50' : '#9ca3af'
                   }}
                 />
-                {campaignData.status}
+                {campaignData.campaign.status}
               </div>
             </div>
           </div>
@@ -163,12 +204,12 @@ export default function CampaignLandingPage() {
             Campanha de Marketing Digital
           </h2>
           <p className="text-xl text-gray-700 mb-12 max-w-3xl mx-auto" style={{ lineHeight: '1.6' }}>
-            Acompanhe o progresso da sua campanha com {campaignData.quantidadeCriadores} criadores de conteúdo
+            Acompanhe o progresso da sua campanha com {campaignData.campaign.quantidadeCriadores} criadores de conteúdo
             selecionados especialmente para potencializar o alcance do seu negócio.
           </p>
 
           {/* CTA Principal - Material Design 3 */}
-          {campaignData.businessData?.whatsappResponsavel && (
+          {campaignData.business?.whatsappResponsavel && (
             <div className="mb-16">
               <button
                 onClick={openWhatsApp}
@@ -224,15 +265,15 @@ export default function CampaignLandingPage() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Período</p>
-                  <p className="text-lg text-gray-900">{campaignData.mes}</p>
+                  <p className="text-lg text-gray-900">{campaignData.campaign.month}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Status</p>
-                  <p className="text-lg text-gray-900">{campaignData.status}</p>
+                  <p className="text-lg text-gray-900">{campaignData.campaign.status}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total de Campanhas</p>
-                  <p className="text-lg text-gray-900">{campaignData.totalCampanhas}</p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Título da Campanha</p>
+                  <p className="text-lg text-gray-900">{campaignData.campaign.title}</p>
                 </div>
               </div>
             </div>
@@ -259,11 +300,15 @@ export default function CampaignLandingPage() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Quantidade Contratada</p>
-                  <p className="text-lg text-gray-900">{campaignData.quantidadeCriadores} criadores</p>
+                  <p className="text-lg text-gray-900">{campaignData.campaign.quantidadeCriadores} criadores</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600 mb-1">Selecionados</p>
-                  <p className="text-lg text-gray-900">{campaignData.criadores.length} confirmados</p>
+                  <p className="text-lg text-gray-900">{campaignData.creators.length} confirmados</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Briefings Completos</p>
+                  <p className="text-lg text-gray-900">{campaignData.stats.completedBriefings} de {campaignData.creators.length}</p>
                 </div>
               </div>
             </div>
@@ -288,18 +333,22 @@ export default function CampaignLandingPage() {
                 <h4 className="text-xl font-medium text-gray-900">Contato</h4>
               </div>
               <div className="space-y-4">
-                {campaignData.businessData?.nomeResponsavel && (
+                {campaignData.business?.responsavel && (
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Responsável</p>
-                    <p className="text-lg text-gray-900">{campaignData.businessData.nomeResponsavel}</p>
+                    <p className="text-lg text-gray-900">{campaignData.business.responsavel}</p>
                   </div>
                 )}
-                {campaignData.businessData?.cidade && (
+                {campaignData.business?.city && (
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Localização</p>
-                    <p className="text-lg text-gray-900">{campaignData.businessData.cidade}</p>
+                    <p className="text-lg text-gray-900">{campaignData.business.city}, {campaignData.business.state}</p>
                   </div>
                 )}
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Categoria</p>
+                  <p className="text-lg text-gray-900">{campaignData.business.category}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -314,9 +363,9 @@ export default function CampaignLandingPage() {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {campaignData.criadores.map((criador, index) => (
+            {campaignData.creators.map((creator, index) => (
               <div
-                key={index}
+                key={creator.id}
                 className="bg-white rounded-3xl p-6 shadow-sm border hover:shadow-md transition-all duration-300"
                 style={{ borderColor: '#e0e0e0' }}
               >
@@ -328,19 +377,26 @@ export default function CampaignLandingPage() {
                     }}
                   >
                     <span className="text-white font-medium text-xl">
-                      {criador.charAt(0).toUpperCase()}
+                      {creator.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 text-lg mb-1">{criador}</h4>
-                    <p className="text-sm text-gray-600">Criador de Conteúdo</p>
+                    <h4 className="font-medium text-gray-900 text-lg mb-1">{creator.name}</h4>
+                    <p className="text-sm text-gray-600">
+                      {creator.profile_info?.category || 'Criador de Conteúdo'}
+                    </p>
+                    {creator.social_media?.instagram?.followers && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {creator.social_media.instagram.followers.toLocaleString()} seguidores
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center text-sm" style={{ color: '#4CAF50' }}>
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Confirmado para esta campanha
+                  {creator.deliverables?.visit_confirmed === 'Confirmada' ? 'Confirmado' : 'Selecionado'} para esta campanha
                 </div>
               </div>
             ))}
@@ -363,7 +419,7 @@ export default function CampaignLandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            {campaignData.businessData?.whatsappResponsavel && (
+            {campaignData.business?.whatsappResponsavel && (
               <button
                 onClick={openWhatsApp}
                 className="inline-flex items-center px-8 py-4 text-lg font-medium text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
