@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Busca Campanha</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Teste Busca de Campanhas</h1>
+    
+    <div class="test-section">
+        <h3>1. Buscar Todas as Campanhas</h3>
+        <button onclick="searchAllCampaigns()">Buscar Todas</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Buscar por Business Name</h3>
+        <button onclick="searchByBusinessName()">Buscar "Auto Posto Bela Suíça"</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Buscar por Mês</h3>
+        <button onclick="searchByMonth()">Buscar "2025-07"</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Buscar Business + Mês</h3>
+        <button onclick="searchByBusinessAndMonth()">Buscar "Auto Posto" + "2025-07"</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>5. Testar API PUT (Atualizar)</h3>
+        <button onclick="testUpdateCampaign()">Testar Atualização</button>
+    </div>
+    
+    <div id="result">Clique em um dos botões para testar...</div>
+
+    <script>
+        async function searchAllCampaigns() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Buscando todas as campanhas...';
+
+            try {
+                const response = await fetch('/api/supabase/campaigns');
+                const data = await response.json();
+                
+                console.log('All campaigns:', data);
+
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ ${data.data.length} campanhas encontradas</h3>
+                        <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro: ${data.error}`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function searchByBusinessName() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Buscando por business name...';
+
+            try {
+                const response = await fetch('/api/supabase/campaigns?businessName=Auto%20Posto%20Bela%20Su%C3%AD%C3%A7a');
+                const data = await response.json();
+                
+                console.log('Search by business name:', data);
+
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ ${data.data.length} campanhas encontradas para "Auto Posto Bela Suíça"</h3>
+                        <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro: ${data.error}`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function searchByMonth() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Buscando por mês...';
+
+            try {
+                const response = await fetch('/api/supabase/campaigns?month=2025-07');
+                const data = await response.json();
+                
+                console.log('Search by month:', data);
+
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ ${data.data.length} campanhas encontradas para "2025-07"</h3>
+                        <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro: ${data.error}`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function searchByBusinessAndMonth() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Buscando por business + mês...';
+
+            try {
+                const response = await fetch('/api/supabase/campaigns?businessName=Auto%20Posto%20Bela%20Su%C3%AD%C3%A7a&month=2025-07');
+                const data = await response.json();
+                
+                console.log('Search by business + month:', data);
+
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ ${data.data.length} campanhas encontradas para "Auto Posto Bela Suíça" + "2025-07"</h3>
+                        <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro: ${data.error}`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function testUpdateCampaign() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Testando atualização de campanha...';
+
+            try {
+                // Primeiro buscar uma campanha existente
+                const searchResponse = await fetch('/api/supabase/campaigns');
+                const searchData = await searchResponse.json();
+                
+                if (!searchData.success || searchData.data.length === 0) {
+                    result.innerHTML = '❌ Nenhuma campanha encontrada para testar atualização';
+                    return;
+                }
+
+                const campaign = searchData.data[0];
+                console.log('Campaign to update:', campaign);
+
+                // Dados de teste para atualização
+                const updateData = {
+                    businessName: campaign.businessName,
+                    month: campaign.mes || campaign.month,
+                    title: 'Título Atualizado - ' + new Date().toLocaleTimeString(),
+                    description: 'Descrição atualizada via teste',
+                    budget: 7500,
+                    objectives: 'Objetivo principal atualizado',
+                    comunicacaoSecundaria: 'Comunicação secundária atualizada',
+                    formatos: ['Reels', 'Stories', 'Posts'],
+                    perfilCriador: 'Perfil de criador atualizado',
+                    datasGravacao: {
+                        dataInicio: '2025-07-01',
+                        dataFim: '2025-07-15',
+                        horariosPreferenciais: ['Manhã', 'Tarde'],
+                        observacoes: 'Observações atualizadas'
+                    },
+                    roteiroVideo: {
+                        oQueFalar: 'Roteiro atualizado',
+                        historia: 'História atualizada',
+                        promocaoCta: 'CTA atualizado'
+                    }
+                };
+
+                const updateResponse = await fetch('/api/supabase/campaigns', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const updateResult = await updateResponse.json();
+                console.log('Update result:', updateResult);
+
+                if (updateResult.success) {
+                    result.innerHTML = `
+                        <h3>✅ Campanha atualizada com sucesso!</h3>
+                        <p><strong>Business:</strong> ${updateData.businessName}</p>
+                        <p><strong>Mês:</strong> ${updateData.month}</p>
+                        <p><strong>Novo Título:</strong> ${updateData.title}</p>
+                        
+                        <h4>Verificar se os dados foram salvos:</h4>
+                        <button onclick="searchByBusinessAndMonth()">Buscar Campanha Atualizada</button>
+                        
+                        <details>
+                            <summary>Ver resposta completa</summary>
+                            <pre>${JSON.stringify(updateResult, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `❌ Erro ao atualizar: ${updateResult.error}`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

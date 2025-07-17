@@ -10,6 +10,7 @@ interface GroupedCampaignData {
   businessName: string;
   businessId: string;
   month: string;
+  monthYearId?: number; // 🎯 ID único do mês/ano (ex: 202507)
   campaigns: any[];
   criadores: string[];
   totalCreators: number;
@@ -18,6 +19,9 @@ interface GroupedCampaignData {
   campanhas?: any[]; // Para compatibilidade
   quantidadeCriadores?: number; // Para compatibilidade
   totalCampanhas?: number; // Para compatibilidade
+  // Novos campos para identificação única
+  campaignId?: string; // UUID único da campanha principal
+  primaryCampaignId?: string; // Para compatibilidade
 }
 
 interface CampaignGroupModalProps {
@@ -56,18 +60,52 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
     if (!campaignGroup) return;
 
     try {
-      // Buscar dados da campanha do Supabase
-      const response = await fetch(`/api/supabase/campaigns?businessName=${encodeURIComponent(campaignGroup.businessName)}&month=${encodeURIComponent(campaignGroup.mes || campaignGroup.month)}`);
+      // 🎯 USAR UUID ÚNICO DA CAMPANHA para busca precisa
+      const campaignId = campaignGroup.campaignId || campaignGroup.primaryCampaignId ||
+                        (campaignGroup.campaigns && campaignGroup.campaigns[0]?.campaignId);
+
+      const monthYearId = campaignGroup.monthYearId;
+      const businessId = campaignGroup.businessId;
+
+      console.log('🔍 [MODAL DEBUG] Carregando dados da campanha:', {
+        campaignId,
+        monthYearId,
+        businessId,
+        businessName: campaignGroup.businessName,
+        month: campaignGroup.mes || campaignGroup.month,
+        method: campaignId ? 'UUID_SPECIFIC' : monthYearId ? 'MONTH_YEAR_ID' : 'FALLBACK_BUSINESS_MONTH'
+      });
+
+      let response;
+
+      if (campaignId) {
+        // 🎯 BUSCA MAIS PRECISA: Usar UUID específico da campanha
+        response = await fetch(`/api/supabase/campaigns?campaignId=${encodeURIComponent(campaignId)}`);
+        console.log('✅ [MODAL DEBUG] Usando busca por UUID específico:', campaignId);
+      } else if (businessId && monthYearId) {
+        // 🎯 BUSCA PRECISA: Usar business_id + month_year_id
+        response = await fetch(`/api/supabase/campaigns?business_id=${encodeURIComponent(businessId)}&monthYearId=${encodeURIComponent(monthYearId)}`);
+        console.log('✅ [MODAL DEBUG] Usando busca por business_id + month_year_id:', { businessId, monthYearId });
+      } else {
+        // 🔄 FALLBACK: Usar businessName + month (método antigo)
+        response = await fetch(`/api/supabase/campaigns?businessName=${encodeURIComponent(campaignGroup.businessName)}&month=${encodeURIComponent(campaignGroup.mes || campaignGroup.month)}`);
+        console.log('⚠️ [MODAL DEBUG] Usando busca por businessName + month (fallback)');
+      }
+
       const result = await response.json();
+
+      console.log('📊 [MODAL DEBUG] Resultado da API:', result);
 
       if (result.success && result.data && result.data.length > 0) {
         const campaign = result.data[0]; // Primeira campanha do grupo
-        setEditFormData({
-          title: campaign.title || '',
-          description: campaign.description || '',
-          budget: campaign.budget || 0,
-          objectives: campaign.objectives?.primary || '',
-          comunicacaoSecundaria: campaign.objectives?.secondary?.[0] || '',
+        console.log('📋 [MODAL DEBUG] Dados da campanha encontrada:', campaign);
+
+        const formData = {
+          title: campaign.title || campaign.nome || '',
+          description: campaign.description || campaign.descricao || '',
+          budget: campaign.budget || campaign.orcamento || 0,
+          objectives: campaign.objectives?.primary || campaign.objetivos?.primary || '',
+          comunicacaoSecundaria: campaign.objectives?.secondary?.[0] || campaign.briefing_details?.comunicacao_secundaria || '',
           formatos: campaign.briefing_details?.formatos || [],
           perfilCriador: campaign.briefing_details?.perfil_criador || '',
           datasGravacao: {
@@ -81,11 +119,16 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
             historia: campaign.briefing_details?.roteiro_video?.historia || '',
             promocaoCta: campaign.briefing_details?.roteiro_video?.promocao_cta || ''
           },
-          deliverables: campaign.deliverables || { posts: 1, stories: 3, reels: 1 }
-        });
+          deliverables: campaign.deliverables || campaign.entregaveis || { posts: 1, stories: 3, reels: 1 }
+        };
+
+        console.log('📝 [MODAL DEBUG] Dados do formulário preparados:', formData);
+        setEditFormData(formData);
+      } else {
+        console.warn('⚠️ [MODAL DEBUG] Nenhuma campanha encontrada ou erro na API:', result);
       }
     } catch (error) {
-      console.error('Erro ao carregar dados da campanha:', error);
+      console.error('❌ [MODAL DEBUG] Erro ao carregar dados da campanha:', error);
     }
   };
 
@@ -115,30 +158,46 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
     if (!campaignGroup) return;
 
     try {
+      // 🎯 USAR IDs ÚNICOS para atualização precisa
+      const campaignId = campaignGroup.campaignId || campaignGroup.primaryCampaignId ||
+                        (campaignGroup.campaigns && campaignGroup.campaigns[0]?.campaignId);
+
+      const updateData = {
+        // Priorizar UUID específico da campanha
+        id: campaignId,
+        // Fallback para business + month se não tiver campaignId
+        businessName: campaignGroup.businessName,
+        month: campaignGroup.mes || campaignGroup.month,
+        monthYearId: campaignGroup.monthYearId,
+        businessId: campaignGroup.businessId,
+        ...editFormData
+      };
+
+      console.log('💾 [MODAL DEBUG] Salvando dados da campanha:', updateData);
+
       const response = await fetch('/api/supabase/campaigns', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          businessName: campaignGroup.businessName,
-          month: campaignGroup.mes || campaignGroup.month,
-          ...editFormData
-        }),
+        body: JSON.stringify(updateData),
       });
 
       const result = await response.json();
+      console.log('📤 [MODAL DEBUG] Resposta da API PUT:', result);
 
       if (result.success) {
-        console.log('✅ Campanha atualizada com sucesso');
+        console.log('✅ [MODAL DEBUG] Campanha atualizada com sucesso');
         setIsEditMode(false);
         // Recarregar dados
         loadCampaignData();
       } else {
-        console.error('❌ Erro ao salvar campanha:', result.error);
+        console.error('❌ [MODAL DEBUG] Erro ao salvar campanha:', result.error);
+        alert(`Erro ao salvar: ${result.error}`);
       }
     } catch (error) {
-      console.error('❌ Erro ao salvar campanha:', error);
+      console.error('❌ [MODAL DEBUG] Erro ao salvar campanha:', error);
+      alert(`Erro ao salvar: ${error.message}`);
     }
   };
 

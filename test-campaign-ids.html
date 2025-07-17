@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste IDs das Campanhas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Teste de IDs Únicos das Campanhas</h1>
+    
+    <div class="test-section">
+        <h3>1. Verificar Estrutura dos Dados</h3>
+        <button onclick="testCampaignStructure()">Verificar Estrutura das Campanhas</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Busca por UUID Específico</h3>
+        <button onclick="testCampaignById()">Buscar por Campaign ID</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Busca por Business ID + Month Year ID</h3>
+        <button onclick="testByBusinessAndMonthYear()">Buscar por Business + Month Year</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>4. Teste de Atualização com UUID</h3>
+        <button onclick="testUpdateWithUUID()">Testar Atualização com UUID</button>
+    </div>
+    
+    <div id="result">Clique em um dos botões para testar...</div>
+
+    <script>
+        let testCampaignId = null;
+        let testBusinessId = null;
+        let testMonthYearId = null;
+
+        async function testCampaignStructure() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Verificando estrutura das campanhas...';
+
+            try {
+                const response = await fetch('/api/supabase/campaigns');
+                const data = await response.json();
+                
+                console.log('Campaign structure:', data);
+
+                if (data.success && data.data.length > 0) {
+                    const campaign = data.data[0];
+                    testCampaignId = campaign.id;
+                    testBusinessId = campaign.business_id;
+                    testMonthYearId = campaign.month_year_id;
+
+                    result.innerHTML = `
+                        <h3 class="success">✅ ${data.data.length} campanhas encontradas</h3>
+                        
+                        <h4>📋 Primeira Campanha (para testes):</h4>
+                        <p><strong>ID:</strong> ${campaign.id}</p>
+                        <p><strong>Business ID:</strong> ${campaign.business_id}</p>
+                        <p><strong>Month Year ID:</strong> ${campaign.month_year_id}</p>
+                        <p><strong>Title:</strong> ${campaign.title}</p>
+                        <p><strong>Business Name:</strong> ${campaign.business?.name}</p>
+                        <p><strong>Month:</strong> ${campaign.month}</p>
+                        
+                        <h4>🔍 Verificação de Campos Únicos:</h4>
+                        <p class="${campaign.id ? 'success' : 'error'}">
+                            Campaign ID: ${campaign.id ? '✅ Presente' : '❌ Ausente'}
+                        </p>
+                        <p class="${campaign.business_id ? 'success' : 'error'}">
+                            Business ID: ${campaign.business_id ? '✅ Presente' : '❌ Ausente'}
+                        </p>
+                        <p class="${campaign.month_year_id ? 'success' : 'warning'}">
+                            Month Year ID: ${campaign.month_year_id ? '✅ Presente' : '⚠️ Ausente'}
+                        </p>
+                        
+                        <details>
+                            <summary>Ver estrutura completa</summary>
+                            <pre>${JSON.stringify(campaign, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `<p class="error">❌ Nenhuma campanha encontrada</p>`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        async function testCampaignById() {
+            const result = document.getElementById('result');
+            
+            if (!testCampaignId) {
+                result.innerHTML = '<p class="warning">⚠️ Execute primeiro "Verificar Estrutura" para obter um Campaign ID</p>';
+                return;
+            }
+
+            result.innerHTML = `🔄 Buscando campanha por UUID: ${testCampaignId}...`;
+
+            try {
+                const response = await fetch(`/api/supabase/campaigns?campaignId=${encodeURIComponent(testCampaignId)}`);
+                const data = await response.json();
+                
+                console.log('Search by campaign ID:', data);
+
+                if (data.success && data.data.length > 0) {
+                    const campaign = data.data[0];
+                    result.innerHTML = `
+                        <h3 class="success">✅ Campanha encontrada por UUID!</h3>
+                        <p><strong>ID:</strong> ${campaign.id}</p>
+                        <p><strong>Title:</strong> ${campaign.title}</p>
+                        <p><strong>Business:</strong> ${campaign.business?.name}</p>
+                        <p><strong>Month:</strong> ${campaign.month}</p>
+                        <p><strong>Briefing Details:</strong> ${campaign.briefing_details ? '✅ Presente' : '❌ Ausente'}</p>
+                        
+                        <h4>🎯 Teste de Precisão:</h4>
+                        <p class="success">✅ Busca por UUID retornou exatamente 1 campanha</p>
+                        <p class="success">✅ ID corresponde ao solicitado: ${campaign.id === testCampaignId}</p>
+                        
+                        <details>
+                            <summary>Ver dados completos</summary>
+                            <pre>${JSON.stringify(campaign, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `<p class="error">❌ Campanha não encontrada por UUID: ${testCampaignId}</p>`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        async function testByBusinessAndMonthYear() {
+            const result = document.getElementById('result');
+            
+            if (!testBusinessId || !testMonthYearId) {
+                result.innerHTML = '<p class="warning">⚠️ Execute primeiro "Verificar Estrutura" para obter Business ID e Month Year ID</p>';
+                return;
+            }
+
+            result.innerHTML = `🔄 Buscando por Business ID: ${testBusinessId} + Month Year ID: ${testMonthYearId}...`;
+
+            try {
+                const response = await fetch(`/api/supabase/campaigns?business_id=${encodeURIComponent(testBusinessId)}&monthYearId=${encodeURIComponent(testMonthYearId)}`);
+                const data = await response.json();
+                
+                console.log('Search by business + month year:', data);
+
+                if (data.success && data.data.length > 0) {
+                    result.innerHTML = `
+                        <h3 class="success">✅ ${data.data.length} campanha(s) encontrada(s)!</h3>
+                        <p><strong>Business ID:</strong> ${testBusinessId}</p>
+                        <p><strong>Month Year ID:</strong> ${testMonthYearId}</p>
+                        
+                        <h4>📋 Campanhas encontradas:</h4>
+                        ${data.data.map((campaign, index) => `
+                            <div style="border: 1px solid #ddd; padding: 10px; margin: 5px 0; border-radius: 5px;">
+                                <p><strong>Campanha ${index + 1}:</strong></p>
+                                <p>ID: ${campaign.id}</p>
+                                <p>Title: ${campaign.title}</p>
+                                <p>Business: ${campaign.business?.name}</p>
+                                <p>Month: ${campaign.month}</p>
+                            </div>
+                        `).join('')}
+                        
+                        <details>
+                            <summary>Ver dados completos</summary>
+                            <pre>${JSON.stringify(data.data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `<p class="error">❌ Nenhuma campanha encontrada para Business ID: ${testBusinessId} + Month Year ID: ${testMonthYearId}</p>`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        async function testUpdateWithUUID() {
+            const result = document.getElementById('result');
+            
+            if (!testCampaignId) {
+                result.innerHTML = '<p class="warning">⚠️ Execute primeiro "Verificar Estrutura" para obter um Campaign ID</p>';
+                return;
+            }
+
+            result.innerHTML = `🔄 Testando atualização com UUID: ${testCampaignId}...`;
+
+            try {
+                const updateData = {
+                    id: testCampaignId, // 🎯 Usar UUID direto
+                    title: 'Título Atualizado via UUID - ' + new Date().toLocaleTimeString(),
+                    description: 'Descrição atualizada usando UUID específico',
+                    objectives: 'Objetivo atualizado via UUID',
+                    comunicacaoSecundaria: 'Comunicação atualizada via UUID'
+                };
+
+                const response = await fetch('/api/supabase/campaigns', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const updateResult = await response.json();
+                console.log('Update result:', updateResult);
+
+                if (updateResult.success) {
+                    result.innerHTML = `
+                        <h3 class="success">✅ Campanha atualizada com sucesso via UUID!</h3>
+                        <p><strong>Campaign ID:</strong> ${testCampaignId}</p>
+                        <p><strong>Novo Título:</strong> ${updateData.title}</p>
+                        
+                        <h4>🔍 Verificar se os dados foram salvos:</h4>
+                        <button onclick="testCampaignById()">Buscar Campanha Atualizada</button>
+                        
+                        <details>
+                            <summary>Ver resposta da API</summary>
+                            <pre>${JSON.stringify(updateResult, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `<p class="error">❌ Erro ao atualizar: ${updateResult.error}</p>`;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

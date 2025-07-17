@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Criar Campanha Teste Simples</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Criar Campanha de Teste</h1>
+    
+    <button onclick="createTestCampaign()">Criar Campanha "Auto Posto Bela Suíça"</button>
+    
+    <div id="result">Clique no botão para criar a campanha...</div>
+
+    <script>
+        async function createTestCampaign() {
+            const result = document.getElementById('result');
+            result.innerHTML = '🔄 Criando campanha de teste...';
+
+            try {
+                // 1. Primeiro buscar ou criar o business
+                result.innerHTML = '🔄 1/3 - Verificando business...';
+                
+                const businessResponse = await fetch('/api/supabase/businesses');
+                const businessData = await businessResponse.json();
+                
+                let autoPostoBusiness = null;
+                
+                if (businessData.success) {
+                    autoPostoBusiness = businessData.data.find(b => 
+                        b.name && b.name.toLowerCase().includes('auto posto')
+                    );
+                }
+
+                if (!autoPostoBusiness) {
+                    result.innerHTML = '🔄 1/3 - Criando business "Auto Posto Bela Suíça"...';
+                    
+                    const createBusinessResponse = await fetch('/api/supabase/businesses', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: 'Auto Posto Bela Suíça',
+                            contact_info: {
+                                phone: '43 99999-9999',
+                                whatsapp: '43 99999-9999',
+                                email: 'contato@autopostobela.com.br'
+                            },
+                            address: {
+                                city: 'Londrina',
+                                state: 'PR',
+                                country: 'Brasil'
+                            },
+                            category_id: 1,
+                            current_plan_id: 1,
+                            status: 'Ativo'
+                        })
+                    });
+
+                    const createBusinessResult = await createBusinessResponse.json();
+                    
+                    if (!createBusinessResult.success) {
+                        result.innerHTML = `❌ Erro ao criar business: ${createBusinessResult.error}`;
+                        return;
+                    }
+
+                    autoPostoBusiness = createBusinessResult.data;
+                }
+
+                result.innerHTML = `🔄 2/3 - Business encontrado: ${autoPostoBusiness.name}`;
+
+                // 2. Criar a campanha
+                result.innerHTML = '🔄 2/3 - Criando campanha...';
+                
+                const campaignData = {
+                    business_id: autoPostoBusiness.id,
+                    title: 'Campanha Julho 2025 - Auto Posto Bela Suíça',
+                    description: 'Campanha de marketing digital para promover os serviços do Auto Posto Bela Suíça',
+                    month: '2025-07',
+                    month_year_id: 202507, // 🎯 ID único do mês/ano
+                    budget: 5000,
+                    status: 'Reunião de briefing',
+                    objectives: {
+                        primary: 'Aumentar awareness da marca',
+                        secondary: ['Atrair novos clientes', 'Promover serviços'],
+                        kpis: { reach: 15000, engagement: 750, conversions: 100 }
+                    },
+                    deliverables: {
+                        posts: 3,
+                        stories: 5,
+                        reels: 2,
+                        events: 0,
+                        requirements: ['Mencionar localização', 'Destacar qualidade dos combustíveis'],
+                        creators_count: 4
+                    },
+                    briefing_details: {
+                        formatos: ['Reels', 'Stories', 'Posts'],
+                        perfil_criador: 'Criadores locais de Londrina e região, com foco em lifestyle e automotivo',
+                        comunicacao_secundaria: 'Destacar a qualidade dos combustíveis e conveniência da localização',
+                        datas_gravacao: {
+                            data_inicio: '2025-07-01',
+                            data_fim: '2025-07-15',
+                            horarios_preferenciais: ['Manhã', 'Tarde'],
+                            observacoes: 'Evitar horários de pico para não atrapalhar o movimento'
+                        },
+                        roteiro_video: {
+                            o_que_falar: 'Falar sobre a qualidade dos combustíveis, atendimento diferenciado e localização estratégica do Auto Posto Bela Suíça',
+                            historia: 'Contar sobre a tradição familiar do posto e o compromisso com a qualidade',
+                            promocao_cta: 'Venha conhecer o Auto Posto Bela Suíça e comprove a diferença na qualidade!'
+                        }
+                    }
+                };
+
+                const campaignResponse = await fetch('/api/supabase/campaigns', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(campaignData)
+                });
+
+                const campaignResult = await campaignResponse.json();
+
+                if (!campaignResult.success) {
+                    result.innerHTML = `❌ Erro ao criar campanha: ${campaignResult.error}`;
+                    return;
+                }
+
+                result.innerHTML = '🔄 3/3 - Testando busca da campanha...';
+
+                // 3. Testar busca da campanha
+                const searchResponse = await fetch('/api/supabase/campaigns?businessName=Auto%20Posto%20Bela%20Su%C3%AD%C3%A7a&month=2025-07');
+                const searchResult = await searchResponse.json();
+
+                if (searchResult.success && searchResult.data.length > 0) {
+                    const campaign = searchResult.data[0];
+                    
+                    result.innerHTML = `
+                        <h3>✅ Campanha criada e encontrada com sucesso!</h3>
+                        
+                        <h4>📋 Dados da Campanha:</h4>
+                        <p><strong>ID:</strong> ${campaign.id}</p>
+                        <p><strong>Título:</strong> ${campaign.nome || campaign.title}</p>
+                        <p><strong>Business:</strong> ${campaign.businessName}</p>
+                        <p><strong>Mês:</strong> ${campaign.mes || campaign.month}</p>
+                        <p><strong>Orçamento:</strong> R$ ${campaign.orcamento || campaign.budget}</p>
+                        <p><strong>Descrição:</strong> ${campaign.descricao || campaign.description}</p>
+                        <p><strong>Objetivos:</strong> ${campaign.objetivos?.primary || 'N/A'}</p>
+                        <p><strong>Briefing Details:</strong> ${campaign.briefing_details ? '✅ Sim' : '❌ Não'}</p>
+                        
+                        <h4>🧪 Próximos Testes:</h4>
+                        <ol>
+                            <li>Abrir a <a href="/campaigns" target="_blank">página de campanhas</a></li>
+                            <li>Encontrar "Auto Posto Bela Suíça"</li>
+                            <li>Clicar em "Ver Detalhes"</li>
+                            <li>Verificar se os dados aparecem corretamente</li>
+                            <li>Testar o botão "Editar"</li>
+                            <li>Testar o botão "Salvar"</li>
+                        </ol>
+                        
+                        <button onclick="testModal()">Testar Modal de Detalhes</button>
+                        
+                        <details>
+                            <summary>Ver dados completos da campanha</summary>
+                            <pre>${JSON.stringify(campaign, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <h3>⚠️ Campanha criada mas não encontrada na busca</h3>
+                        <p>A campanha foi criada com sucesso, mas não foi encontrada na busca.</p>
+                        <p>Isso pode indicar um problema na API de busca.</p>
+                        
+                        <h4>Dados da criação:</h4>
+                        <pre>${JSON.stringify(campaignResult, null, 2)}</pre>
+                        
+                        <h4>Resultado da busca:</h4>
+                        <pre>${JSON.stringify(searchResult, null, 2)}</pre>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                result.innerHTML = `❌ Erro: ${error.message}`;
+            }
+        }
+
+        async function testModal() {
+            const result = document.getElementById('result');
+            result.innerHTML += '<br><br>🔄 Testando modal de detalhes...';
+            
+            // Simular abertura do modal (isso seria feito na interface)
+            result.innerHTML += '<br>📝 Para testar o modal:';
+            result.innerHTML += '<br>1. Abra a <a href="/campaigns" target="_blank">página de campanhas</a>';
+            result.innerHTML += '<br>2. Encontre "Auto Posto Bela Suíça" na lista';
+            result.innerHTML += '<br>3. Clique em "Ver Detalhes"';
+            result.innerHTML += '<br>4. Verifique se os campos estão preenchidos';
+            result.innerHTML += '<br>5. Clique em "Editar" e teste a edição';
+            result.innerHTML += '<br>6. Clique em "Salvar" e verifique se salva';
+        }
+    </script>
+</body>
+</html>

@@ -11,10 +11,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('business_id');
+    const businessName = searchParams.get('businessName');
+    const campaignId = searchParams.get('campaignId'); // 🎯 UUID específico da campanha
+    const monthYearId = searchParams.get('monthYearId'); // 🎯 ID único do mês/ano
     const status = searchParams.get('status');
     const month = searchParams.get('month');
 
-    console.log('📊 Buscando campanhas do Supabase...');
+    console.log('📊 Buscando campanhas do Supabase...', {
+      businessId, businessName, campaignId, monthYearId, status, month
+    });
 
     let query = supabase
       .from('campaigns')
@@ -61,18 +66,35 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', DEFAULT_ORG_ID)
       .eq('is_active', true);
 
-    // Aplicar filtros se fornecidos
-    if (businessId) {
-      query = query.eq('business_id', businessId);
-    }
-    if (status) {
-      query = query.eq('status', status);
-    }
-    if (month) {
-      query = query.eq('month', month);
+    // 🎯 BUSCA PRECISA: Se campaignId fornecido, buscar apenas essa campanha
+    if (campaignId) {
+      query = query.eq('id', campaignId);
+      console.log('✅ Usando busca por UUID específico da campanha:', campaignId);
+    } else {
+      // Aplicar outros filtros apenas se não tiver campaignId específico
+      if (businessId) {
+        query = query.eq('business_id', businessId);
+      }
+      if (monthYearId) {
+        query = query.eq('month_year_id', parseInt(monthYearId));
+        console.log('✅ Usando busca por month_year_id:', monthYearId);
+      }
+      if (status) {
+        query = query.eq('status', status);
+      }
+      if (month) {
+        query = query.eq('month', month);
+      }
     }
 
-    const { data: campaigns, error } = await query;
+    let { data: campaigns, error } = await query;
+
+    // Se businessName for fornecido, filtrar após a busca (apenas se não tiver campaignId)
+    if (businessName && campaigns && !campaignId) {
+      campaigns = campaigns.filter(campaign =>
+        campaign.business?.name?.toLowerCase().includes(businessName.toLowerCase())
+      );
+    }
 
     if (error) {
       console.error('❌ Erro ao buscar campanhas:', error);
@@ -485,16 +507,88 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     console.log('🔄 Atualizando campanha:', body);
 
-    if (!body.id) {
+    // 🎯 PRIORIZAR UUID DIRETO DA CAMPANHA
+    let campaignId = body.id;
+
+    if (!campaignId) {
+      // 🎯 BUSCA PRECISA: Usar business_id + month_year_id
+      if (body.businessId && body.monthYearId) {
+        console.log('🔍 Buscando campanha por business_id + month_year_id:', {
+          businessId: body.businessId,
+          monthYearId: body.monthYearId
+        });
+
+        const { data: campaign, error: campaignError } = await supabase
+          .from('campaigns')
+          .select('id')
+          .eq('business_id', body.businessId)
+          .eq('month_year_id', body.monthYearId)
+          .eq('organization_id', DEFAULT_ORG_ID)
+          .single();
+
+        if (campaignError || !campaign) {
+          console.log('❌ Campanha não encontrada por business_id + month_year_id');
+        } else {
+          campaignId = campaign.id;
+          console.log('✅ Campanha encontrada por business_id + month_year_id:', campaignId);
+        }
+      }
+
+      // 🔄 FALLBACK: Buscar por businessName + month (método antigo)
+      if (!campaignId && body.businessName && body.month) {
+        console.log('🔍 Fallback: Buscando campanha por businessName + month:', {
+          businessName: body.businessName,
+          month: body.month
+        });
+
+        // Buscar business primeiro
+        const { data: business, error: businessError } = await supabase
+          .from('businesses')
+          .select('id')
+          .eq('name', body.businessName)
+          .eq('organization_id', DEFAULT_ORG_ID)
+          .single();
+
+        if (businessError || !business) {
+          return NextResponse.json(
+            { success: false, error: 'Business não encontrado' },
+            { status: 400 }
+          );
+        }
+
+        // Buscar campanha
+        const { data: campaign, error: campaignError } = await supabase
+          .from('campaigns')
+          .select('id')
+          .eq('business_id', business.id)
+          .eq('month', body.month)
+          .eq('organization_id', DEFAULT_ORG_ID)
+          .single();
+
+        if (campaignError || !campaign) {
+          return NextResponse.json(
+            { success: false, error: 'Campanha não encontrada' },
+            { status: 400 }
+          );
+        }
+
+        campaignId = campaign.id;
+        console.log('✅ Campanha encontrada por fallback:', campaignId);
+      }
+    } else {
+      console.log('✅ Usando UUID direto da campanha:', campaignId);
+    }
+
+    if (!campaignId) {
       return NextResponse.json(
-        { success: false, error: 'ID da campanha é obrigatório' },
+        { success: false, error: 'ID da campanha é obrigatório ou forneça businessId + monthYearId ou businessName + month' },
         { status: 400 }
       );
     }
 
     // Preparar dados para atualização
     const updateData: any = {};
-    
+
     if (body.title) updateData.title = body.title;
     if (body.description !== undefined) updateData.description = body.description;
     if (body.month) updateData.month = body.month;
@@ -507,12 +601,32 @@ export async function PUT(request: NextRequest) {
     if (body.deliverables) updateData.deliverables = body.deliverables;
     if (body.results) updateData.results = body.results;
 
+    // Processar briefing_details
+    if (body.formatos || body.perfilCriador || body.comunicacaoSecundaria || body.datasGravacao || body.roteiroVideo) {
+      updateData.briefing_details = {
+        formatos: body.formatos || [],
+        perfil_criador: body.perfilCriador || '',
+        comunicacao_secundaria: body.comunicacaoSecundaria || '',
+        datas_gravacao: body.datasGravacao || {
+          data_inicio: null,
+          data_fim: null,
+          horarios_preferenciais: [],
+          observacoes: ''
+        },
+        roteiro_video: body.roteiroVideo || {
+          o_que_falar: '',
+          historia: '',
+          promocao_cta: ''
+        }
+      };
+    }
+
     updateData.updated_at = new Date().toISOString();
 
     const { data: campaign, error } = await supabase
       .from('campaigns')
       .update(updateData)
-      .eq('id', body.id)
+      .eq('id', campaignId)
       .eq('organization_id', DEFAULT_ORG_ID)
       .select()
       .single();

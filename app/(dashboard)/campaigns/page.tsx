@@ -47,13 +47,15 @@ export default function CampaignsPage() {
           businessName: businessName,
           businessId: campaign.businessId || '',
           month: month,
+          monthYearId: campaign.monthYearId || campaign.month_year_id, // 🎯 Adicionar month_year_id
           monthDisplay: formatMonthDisplay(month),
           campaign_date: '',
           campaigns: [],
           criadores: [],
           totalCreators: 0,
           totalVisualizacoes: 0,
-          status: campaign.status || 'Reunião de briefing'
+          status: campaign.status || 'Reunião de briefing',
+          campaignId: campaign.id // 🎯 Adicionar UUID da campanha principal
         };
       }
 
