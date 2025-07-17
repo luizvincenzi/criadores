@@ -1,42 +1,51 @@
-# 🚀 CRM Criadores - Sistema Kanban Completo
+# 🚀 CRM Criadores - Sistema Completo de Gestão
 
-Um sistema CRM moderno e completo para gerenciamento de influenciadores e campanhas, com **Kanban drag & drop funcional** e integração total com Google Sheets.
+Um sistema CRM moderno e completo para gerenciamento de criadores de conteúdo e campanhas, com **interface kanban drag & drop** e **sistema 100% migrado para Supabase**.
 
 ## ✨ Funcionalidades Principais
 
-### 🛤️ **Kanban da Jornada**
-- **3 fases específicas:** Reunião Briefing → Agendamentos → Entrega Final
-- **Drag & Drop funcional** para mover negócios entre fases
-- **Atualização automática** no banco de dados
-- **Feedback visual** com notificações de sucesso/erro
+### 🛤️ **Jornada de Campanhas (Kanban)**
+- **4 estágios:** Reunião de Briefing → Agendamentos → Entrega Final → Finalizado
+- **Drag & Drop funcional** para mover campanhas entre estágios
+- **Atualização automática** no banco PostgreSQL (Supabase)
+- **Validação inteligente** antes de finalizar campanhas
+- **Feedback visual** com notificações em tempo real
 
-### 💬 **Popup de Detalhes Completo**
-- **Informações do projeto** (fase, valor, data, descrição)
-- **Lista de influenciadores** contratados com métricas
-- **Campanhas relacionadas** com status e períodos
-- **Interface moderna** com Material Design 3
+### 👥 **Gestão Completa de Criadores**
+- **Sistema de slots dinâmicos** para campanhas
+- **Troca atômica** de criadores entre campanhas
+- **Edição inline** de todos os campos (datas, status, links)
+- **Validação de dados** em tempo real
+- **Histórico completo** de alterações (audit log)
+
+### 📊 **Dashboard e Relatórios**
+- **Métricas em tempo real** de campanhas e visualizações
+- **Ranking de campanhas** por performance
+- **Ranking de criadores** por engajamento
+- **Relatórios premium** com filtros avançados
 
 ### 🔗 **Integração Total**
-- **4 páginas integradas:** Negócios, Influenciadores, Campanhas, Jornada
-- **Banco de dados único** através do Google Sheets
-- **Dados compartilhados** entre todas as seções
-- **Extração automática** de influenciadores e campanhas
+- **5 páginas integradas:** Dashboard, Negócios, Criadores, Campanhas, Jornada
+- **Banco PostgreSQL** via Supabase com RLS (Row Level Security)
+- **APIs RESTful** para todas as operações
+- **Sistema de autenticação** com controle de acesso
 
 ## 🛠️ Tecnologias
 
-- **Next.js 15** com App Router
-- **TypeScript** para type safety
-- **TailwindCSS** para styling
+- **Next.js 15** com App Router e TypeScript
+- **Supabase** (PostgreSQL + Auth + Real-time)
+- **TailwindCSS** + Material Design 3
 - **@dnd-kit** para drag & drop
-- **Google Sheets API** para persistência
 - **Zustand** para state management
-- **Material Design 3** para UI/UX
+- **React Hook Form** para formulários
+- **Lucide React** para ícones
 
 ## 🚀 Como Executar
 
 ### Pré-requisitos
 - Node.js 18+
 - npm ou yarn
+- Conta no Supabase (gratuita)
 
 ### Instalação
 ```bash
@@ -45,74 +54,111 @@ git clone https://github.com/luizvincenzi/crmcriadores.git
 cd crmcriadores
 
 # Instale as dependências
-npm install
+npm install --legacy-peer-deps
+
+# Configure as variáveis de ambiente
+cp .env.example .env.local
+# Edite .env.local com suas credenciais do Supabase
 
 # Execute o projeto
 npm run dev
 ```
 
+### Configuração do Supabase
+1. Crie um projeto no [Supabase](https://supabase.com)
+2. Execute as migrações SQL em `supabase/migrations/`
+3. Configure as variáveis no `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_DATA_SOURCE=supabase
+```
+
 ### Acesse a aplicação
-- **URL:** http://localhost:3000
+- **Dashboard:** http://localhost:3000
 - **Jornada Kanban:** http://localhost:3000/jornada
+- **Criadores:** http://localhost:3000/criadores
+- **Negócios:** http://localhost:3000/negocios
 
 ## 🎯 Funcionalidades Detalhadas
 
 ### 🖱️ **Sistema Drag & Drop**
-- **Arrastar negócios** entre colunas do Kanban
-- **Feedback visual** durante o arraste
+- **Arrastar campanhas** entre estágios do Kanban
+- **Feedback visual** durante o arraste com animações
 - **Drop zones destacadas** quando hover
-- **Atualização imediata** da interface
+- **Atualização automática** no banco PostgreSQL
+- **Validação inteligente** antes de mover campanhas
 
-### 📊 **Métricas Integradas**
-- **Contagem automática** de influenciadores por negócio
-- **Valores totais** por fase da jornada
-- **Estatísticas dinâmicas** em todas as páginas
+### 👥 **Gestão Avançada de Criadores**
+- **Slots dinâmicos** por campanha (1-10 criadores)
+- **Troca atômica** de criadores sem perder dados
+- **Edição inline** de datas, status e links
+- **Validação em tempo real** de campos obrigatórios
+- **Sistema de substituição** de criadores
+
+### 📊 **Dashboard Inteligente**
+- **Métricas em tempo real** de campanhas ativas
+- **Total de visualizações** agregadas
+- **Ranking dinâmico** de top 3 campanhas
+- **Relatórios premium** com filtros avançados
 
 ### 🔔 **Sistema de Notificações**
-- **Toast de sucesso** (verde) quando operação bem-sucedida
-- **Toast de erro** (vermelho) quando falha
-- **Auto-dismiss** após 3 segundos
+- **Toast contextual** para cada ação
+- **Feedback visual** em tempo real
+- **Confirmações** para ações críticas
+- **Auto-dismiss** inteligente
 
-## 🗃️ Integração Google Sheets
-
-### Configuração
-1. Crie um projeto no Google Cloud Console
-2. Ative a Google Sheets API
-3. Crie credenciais de service account
-4. Configure as variáveis de ambiente:
-
-```env
-GOOGLE_SPREADSHEET_ID=your_spreadsheet_id
-GOOGLE_SERVICE_ACCOUNT_EMAIL=your_service_account_email
-GOOGLE_PRIVATE_KEY=your_private_key
-```
+### 🔒 **Segurança e Auditoria**
+- **Row Level Security (RLS)** no Supabase
+- **Audit log completo** de todas as alterações
+- **Controle de acesso** por usuário
+- **Validação de dados** em múltiplas camadas
 
 ## 🧪 Como Testar
 
-### Kanban Drag & Drop
+### 1. Kanban de Campanhas
 1. Acesse `/jornada`
-2. Arraste qualquer card entre as colunas
-3. Observe a atualização imediata
-4. Veja a notificação de sucesso
+2. Arraste campanhas entre estágios
+3. Observe validações automáticas
+4. Teste finalização de campanhas
 
-### Popup de Detalhes
-1. Clique em qualquer card (sem arrastar)
-2. Veja informações completas do negócio
-3. Observe influenciadores e campanhas
-4. Feche o popup
+### 2. Gestão de Criadores
+1. Abra uma campanha no modal
+2. Adicione/remova criadores
+3. Edite datas e status inline
+4. Teste troca de criadores
+
+### 3. Dashboard e Métricas
+1. Acesse `/` (dashboard)
+2. Veja métricas em tempo real
+3. Teste relatórios premium
+4. Observe rankings dinâmicos
 
 ## 📈 Status do Projeto
 
-✅ **Completo e Funcional**
-- Sistema Kanban com drag & drop
-- Integração com Google Sheets
-- Interface moderna e responsiva
-- Notificações de feedback
-- Popup de detalhes completo
-- 4 páginas integradas
+✅ **100% Funcional e Pronto para Produção**
+- ✅ Sistema Kanban com drag & drop
+- ✅ Migração completa para Supabase
+- ✅ Interface Material Design 3
+- ✅ Sistema de autenticação
+- ✅ Gestão completa de criadores
+- ✅ Dashboard com métricas
+- ✅ Audit log e segurança
+- ✅ APIs RESTful completas
+- ✅ Validação e integridade de dados
+
+## 🚀 Deploy
+
+O projeto está configurado para deploy automático no Vercel:
+- **Push para main** → Deploy automático
+- **Variáveis de ambiente** configuradas no Vercel
+- **Domínio personalizado** disponível
 
 ---
 
 **Desenvolvido com ❤️ para criadores de conteúdo**
 
-🔗 **Demo:** [https://github.com/luizvincenzi/crmcriadores](https://github.com/luizvincenzi/crmcriadores)
+🔗 **Repositório:** [https://github.com/luizvincenzi/crmcriadores](https://github.com/luizvincenzi/crmcriadores)
+🌐 **Demo Live:** [Em breve no Vercel]
