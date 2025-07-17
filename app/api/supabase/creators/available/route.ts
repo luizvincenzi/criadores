@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       excludeCampaignId
     });
 
-    // Buscar criadores ativos
+    // Buscar criadores ativos (excluindo placeholder)
     let query = supabase
       .from('creators')
       .select(`
@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
         status
       `)
       .eq('organization_id', DEFAULT_ORG_ID)
-      .in('status', ['Ativo', 'Precisa engajar']);
+      .in('status', ['Ativo', 'Precisa engajar'])
+      .neq('name', '[SLOT VAZIO]');  // Excluir criador placeholder
 
     // Filtrar por cidade se especificada (campo não disponível atualmente)
     // if (businessCity) {

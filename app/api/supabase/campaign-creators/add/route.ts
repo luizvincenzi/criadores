@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { CampaignManager } from '@/lib/campaign-manager';
 import { standardizeMonth } from '@/lib/month-utils';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
@@ -16,209 +17,95 @@ function getMonthNumber(monthName: string): number {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { businessName, mes, creatorId, creatorData, userEmail } = body;
+    const { businessName, mes, creatorId, userEmail = 'teste@sistema.com', increaseSlots = false } = body;
 
-    // Converter mês para month_year_id
-    let monthYearId: number;
-
-    // Se mes já é um month_year_id (número)
-    if (typeof mes === 'number' || /^\d{6}$/.test(mes)) {
-      monthYearId = parseInt(mes.toString());
-    } else {
-      // Converter string para month_year_id
-      const standardMonth = standardizeMonth(mes);
-      // Assumir que standardMonth retorna formato "jul 25"
-      const [monthName, yearShort] = standardMonth.split(' ');
-      const year = 2000 + parseInt(yearShort);
-      const monthNum = getMonthNumber(monthName);
-      monthYearId = year * 100 + monthNum;
-    }
-
-    console.log('➕ Adicionando criador à campanha:', {
-      businessName,
-      mes,
-      monthYearId,
-      creatorId,
-      creatorName: creatorData?.nome,
-      userEmail
-    });
+    console.log('🚀 NOVA API ATÔMICA: Iniciando adição de criador');
+    console.log('📊 Parâmetros:', { businessName, mes, creatorId, userEmail, increaseSlots });
 
     if (!businessName || !mes || !creatorId) {
+      console.log('❌ Parâmetros obrigatórios faltando');
       return NextResponse.json({
         success: false,
         error: 'businessName, mes e creatorId são obrigatórios'
       }, { status: 400 });
     }
 
-    // 1. Buscar business_id
-    const { data: business, error: businessError } = await supabase
+    // Buscar campanha ID diretamente
+    console.log('🔍 Buscando campanha...');
+
+    const { data: business } = await supabase
       .from('businesses')
-      .select('id, name')
+      .select('id')
       .eq('name', businessName)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
-    if (businessError || !business) {
-      console.error('❌ Business não encontrado:', businessName);
+    if (!business) {
+      console.log('❌ Business não encontrado:', businessName);
       return NextResponse.json({
         success: false,
         error: `Business "${businessName}" não encontrado`
       }, { status: 404 });
     }
 
-    // 2. Buscar campanha usando month_year_id
-    console.log(`🔍 Buscando campanha para business_id: ${business.id}, monthYearId: ${monthYearId}`);
-
-    const { data: campaign, error: campaignError } = await supabase
+    const monthYearId = parseInt(mes);
+    const { data: campaign } = await supabase
       .from('campaigns')
-      .select('id, title, month, month_year_id')
+      .select('id, title')
       .eq('business_id', business.id)
       .eq('month_year_id', monthYearId)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
-    // Se não encontrou, listar todas as campanhas deste business para debug
-    if (campaignError || !campaign) {
-      console.log(`🔍 Listando todas as campanhas do business "${businessName}" para debug:`);
-
-      const { data: allCampaigns } = await supabase
-        .from('campaigns')
-        .select('id, title, month, month_year_id')
-        .eq('business_id', business.id)
-        .eq('organization_id', DEFAULT_ORG_ID);
-
-      console.log('📊 Campanhas encontradas:', allCampaigns);
-
+    if (!campaign) {
+      console.log('❌ Campanha não encontrada:', { businessName, mes, monthYearId });
       return NextResponse.json({
         success: false,
-        error: `Campanha não encontrada para ${businessName} - mês ${monthYearId}. Campanhas disponíveis: ${allCampaigns?.map(c => `"${c.title}" (${c.month_year_id})`).join(', ') || 'nenhuma'}`
+        error: `Campanha não encontrada para ${businessName} - ${mes}`
       }, { status: 404 });
     }
 
-    console.log(`✅ Campanha encontrada: "${campaign.title}" (ID: ${campaign.id}, month_year_id: ${campaign.month_year_id})`);
+    console.log('✅ Campanha encontrada:', campaign.id);
 
-    // 3. Verificar se o criador existe
-    const { data: creator, error: creatorError } = await supabase
-      .from('creators')
-      .select('id, name, status')
-      .eq('id', creatorId)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
+    // Executar função atômica
+    console.log('🔧 Executando função atômica...');
+    const { data: result, error } = await supabase.rpc('add_creator_atomic', {
+      p_campaign_id: campaign.id,
+      p_creator_id: creatorId,
+      p_user_email: userEmail,
+      p_increase_slots: increaseSlots
+    });
 
-    if (creatorError || !creator) {
-      console.error('❌ Criador não encontrado:', creatorId);
+    if (error) {
+      console.error('❌ Erro na função atômica:', error);
       return NextResponse.json({
         success: false,
-        error: `Criador não encontrado`
-      }, { status: 404 });
-    }
-
-    // 4. Verificar se o criador já está na campanha
-    const { data: existingRelation, error: checkError } = await supabase
-      .from('campaign_creators')
-      .select('id, status, creator:creators(name)')
-      .eq('campaign_id', campaign.id)
-      .eq('creator_id', creatorId)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
-
-    if (existingRelation) {
-      console.log(`ℹ️ Criador ${creator.name} já está na campanha - retornando sucesso`);
-      return NextResponse.json({
-        success: true,
-        message: `Criador ${creator.name} já estava na campanha`,
-        data: {
-          relationId: existingRelation.id,
-          creatorId: creator.id,
-          creatorName: creator.name,
-          campaignId: campaign.id,
-          campaignTitle: campaign.title,
-          alreadyExists: true
-        }
-      });
-    }
-
-    console.log(`ℹ️ Criando novo relacionamento para ${creator.name}`);
-
-    // 5. Criar relacionamento
-    const { data: newRelation, error: insertError } = await supabase
-      .from('campaign_creators')
-      .insert({
-        organization_id: DEFAULT_ORG_ID,
-        campaign_id: campaign.id,
-        creator_id: creatorId,
-        role: 'primary',
-        status: 'Pendente',
-        deliverables: {
-          briefing_complete: 'Pendente',
-          visit_datetime: null,
-          guest_quantity: 0,
-          visit_confirmed: 'Pendente',
-          post_datetime: null,
-          video_approved: 'Pendente',
-          video_posted: 'Não',
-          content_links: []
-        }
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('❌ Erro ao criar relacionamento:', insertError);
-      return NextResponse.json({
-        success: false,
-        error: `Erro ao adicionar criador: ${insertError.message}`
+        error: `Erro na função atômica: ${error.message}`,
+        details: error
       }, { status: 500 });
     }
 
-    // 6. Registrar no audit log
-    if (userEmail) {
-      const { error: auditError } = await supabase
-        .from('audit_log')
-        .insert({
-          organization_id: DEFAULT_ORG_ID,
-          entity_type: 'campaign_creator',
-          entity_id: newRelation.id,
-          action: 'create',
-          user_email: userEmail,
-          old_value: null,
-          new_value: creator.name,
-          details: {
-            campaign_id: campaign.id,
-            creator_id: creatorId,
-            business_name: businessName,
-            month: mes
-          }
-        });
-
-      if (auditError) {
-        console.warn('⚠️ Erro ao registrar audit log:', auditError);
-      }
-    }
-
-    console.log('✅ Criador adicionado à campanha:', {
-      relationId: newRelation.id,
-      creatorName: creator.name,
-      campaignTitle: campaign.title
-    });
+    console.log('✅ Função atômica executada com sucesso:', result);
 
     return NextResponse.json({
       success: true,
-      message: `Criador ${creator.name} adicionado à campanha com sucesso`,
+      message: 'Função atômica executada com sucesso',
       data: {
-        relationId: newRelation.id,
-        creatorId: creator.id,
-        creatorName: creator.name,
         campaignId: campaign.id,
-        campaignTitle: campaign.title
+        campaignTitle: campaign.title,
+        businessName,
+        atomicResult: result
       }
     });
 
   } catch (error) {
-    console.error('❌ Erro interno ao adicionar criador:', error);
+    console.error('❌ Erro geral na API:', error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Erro interno do servidor'
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     }, { status: 500 });
   }
 }
+
+

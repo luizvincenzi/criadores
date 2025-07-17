@@ -54,19 +54,44 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 1. Buscar business
+    // 1. Buscar business com debug detalhado
+    console.log(`🔍 Buscando business: "${businessName}"`);
+
     const { data: businesses, error: businessError } = await supabase
       .from('businesses')
       .select('id, name')
       .eq('organization_id', DEFAULT_ORG_ID)
       .ilike('name', `%${businessName}%`)
-      .limit(1);
+      .limit(5); // Aumentar limite para debug
 
-    if (businessError || !businesses?.length) {
-      console.error('❌ Business não encontrado:', businessError);
+    console.log('📊 Resultado da busca:', { businesses, businessError });
+
+    if (businessError) {
+      console.error('❌ Erro na busca do business:', businessError);
       return NextResponse.json({
         success: false,
-        error: `Business "${businessName}" não encontrado`
+        error: `Erro na busca: ${businessError.message}`
+      }, { status: 500 });
+    }
+
+    if (!businesses?.length) {
+      // Tentar busca mais ampla para debug
+      console.log('🔍 Tentando busca mais ampla...');
+      const { data: allBusinesses } = await supabase
+        .from('businesses')
+        .select('id, name')
+        .eq('organization_id', DEFAULT_ORG_ID)
+        .limit(10);
+
+      console.log('📋 Businesses disponíveis:', allBusinesses?.map(b => b.name));
+
+      return NextResponse.json({
+        success: false,
+        error: `Business "${businessName}" não encontrado`,
+        debug: {
+          searchTerm: businessName,
+          availableBusinesses: allBusinesses?.map(b => b.name) || []
+        }
       }, { status: 404 });
     }
 

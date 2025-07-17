@@ -83,9 +83,36 @@ WHERE month_year_id IS NULL;
 ALTER TABLE campaigns 
 ALTER COLUMN month_year_id SET NOT NULL;
 
--- 5. Adicionar índice para performance
-CREATE INDEX idx_campaigns_month_year_id ON campaigns(month_year_id);
-CREATE INDEX idx_campaigns_business_month ON campaigns(business_id, month_year_id);
+-- 5. Adicionar coluna quantidade_criadores
+ALTER TABLE campaigns
+ADD COLUMN IF NOT EXISTS quantidade_criadores INTEGER DEFAULT 7;
+
+-- 6. Atualizar quantidade_criadores com base nos criadores reais
+UPDATE campaigns
+SET quantidade_criadores = GREATEST(
+    COALESCE(
+        (SELECT COUNT(*)
+         FROM campaign_creators cc
+         WHERE cc.campaign_id = campaigns.id
+         AND cc.status != 'Removido'),
+        3
+    ),
+    3
+)
+WHERE quantidade_criadores IS NULL OR quantidade_criadores = 7;
+
+-- 7. Tornar quantidade_criadores obrigatório
+ALTER TABLE campaigns
+ALTER COLUMN quantidade_criadores SET NOT NULL;
+
+-- 8. Adicionar constraint para garantir valor mínimo
+ALTER TABLE campaigns
+ADD CONSTRAINT IF NOT EXISTS check_quantidade_criadores_min
+CHECK (quantidade_criadores >= 1);
+
+-- 9. Adicionar índice para performance
+CREATE INDEX IF NOT EXISTS idx_campaigns_month_year_id ON campaigns(month_year_id);
+CREATE INDEX IF NOT EXISTS idx_campaigns_business_month ON campaigns(business_id, month_year_id);
 
 -- 6. Função para converter month_year_id de volta para formato display
 CREATE OR REPLACE FUNCTION format_month_display(month_year_id INTEGER)

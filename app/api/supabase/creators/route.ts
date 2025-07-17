@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('organization_id', DEFAULT_ORG_ID)
       .eq('is_active', true)
+      .neq('name', '[SLOT VAZIO]')  // Excluir criador placeholder
       .order('name');
 
     if (error) {

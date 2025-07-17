@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { CampaignManager } from '@/lib/campaign-manager';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -24,9 +25,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const businessName = searchParams.get('businessName');
     const mes = searchParams.get('mes');
-    const quantidadeContratada = parseInt(searchParams.get('quantidadeContratada') || '0');
 
-    console.log(`🎯 Buscando slots para ${businessName} - ${mes} (${quantidadeContratada} slots)`);
+    console.log(`🎯 CampaignManager: Buscando slots para ${businessName} - ${mes}`);
 
     if (!businessName || !mes) {
       console.error('❌ Parâmetros obrigatórios ausentes:', { businessName, mes });
@@ -36,74 +36,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (quantidadeContratada <= 0) {
-      console.error('❌ Quantidade contratada inválida:', quantidadeContratada);
-      return NextResponse.json(
-        { success: false, error: 'quantidadeContratada deve ser maior que 0' },
-        { status: 400 }
-      );
+    // Usar CampaignManager para buscar slots com validação automática
+    const result = await CampaignManager.getSlots(businessName, mes);
+
+    // Se houve erros de validação, logar mas continuar
+    if (!result.isValid) {
+      console.warn('⚠️ Inconsistências detectadas e corrigidas:', result.errors);
     }
 
-    // 1. Buscar business_id pelo nome
-    const { data: business, error: businessError } = await supabase
-      .from('businesses')
-      .select('id, name')
-      .eq('name', businessName)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
-
-    if (businessError || !business) {
-      console.error('❌ Business não encontrado:', businessName);
-      return NextResponse.json(
-        { success: false, error: `Business "${businessName}" não encontrado` },
-        { status: 404 }
-      );
-    }
-
-    // 2. Buscar campanha existente (não criar automaticamente)
-    let { data: campaign, error: campaignError } = await supabase
-      .from('campaigns')
-      .select('id, title')
-      .eq('business_id', business.id)
-      .eq('month', mes)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
-
-    if (campaignError || !campaign) {
-      console.error('❌ Campanha não encontrada:', { businessName, mes, businessId: business.id });
-      return NextResponse.json(
-        { success: false, error: `Campanha não encontrada para ${businessName} - ${mes}` },
-        { status: 404 }
-      );
-    }
-
-    let campaignId = campaign.id;
-
-    // 3. Buscar slots existentes
-    const { data: existingSlots, error: slotsError } = await supabase
-      .from('campaign_creators')
-      .select(`
-        *,
-        creator:creators(id, name, status, social_media, contact_info, profile_info)
-      `)
-      .eq('campaign_id', campaignId)
-      .neq('status', 'Removido')
-      .order('created_at');
-
-    if (slotsError) {
-      console.error('❌ Erro ao buscar slots:', slotsError);
-      return NextResponse.json(
-        { success: false, error: `Erro ao buscar slots: ${slotsError.message}` },
-        { status: 500 }
-      );
-    }
-
-    // 4. Buscar criadores disponíveis
+    // Buscar criadores disponíveis para seleção (excluindo placeholder)
     const { data: availableCreators, error: creatorsError } = await supabase
       .from('creators')
-      .select('id, name, status, social_media, contact_info, profile_info')
+      .select(`
+        id,
+        name,
+        status,
+        profile_info,
+        social_media,
+        contact_info
+      `)
       .eq('organization_id', DEFAULT_ORG_ID)
       .in('status', ['Ativo', 'Precisa engajar'])
+      .neq('name', '[SLOT VAZIO]')  // Excluir criador placeholder
       .order('name');
 
     if (creatorsError) {
@@ -114,44 +68,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 5. Criar estrutura de slots
-    const slots = [];
-    for (let i = 0; i < quantidadeContratada; i++) {
-      const existingSlot = existingSlots[i];
-      
-      slots.push({
-        index: i,
-        influenciador: existingSlot?.creator?.name || '',
-        briefingCompleto: existingSlot?.deliverables?.briefing_complete || 'Pendente',
-        dataHoraVisita: existingSlot?.deliverables?.visit_datetime || '',
-        quantidadeConvidados: existingSlot?.deliverables?.guest_quantity || '',
-        visitaConfirmado: existingSlot?.deliverables?.visit_confirmed || 'Pendente',
-        dataHoraPostagem: existingSlot?.deliverables?.post_datetime || '',
-        videoAprovado: existingSlot?.deliverables?.video_approved || 'Pendente',
-        videoPostado: existingSlot?.deliverables?.video_posted || 'Não',
-        videoInstagramLink: existingSlot?.video_instagram_link || '',
-        videoTiktokLink: existingSlot?.video_tiktok_link || '',
-        isExisting: !!existingSlot,
-        rowIndex: i + 1,
-        businessName,
-        businessId: business.id,
-        campaignId,
-        creatorId: existingSlot?.creator_id || null,
-        // Dados adicionais do criador
-        creatorData: existingSlot?.creator ? {
-          id: existingSlot.creator.id,
-          nome: existingSlot.creator.name,
-          cidade: existingSlot.creator.profile_info?.location?.city || '',
-          seguidores: existingSlot.creator.social_media?.instagram?.followers || 0,
-          instagram: existingSlot.creator.social_media?.instagram?.username || '',
-          whatsapp: existingSlot.creator.contact_info?.whatsapp || '',
-          status: existingSlot.creator.status
-        } : null
-      });
-    }
+    // Converter slots do CampaignManager para formato da API
+    const slots = result.slots.map(slot => ({
+      index: slot.index,
+      influenciador: slot.influenciador,
+      briefingCompleto: slot.briefingCompleto,
+      dataHoraVisita: slot.dataHoraVisita || '',
+      quantidadeConvidados: slot.quantidadeConvidados || '',
+      visitaConfirmado: slot.visitaConfirmado,
+      dataHoraPostagem: slot.dataHoraPostagem || '',
+      videoAprovado: slot.videoAprovado,
+      videoPostado: slot.videoPostado,
+      videoInstagramLink: slot.videoInstagramLink || '',
+      videoTiktokLink: slot.videoTiktokLink || '',
+      isExisting: slot.isExisting,
+      rowIndex: slot.index + 1,
+      businessName: result.campaign.businessName,
+      businessId: '', // Será preenchido se necessário
+      campaignId: result.campaign.id,
+      creatorId: slot.creatorId,
+      creatorData: slot.creatorId ? {
+        id: slot.creatorId,
+        name: slot.influenciador
+      } : null
+    }));
 
-    // 6. Mapear criadores disponíveis
-    const availableCreatorsFormatted = availableCreators.map(creator => ({
+    // Mapear criadores disponíveis para formato esperado
+    const availableCreatorsFormatted = availableCreators?.map(creator => ({
       id: creator.id,
       nome: creator.name,
       cidade: creator.profile_info?.location?.city || '',
@@ -159,17 +102,21 @@ export async function GET(request: NextRequest) {
       instagram: creator.social_media?.instagram?.username || '',
       whatsapp: creator.contact_info?.whatsapp || '',
       status: creator.status
-    }));
+    })) || [];
 
-    console.log(`✅ ${slots.length} slots preparados, ${availableCreatorsFormatted.length} criadores disponíveis`);
+    console.log(`✅ CampaignManager: ${slots.length} slots preparados, ${availableCreatorsFormatted.length} criadores disponíveis`);
 
     return NextResponse.json({
       success: true,
       slots,
       availableCreators: availableCreatorsFormatted,
-      campaignId,
-      businessId: business.id,
-      source: 'supabase'
+      campaignId: result.campaign.id,
+      businessId: '', // Será preenchido se necessário
+      source: 'campaign-manager',
+      validation: {
+        isValid: result.isValid,
+        errors: result.errors
+      }
     });
 
   } catch (error) {

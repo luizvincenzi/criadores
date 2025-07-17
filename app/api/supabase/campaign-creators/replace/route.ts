@@ -57,40 +57,92 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 1. Buscar business_id
+    // 1. Buscar business_id com debug detalhado
+    console.log(`🔍 Buscando business: "${businessName}"`);
+
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .select('id, name')
-      .eq('name', businessName)
+      .ilike('name', `%${businessName}%`)
       .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
+      .limit(1);
 
-    if (businessError || !business) {
-      console.error('❌ Business não encontrado:', businessName);
+    console.log('📊 Resultado da busca business:', { business, businessError });
+
+    if (businessError) {
+      console.error('❌ Erro na busca do business:', businessError);
       return NextResponse.json({
         success: false,
-        error: `Business "${businessName}" não encontrado`
+        error: `Erro na busca: ${businessError.message}`
+      }, { status: 500 });
+    }
+
+    if (!business || business.length === 0) {
+      // Tentar busca mais ampla para debug
+      console.log('🔍 Tentando busca mais ampla...');
+      const { data: allBusinesses } = await supabase
+        .from('businesses')
+        .select('id, name')
+        .eq('organization_id', DEFAULT_ORG_ID)
+        .limit(10);
+
+      console.log('📋 Businesses disponíveis:', allBusinesses?.map(b => b.name));
+
+      return NextResponse.json({
+        success: false,
+        error: `Business "${businessName}" não encontrado`,
+        debug: {
+          searchTerm: businessName,
+          availableBusinesses: allBusinesses?.map(b => b.name) || []
+        }
       }, { status: 404 });
     }
 
+    const businessData = Array.isArray(business) ? business[0] : business;
+
     // 2. Buscar campanha usando month_year_id
+    console.log(`🔍 Buscando campanha: business_id=${businessData.id}, month_year_id=${monthYearId}`);
+
     const { data: campaign, error: campaignError } = await supabase
       .from('campaigns')
       .select('id, title, month_year_id')
-      .eq('business_id', business.id)
+      .eq('business_id', businessData.id)
       .eq('month_year_id', monthYearId)
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
+    console.log('📊 Resultado da busca campanha:', { campaign, campaignError });
+
     if (campaignError || !campaign) {
-      console.error('❌ Campanha não encontrada:', { businessName, monthYearId });
+      console.error('❌ Campanha não encontrada:', { businessName, monthYearId, businessId: businessData.id });
+
+      // Debug: buscar campanhas disponíveis para este business
+      const { data: availableCampaigns } = await supabase
+        .from('campaigns')
+        .select('id, title, month_year_id, month')
+        .eq('business_id', businessData.id)
+        .eq('organization_id', DEFAULT_ORG_ID);
+
+      console.log('📋 Campanhas disponíveis para este business:', availableCampaigns);
+
       return NextResponse.json({
         success: false,
-        error: `Campanha não encontrada para ${businessName} - mês ${monthYearId}`
+        error: `Campanha não encontrada para ${businessName} - mês ${monthYearId}`,
+        debug: {
+          businessId: businessData.id,
+          monthYearId,
+          availableCampaigns: availableCampaigns?.map(c => ({
+            title: c.title,
+            month: c.month,
+            month_year_id: c.month_year_id
+          })) || []
+        }
       }, { status: 404 });
     }
 
     // 3. Verificar se o criador antigo existe na campanha
+    console.log(`🔍 Buscando criador antigo na campanha: campaign_id=${campaign.id}, creator_id=${oldCreatorId}`);
+
     const { data: oldRelation, error: oldRelationError } = await supabase
       .from('campaign_creators')
       .select('id, creator:creators(name)')
@@ -99,15 +151,37 @@ export async function POST(request: NextRequest) {
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
+    console.log('📊 Resultado da busca criador antigo:', { oldRelation, oldRelationError });
+
     if (oldRelationError || !oldRelation) {
       console.error('❌ Criador antigo não encontrado na campanha:', oldCreatorId);
+
+      // Debug: buscar todos os criadores desta campanha
+      const { data: allCampaignCreators } = await supabase
+        .from('campaign_creators')
+        .select('id, creator_id, creator:creators(name)')
+        .eq('campaign_id', campaign.id)
+        .eq('organization_id', DEFAULT_ORG_ID);
+
+      console.log('📋 Criadores na campanha:', allCampaignCreators);
+
       return NextResponse.json({
         success: false,
-        error: 'Criador antigo não está associado a esta campanha'
+        error: 'Criador antigo não está associado a esta campanha',
+        debug: {
+          campaignId: campaign.id,
+          oldCreatorId,
+          creatorsInCampaign: allCampaignCreators?.map(cc => ({
+            id: cc.creator_id,
+            name: cc.creator?.name
+          })) || []
+        }
       }, { status: 404 });
     }
 
     // 4. Verificar se o novo criador existe
+    console.log(`🔍 Buscando novo criador: creator_id=${newCreatorId}`);
+
     const { data: newCreator, error: newCreatorError } = await supabase
       .from('creators')
       .select('id, name, status')
@@ -115,11 +189,31 @@ export async function POST(request: NextRequest) {
       .eq('organization_id', DEFAULT_ORG_ID)
       .single();
 
+    console.log('📊 Resultado da busca novo criador:', { newCreator, newCreatorError });
+
     if (newCreatorError || !newCreator) {
       console.error('❌ Novo criador não encontrado:', newCreatorId);
+
+      // Debug: buscar criadores disponíveis
+      const { data: availableCreators } = await supabase
+        .from('creators')
+        .select('id, name, status')
+        .eq('organization_id', DEFAULT_ORG_ID)
+        .limit(10);
+
+      console.log('📋 Criadores disponíveis:', availableCreators);
+
       return NextResponse.json({
         success: false,
-        error: 'Novo criador não encontrado'
+        error: 'Novo criador não encontrado',
+        debug: {
+          newCreatorId,
+          availableCreators: availableCreators?.map(c => ({
+            id: c.id,
+            name: c.name,
+            status: c.status
+          })) || []
+        }
       }, { status: 404 });
     }
 
@@ -189,7 +283,7 @@ export async function POST(request: NextRequest) {
             old_creator_id: oldCreatorId,
             new_creator_id: newCreatorId,
             business_name: businessName,
-            month: standardMonth
+            month: mes
           }
         });
 

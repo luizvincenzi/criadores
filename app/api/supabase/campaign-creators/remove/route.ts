@@ -1,161 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { CampaignManager } from '@/lib/campaign-manager';
+import { standardizeMonth } from '@/lib/month-utils';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
+
+// Função auxiliar para converter nome do mês para número
+function getMonthNumber(monthName: string): number {
+  const months: { [key: string]: number } = {
+    'jan': 1, 'fev': 2, 'mar': 3, 'abr': 4, 'mai': 5, 'jun': 6,
+    'jul': 7, 'ago': 8, 'set': 9, 'out': 10, 'nov': 11, 'dez': 12
+  };
+  return months[monthName.toLowerCase()] || 7;
+}
 
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json();
-    const { businessName, mes, creatorId, userEmail } = body;
+    const { businessName, mes, creatorId, userEmail, deleteLine = false } = body;
 
-    console.log('🗑️ Removendo criador da campanha:', {
+    console.log('🗑️ CampaignManager: Removendo criador da campanha:', {
       businessName,
       mes,
       creatorId,
-      userEmail
+      userEmail,
+      deleteLine
     });
 
-    if (!businessName || !mes || !creatorId) {
+    if (!businessName || !mes) {
       return NextResponse.json({
         success: false,
-        error: 'businessName, mes e creatorId são obrigatórios'
+        error: 'businessName e mes são obrigatórios'
       }, { status: 400 });
     }
 
-    // 1. Buscar business_id
-    const { data: business, error: businessError } = await supabase
-      .from('businesses')
-      .select('id, name')
-      .eq('name', businessName)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
+    // Buscar campanha usando CampaignManager
+    const campaignData = await CampaignManager.getSlots(businessName, mes);
 
-    if (businessError || !business) {
-      console.error('❌ Business não encontrado:', businessName);
-      return NextResponse.json({
-        success: false,
-        error: `Business "${businessName}" não encontrado`
-      }, { status: 404 });
-    }
-
-    // 2. Buscar campanha
-    const { data: campaign, error: campaignError } = await supabase
-      .from('campaigns')
-      .select('id, title')
-      .eq('business_id', business.id)
-      .eq('month', mes)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
-
-    if (campaignError || !campaign) {
-      console.error('❌ Campanha não encontrada:', { businessName, mes });
+    if (!campaignData.campaign) {
       return NextResponse.json({
         success: false,
         error: `Campanha não encontrada para ${businessName} - ${mes}`
       }, { status: 404 });
     }
 
-    // 3. Buscar criador
-    const { data: creator, error: creatorError } = await supabase
-      .from('creators')
-      .select('id, name, status')
-      .eq('id', creatorId)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
+    // Usar função SQL atômica diretamente
+    const { data: result, error } = await supabase.rpc('remove_creator_atomic', {
+      p_campaign_id: campaignData.campaign.id,
+      p_creator_id: creatorId,
+      p_user_email: userEmail || 'usuario@sistema.com',
+      p_delete_line: deleteLine
+    });
 
-    if (creatorError || !creator) {
-      console.error('❌ Criador não encontrado:', creatorId);
+    if (error) {
+      console.error('❌ Erro na função atômica:', error);
       return NextResponse.json({
         success: false,
-        error: `Criador não encontrado`
-      }, { status: 404 });
-    }
-
-    // 4. Buscar relacionamento existente
-    const { data: existingRelation, error: relationError } = await supabase
-      .from('campaign_creators')
-      .select('*')
-      .eq('campaign_id', campaign.id)
-      .eq('creator_id', creatorId)
-      .single();
-
-    if (relationError || !existingRelation) {
-      console.error('❌ Relacionamento não encontrado:', relationError);
-      return NextResponse.json({
-        success: false,
-        error: `Criador ${creator.name} não está associado a esta campanha`
-      }, { status: 404 });
-    }
-
-    // 5. Remover relacionamento (soft delete)
-    const { data: removedRelation, error: deleteError } = await supabase
-      .from('campaign_creators')
-      .update({
-        status: 'Removido',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', existingRelation.id)
-      .select()
-      .single();
-
-    if (deleteError) {
-      console.error('❌ Erro ao remover relacionamento:', deleteError);
-      return NextResponse.json({
-        success: false,
-        error: `Erro ao remover criador: ${deleteError.message}`
+        error: `Erro ao remover criador: ${error.message}`
       }, { status: 500 });
     }
 
-    // 6. Registrar no audit log
-    if (userEmail) {
-      const { error: auditError } = await supabase
-        .from('audit_log')
-        .insert({
-          organization_id: DEFAULT_ORG_ID,
-          entity_type: 'campaign_creator',
-          entity_id: existingRelation.id,
-          action: 'delete',
-          user_email: userEmail,
-          old_value: creator.name,
-          new_value: null,
-          details: {
-            campaign_id: campaign.id,
-            creator_id: creatorId,
-            business_name: businessName,
-            month: mes,
-            removal_type: 'soft_delete'
-          }
-        });
-
-      if (auditError) {
-        console.warn('⚠️ Erro ao registrar audit log:', auditError);
-      }
-    }
-
-    console.log('✅ Criador removido da campanha:', {
-      relationId: removedRelation.id,
-      creatorName: creator.name,
-      campaignTitle: campaign.title
-    });
+    console.log('✅ Função atômica executada:', result);
 
     return NextResponse.json({
-      success: true,
-      message: `Criador ${creator.name} removido da campanha com sucesso`,
+      success: result.success,
+      message: result.message,
       data: {
-        relationId: removedRelation.id,
-        creatorId: creator.id,
-        creatorName: creator.name,
-        campaignId: campaign.id,
-        campaignTitle: campaign.title,
-        removalType: 'soft_delete'
+        campaignId: campaignData.campaign.id,
+        campaignTitle: campaignData.campaign.title,
+        businessName: campaignData.campaign.businessName,
+        newQuantidade: result.newQuantidade,
+        deleteLine,
+        lineType: creatorId ? 'with_creator' : 'empty',
+        atomicResult: result.data
       }
     });
 
   } catch (error) {
-    console.error('❌ Erro interno ao remover criador:', error);
+    console.error('❌ CampaignManager: Erro ao remover criador:', error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Erro interno do servidor'
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     }, { status: 500 });
   }
 }

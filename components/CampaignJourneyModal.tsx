@@ -3,6 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { getApiUrl, isUsingSupabase } from '@/lib/dataSource';
+import { useCampaignSlots } from '@/hooks/useCampaignSlots';
+import { useCreatorToast } from '@/hooks/useToast';
+import { useBulkOperations } from '@/hooks/useBulkOperations';
+import { BulkOperationsPanel } from '@/components/ui/BulkOperationsPanel';
 
 // Tipo local para dados da jornada de campanhas
 interface CampaignJourneyData {
@@ -30,6 +34,46 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editedData, setEditedData] = useState<any[]>([]);
+  const [pendingRemovals, setPendingRemovals] = useState<any[]>([]);
+
+  // 🚀 NOVO: Hook de auto-refresh para slots de criadores
+  const {
+    slots: creatorSlots,
+    availableCreators,
+    campaignId,
+    loading: isLoadingSlots,
+    error: slotsError,
+    validation,
+    refresh: refreshSlots,
+    addCreator,
+    removeCreator,
+    swapCreator,
+    isAdding,
+    isRemoving,
+    lastUpdated
+  } = useCampaignSlots(
+    campaign?.businessName || '',
+    campaign?.mes || '',
+    0 // Sem auto-refresh automático - apenas manual
+  );
+
+  // 🍞 Toast notifications
+  const {
+    notifyCreatorAdded,
+    notifyCreatorRemoved,
+    notifyCreatorSwapped,
+    notifyError,
+    notifyLoading
+  } = useCreatorToast();
+
+  // 🔄 Bulk operations
+  const bulkOps = useBulkOperations(
+    creatorSlots,
+    addCreator,
+    removeCreator,
+    swapCreator
+  );
 
   // Função para fechar modal e cancelar modo edição
   const handleClose = () => {
@@ -37,11 +81,6 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     setPendingRemovals([]);
     onClose();
   };
-  const [editedData, setEditedData] = useState<any[]>([]);
-  const [creatorSlots, setCreatorSlots] = useState<any[]>([]);
-  const [availableCreators, setAvailableCreators] = useState<any[]>([]);
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-  const [pendingRemovals, setPendingRemovals] = useState<any[]>([]);
 
   // Função para converter data do formato brasileiro para datetime-local
   const formatDateForInput = (dateString: string): string => {
@@ -95,163 +134,27 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     }
   };
 
+  // 🔄 Atualizar status quando campanha mudar
   useEffect(() => {
     if (campaign) {
       setCurrentStatus(campaign.journeyStage);
-      loadCreatorSlots();
+      // O hook useCampaignSlots já carrega automaticamente os dados
     }
   }, [campaign]);
 
-  const loadCreatorSlots = async () => {
-    if (!campaign) return;
-
-    setIsLoadingSlots(true);
-    try {
-      console.log('🔄 Carregando slots de criadores...');
-      console.log('📊 DEBUG: Dados da campanha:', {
-        businessName: campaign.businessName,
-        mes: campaign.mes,
-        quantidadeCriadores: campaign.quantidadeCriadores,
-        totalCampaigns: campaign.totalCampaigns,
-        campaignObject: campaign
-      });
-
-      // Usar totalCampaigns como fallback se quantidadeCriadores não estiver disponível
-      const quantidadeContratada = campaign.quantidadeCriadores || campaign.totalCampaigns || 6;
-
-      console.log('📤 Enviando para API:', {
-        businessName: campaign.businessName,
-        mes: campaign.mes,
-        quantidadeContratada
-      });
-
-      // Adicionar timestamp para evitar cache
-      const timestamp = Date.now();
-      const requestPayload = {
-        businessName: campaign.businessName,
-        mes: campaign.mes,
-        quantidadeContratada,
-        _timestamp: timestamp
-      };
-
-      console.log(`🚀 Fazendo fetch para ${getApiUrl('creatorSlots')} com payload:`, requestPayload);
-
-      const apiUrl = getApiUrl('creatorSlots');
-      const params = new URLSearchParams({
-        businessName: campaign.businessName,
-        mes: campaign.mes,
-        quantidadeContratada: quantidadeContratada.toString()
-      });
-
-      const response = await fetch(`${apiUrl}?${params}`, {
-        method: 'GET',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-
-      console.log('📡 Resposta da API recebida:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      let result;
-      let responseText = '';
-      try {
-        responseText = await response.text();
-        console.log('📄 Resposta raw da API (primeiros 500 chars):', responseText.substring(0, 500));
-        result = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Erro ao fazer parse do JSON:', parseError);
-        console.error('❌ Resposta que causou o erro:', responseText);
-        throw new Error(`Erro ao processar resposta da API: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
-      }
-
-      if (result.success) {
-        console.log('🔍 DEBUG: Dados recebidos da API:', result.slots);
-
-        // Verificar tipos de dados para debug
-        result.slots.forEach((slot, index) => {
-          console.log(`🔍 Slot ${index} (${slot.influenciador}):`, {
-            briefingCompleto: { value: slot.briefingCompleto, type: typeof slot.briefingCompleto },
-            visitaConfirmado: { value: slot.visitaConfirmado, type: typeof slot.visitaConfirmado },
-            videoAprovado: { value: slot.videoAprovado, type: typeof slot.videoAprovado },
-            videoPostado: { value: slot.videoPostado, type: typeof slot.videoPostado }
-          });
-        });
-
-        // Debug das contagens
-        console.log('📊 Contagens de status:');
-        console.log('Selecionados:', result.slots.filter(slot => slot.influenciador && slot.influenciador !== '').length);
-        console.log('Confirmadas:', result.slots.filter(slot => slot.visitaConfirmado === 'sim' || slot.visitaConfirmado === 'Sim').length);
-        console.log('Aprovados:', result.slots.filter(slot => slot.videoAprovado === 'sim' || slot.videoAprovado === 'Sim').length);
-        console.log('Postados:', result.slots.filter(slot => slot.videoPostado === 'sim' || slot.videoPostado === 'Sim').length);
-
-        setCreatorSlots(result.slots);
-        setAvailableCreators(result.availableCreators);
-        setEditedData(result.slots);
-        console.log(`✅ ${result.slots.length} slots de criadores carregados`);
-        console.log(`✅ ${result.availableCreators?.length || 0} criadores disponíveis carregados`);
-        console.log('🔍 Primeiros 3 criadores:', result.availableCreators?.slice(0, 3));
-      } else {
-        console.error('❌ Erro ao carregar slots:', result.error);
-        // Fallback para dados vazios
-        const quantidadeContratada = campaign.quantidadeCriadores || campaign.totalCampaigns || 6;
-        const emptySlots = Array.from({ length: quantidadeContratada }, (_, i) => ({
-          index: i,
-          influenciador: '',
-          briefingCompleto: 'pendente',
-          dataHoraVisita: '',
-          quantidadeConvidados: '',
-          visitaConfirmado: 'pendente',
-          dataHoraPostagem: '',
-          videoAprovado: 'pendente',
-          videoPostado: 'pendente',
-          videoInstagramLink: '',
-          videoTiktokLink: '',
-          isExisting: false
-        }));
-        setCreatorSlots(emptySlots);
-        setEditedData(emptySlots);
-        setAvailableCreators([]);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao carregar slots:', error);
-      console.error('❌ Detalhes do erro:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined
-      });
-      // Fallback para dados vazios
-      const emptySlots = Array.from({ length: campaign.quantidadeCriadores }, (_, i) => ({
-        index: i,
-        influenciador: '',
-        briefingCompleto: 'pendente',
-        dataHoraVisita: '',
-        quantidadeConvidados: '',
-        visitaConfirmado: 'pendente',
-        dataHoraPostagem: '',
-        videoAprovado: 'pendente',
-        videoPostado: 'pendente',
-        videoInstagramLink: '',
-        videoTiktokLink: '',
-        isExisting: false
-      }));
-      setCreatorSlots(emptySlots);
-      setEditedData(emptySlots);
-      setAvailableCreators([]);
-    } finally {
-      setIsLoadingSlots(false);
+  // 🔄 Sincronizar editedData com creatorSlots quando dados mudarem
+  useEffect(() => {
+    if (creatorSlots.length > 0) {
+      setEditedData([...creatorSlots]);
     }
-  };
+  }, [creatorSlots]);
+
+  // 🍞 Mostrar erros via toast
+  useEffect(() => {
+    if (slotsError) {
+      notifyError('carregar dados', slotsError);
+    }
+  }, [slotsError, notifyError]);
 
   if (!isOpen || !campaign) return null;
 
@@ -453,73 +356,79 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
     }
   };
 
+  // 🔄 NOVA: Função para atualizar dados do criador usando hook atômico
   const updateCreatorData = async (index: number, field: string, value: string) => {
     console.log(`🔄 Atualizando campo ${field} do slot ${index} para: ${value}`);
 
-    const newEditedData = [...editedData];
-    newEditedData[index] = { ...newEditedData[index], [field]: value };
-    setEditedData(newEditedData);
+    // Para campos que não são 'influenciador', apenas atualizar localmente
+    if (field !== 'influenciador') {
+      const newEditedData = [...editedData];
+      newEditedData[index] = { ...newEditedData[index], [field]: value };
+      setEditedData(newEditedData);
+      return;
+    }
 
-    // Se o campo é 'influenciador' e um criador foi selecionado, adicionar à campanha
+    // Se o campo é 'influenciador' e um criador foi selecionado
     if (field === 'influenciador' && value && value !== '') {
-      console.log(`🎯 Adicionando criador ${value} à campanha...`);
+      const currentSlot = creatorSlots[index];
+      const isSwap = currentSlot && currentSlot.influenciador && currentSlot.influenciador.trim() !== '';
+
+      console.log(`🎯 ${isSwap ? 'Trocando' : 'Adicionando'} criador ${value} à campanha...`);
+      console.log('📊 Slot atual:', currentSlot);
 
       try {
         // Encontrar o criador selecionado
         const selectedCreator = availableCreators.find(creator => creator.nome === value);
         if (!selectedCreator) {
-          console.error('❌ Criador não encontrado:', value);
+          notifyError('selecionar criador', 'Criador não encontrado na lista');
           return;
         }
 
         console.log('👤 Criador selecionado:', selectedCreator);
 
-        // Chamar API para adicionar criador à campanha
-        const response = await fetch(getApiUrl('addCampaignCreator'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            businessName: campaign.businessName,
-            mes: campaign.mes,
-            creatorId: selectedCreator.id,
-            creatorData: selectedCreator,
-            userEmail: 'admin@crm.com' // TODO: pegar do contexto de usuário
-          })
-        });
+        if (isSwap) {
+          // 🔄 TROCA: Usar função de swap atômica
+          console.log(`🔄 Trocando ${currentSlot.influenciador} → ${selectedCreator.nome}`);
 
-        const result = await response.json();
+          notifyLoading(`Trocando ${currentSlot.influenciador} por ${selectedCreator.nome}`);
 
-        if (result.success) {
-          console.log('✅ Criador adicionado à campanha:', result);
-
-          // Atualizar dados do criador no slot
-          newEditedData[index] = {
-            ...newEditedData[index],
-            creatorData: selectedCreator,
-            relationId: result.data?.relationId
-          };
-          setEditedData([...newEditedData]);
+          // Usar função de swap atômica
+          const swapSuccess = await swapCreator(currentSlot.creatorId, selectedCreator.id);
+          if (swapSuccess) {
+            notifyCreatorSwapped(currentSlot.influenciador, selectedCreator.nome);
+            console.log('✅ Criador trocado com sucesso via swap atômico');
+          } else {
+            notifyError('trocar criador', 'Falha na operação de troca');
+          }
 
         } else {
-          console.error('❌ Erro ao adicionar criador:', result.error);
-          // Reverter seleção em caso de erro
-          newEditedData[index] = { ...newEditedData[index], [field]: '' };
-          setEditedData([...newEditedData]);
-          alert(`Erro ao adicionar criador: ${result.error}`);
+          // ➕ ADIÇÃO: Slot vazio, apenas adicionar
+          notifyLoading('Adicionando criador');
+
+          const success = await addCreator(selectedCreator.id, false);
+          if (success) {
+            notifyCreatorAdded(selectedCreator.nome);
+            console.log('✅ Criador adicionado com sucesso via hook atômico');
+          } else {
+            notifyError('adicionar criador', 'Falha na operação');
+          }
         }
+
       } catch (error) {
-        console.error('❌ Erro na requisição:', error);
-        // Reverter seleção em caso de erro
-        newEditedData[index] = { ...newEditedData[index], [field]: '' };
-        setEditedData([...newEditedData]);
-        alert(`Erro ao adicionar criador: ${error instanceof Error ? error.message : String(error)}`);
+        console.error('❌ Erro ao processar criador:', error);
+        notifyError(isSwap ? 'trocar criador' : 'adicionar criador', error instanceof Error ? error.message : 'Erro desconhecido');
       }
+    } else if (field === 'influenciador' && (!value || value === '')) {
+      // Se está limpando o campo (trocar criador), apenas atualizar localmente
+      const newEditedData = [...editedData];
+      newEditedData[index] = { ...newEditedData[index], [field]: value };
+      setEditedData(newEditedData);
     }
+
+
   };
 
-  const handleAddNewCreator = () => {
+  const handleAddNewCreator = async () => {
     const newSlot = {
       index: creatorSlots.length,
       influenciador: '',
@@ -535,43 +444,159 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       isExisting: false
     };
 
-    const newCreatorSlots = [...creatorSlots, newSlot];
-    const newEditedData = [...editedData, newSlot];
+    // 🚀 Usar API direta para adicionar slot vazio
+    try {
+      notifyLoading('Adicionando novo slot');
 
-    setCreatorSlots(newCreatorSlots);
-    setEditedData(newEditedData);
+      const response = await fetch('/api/supabase/campaign-creators/add-slot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          businessName: campaign.businessName,
+          mes: campaign.mes,
+          userEmail: 'usuario@sistema.com'
+        })
+      });
 
-    console.log(`➕ Novo slot de criador adicionado. Total: ${newCreatorSlots.length}`);
+      const result = await response.json();
+
+      if (result.success) {
+        console.log(`➕ Novo slot adicionado com sucesso`);
+        notifyCreatorAdded('Novo slot adicionado');
+        // Auto-refresh para mostrar o novo slot
+        await refreshSlots();
+      } else {
+        notifyError('adicionar slot', result.error || 'Falha ao adicionar slot');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao adicionar slot:', error);
+      notifyError('adicionar slot', error instanceof Error ? error.message : 'Erro desconhecido');
+    }
   };
 
-  const handleDeleteCreator = (index: number) => {
-    if (creatorSlots.length <= 1) {
-      alert('Não é possível remover o último criador. Uma campanha deve ter pelo menos um slot.');
+  // 🗑️ NOVA: Função para remover criador usando hook atômico
+  const handleRemoveCreator = async (index: number) => {
+    const creatorToCheck = creatorSlots[index];
+
+    // Verificar se o slot tem criador para remover
+    if (!creatorToCheck.influenciador || creatorToCheck.influenciador.trim() === '') {
+      notifyError('remover criador', 'Este slot está vazio. Não há criador para remover.');
       return;
     }
 
-    const confirmDelete = window.confirm('Tem certeza que deseja remover este criador?');
+    // Verificar se tem creatorId (necessário para remoção no banco)
+    if (!creatorToCheck.creatorId) {
+      notifyError('remover criador', 'Dados de identificação do criador não encontrados.');
+      return;
+    }
+
+    const confirmDelete = window.confirm(`Tem certeza que deseja remover o criador "${creatorToCheck.influenciador}" deste slot?\n\n⚠️ O slot permanecerá vazio e disponível.`);
     if (!confirmDelete) return;
 
-    // Adicionar à lista de remoções pendentes
-    const creatorToRemove = creatorSlots[index];
-    setPendingRemovals(prev => [...prev, {
-      index: index,
-      creatorData: creatorToRemove
-    }]);
+    try {
+      // 🚀 Usar hook atômico para remover criador
+      notifyLoading('Removendo criador');
 
-    const newCreatorSlots = creatorSlots.filter((_, i) => i !== index);
-    const newEditedData = editedData.filter((_, i) => i !== index);
+      const success = await removeCreator(creatorToCheck.creatorId, false); // false = não deletar linha
 
-    // Reindexar os slots restantes
-    const reindexedSlots = newCreatorSlots.map((slot, i) => ({ ...slot, index: i }));
-    const reindexedEditedData = newEditedData.map((slot, i) => ({ ...slot, index: i }));
+      if (success) {
+        notifyCreatorRemoved(creatorToCheck.influenciador);
+        console.log('✅ Criador removido com sucesso via hook atômico');
+        // O hook já faz auto-refresh, não precisa atualizar manualmente
+      } else {
+        notifyError('remover criador', 'Falha na operação');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao remover criador:', error);
+      notifyError('remover criador', error instanceof Error ? error.message : 'Erro desconhecido');
+    }
+  };
 
-    setCreatorSlots(reindexedSlots);
-    setEditedData(reindexedEditedData);
+  const handleDeleteLine = async (index: number) => {
+    if (creatorSlots.length <= 1) {
+      alert('Não é possível excluir a última linha. Uma campanha deve ter pelo menos um slot.');
+      return;
+    }
 
-    console.log(`🗑️ Slot de criador removido. Total restante: ${reindexedSlots.length}`);
-    console.log(`📝 Remoção pendente adicionada:`, creatorToRemove);
+    const lineToCheck = creatorSlots[index];
+    const hasCreator = lineToCheck.influenciador && lineToCheck.influenciador.trim() !== '';
+
+    let confirmMessage = `Tem certeza que deseja excluir completamente a linha ${index + 1}?`;
+
+    if (hasCreator) {
+      confirmMessage = `Tem certeza que deseja excluir a linha ${index + 1} com o criador "${lineToCheck.influenciador}"?\n\n⚠️ Esta ação irá:\n• Remover o criador da campanha\n• Excluir a linha completamente\n• Reduzir o total de slots`;
+    } else {
+      confirmMessage += '\n\n⚠️ Esta linha está vazia e será removida permanentemente.';
+    }
+
+    const confirmDelete = window.confirm(confirmMessage);
+    if (!confirmDelete) return;
+
+    console.log('🔍 DEBUG: Dados da linha a excluir:', {
+      index,
+      influenciador: lineToCheck.influenciador,
+      creatorId: lineToCheck.creatorId,
+      id: lineToCheck.id,
+      businessId: lineToCheck.businessId,
+      campaignId: lineToCheck.campaignId,
+      isExisting: lineToCheck.isExisting,
+      hasCreator
+    });
+
+    // Chamar API para excluir linha (remove criador + reduz quantidade)
+    try {
+      const deleteResponse = await fetch('/api/supabase/campaign-creators/delete-line', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: campaign.businessName,
+          mes: campaign.mes,
+          creatorId: hasCreator ? (lineToCheck.creatorId || lineToCheck.id) : null,
+          userEmail: user?.email || 'Sistema'
+        })
+      });
+
+      const deleteResult = await deleteResponse.json();
+      console.log('📊 Resultado da exclusão de linha:', deleteResult);
+
+      if (deleteResult.success) {
+        // Remover a linha da interface
+        const newCreatorSlots = creatorSlots.filter((_, i) => i !== index);
+        const newEditedData = editedData.filter((_, i) => i !== index);
+
+        console.log(`✅ Linha ${index + 1} excluída com sucesso via API`);
+
+        // Atualizar quantidade de criadores no estado local
+        if (deleteResult.data?.newQuantidade) {
+          // Atualizar o objeto da campanha com a nova quantidade
+          const updatedCampaign = {
+            ...campaign,
+            quantidadeCriadores: deleteResult.data.newQuantidade
+          };
+
+          console.log(`🔄 Atualizando quantidade local: ${campaign.quantidadeCriadores} → ${deleteResult.data.newQuantidade}`);
+
+          // Recarregar dados com a nova quantidade
+          setTimeout(() => {
+            refreshSlots();
+          }, 500);
+        } else {
+          // Fallback: recarregar dados para sincronizar com o banco
+          setTimeout(() => {
+            refreshSlots();
+          }, 500);
+        }
+
+      } else {
+        console.error('❌ Erro ao excluir linha:', deleteResult.error);
+        alert(`Erro ao excluir linha: ${deleteResult.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Erro na requisição de exclusão:', error);
+      alert('Erro ao excluir linha. Tente novamente.');
+    }
   };
 
   const handleSaveChanges = async () => {
@@ -655,10 +680,22 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           // Se o slot original tinha criador e agora está vazio = remoção
           else if (!editedInfluenciador || editedInfluenciador.trim() === '') {
             console.log('🗑️ Detectada remoção de criador:', originalInfluenciador);
-            removedCreators.push({
-              index: i,
-              creatorData: { influenciador: originalInfluenciador }
-            });
+            const originalSlot = creatorSlots[i];
+
+            // Só adicionar à lista de remoções se o criador realmente existe no banco
+            if (originalSlot?.creatorId || originalSlot?.id) {
+              console.log('✅ Criador tem ID, adicionando à lista de remoções:', {
+                creatorId: originalSlot.creatorId || originalSlot.id,
+                influenciador: originalInfluenciador
+              });
+              removedCreators.push({
+                index: i,
+                creatorData: originalSlot,
+                creatorId: originalSlot.creatorId || originalSlot.id
+              });
+            } else {
+              console.log('⚠️ Criador não tem ID, ignorando remoção (provavelmente slot vazio):', originalInfluenciador);
+            }
           }
         }
       }
@@ -677,14 +714,34 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
       console.log('🔄 Mudanças detectadas:', {
         trocas: creatorChanges,
         adicionados: addedCreators,
-        removidos: removedCreators
+        removidos: removedCreators,
+        removidosValidos: removedCreators.filter(r => r.creatorId || r.creatorData?.id || r.creatorData?.creatorId)
       });
 
       let response;
       let result;
 
-      // Processar todas as mudanças
-      const hasChanges = creatorChanges.length > 0 || addedCreators.length > 0 || removedCreators.length > 0;
+      // Processar todas as mudanças (usar apenas remoções válidas)
+      const validRemovals = removedCreators.filter(removal => {
+        const hasCreatorId = removal.creatorId || removal.creatorData?.id || removal.creatorData?.creatorId;
+        const hasInfluenciador = removal.creatorData?.influenciador && removal.creatorData.influenciador.trim() !== '';
+
+        console.log('🔍 VALIDAÇÃO: Verificando remoção:', {
+          index: removal.index,
+          influenciador: removal.creatorData?.influenciador,
+          creatorId: removal.creatorId,
+          creatorDataId: removal.creatorData?.id,
+          creatorDataCreatorId: removal.creatorData?.creatorId,
+          hasCreatorId,
+          hasInfluenciador,
+          isValid: hasCreatorId && hasInfluenciador,
+          allCreatorDataKeys: removal.creatorData ? Object.keys(removal.creatorData) : []
+        });
+
+        return hasCreatorId && hasInfluenciador;
+      });
+
+      const hasChanges = creatorChanges.length > 0 || addedCreators.length > 0 || validRemovals.length > 0;
 
       if (hasChanges) {
         console.log('🔄 Processando mudanças nos criadores...');
@@ -791,19 +848,66 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           }
         }
 
-        // 3. Processar remoções de criadores
-        for (const removal of removedCreators) {
+        // 3. Processar remoções de criadores (usar validRemovals já filtradas)
+        console.log(`🔍 Remoções válidas: ${validRemovals.length} de ${removedCreators.length}`);
+
+        for (const removal of validRemovals) {
           console.log('🗑️ Processando remoção de criador:', removal);
+          console.log('🔍 DEBUG: Detalhes completos do removal:', {
+            index: removal.index,
+            creatorId: removal.creatorId,
+            creatorDataId: removal.creatorData?.id,
+            creatorDataCreatorId: removal.creatorData?.creatorId,
+            influenciador: removal.creatorData?.influenciador,
+            businessId: removal.creatorData?.businessId,
+            campaignId: removal.creatorData?.campaignId,
+            isExisting: removal.creatorData?.isExisting
+          });
+
+          const removePayload = {
+            businessName: campaign.businessName || removal.businessName,
+            mes: campaign.mes,
+            creatorId: removal.creatorId || removal.creatorData?.id || removal.creatorData?.creatorId,
+            userEmail: user?.email || 'Sistema'
+          };
+
+          console.log('🔍 DEBUG: Payload de remoção:', removePayload);
+          console.log('🔍 DEBUG: Dados da campanha:', {
+            businessName: campaign.businessName,
+            mes: campaign.mes,
+            campaignId: campaign.id
+          });
+          console.log('🔍 DEBUG: Dados do criador a remover:', removal);
+
+          // Verificar se todos os campos obrigatórios estão preenchidos
+          if (!removePayload.businessName || !removePayload.mes || !removePayload.creatorId) {
+            console.error('❌ ERRO: Campos obrigatórios faltando no payload:', {
+              businessName: removePayload.businessName,
+              mes: removePayload.mes,
+              creatorId: removePayload.creatorId
+            });
+            console.error('❌ ERRO: Dados completos do removal:', removal);
+            console.error('❌ ERRO: Dados completos do creatorData:', removal.creatorData);
+
+            allResults.push({
+              type: 'remocao',
+              result: {
+                success: false,
+                error: `Dados obrigatórios faltando: ${!removePayload.businessName ? 'businessName ' : ''}${!removePayload.mes ? 'mes ' : ''}${!removePayload.creatorId ? 'creatorId' : ''}`,
+                debug: {
+                  payload: removePayload,
+                  removal: removal,
+                  creatorData: removal.creatorData
+                }
+              }
+            });
+            continue;
+          }
 
           const removeResponse = await fetch('/api/supabase/campaign-creators/remove', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              businessName: campaign.businessName,
-              mes: campaign.mes,
-              creatorId: removal.creatorData?.id,
-              userEmail: user?.email || 'Sistema'
-            })
+            body: JSON.stringify(removePayload)
           });
 
           const removeResult = await removeResponse.json();
@@ -833,7 +937,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           });
         }
 
-        const totalChanges = creatorChanges.length + addedCreators.length + removedCreators.length;
+        const totalChanges = creatorChanges.length + addedCreators.length + validRemovals.length;
 
         if (warnings.length > 0) {
           console.log('⚠️ Avisos:', warnings.map(w => w.result.message));
@@ -895,7 +999,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         setPendingRemovals([]); // Limpar remoções pendentes
 
         // Recarregar apenas os slots de criadores sem fechar o modal
-        await loadCreatorSlots();
+        await refreshSlots();
       } else {
         const errorMessage = result?.error || result?.message || `Falha na operação (success: ${result?.success})`;
         console.error('❌ Erro ao salvar:', errorMessage);
@@ -1045,7 +1149,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                       onClick={() => {
                         setIsEditMode(false);
                         setPendingRemovals([]);
-                        loadCreatorSlots();
+                        refreshSlots();
                       }}
                       className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
@@ -1083,11 +1187,43 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                 </div>
               </div>
 
+              {/* 🔄 Painel de Operações em Lote */}
+              {isEditMode && (
+                <BulkOperationsPanel
+                  selectedSlots={bulkOps.selectedSlots}
+                  availableCreators={availableCreators}
+                  isProcessing={bulkOps.isProcessing}
+                  canPerformBulkOperation={bulkOps.canPerformBulkOperation}
+                  selectAllSlots={bulkOps.selectAllSlots}
+                  clearSelection={bulkOps.clearSelection}
+                  bulkAddCreators={bulkOps.bulkAddCreators}
+                  bulkRemoveCreators={bulkOps.bulkRemoveCreators}
+                  bulkSwapCreators={bulkOps.bulkSwapCreators}
+                  getSelectedSlotsData={bulkOps.getSelectedSlotsData}
+                />
+              )}
+
               <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
                     <thead className="bg-gradient-to-r from-slate-100 to-gray-100">
                       <tr>
+                        {isEditMode && (
+                          <th className="px-3 py-5 text-center text-sm font-bold text-gray-800 uppercase tracking-wider w-12">
+                            <input
+                              type="checkbox"
+                              checked={bulkOps.selectedSlots.length === creatorSlots.length && creatorSlots.length > 0}
+                              onChange={() => {
+                                if (bulkOps.selectedSlots.length === creatorSlots.length) {
+                                  bulkOps.clearSelection();
+                                } else {
+                                  bulkOps.selectAllSlots();
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                          </th>
+                        )}
                         <th className="px-6 py-5 text-left text-sm font-bold text-gray-800 uppercase tracking-wider">
                           Criador
                         </th>
@@ -1134,7 +1270,19 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                         </tr>
                       ) : (
                         creatorSlots.map((slot, index) => (
-                        <tr key={index} className="hover:bg-gray-50 transition-colors">
+                        <tr key={index} className={`hover:bg-gray-50 transition-colors ${
+                          bulkOps.selectedSlots.includes(index) ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                        }`}>
+                          {isEditMode && (
+                            <td className="px-3 py-4 text-center">
+                              <input
+                                type="checkbox"
+                                checked={bulkOps.selectedSlots.includes(index)}
+                                onChange={() => bulkOps.toggleSlotSelection(index)}
+                                className="rounded border-gray-300"
+                              />
+                            </td>
+                          )}
                           <td className="px-6 py-4">
                             <div className="w-full">
                                 {isEditMode ? (
@@ -1394,15 +1542,31 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                           </td>
                           {isEditMode && (
                             <td className="px-3 py-2 text-center">
-                              <button
-                                onClick={() => handleDeleteCreator(index)}
-                                className="inline-flex items-center justify-center w-8 h-8 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-all duration-200"
-                                title="Remover criador"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
+                              <div className="flex gap-1 justify-center">
+                                {/* Botão Remover Criador - só aparece se tem criador */}
+                                {slot.influenciador && slot.influenciador.trim() !== '' && (
+                                  <button
+                                    onClick={() => handleRemoveCreator(index)}
+                                    className="inline-flex items-center justify-center w-8 h-8 text-orange-600 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all duration-200"
+                                    title="Remover criador (manter slot)"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                  </button>
+                                )}
+
+                                {/* Botão Excluir Linha - sempre aparece */}
+                                <button
+                                  onClick={() => handleDeleteLine(index)}
+                                  className="inline-flex items-center justify-center w-8 h-8 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-all duration-200"
+                                  title="Excluir linha completamente"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
                             </td>
                           )}
                         </tr>
