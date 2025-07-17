@@ -6,10 +6,10 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Cache em memória para evitar consultas desnecessárias
 const urlCache = new Map<string, CampaignData>();
@@ -145,9 +145,13 @@ export async function getCampaignByIds(
 }
 
 /**
- * Busca campanha por URL SEO-friendly
+ * Busca campanha por URL SEO-friendly para Landing Page
  */
-export async function getCampaignBySeoUrl(seoUrl: string): Promise<CampaignData | null> {
+export async function getCampaignBySeoUrl(seoUrl: string): Promise<{
+  success: boolean;
+  data?: any;
+  error?: string;
+}> {
   try {
     // Verificar cache primeiro
     if (urlCache.has(seoUrl)) {
@@ -207,20 +211,79 @@ export async function getCampaignBySeoUrl(seoUrl: string): Promise<CampaignData 
 
     console.log('✅ [SEO URL] Business encontrado:', matchedBusiness);
 
-    // Buscar campanha usando IDs
-    const campaignData = await getCampaignByIds(matchedBusiness.id, monthYearId);
-    
-    if (campaignData) {
-      // Adicionar ao cache
-      urlCache.set(seoUrl, campaignData);
-      reverseCache.set(`${campaignData.businessId}-${campaignData.monthYearId}`, seoUrl);
+    // Buscar campanha completa para landing page
+    const { data: campaigns, error: campaignError } = await supabase
+      .from('campaigns')
+      .select(`
+        id,
+        title,
+        description,
+        month_year_id,
+        month,
+        status,
+        budget,
+        start_date,
+        end_date,
+        objectives,
+        deliverables,
+        briefing_details,
+        created_at,
+        businesses!inner(
+          id,
+          name,
+          contact_info,
+          address
+        )
+      `)
+      .eq('business_id', matchedBusiness.id)
+      .eq('month_year_id', monthYearId)
+      .eq('organization_id', DEFAULT_ORG_ID)
+      .single();
+
+    if (campaignError || !campaigns) {
+      console.error('❌ [SEO URL] Campanha não encontrada:', campaignError);
+      return {
+        success: false,
+        error: 'Campanha não encontrada'
+      };
     }
 
-    return campaignData;
+    // Buscar estatísticas dos criadores
+    const { data: creatorStats, error: statsError } = await supabase
+      .from('campaign_creators')
+      .select('*')
+      .eq('campaign_id', campaigns.id);
+
+    const stats = {
+      totalCreators: creatorStats?.length || 0,
+      confirmedCreators: creatorStats?.filter(c => c.confirmada === 'CONFIRMADA').length || 0,
+      completedBriefings: creatorStats?.filter(c => c.briefing === 'SIM').length || 0,
+      approvedVideos: creatorStats?.filter(c => c.aprovado === 'APROVADO').length || 0,
+      postedVideos: creatorStats?.filter(c => c.postado === 'POSTADO').length || 0
+    };
+
+    const result = {
+      campaign: {
+        ...campaigns,
+        seo_url: seoUrl
+      },
+      business: campaigns.businesses,
+      stats
+    };
+
+    console.log('✅ [SEO URL] Dados completos carregados:', result);
+
+    return {
+      success: true,
+      data: result
+    };
 
   } catch (error) {
     console.error('❌ [SEO URL] Erro geral:', error);
-    return null;
+    return {
+      success: false,
+      error: 'Erro interno do servidor'
+    };
   }
 }
 
