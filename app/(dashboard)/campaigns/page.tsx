@@ -471,7 +471,7 @@ export default function CampaignsPage() {
       </div>
 
       {/* Tabela de Campanhas Agrupadas */}
-      <div className="card-elevated overflow-hidden hover:scale-105 transition-transform duration-200">
+      <div className="card-elevated overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

@@ -29,15 +29,65 @@ interface CampaignGroupModalProps {
 export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: CampaignGroupModalProps) {
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
   const [campaignUrl, setCampaignUrl] = useState<string | null>(null);
+  const [landingPageGenerated, setLandingPageGenerated] = useState(false);
   const [creatorsData, setCreatorsData] = useState<any[]>([]);
   const [isLoadingCreators, setIsLoadingCreators] = useState(false);
   const [expandedCreators, setExpandedCreators] = useState<Set<string>>(new Set());
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>({});
 
   useEffect(() => {
     if (isOpen && campaignGroup) {
       loadCreatorsData();
+      loadCampaignData();
+      // Gerar landing page automaticamente quando abrir o modal
+      generateLandingPageAutomatically();
     }
   }, [isOpen, campaignGroup]);
+
+  // Gerar landing page automaticamente quando fechar o modal
+  useEffect(() => {
+    if (!isOpen && campaignGroup && landingPageGenerated) {
+      console.log('🔄 [AUTO GENERATION] Modal fechado, landing page já foi gerada');
+    }
+  }, [isOpen]);
+
+  const loadCampaignData = async () => {
+    if (!campaignGroup) return;
+
+    try {
+      // Buscar dados da campanha do Supabase
+      const response = await fetch(`/api/supabase/campaigns?businessName=${encodeURIComponent(campaignGroup.businessName)}&month=${encodeURIComponent(campaignGroup.mes || campaignGroup.month)}`);
+      const result = await response.json();
+
+      if (result.success && result.data && result.data.length > 0) {
+        const campaign = result.data[0]; // Primeira campanha do grupo
+        setEditFormData({
+          title: campaign.title || '',
+          description: campaign.description || '',
+          budget: campaign.budget || 0,
+          objectives: campaign.objectives?.primary || '',
+          comunicacaoSecundaria: campaign.objectives?.secondary?.[0] || '',
+          formatos: campaign.briefing_details?.formatos || [],
+          perfilCriador: campaign.briefing_details?.perfil_criador || '',
+          datasGravacao: {
+            dataInicio: campaign.briefing_details?.datas_gravacao?.data_inicio || '',
+            dataFim: campaign.briefing_details?.datas_gravacao?.data_fim || '',
+            horariosPreferenciais: campaign.briefing_details?.datas_gravacao?.horarios_preferenciais || [],
+            observacoes: campaign.briefing_details?.datas_gravacao?.observacoes || ''
+          },
+          roteiroVideo: {
+            oQueFalar: campaign.briefing_details?.roteiro_video?.o_que_falar || '',
+            historia: campaign.briefing_details?.roteiro_video?.historia || '',
+            promocaoCta: campaign.briefing_details?.roteiro_video?.promocao_cta || ''
+          },
+          deliverables: campaign.deliverables || { posts: 1, stories: 3, reels: 1 }
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados da campanha:', error);
+    }
+  };
 
   const loadCreatorsData = async () => {
     if (!campaignGroup) return;
@@ -59,6 +109,45 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
     } finally {
       setIsLoadingCreators(false);
     }
+  };
+
+  const saveCampaignData = async () => {
+    if (!campaignGroup) return;
+
+    try {
+      const response = await fetch('/api/supabase/campaigns', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName: campaignGroup.businessName,
+          month: campaignGroup.mes || campaignGroup.month,
+          ...editFormData
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Campanha atualizada com sucesso');
+        setIsEditMode(false);
+        // Recarregar dados
+        loadCampaignData();
+      } else {
+        console.error('❌ Erro ao salvar campanha:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao salvar campanha:', error);
+    }
+  };
+
+  const toggleEditMode = () => {
+    if (isEditMode) {
+      // Cancelar edição - recarregar dados originais
+      loadCampaignData();
+    }
+    setIsEditMode(!isEditMode);
   };
 
   const toggleCreatorExpansion = (creatorId: string) => {
@@ -125,9 +214,79 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
     }
   };
 
+  const generateLandingPageAutomatically = async () => {
+    try {
+      console.log('🚀 [AUTO GENERATION] Gerando landing page automaticamente para:', {
+        businessName: campaignGroup.businessName,
+        month: campaignGroup.mes
+      });
+
+      // Gerar URL SEO-friendly
+      const businessSlug = campaignGroup.businessName
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .trim();
+
+      // Converter month para formato legível
+      let monthYear: string;
+      if (typeof campaignGroup.mes === 'string') {
+        if (campaignGroup.mes.includes(' ')) {
+          const [monthName, year] = campaignGroup.mes.split(' ');
+          const fullYear = year.length === 2 ? `20${year}` : year;
+          monthYear = `${monthName.toLowerCase()}-${fullYear}`;
+        } else if (/^\d{6}$/.test(campaignGroup.mes)) {
+          const year = Math.floor(parseInt(campaignGroup.mes) / 100);
+          const monthNum = parseInt(campaignGroup.mes) % 100;
+
+          const monthNames = [
+            '', 'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+            'jul', 'ago', 'set', 'out', 'nov', 'dez'
+          ];
+
+          monthYear = `${monthNames[monthNum]}-${year}`;
+        } else {
+          monthYear = campaignGroup.mes.toLowerCase();
+        }
+      } else {
+        monthYear = 'unknown';
+      }
+
+      const seoUrl = `/campaign/${businessSlug}-${monthYear}`;
+      const fullUrl = `${window.location.origin}${seoUrl}`;
+
+      // Testar se a URL funciona
+      const testResponse = await fetch(`/api/campaign-seo?url=${encodeURIComponent(seoUrl)}`);
+      const testResult = await testResponse.json();
+
+      if (testResult.success) {
+        setCampaignUrl(fullUrl);
+        setLandingPageGenerated(true);
+        console.log('✅ [AUTO GENERATION] Landing page gerada automaticamente:', fullUrl);
+        return fullUrl;
+      } else {
+        console.error('❌ [AUTO GENERATION] Erro na geração automática:', testResult.error);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ [AUTO GENERATION] Erro geral:', error);
+      return null;
+    }
+  };
+
   const generateCampaignUrl = async () => {
     try {
       setIsGeneratingUrl(true);
+
+      console.log('🔗 Gerando URL para campanha:', {
+        businessName: campaignGroup.businessName,
+        month: campaignGroup.mes,
+        campaignId: campaignGroup.slots?.[0]?.campaign_id
+      });
 
       const response = await fetch('/api/generate-campaign-url', {
         method: 'POST',
@@ -136,7 +295,8 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
         },
         body: JSON.stringify({
           businessName: campaignGroup.businessName,
-          month: campaignGroup.mes
+          month: campaignGroup.mes,
+          campaignId: campaignGroup.slots?.[0]?.campaign_id // Incluir ID da campanha para validação
         })
       });
 
@@ -144,39 +304,127 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
 
       if (result.success) {
         setCampaignUrl(result.data.campaignUrl);
-        // Copiar URL para clipboard
-        await navigator.clipboard.writeText(result.data.campaignUrl);
-        alert('URL da landing page copiada para a área de transferência!');
+
+        // Testar se a URL funciona antes de confirmar
+        try {
+          const testResponse = await fetch(`/api/campaign/${result.data.businessSlug}/${result.data.monthSlug}`);
+          const testResult = await testResponse.json();
+
+          if (testResult.success) {
+            // Copiar URL para clipboard
+            await navigator.clipboard.writeText(result.data.campaignUrl);
+            alert(`✅ URL da landing page gerada e validada!\n\nURL: ${result.data.campaignUrl}\n\n(Copiada para a área de transferência)`);
+          } else {
+            alert(`⚠️ URL gerada mas com problemas:\n\nURL: ${result.data.campaignUrl}\nErro: ${testResult.error}\n\nVerifique se a campanha está configurada corretamente.`);
+          }
+        } catch (testError) {
+          alert(`⚠️ URL gerada mas não foi possível validar:\n\nURL: ${result.data.campaignUrl}\n\nTeste manualmente se necessário.`);
+        }
       } else {
-        alert('Erro ao gerar URL: ' + result.error);
+        alert('❌ Erro ao gerar URL: ' + result.error);
       }
     } catch (error) {
-      console.error('Erro ao gerar URL:', error);
-      alert('Erro ao gerar URL da campanha');
+      console.error('❌ Erro ao gerar URL:', error);
+      alert('❌ Erro ao gerar URL da campanha');
     } finally {
       setIsGeneratingUrl(false);
     }
   };
 
-  const openLandingPage = () => {
-    const businessSlug = campaignGroup.businessName
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
+  const openLandingPage = async () => {
+    try {
+      console.log('🔗 Abrindo landing page para:', {
+        businessName: campaignGroup.businessName,
+        month: campaignGroup.mes
+      });
 
-    const monthSlug = campaignGroup.mes
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]/g, '')
-      .trim();
+      // Usar a mesma lógica da API para gerar URL
+      const businessSlug = campaignGroup.businessName
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .trim();
 
-    const url = `/campaign/${businessSlug}/${monthSlug}`;
-    window.open(url, '_blank');
+      // Converter month para formato SEO-friendly (ex: jul-2025)
+      let monthYear: string;
+      if (typeof campaignGroup.mes === 'string') {
+        if (campaignGroup.mes.includes(' ')) {
+          // Formato "jul 25" -> "jul-2025"
+          const [monthName, year] = campaignGroup.mes.split(' ');
+          const fullYear = year.length === 2 ? `20${year}` : year;
+          monthYear = `${monthName.toLowerCase()}-${fullYear}`;
+        } else if (/^\d{6}$/.test(campaignGroup.mes)) {
+          // Formato "202507" -> "jul-2025"
+          const year = Math.floor(parseInt(campaignGroup.mes) / 100);
+          const month = parseInt(campaignGroup.mes) % 100;
+
+          const monthNames = [
+            '', 'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+            'jul', 'ago', 'set', 'out', 'nov', 'dez'
+          ];
+
+          monthYear = `${monthNames[month]}-${year}`;
+        } else {
+          monthYear = campaignGroup.mes.toLowerCase();
+        }
+      } else {
+        monthYear = 'unknown';
+      }
+
+      // URL SEO-friendly
+      const seoUrl = `/campaign/${businessSlug}-${monthYear}`;
+
+      console.log('🚀 [HYBRID SYSTEM] URL SEO gerada:', seoUrl);
+
+      // Testar se a URL funciona usando API SEO
+      const testResponse = await fetch(`/api/campaign-seo?url=${encodeURIComponent(seoUrl)}`);
+      const testResult = await testResponse.json();
+
+      if (testResult.success) {
+        window.open(seoUrl, '_blank');
+        console.log('✅ [HYBRID SYSTEM] Landing page aberta com sucesso');
+      } else {
+        console.error('❌ [HYBRID SYSTEM] Erro na API SEO:', testResult.error);
+
+        // Fallback para sistema antigo
+        console.log('🔄 [FALLBACK] Tentando sistema antigo...');
+
+        let monthSlug = campaignGroup.mes;
+        if (typeof monthSlug === 'string') {
+          if (monthSlug.includes(' ')) {
+            const [monthName, year] = monthSlug.split(' ');
+            const monthMap: { [key: string]: string } = {
+              'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04',
+              'mai': '05', 'jun': '06', 'jul': '07', 'ago': '08',
+              'set': '09', 'out': '10', 'nov': '11', 'dez': '12'
+            };
+            const monthNum = monthMap[monthName.toLowerCase()] || '01';
+            const fullYear = year.length === 2 ? `20${year}` : year;
+            monthSlug = `${fullYear}${monthNum}`;
+          } else {
+            monthSlug = monthSlug.replace(/[^0-9]/g, '');
+          }
+        }
+
+        const fallbackUrl = `/campaign/${businessSlug}/${monthSlug}`;
+        const fallbackResponse = await fetch(`/api/campaign/${businessSlug}/${monthSlug}`);
+        const fallbackResult = await fallbackResponse.json();
+
+        if (fallbackResult.success) {
+          window.open(fallbackUrl, '_blank');
+          console.log('✅ [FALLBACK] Landing page aberta com sistema antigo');
+        } else {
+          alert(`❌ Erro ao abrir landing page:\n\nSistema SEO: ${testResult.error}\nSistema Antigo: ${fallbackResult.error}\n\nURL SEO: ${seoUrl}\nURL Antiga: ${fallbackUrl}`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro ao abrir landing page:', error);
+      alert('❌ Erro ao abrir landing page');
+    }
   };
 
   const shareCampaign = async () => {
@@ -220,17 +468,17 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
           style={{ backgroundColor: '#ffffff' }}
         >
 
-          {/* Header - Material Design 3 */}
+          {/* Header Premium */}
           <div
-            className="bg-white p-8"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-8"
             style={{ borderBottom: '1px solid #e0e0e0' }}
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-light text-gray-900 mb-3">
+                <h2 className="text-3xl font-light text-white mb-3">
                   {campaignGroup.businessName}
                 </h2>
-                <div className="flex items-center space-x-6 text-gray-600">
+                <div className="flex items-center space-x-6 text-blue-100">
                   <span className="flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -238,18 +486,14 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                     {campaignGroup.mes || campaignGroup.month || 'N/A'}
                   </span>
                   <div
-                    className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium"
+                    className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-white/20 backdrop-blur-sm"
                     style={{
-                      backgroundColor: campaignGroup.status.toLowerCase() === 'ativa' ? '#e8f5e8' : '#f3f4f6',
-                      color: campaignGroup.status.toLowerCase() === 'ativa' ? '#2e7d32' : '#6b7280',
-                      border: `1px solid ${campaignGroup.status.toLowerCase() === 'ativa' ? '#c8e6c9' : '#d1d5db'}`
+                      color: '#ffffff',
+                      border: '1px solid rgba(255, 255, 255, 0.3)'
                     }}
                   >
                     <div
-                      className="w-2 h-2 rounded-full mr-2"
-                      style={{
-                        backgroundColor: campaignGroup.status.toLowerCase() === 'ativa' ? '#4caf50' : '#9ca3af'
-                      }}
+                      className="w-2 h-2 rounded-full mr-2 bg-green-400"
                     />
                     {campaignGroup.status}
                   </div>
@@ -267,13 +511,42 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-end">
+              <div className="flex items-center justify-end space-x-3">
+                {!isEditMode ? (
+                  <button
+                    onClick={toggleEditMode}
+                    className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Editar
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={toggleEditMode}
+                      className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={saveCampaignData}
+                      className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Salvar
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={onClose}
-                  className="p-3 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-3 hover:bg-white/10 rounded-full transition-colors"
                   style={{ backgroundColor: 'transparent' }}
                 >
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -293,19 +566,431 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                 onUrlGenerated={setCampaignUrl}
               />
             </div>
-            
+
+            {/* Formulário Completo da Campanha */}
+            <div className="mb-8">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Detalhes da Campanha
+                  </h3>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {/* Informações Básicas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Título da Campanha
+                      </label>
+                      {isEditMode ? (
+                        <input
+                          type="text"
+                          value={editFormData.title || ''}
+                          onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Digite o título da campanha"
+                        />
+                      ) : (
+                        <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                          {editFormData.title || 'Não informado'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Orçamento
+                      </label>
+                      {isEditMode ? (
+                        <input
+                          type="number"
+                          value={editFormData.budget || ''}
+                          onChange={(e) => setEditFormData({...editFormData, budget: parseFloat(e.target.value) || 0})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="0.00"
+                        />
+                      ) : (
+                        <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                          R$ {(editFormData.budget || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Descrição */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Descrição da Campanha
+                    </label>
+                    {isEditMode ? (
+                      <textarea
+                        value={editFormData.description || ''}
+                        onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Descreva os objetivos e detalhes da campanha"
+                      />
+                    ) : (
+                      <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[80px]">
+                        {editFormData.description || 'Não informado'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Objetivos */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Objetivo Principal
+                      </label>
+                      {isEditMode ? (
+                        <textarea
+                          value={editFormData.objectives || ''}
+                          onChange={(e) => setEditFormData({...editFormData, objectives: e.target.value})}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Qual o principal objetivo desta campanha?"
+                        />
+                      ) : (
+                        <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[80px]">
+                          {editFormData.objectives || 'Não informado'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Comunicação Secundária
+                      </label>
+                      {isEditMode ? (
+                        <textarea
+                          value={editFormData.comunicacaoSecundaria || ''}
+                          onChange={(e) => setEditFormData({...editFormData, comunicacaoSecundaria: e.target.value})}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Mensagens secundárias ou complementares"
+                        />
+                      ) : (
+                        <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[80px]">
+                          {editFormData.comunicacaoSecundaria || 'Não informado'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Formatos e Perfil do Criador */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Formatos de Conteúdo
+                      </label>
+                      {isEditMode ? (
+                        <div className="space-y-2">
+                          {['Posts', 'Stories', 'Reels', 'IGTV', 'TikTok'].map((formato) => (
+                            <label key={formato} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={(editFormData.formatos || []).includes(formato)}
+                                onChange={(e) => {
+                                  const formatos = editFormData.formatos || [];
+                                  if (e.target.checked) {
+                                    setEditFormData({...editFormData, formatos: [...formatos, formato]});
+                                  } else {
+                                    setEditFormData({...editFormData, formatos: formatos.filter(f => f !== formato)});
+                                  }
+                                }}
+                                className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">{formato}</span>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                          {(editFormData.formatos || []).join(', ') || 'Não informado'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Perfil do Criador
+                      </label>
+                      {isEditMode ? (
+                        <textarea
+                          value={editFormData.perfilCriador || ''}
+                          onChange={(e) => setEditFormData({...editFormData, perfilCriador: e.target.value})}
+                          rows={4}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Descreva o perfil ideal do criador para esta campanha"
+                        />
+                      ) : (
+                        <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[100px]">
+                          {editFormData.perfilCriador || 'Não informado'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Datas de Gravação */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Datas e Horários para Gravação
+                    </label>
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Data de Início
+                          </label>
+                          {isEditMode ? (
+                            <input
+                              type="date"
+                              value={editFormData.datasGravacao?.dataInicio || ''}
+                              onChange={(e) => setEditFormData({
+                                ...editFormData,
+                                datasGravacao: {...(editFormData.datasGravacao || {}), dataInicio: e.target.value}
+                              })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <p className="text-gray-900 bg-white px-3 py-2 rounded border">
+                              {editFormData.datasGravacao?.dataInicio || 'Não informado'}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Data de Fim
+                          </label>
+                          {isEditMode ? (
+                            <input
+                              type="date"
+                              value={editFormData.datasGravacao?.dataFim || ''}
+                              onChange={(e) => setEditFormData({
+                                ...editFormData,
+                                datasGravacao: {...(editFormData.datasGravacao || {}), dataFim: e.target.value}
+                              })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <p className="text-gray-900 bg-white px-3 py-2 rounded border">
+                              {editFormData.datasGravacao?.dataFim || 'Não informado'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Observações sobre Datas
+                        </label>
+                        {isEditMode ? (
+                          <textarea
+                            value={editFormData.datasGravacao?.observacoes || ''}
+                            onChange={(e) => setEditFormData({
+                              ...editFormData,
+                              datasGravacao: {...(editFormData.datasGravacao || {}), observacoes: e.target.value}
+                            })}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Observações sobre horários preferenciais, restrições, etc."
+                          />
+                        ) : (
+                          <p className="text-gray-900 bg-white px-3 py-2 rounded border min-h-[60px]">
+                            {editFormData.datasGravacao?.observacoes || 'Não informado'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Roteiro do Vídeo */}
+            <div className="mb-8">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Roteiro do Vídeo
+                  </h3>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {/* O que precisa ser falado */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      O que precisa ser falado no vídeo
+                    </label>
+                    {isEditMode ? (
+                      <textarea
+                        value={editFormData.roteiroVideo?.oQueFalar || ''}
+                        onChange={(e) => setEditFormData({
+                          ...editFormData,
+                          roteiroVideo: {...(editFormData.roteiroVideo || {}), oQueFalar: e.target.value}
+                        })}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Descreva os pontos principais que devem ser abordados no vídeo"
+                      />
+                    ) : (
+                      <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[100px]">
+                        {editFormData.roteiroVideo?.oQueFalar || 'Não informado'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* História */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      História / Narrativa
+                    </label>
+                    {isEditMode ? (
+                      <textarea
+                        value={editFormData.roteiroVideo?.historia || ''}
+                        onChange={(e) => setEditFormData({
+                          ...editFormData,
+                          roteiroVideo: {...(editFormData.roteiroVideo || {}), historia: e.target.value}
+                        })}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Conte a história ou narrativa que deve ser seguida"
+                      />
+                    ) : (
+                      <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[100px]">
+                        {editFormData.roteiroVideo?.historia || 'Não informado'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Promoção / CTA */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Promoção / Call to Action
+                    </label>
+                    {isEditMode ? (
+                      <textarea
+                        value={editFormData.roteiroVideo?.promocaoCta || ''}
+                        onChange={(e) => setEditFormData({
+                          ...editFormData,
+                          roteiroVideo: {...(editFormData.roteiroVideo || {}), promocaoCta: e.target.value}
+                        })}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Descreva a promoção ou call to action que deve ser incluído"
+                      />
+                    ) : (
+                      <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg min-h-[80px]">
+                        {editFormData.roteiroVideo?.promocaoCta || 'Não informado'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Entregáveis */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Entregáveis
+                    </label>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Posts
+                          </label>
+                          {isEditMode ? (
+                            <input
+                              type="number"
+                              min="0"
+                              value={editFormData.deliverables?.posts || 0}
+                              onChange={(e) => setEditFormData({
+                                ...editFormData,
+                                deliverables: {...(editFormData.deliverables || {}), posts: parseInt(e.target.value) || 0}
+                              })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <p className="text-gray-900 bg-white px-3 py-2 rounded border">
+                              {editFormData.deliverables?.posts || 0}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Stories
+                          </label>
+                          {isEditMode ? (
+                            <input
+                              type="number"
+                              min="0"
+                              value={editFormData.deliverables?.stories || 0}
+                              onChange={(e) => setEditFormData({
+                                ...editFormData,
+                                deliverables: {...(editFormData.deliverables || {}), stories: parseInt(e.target.value) || 0}
+                              })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <p className="text-gray-900 bg-white px-3 py-2 rounded border">
+                              {editFormData.deliverables?.stories || 0}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Reels
+                          </label>
+                          {isEditMode ? (
+                            <input
+                              type="number"
+                              min="0"
+                              value={editFormData.deliverables?.reels || 0}
+                              onChange={(e) => setEditFormData({
+                                ...editFormData,
+                                deliverables: {...(editFormData.deliverables || {}), reels: parseInt(e.target.value) || 0}
+                              })}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <p className="text-gray-900 bg-white px-3 py-2 rounded border">
+                              {editFormData.deliverables?.reels || 0}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Gestão Avançada de Criadores */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Criadores Selecionados
-                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                    {creatorsData.length}
-                  </span>
-                </h3>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Criadores - Informações Parciais
+                    <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                      {creatorsData.length}
+                    </span>
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Para gestão completa dos criadores, acesse a aba <strong>Jornada</strong>
+                  </p>
+                </div>
 
                 {isLoadingCreators && (
                   <div className="flex items-center text-sm text-gray-500">

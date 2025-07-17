@@ -8,58 +8,39 @@ const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ business: string; month: string }> }
-) {
+export async function GET(request: NextRequest) {
   try {
-    const resolvedParams = await params;
-    const businessSlug = decodeURIComponent(resolvedParams.business);
-    const monthSlug = decodeURIComponent(resolvedParams.month);
+    const { searchParams } = new URL(request.url);
+    const seoUrl = searchParams.get('url');
 
-    console.log('🚀 [HYBRID SYSTEM] Processando URL SEO-friendly:', { businessSlug, monthSlug });
+    if (!seoUrl) {
+      return NextResponse.json({
+        success: false,
+        error: 'URL SEO é obrigatória'
+      }, { status: 400 });
+    }
 
-    // Construir URL SEO completa no formato premium
-    // Converter monthSlug (202507) para formato mes-ano (jul-2025)
-    const year = Math.floor(parseInt(monthSlug) / 100);
-    const month = parseInt(monthSlug) % 100;
-    const monthNames = ['', 'jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    const monthName = monthNames[month] || 'jan';
+    console.log('🚀 [SEO API] Processando URL:', seoUrl);
 
-    const seoUrl = `/campaign/${businessSlug}-${monthName}-${year}`;
-    console.log('🔗 [HYBRID SYSTEM] URL SEO construída:', seoUrl);
-
-    // ETAPA 1: Buscar campanha usando sistema híbrido (SEO URL → UUIDs)
+    // ETAPA 1: Buscar campanha usando sistema híbrido
     const campaignData = await getCampaignBySeoUrl(seoUrl);
 
     if (!campaignData) {
-      console.log('❌ [HYBRID SYSTEM] Campanha não encontrada para URL:', seoUrl);
-
-      // Tentar busca de fallback para debug
-      console.log('🔍 [FALLBACK] Tentando busca de fallback...');
-
+      console.log('❌ [SEO API] Campanha não encontrada para URL:', seoUrl);
       return NextResponse.json({
         success: false,
-        error: `Campanha não encontrada`,
-        debug: {
-          seoUrl,
-          businessSlug,
-          monthSlug,
-          message: 'Verifique se a URL está correta. Formato esperado: /campaign/nome-empresa-mes-ano'
-        }
+        error: 'Campanha não encontrada',
+        debug: { seoUrl }
       }, { status: 404 });
     }
 
-    console.log('✅ [HYBRID SYSTEM] Campanha encontrada via UUIDs:', {
+    console.log('✅ [SEO API] Campanha encontrada:', {
       campaignId: campaignData.campaignId,
-      businessId: campaignData.businessId,
       businessName: campaignData.businessName,
-      monthYearId: campaignData.monthYearId
+      campaignTitle: campaignData.campaignTitle
     });
 
-    // ETAPA 2: Buscar criadores da campanha usando UUID da campanha
-    console.log('🔍 [HYBRID SYSTEM] Buscando criadores para campanha:', campaignData.campaignId);
-
+    // ETAPA 2: Buscar criadores da campanha
     const { data: campaignCreators, error: creatorsError } = await supabase
       .from('campaign_creators')
       .select(`
@@ -88,14 +69,14 @@ export async function GET(
       .order('assigned_at', { ascending: true });
 
     if (creatorsError) {
-      console.error('❌ [ERRO] Erro ao buscar criadores:', creatorsError);
+      console.error('❌ [SEO API] Erro ao buscar criadores:', creatorsError);
       return NextResponse.json({
         success: false,
         error: 'Erro interno ao buscar criadores'
       }, { status: 500 });
     }
 
-    // Filtrar criadores válidos (não vazios) com dados completos
+    // ETAPA 3: Processar criadores
     const validCreators = (campaignCreators || [])
       .filter(cc => cc.creators && cc.creators.name && cc.creators.name !== '[SLOT VAZIO]')
       .map(cc => ({
@@ -121,37 +102,87 @@ export async function GET(
         }
       }));
 
-    console.log('✅ [ETAPA 5] Criadores válidos encontrados:', validCreators.length);
+    console.log('✅ [SEO API] Criadores processados:', validCreators.length);
 
-    // ETAPA 3: Montar resposta final com dados do sistema híbrido
+    // ETAPA 4: Buscar dados completos da campanha incluindo briefing_details
+    const { data: fullCampaignData, error: campaignError } = await supabase
+      .from('campaigns')
+      .select(`
+        id,
+        title,
+        description,
+        month,
+        status,
+        budget,
+        start_date,
+        end_date,
+        objectives,
+        deliverables,
+        briefing_details,
+        created_at,
+        business:businesses(
+          id,
+          name,
+          contact_info,
+          address
+        )
+      `)
+      .eq('id', campaignData.campaignId)
+      .eq('organization_id', DEFAULT_ORG_ID)
+      .single();
+
+    if (campaignError) {
+      console.error('❌ [SEO API] Erro ao buscar dados completos da campanha:', campaignError);
+      return NextResponse.json({
+        success: false,
+        error: 'Erro interno ao buscar dados da campanha'
+      }, { status: 500 });
+    }
+
+    // ETAPA 5: Montar resposta final com dados de briefing
     const landingPageData = {
       campaign: {
         id: campaignData.campaignId,
         title: campaignData.campaignTitle,
+        description: fullCampaignData.description,
         month_year_id: campaignData.monthYearId,
+        month: fullCampaignData.month,
+        status: fullCampaignData.status,
+        budget: fullCampaignData.budget,
+        start_date: fullCampaignData.start_date,
+        end_date: fullCampaignData.end_date,
+        objectives: fullCampaignData.objectives,
+        deliverables: fullCampaignData.deliverables,
+        briefing_details: fullCampaignData.briefing_details,
+        created_at: fullCampaignData.created_at,
         seo_url: campaignData.seoUrl
       },
       business: {
         id: campaignData.businessId,
-        name: campaignData.businessName
+        name: campaignData.businessName,
+        contact_info: fullCampaignData.business?.contact_info,
+        address: fullCampaignData.business?.address
       },
-      creators: validCreators,
       stats: {
         totalCreators: validCreators.length,
         confirmedCreators: validCreators.filter(c => c.campaign_data.deliverables?.visit_confirmed === 'Confirmada').length,
         completedBriefings: validCreators.filter(c => c.campaign_data.deliverables?.briefing_complete === 'Sim').length,
         approvedVideos: validCreators.filter(c => c.campaign_data.deliverables?.video_approved === 'Aprovado').length,
         postedVideos: validCreators.filter(c => c.campaign_data.deliverables?.video_posted === 'Postado').length
+      },
+      metadata: {
+        system: 'hybrid_seo_system',
+        generated_at: new Date().toISOString(),
+        seo_url: seoUrl,
+        campaign_id: campaignData.campaignId,
+        business_id: campaignData.businessId
       }
     };
 
-    console.log('✅ [HYBRID SYSTEM] Landing page montada com sucesso:', {
+    console.log('✅ [SEO API] Resposta montada com sucesso:', {
       campaignId: landingPageData.campaign.id,
-      campaign: landingPageData.campaign.title,
-      businessId: landingPageData.business.id,
-      business: landingPageData.business.name,
-      creators: landingPageData.creators.length,
-      monthYearId: landingPageData.campaign.month_year_id,
+      businessName: landingPageData.business.name,
+      creatorsCount: landingPageData.stats?.totalCreators || 0,
       seoUrl: landingPageData.campaign.seo_url
     });
 
@@ -161,10 +192,10 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('❌ [ERRO GERAL] Erro na API de landing page atômica:', error);
-    return NextResponse.json(
-      { success: false, error: 'Erro interno do servidor' },
-      { status: 500 }
-    );
+    console.error('❌ [SEO API] Erro geral:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Erro interno do servidor'
+    }, { status: 500 });
   }
 }

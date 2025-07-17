@@ -65,7 +65,14 @@ export default function CampaignLandingPage() {
 
       console.log('🔍 Carregando campanha:', { businessSlug, monthSlug });
 
-      const response = await fetch(`/api/campaign/${businessSlug}/${monthSlug}`);
+      // Forçar revalidação sem cache
+      const response = await fetch(`/api/campaign/${businessSlug}/${monthSlug}?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       const result = await response.json();
 
       if (result.success) {

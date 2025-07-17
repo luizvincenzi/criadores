@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
   },
   // Fix para problemas de build no Vercel com Next.js 15
   serverExternalPackages: ['googleapis'],
-  // Configuração adicional para Vercel
-  output: 'standalone',
+  // Configuração adicional para Vercel - REMOVIDO TEMPORARIAMENTE PARA DEBUG
+  // output: 'standalone',
 };
 
 export default nextConfig;

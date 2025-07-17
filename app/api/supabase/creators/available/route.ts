@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         name,
-        instagram,
-        whatsapp,
-        seguidores,
+        social_media,
+        contact_info,
+        profile_info,
         status
       `)
       .eq('organization_id', DEFAULT_ORG_ID)
@@ -64,14 +64,18 @@ export async function GET(request: NextRequest) {
     const formattedCreators = availableCreators.map(creator => ({
       id: creator.id,
       nome: creator.name,
-      cidade: '', // Campo não disponível atualmente
-      instagram: creator.instagram,
-      whatsapp: creator.whatsapp,
-      seguidores: creator.seguidores || 0,
+      name: creator.name, // Compatibilidade
+      cidade: creator.profile_info?.location?.city || '',
+      instagram: creator.social_media?.instagram?.username || '',
+      whatsapp: creator.contact_info?.whatsapp || '',
+      seguidores: creator.social_media?.instagram?.followers || 0,
       status: creator.status,
       // Campos adicionais para compatibilidade
-      instagramHandle: creator.instagram,
-      followersCount: creator.seguidores
+      instagramHandle: creator.social_media?.instagram?.username || '',
+      followersCount: creator.social_media?.instagram?.followers || 0,
+      contact_info: creator.contact_info,
+      social_media: creator.social_media,
+      profile_info: creator.profile_info
     }));
 
     console.log(`✅ ${formattedCreators.length} criadores disponíveis encontrados`);
