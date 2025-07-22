@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     if (ownerIds.length > 0) {
       const { data: owners, error: ownersError } = await supabase
         .from('users')
-        .select('id, name, email')
+        .select('id, full_name, email')
         .in('id', ownerIds);
 
       if (!ownersError && owners) {
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         priority: business.priority || 'Média',
         estimated_value: business.estimated_value || 0,
         expected_close_date: business.expected_close_date,
-        owner_name: owner?.name || '',
+        owner_name: owner?.full_name || '',
         owner_email: owner?.email || '',
         current_stage_since: business.current_stage_since || business.created_at,
         created_at: business.created_at,
@@ -93,17 +93,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT - Atualizar etapa de um negócio
+// PUT - Atualizar negócio (etapa, valor, prioridade, etc.)
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, stage, previous_stage } = body;
+    const { id, stage, previous_stage, estimated_value, priority } = body;
 
-    console.log('🔄 Atualizando etapa do negócio:', { id, stage, previous_stage });
+    console.log('🔄 Atualizando negócio:', { id, stage, estimated_value, priority, previous_stage });
 
-    if (!id || !stage) {
+    if (!id) {
       return NextResponse.json(
-        { error: 'ID e stage são obrigatórios' },
+        { error: 'ID é obrigatório' },
         { status: 400 }
       );
     }
@@ -131,12 +131,31 @@ export async function PUT(request: NextRequest) {
       timeInPreviousStage = Math.floor((now.getTime() - stageStartTime.getTime()) / (1000 * 60 * 60 * 24)); // dias
     }
 
-    // Atualizar apenas os campos necessários, sem trigger
-    const updateData = {
-      business_stage: stage,
-      current_stage_since: new Date().toISOString(),
+    // Preparar dados para atualização
+    const updateData: any = {
       updated_at: new Date().toISOString()
     };
+
+    // Atualizar stage se fornecido
+    if (stage !== undefined) {
+      updateData.business_stage = stage;
+      // Se mudou de etapa, atualizar timestamp
+      if (stage !== currentBusiness.business_stage) {
+        updateData.current_stage_since = new Date().toISOString();
+      }
+    }
+
+    // Atualizar valor estimado se fornecido
+    if (estimated_value !== undefined) {
+      updateData.estimated_value = parseFloat(estimated_value) || 0;
+    }
+
+    // Atualizar prioridade se fornecida
+    if (priority !== undefined) {
+      updateData.priority = priority;
+    }
+
+    console.log('💾 Dados para atualização:', updateData);
 
     // Usar uma transação simples para evitar problemas com triggers
     const { error: updateError } = await supabase
@@ -194,11 +213,11 @@ export async function PUT(request: NextRequest) {
       name: `Negócio com ${updatedBusiness.name}`,
       business_name: updatedBusiness.name,
       business_id: updatedBusiness.id,
-      stage: stage, // Usar o stage que foi passado na requisição
+      stage: updatedBusiness.business_stage || 'Leads próprios frios',
       priority: updatedBusiness.priority || 'Média',
       estimated_value: updatedBusiness.estimated_value || 0,
       expected_close_date: updatedBusiness.expected_close_date,
-      owner_name: owner?.name || '',
+      owner_name: owner?.full_name || '',
       owner_email: owner?.email || '',
       current_stage_since: new Date().toISOString(), // Usar timestamp atual
       created_at: updatedBusiness.created_at,
@@ -289,7 +308,7 @@ export async function POST(request: NextRequest) {
       priority: business.priority || 'Média',
       estimated_value: business.estimated_value || 0,
       expected_close_date: business.expected_close_date,
-      owner_name: owner?.name || '',
+      owner_name: owner?.full_name || '',
       owner_email: owner?.email || '',
       current_stage_since: business.current_stage_since,
       created_at: business.created_at,

@@ -581,7 +581,7 @@ export default function DealsPageNew() {
           setIsDetailsModalOpen(false);
           setSelectedDeal(null);
         }}
-        onDealUpdated={(updatedDeal) => {
+        onDealUpdate={(updatedDeal) => {
           setDeals(prevDeals =>
             prevDeals.map(deal =>
               deal.id === updatedDeal.id ? updatedDeal : deal

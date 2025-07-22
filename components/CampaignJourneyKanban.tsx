@@ -68,6 +68,28 @@ function DroppableColumn({
   );
 }
 
+// Função para formatar a data de YYYYMM para "Mmm YY"
+function formatMonthYear(monthYear: string): string {
+  if (!monthYear || monthYear.length !== 6) return monthYear;
+
+  const year = monthYear.substring(0, 4);
+  const month = monthYear.substring(4, 6);
+
+  const monthNames = [
+    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+  ];
+
+  const monthIndex = parseInt(month) - 1;
+  const shortYear = year.substring(2, 4);
+
+  if (monthIndex >= 0 && monthIndex < 12) {
+    return `${monthNames[monthIndex]} ${shortYear}`;
+  }
+
+  return monthYear;
+}
+
 // Componente para card arrastável
 function SortableCampaignCard({
   campaign,
@@ -121,29 +143,22 @@ function SortableCampaignCard({
             {campaign.businessName}
           </h4>
           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap flex-shrink-0">
-            {campaign.mes}
+            {formatMonthYear(campaign.mes)}
           </span>
         </div>
 
         {/* Informações Compactas */}
-        <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-          <div className="flex items-center space-x-3">
-            <span className="flex items-center">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              {campaign.totalCampanhas}
-            </span>
+        <div className="flex items-center justify-center text-xs text-gray-600 mb-2">
+
+
             <span className="flex items-center">
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              {campaign.quantidadeCriadores}
+              {campaign.quantidadeCriadores} criadores
             </span>
-          </div>
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 truncate max-w-20">
-            Ativa
-          </span>
+
+
         </div>
       </div>
 
@@ -447,7 +462,7 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
                         {activeCampaign.businessName}
                       </h4>
                       <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-500 text-white flex-shrink-0">
-                        {activeCampaign.mes}
+                        {formatMonthYear(activeCampaign.mes)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-xs text-gray-600">

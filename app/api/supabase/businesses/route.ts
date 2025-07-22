@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     if (userIds.length > 0) {
       const { data: users, error: usersError } = await supabase
         .from('users')
-        .select('id, name, email')
+        .select('id, full_name, email')
         .in('id', userIds);
 
       if (!usersError && users) {
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       estimatedValue: business.estimated_value || 0,
       contractCreatorsCount: business.contract_creators_count || 0,
       ownerUserId: business.owner_user_id || null,
-      ownerName: business.owner_user_id ? usersMap.get(business.owner_user_id)?.name || null : null,
+      ownerName: business.owner_user_id ? usersMap.get(business.owner_user_id)?.full_name || null : null,
       priority: business.priority || 'Média'
     }));
 

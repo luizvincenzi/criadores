@@ -28,6 +28,28 @@ interface CampaignJourneyModalProps {
   onStatusUpdate: () => void;
 }
 
+// Função para formatar a data de YYYYMM para "Mmm YY"
+function formatMonthYear(monthYear: string): string {
+  if (!monthYear || monthYear.length !== 6) return monthYear;
+
+  const year = monthYear.substring(0, 4);
+  const month = monthYear.substring(4, 6);
+
+  const monthNames = [
+    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+  ];
+
+  const monthIndex = parseInt(month) - 1;
+  const shortYear = year.substring(2, 4);
+
+  if (monthIndex >= 0 && monthIndex < 12) {
+    return `${monthNames[monthIndex]} ${shortYear}`;
+  }
+
+  return monthYear;
+}
+
 export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStatusUpdate }: CampaignJourneyModalProps) {
   const { user } = useAuthStore();
   const [currentStatus, setCurrentStatus] = useState('');
@@ -1028,30 +1050,35 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
         <div className="relative w-full max-w-[90vw] bg-white rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] overflow-y-auto">
           
           {/* Header Premium */}
-          <div className="bg-[#f5f5f5] border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 sticky top-0 z-20">
             <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-1">
-                  <h1 className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center space-x-6">
+                <div>
+                  <h1 className="text-xl font-bold text-white">
                     {campaign.businessName}
                   </h1>
-                  <div className="h-6 w-px bg-gray-300"></div>
-                  <div className="flex items-center text-blue-600">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center text-blue-100 text-sm mt-1">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-base font-semibold">Campanha {campaign.mes}</span>
+                    <span>{formatMonthYear(campaign.mes)}</span>
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm">
-                  Gestão completa dos criadores e acompanhamento de entregas
-                </p>
+
+                {/* Badge informativo */}
+                <div className="flex items-center bg-white/20 rounded-full px-3 py-1">
+                  <svg className="w-4 h-4 mr-1.5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 515.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 919.288 0M15 7a3 3 0 11-6 0 3 3 0 616 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span className="text-blue-100 text-sm font-medium">{campaign.businessData?.criadoresNoContrato || 0} criadores</span>
+                </div>
               </div>
+
               <button
                 onClick={handleClose}
-                className="p-3 hover:bg-white hover:shadow-md rounded-xl transition-all duration-200 text-gray-400 hover:text-gray-600"
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white/80 hover:text-white"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -1062,17 +1089,26 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
           <div className="p-6">
             
             {/* Status da Jornada - Editável */}
-            <div className="mb-8 bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Status da Jornada da Campanha
-              </label>
-              <div className="flex items-center space-x-4">
+            <div className="mb-6">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">
+                  Status da Jornada
+                </label>
+                {isUpdatingStatus && (
+                  <div className="flex items-center text-blue-600">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-1"></div>
+                    <span className="text-xs">Atualizando...</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-3 mt-2">
                 <div className="flex-1">
                   <select
                     value={currentStatus}
                     onChange={(e) => handleStatusChange(e.target.value)}
                     disabled={isUpdatingStatus}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed bg-white text-base font-medium shadow-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed bg-white text-sm font-medium"
                   >
                     {statusOptions.map(option => (
                       <option key={option.value} value={option.value}>
@@ -1081,30 +1117,13 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                     ))}
                   </select>
                 </div>
-                
-                {/* Badge visual do status atual */}
-                <span className={`inline-flex items-center px-4 py-3 rounded-lg text-sm font-medium ${getStatusOption(currentStatus).color} border shadow-sm`}>
-                  <span className="mr-2">{getStatusOption(currentStatus).icon}</span>
+
+                {/* Badge compacto do status atual */}
+                <span className={`inline-flex items-center px-3 py-2 rounded-lg text-xs font-medium ${getStatusOption(currentStatus).color} border`}>
+                  <span className="mr-1">{getStatusOption(currentStatus).icon}</span>
                   {getStatusOption(currentStatus).label}
                 </span>
-                
-                {isUpdatingStatus && (
-                  <div className="flex items-center text-blue-600">
-                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
-                    <span className="text-sm font-medium">Atualizando...</span>
-                  </div>
-                )}
               </div>
-              
-              <p className="text-xs text-gray-600 mt-3 flex items-start">
-                <svg className="w-4 h-4 mr-1 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <span>
-                  <strong>Finalizar campanha:</strong> Remove da jornada permanentemente.
-                  Todos os criadores devem ter dados completos (briefing, visita, aprovação, postagem, datas e links).
-                </span>
-              </p>
             </div>
 
 
@@ -1112,23 +1131,58 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
             {/* Tabela de Criadores da Campanha */}
             <div className="mt-8">
               {/* Status Compacto */}
-              <div className="mb-6">
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{creatorSlots.filter(slot => slot.influenciador && slot.influenciador !== '').length}</div>
-                    <div className="text-sm text-gray-600">de {campaign.quantidadeCriadores} selecionados</div>
+              <div className="mb-8">
+                <div className="grid grid-cols-4 gap-6">
+                  {/* Selecionados */}
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-3xl font-bold">{creatorSlots.filter(slot => slot.influenciador && slot.influenciador !== '').length}</div>
+                      <div className="bg-white/20 rounded-full p-2">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-blue-100 text-sm font-medium">de {campaign.quantidadeCriadores} selecionados</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{creatorSlots.filter(slot => slot.visitaConfirmado === 'sim' || slot.visitaConfirmado === 'Sim').length}</div>
-                    <div className="text-sm text-gray-600">de {campaign.quantidadeCriadores} confirmadas</div>
+
+                  {/* Confirmadas */}
+                  <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-3xl font-bold">{creatorSlots.filter(slot => slot.visitaConfirmado === 'sim' || slot.visitaConfirmado === 'Sim').length}</div>
+                      <div className="bg-white/20 rounded-full p-2">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-green-100 text-sm font-medium">de {campaign.quantidadeCriadores} confirmadas</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{creatorSlots.filter(slot => slot.videoAprovado === 'sim' || slot.videoAprovado === 'Sim').length}</div>
-                    <div className="text-sm text-gray-600">de {campaign.quantidadeCriadores} aprovados</div>
+
+                  {/* Aprovados */}
+                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-3xl font-bold">{creatorSlots.filter(slot => slot.videoAprovado === 'sim' || slot.videoAprovado === 'Sim').length}</div>
+                      <div className="bg-white/20 rounded-full p-2">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-4v4m0 0V7a3 3 0 013-3h4a3 3 0 013 3v4M9 21h6a2 2 0 002-2v-1" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-purple-100 text-sm font-medium">de {campaign.quantidadeCriadores} aprovados</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{creatorSlots.filter(slot => slot.videoPostado === 'sim' || slot.videoPostado === 'Sim').length}</div>
-                    <div className="text-sm text-gray-600">de {campaign.quantidadeCriadores} postados</div>
+
+                  {/* Postados */}
+                  <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-3xl font-bold">{creatorSlots.filter(slot => slot.videoPostado === 'sim' || slot.videoPostado === 'Sim').length}</div>
+                      <div className="bg-white/20 rounded-full p-2">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v3M7 4H5a1 1 0 00-1 1v16a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1h-2M7 4h10M9 9h6m-6 4h6m-6 4h6" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-orange-100 text-sm font-medium">de {campaign.quantidadeCriadores} postados</div>
                   </div>
                 </div>
               </div>
@@ -1162,26 +1216,36 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                     onClick={isEditMode ? handleSaveChanges : () => setIsEditMode(true)}
                     disabled={isSaving}
                     className={`
-                      px-8 py-3 text-sm font-semibold rounded-xl border-2 transition-all duration-200 shadow-md hover:shadow-lg
+                      flex items-center space-x-2 px-4 py-2 rounded-full transition-colors
                       ${isEditMode
                         ? isSaving
-                          ? 'text-gray-500 bg-gray-100 border-gray-300 cursor-not-allowed'
-                          : 'text-white bg-green-600 border-green-600 hover:bg-green-700 hover:border-green-700 hover:scale-105'
-                        : 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700 hover:border-blue-700 hover:scale-105'
+                          ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
+                          : 'text-white bg-green-600 hover:bg-green-700'
+                        : 'text-white bg-blue-600 hover:bg-blue-700'
                       }
                     `}
                   >
                     {isEditMode ? (
                       isSaving ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin mr-2 inline-block"></div>
-                          Salvando...
+                          <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Salvando...</span>
                         </>
                       ) : (
-                        'Salvar'
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Salvar</span>
+                        </>
                       )
                     ) : (
-                      'Editar'
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        <span>Editar</span>
+                      </>
                     )}
                   </button>
                 </div>
@@ -1203,10 +1267,10 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                 />
               )}
 
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead className="bg-gradient-to-r from-slate-100 to-gray-100">
+              <div className="bg-white w-full overflow-hidden">
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full">
+                    <thead className="bg-gray-100">
                       <tr>
                         {isEditMode && (
                           <th className="px-3 py-5 text-center text-sm font-bold text-gray-800 uppercase tracking-wider w-12">
@@ -1226,9 +1290,6 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                         )}
                         <th className="px-6 py-5 text-left text-sm font-bold text-gray-800 uppercase tracking-wider">
                           Criador
-                        </th>
-                        <th className="px-6 py-5 text-left text-sm font-bold text-gray-800 uppercase tracking-wider">
-                          Briefing
                         </th>
                         <th className="px-6 py-5 text-left text-sm font-bold text-gray-800 uppercase tracking-wider">
                           Visita
@@ -1258,10 +1319,10 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                         )}
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-100">
+                    <tbody className="bg-white">
                       {isLoadingSlots ? (
                         <tr>
-                          <td colSpan={isEditMode ? 9 : 8} className="px-6 py-8 text-center">
+                          <td colSpan={isEditMode ? 8 : 7} className="px-6 py-8 text-center">
                             <div className="flex items-center justify-center">
                               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
                               <span className="text-gray-600">Carregando criadores...</span>
@@ -1270,7 +1331,7 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                         </tr>
                       ) : (
                         creatorSlots.map((slot, index) => (
-                        <tr key={index} className={`hover:bg-gray-50 transition-colors ${
+                        <tr key={index} className={`${
                           bulkOps.selectedSlots.includes(index) ? 'bg-blue-50 border-l-4 border-blue-500' : ''
                         }`}>
                           {isEditMode && (
@@ -1350,29 +1411,6 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                                   </div>
                                 )}
                             </div>
-                          </td>
-                          <td className="px-6 py-2 whitespace-nowrap">
-                            {isEditMode ? (
-                              <select
-                                value={editedData[index]?.briefingCompleto || 'pendente'}
-                                onChange={(e) => updateCreatorData(index, 'briefingCompleto', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white text-sm"
-                              >
-                                <option value="sim">✅ Sim</option>
-                                <option value="nao">❌ Não</option>
-                                <option value="pendente">⏳ Pendente</option>
-                              </select>
-                            ) : (
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                String(slot.briefingCompleto || '').toLowerCase() === 'sim'
-                                  ? 'bg-green-100 text-green-800'
-                                  : String(slot.briefingCompleto || '').toLowerCase() === 'nao'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {slot.briefingCompleto || 'Pendente'}
-                              </span>
-                            )}
                           </td>
                           <td className="px-6 py-2 whitespace-nowrap">
                             {isEditMode ? (
@@ -1592,66 +1630,8 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
                 )}
               </div>
 
-              {/* Grid de Informações - Movido para depois da tabela */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-
-                {/* Coluna Esquerda: Informações do Business */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    Informações do Business
-                  </h3>
-
-                  {campaign.businessData?.planoAtual && (
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                      <label className="text-sm font-medium text-blue-600 uppercase tracking-wide">Plano Atual</label>
-                      <p className="text-base font-semibold text-gray-900 mt-1">{campaign.businessData.planoAtual}</p>
-                    </div>
-                  )}
-
-                  {campaign.businessData?.nomeResponsavel && (
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                      <label className="text-sm font-medium text-blue-600 uppercase tracking-wide">Responsável do Cliente</label>
-                      <p className="text-base font-semibold text-gray-900 mt-1">{campaign.businessData.nomeResponsavel}</p>
-                    </div>
-                  )}
-
-                  {campaign.businessData?.whatsappResponsavel && (
-                    <button
-                      onClick={handleWhatsAppClick}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg p-4 transition-all duration-200 flex items-center justify-center space-x-3 shadow-md hover:shadow-lg transform hover:scale-[1.02]"
-                    >
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
-                      </svg>
-                      <span className="font-semibold">Conversar no WhatsApp</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Coluna Direita: Estatísticas da Campanha */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z" />
-                    </svg>
-                    Estatísticas da Campanha
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm text-center">
-                      <div className="text-2xl font-bold text-blue-600">{campaign.totalCampanhas}</div>
-                      <div className="text-sm text-gray-600">Total de Campanhas</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm text-center">
-                      <div className="text-2xl font-bold text-green-600">{campaign.quantidadeCriadores}</div>
-                      <div className="text-sm text-gray-600">Criadores Contratados</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Espaço vazio para facilitar navegação do modal */}
+              <div className="h-32"></div>
             </div>
           </div>
         </div>

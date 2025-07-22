@@ -147,134 +147,110 @@ export default function CreatorModalNew({ creator, isOpen, onClose, onCreatorUpd
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative w-full max-w-7xl bg-white rounded-3xl shadow-2xl transform transition-all duration-300 scale-100 opacity-100 max-h-[95vh] overflow-hidden flex flex-col">
           
-          {/* Header com cor laranja */}
-          <div className="relative bg-gradient-to-r from-orange-50 to-orange-100 border-b border-orange-200 p-6">
+          {/* Header com gradiente azul */}
+          <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                    {isEditMode ? (
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        className="text-4xl font-bold bg-white border border-orange-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      />
-                    ) : (
-                      creator.nome
-                    )}
+                  <h1 className="text-3xl font-bold text-white mb-2">
+                    {creator.nome}
                   </h1>
                   <div className="flex items-center space-x-4">
-                    <span className="px-4 py-2 rounded-full text-sm font-medium border bg-blue-50 text-blue-700 border-blue-200">
-                      {isEditMode ? (
-                        <select
-                          value={formData.status}
-                          onChange={(e) => handleInputChange('status', e.target.value)}
-                          className="bg-transparent border-none outline-none text-sm font-medium"
-                        >
-                          <option value="Ativo">Ativo</option>
-                          <option value="Não parceiro">Não parceiro</option>
-                          <option value="Precisa engajar">Precisa engajar</option>
-                        </select>
-                      ) : (
-                        creator.status
-                      )}
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-blue-100 border border-white/30">
+                      {creator.status}
                     </span>
-                    <span className="text-gray-600 flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="text-blue-100 flex items-center text-sm">
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      {isEditMode ? (
-                        <input
-                          type="text"
-                          value={formData.cidade}
-                          onChange={(e) => handleInputChange('cidade', e.target.value)}
-                          className="bg-white border border-orange-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                          placeholder="Cidade"
-                        />
-                      ) : (
-                        creator.cidade
-                      )}
+                      {creator.cidade || 'Não informado'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Botões de Ação */}
-              <div className="flex items-center space-x-3">
-                {isEditMode ? (
-                  <>
-                    <button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className={`px-6 py-3 text-white rounded-lg transition-colors flex items-center ${
-                        saveSuccess 
-                          ? 'bg-green-600 hover:bg-green-700' 
-                          : isSaving 
-                            ? 'bg-gray-400 cursor-not-allowed' 
-                            : 'bg-orange-600 hover:bg-orange-700'
-                      }`}
-                    >
-                      {isSaving ? (
-                        <>
-                          <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Salvando...
-                        </>
-                      ) : saveSuccess ? (
-                        <>
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Salvo com Sucesso!
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                          </svg>
-                          Salvar Alterações
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setIsEditMode(false)}
-                      className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Cancelar
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => setIsEditMode(true)}
-                      className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium flex items-center space-x-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      <span>Editar</span>
-                    </button>
-                    <button
-                      onClick={onClose}
-                      className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Fechar
-                    </button>
-                  </>
-                )}
-              </div>
+              {/* Botão de Fechar */}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white/80 hover:text-white"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
 
           {/* Conteúdo do Modal */}
           <div className="flex-1 overflow-y-auto">
+            {/* Barra de Ações */}
+            <div className="bg-white border-b border-gray-100 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Detalhes do Criador</h2>
+                  <p className="text-sm text-gray-600 mt-0.5">Visualize e edite as informações do criador</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  {isEditMode ? (
+                    <>
+                      <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className={`flex items-center space-x-2 px-4 py-2 text-white rounded-full transition-colors ${
+                          saveSuccess
+                            ? 'bg-green-600 hover:bg-green-700'
+                            : isSaving
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Salvando...</span>
+                          </>
+                        ) : saveSuccess ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Salvo!</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                            </svg>
+                            <span>Salvar</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setIsEditMode(false)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-full transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Cancelar</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditMode(true)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      <span>Editar</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="p-6 space-y-8">
 
               {/* Seção de Informações Pessoais */}

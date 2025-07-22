@@ -9,6 +9,28 @@ interface CampaignModalProps {
   onClose: () => void;
 }
 
+// Função para formatar a data de YYYYMM para "Mmm YY"
+function formatMonthYear(monthYear: string): string {
+  if (!monthYear || monthYear.length !== 6) return monthYear;
+
+  const year = monthYear.substring(0, 4);
+  const month = monthYear.substring(4, 6);
+
+  const monthNames = [
+    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+  ];
+
+  const monthIndex = parseInt(month) - 1;
+  const shortYear = year.substring(2, 4);
+
+  if (monthIndex >= 0 && monthIndex < 12) {
+    return `${monthNames[monthIndex]} ${shortYear}`;
+  }
+
+  return monthYear;
+}
+
 export default function CampaignModal({ campaign, isOpen, onClose }: CampaignModalProps) {
   if (!isOpen || !campaign) return null;
 
@@ -107,7 +129,7 @@ export default function CampaignModal({ campaign, isOpen, onClose }: CampaignMod
 
                     <div>
                       <label className="text-sm font-medium text-gray-500">Mês</label>
-                      <p className="text-base text-gray-900">{campaign.mes || 'Não informado'}</p>
+                      <p className="text-base text-gray-900">{formatMonthYear(campaign.mes) || 'Não informado'}</p>
                     </div>
                   </div>
                 </div>
