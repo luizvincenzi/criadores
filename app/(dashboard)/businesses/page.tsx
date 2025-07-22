@@ -4,8 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useBusinessStore, Business } from '@/store/businessStore';
 import { fetchBusinesses, isUsingSupabase } from '@/lib/dataSource';
 import BusinessCard from '@/components/BusinessCard';
-import AddBusinessModal from '@/components/AddBusinessModal';
+import AddBusinessModalNew from '@/components/AddBusinessModalNew';
 import BusinessModalNew from '@/components/BusinessModalNew';
+import BusinessTimeline from '@/components/BusinessTimeline';
+import AddNoteModal from '@/components/AddNoteModal';
+import PlanBadge from '@/components/PlanBadge';
+import PriorityBadge from '@/components/PriorityBadge';
 import { Card, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 
@@ -19,6 +23,9 @@ export default function BusinessesPage() {
   const [isClient, setIsClient] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
+  const [timelineBusinessId, setTimelineBusinessId] = useState<string>('');
 
   // Evitar erro de hidratação
   useEffect(() => {
@@ -60,12 +67,20 @@ export default function BusinessesPage() {
       acc[stage] = (acc[stage] || 0) + 1;
       return acc;
     }, {}),
-    totalValue: 0,
+    byBusinessStage: businesses.reduce((acc: any, business: any) => {
+      const stage = business.businessStage || 'Leads próprios frios';
+      acc[stage] = (acc[stage] || 0) + 1;
+      return acc;
+    }, {}),
+    totalEstimatedValue: businesses.reduce((sum: number, business: any) => {
+      return sum + (business.estimatedValue || business.value || 0);
+    }, 0),
     conversionRate: businesses.length > 0 ? Math.round((businesses.filter((b: any) => b.prospeccao === 'Entrega Final').length / businesses.length) * 100) : 0
   } : {
     total: 0,
     byStage: {},
-    totalValue: 0,
+    byBusinessStage: {},
+    totalEstimatedValue: 0,
     conversionRate: 0
   };
 
@@ -82,6 +97,21 @@ export default function BusinessesPage() {
     } catch (error) {
       console.error('❌ Erro ao recarregar negócios:', error);
     }
+  };
+
+  const handleOpenTimeline = (businessId: string) => {
+    setTimelineBusinessId(businessId);
+    setIsTimelineOpen(true);
+  };
+
+  const handleOpenAddNote = (businessId: string) => {
+    setTimelineBusinessId(businessId);
+    setIsAddNoteOpen(true);
+  };
+
+  const handleNoteAdded = () => {
+    // Recarregar dados se necessário
+    console.log('Nota adicionada com sucesso');
   };
 
   const handleOpenDetails = (business: Business) => {
@@ -149,8 +179,8 @@ export default function BusinessesPage() {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface mb-2">Negócios</h1>
-          <p className="text-on-surface-variant">Gerencie seus clientes e oportunidades de negócio</p>
+          <h1 className="text-3xl font-bold text-on-surface mb-2">Empresas</h1>
+          <p className="text-on-surface-variant">Gerencie suas empresas clientes e relacionamentos</p>
         </div>
         <div className="flex space-x-3">
           <Button variant="outlined" icon="📊">
@@ -160,7 +190,7 @@ export default function BusinessesPage() {
             variant="primary"
             onClick={() => setIsAddModalOpen(true)}
           >
-            Novo Negócio
+            Nova Empresa
           </Button>
         </div>
       </div>
@@ -171,7 +201,7 @@ export default function BusinessesPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-on-surface-variant font-medium">Total de Negócios</p>
+                <p className="text-sm text-on-surface-variant font-medium">Total de Empresas</p>
                 <p className="text-3xl font-bold text-on-surface mt-1">{stats.total}</p>
                 <p className="text-xs text-secondary mt-1">+12% este mês</p>
               </div>
@@ -224,6 +254,23 @@ export default function BusinessesPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-on-surface-variant font-medium">Valor Total</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">
+                  {formatCurrency(stats.totalEstimatedValue)}
+                </p>
+                <p className="text-xs text-green-600 mt-1">Pipeline</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
+                <span className="text-2xl">💰</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:scale-105 transition-transform duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-on-surface-variant font-medium">Taxa Conversão</p>
                 <p className="text-3xl font-bold text-primary mt-1">{stats.conversionRate}%</p>
                 <p className="text-xs text-primary mt-1">
@@ -241,7 +288,7 @@ export default function BusinessesPage() {
       {/* Business List */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-on-surface">Todos os Negócios</h2>
+          <h2 className="text-xl font-semibold text-on-surface">Todas as Empresas</h2>
           <div className="flex space-x-2">
             <Button variant="text" size="sm">
               Filtrar
@@ -276,6 +323,22 @@ export default function BusinessesPage() {
                         </p>
                       </div>
 
+                      {/* Plano */}
+                      <div className="flex items-center">
+                        <PlanBadge
+                          plan={business.planoAtual || business.currentPlan || business.plano || ''}
+                          size="sm"
+                        />
+                      </div>
+
+                      {/* Prioridade */}
+                      <div className="flex items-center">
+                        <PriorityBadge
+                          priority={business.priority || 'Média'}
+                          size="sm"
+                        />
+                      </div>
+
                       {/* Status */}
                       <div className="flex items-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(business.prospeccao || business.status || 'Reunião Briefing')}`}>
@@ -307,13 +370,43 @@ export default function BusinessesPage() {
                         </div>
                       )}
 
-                      {/* Valor */}
-                      {business.value > 0 && (
+                      {/* Valor em R$ */}
+                      {(business.estimatedValue > 0 || business.value > 0) && (
                         <div className="flex items-center font-semibold text-green-600">
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                           </svg>
-                          <span>{formatCurrency(business.value)}</span>
+                          <span>{formatCurrency(business.estimatedValue || business.value || 0)}</span>
+                        </div>
+                      )}
+
+                      {/* Etapa do Negócio */}
+                      {business.businessStage && (
+                        <div className="flex items-center text-blue-600">
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-sm">{business.businessStage}</span>
+                        </div>
+                      )}
+
+                      {/* Criadores no Contrato */}
+                      {business.contractCreatorsCount > 0 && (
+                        <div className="flex items-center text-purple-600">
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          <span className="text-sm">{business.contractCreatorsCount} criadores</span>
+                        </div>
+                      )}
+
+                      {/* Proprietário */}
+                      {business.ownerName && (
+                        <div className="flex items-center text-indigo-600">
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span className="text-sm">{business.ownerName}</span>
                         </div>
                       )}
                     </div>
@@ -340,6 +433,33 @@ export default function BusinessesPage() {
                         </svg>
                       </button>
                     )}
+
+                    {/* Botões CRM */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenTimeline(business.id);
+                      }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Ver Timeline"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenAddNote(business.id);
+                      }}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Adicionar Nota"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
 
                     {/* Botão Ver Detalhes */}
                     <Button
@@ -372,14 +492,14 @@ export default function BusinessesPage() {
               variant="primary"
               onClick={() => setIsAddModalOpen(true)}
             >
-              Adicionar Primeiro Negócio
+              Adicionar Primeira Empresa
             </Button>
           </CardContent>
         </Card>
       )}
 
       {/* Modal para Adicionar Negócio */}
-      <AddBusinessModal
+      <AddBusinessModalNew
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={handleAddSuccess}
@@ -391,6 +511,22 @@ export default function BusinessesPage() {
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetails}
         onBusinessUpdated={handleBusinessUpdated}
+      />
+
+      {/* Timeline Modal */}
+      <BusinessTimeline
+        businessId={timelineBusinessId}
+        isOpen={isTimelineOpen}
+        onClose={() => setIsTimelineOpen(false)}
+      />
+
+      {/* Add Note Modal */}
+      <AddNoteModal
+        businessId={timelineBusinessId}
+        userId="current-user-id" // TODO: Pegar do contexto de autenticação
+        isOpen={isAddNoteOpen}
+        onClose={() => setIsAddNoteOpen(false)}
+        onNoteAdded={handleNoteAdded}
       />
     </div>
   );

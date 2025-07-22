@@ -115,7 +115,7 @@ export default function BusinessCard({
 
           <div className="bg-surface-container rounded-xl p-4 text-center hover:bg-surface-container-high transition-colors">
             <div className="text-2xl font-bold text-primary mb-1">
-              R$ {(value / 1000).toFixed(0)}K
+              R$ {value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value.toFixed(0)}
             </div>
             <div className="text-sm text-on-surface-variant font-medium">
               Valor

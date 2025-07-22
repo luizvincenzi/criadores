@@ -44,8 +44,19 @@ async function generateSupabaseReports(period: string) {
     // Buscar dados básicos com joins para informações completas
     const [businessesResult, creatorsResult, campaignsResult, campaignCreatorsResult] = await Promise.all([
       supabase.from('businesses').select(`
-        *,
-        business_categories(name)
+        id,
+        name,
+        status,
+        business_stage,
+        estimated_value,
+        contract_creators_count,
+        owner_user_id,
+        priority,
+        custom_fields,
+        contact_info,
+        address,
+        created_at,
+        updated_at
       `),
       supabase.from('creators').select('*'),
       supabase.from('campaigns').select(`

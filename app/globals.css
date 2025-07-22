@@ -191,15 +191,46 @@
   @apply bg-blue-50 ring-2 ring-blue-300;
 }
 
+/* Kanban Scroll Horizontal */
+.kanban-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.kanban-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.kanban-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* Responsividade para mobile */
 @media (max-width: 768px) {
-  .kanban-grid {
-    grid-template-columns: 1fr;
+  .kanban-scroll {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .kanban-scroll .flex {
     gap: 1rem;
   }
 
-  .kanban-column {
-    min-height: 50vh;
+  .kanban-column-mobile {
+    width: 280px !important;
+    min-width: 280px !important;
+    height: calc(100vh - 10rem) !important;
   }
 
   .kanban-card {

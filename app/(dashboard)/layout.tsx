@@ -22,6 +22,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   React.useEffect(() => {
     if (pathname.includes('dashboard')) setActiveSection('dashboard');
     else if (pathname.includes('businesses')) setActiveSection('businesses');
+    else if (pathname.includes('deals')) setActiveSection('deals');
     else if (pathname.includes('creators')) setActiveSection('creators');
     else if (pathname.includes('campaigns')) setActiveSection('campaigns');
     else if (pathname.includes('jornada')) setActiveSection('jornada');
@@ -61,7 +62,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     },
     {
       id: 'businesses',
-      label: 'Negócios',
+      label: 'Empresas',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M3 21h18"/>
@@ -70,6 +71,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </svg>
       ),
       href: '/businesses',
+      count: 0,
+      color: 'primary'
+    },
+    {
+      id: 'deals',
+      label: 'Negócios',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+      ),
+      href: '/deals',
       count: 0,
       color: 'primary'
     },

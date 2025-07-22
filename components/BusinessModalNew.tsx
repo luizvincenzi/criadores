@@ -40,6 +40,13 @@ interface BusinessFormData {
   contratoValidoAte: string;       // N = Contrato válido até
   relatedFiles: string;            // O = Related files
   notes: string;                   // P = Notes
+
+  // Novos campos
+  businessStage: string;           // Q = Etapa do negócio
+  estimatedValue: string;          // R = Valor estimado
+  contractCreatorsCount: string;   // S = Quantidade de criadores no contrato
+  ownerUserId: string;             // T = Proprietário do negócio
+  priority: string;                // U = Prioridade
 }
 
 export default function BusinessModalNew({ business, isOpen, onClose, onBusinessUpdated }: BusinessModalProps) {
@@ -61,12 +68,37 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
     dataAssinaturaContrato: '',
     contratoValidoAte: '',
     relatedFiles: '',
-    notes: ''
+    notes: '',
+    businessStage: 'Leads próprios frios',
+    estimatedValue: '',
+    contractCreatorsCount: '',
+    ownerUserId: '',
+    priority: 'Média'
   });
   const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [users, setUsers] = useState<Array<{id: string, name: string, email: string}>>([]);
+
+  // Carregar usuários quando o modal abrir
+  useEffect(() => {
+    if (isOpen) {
+      loadUsers();
+    }
+  }, [isOpen]);
+
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/supabase/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+    }
+  };
 
   // Inicializar dados quando business mudar
   useEffect(() => {
@@ -89,7 +121,12 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
         dataAssinaturaContrato: business.dataAssinaturaContrato || '',
         contratoValidoAte: business.contratoValidoAte || '',
         relatedFiles: business.relatedFiles || '',
-        notes: business.notes || business.observacoes || ''
+        notes: business.notes || business.observacoes || '',
+        businessStage: business.businessStage || 'Leads próprios frios',
+        estimatedValue: business.estimatedValue ? business.estimatedValue.toString() : '',
+        contractCreatorsCount: business.contractCreatorsCount ? business.contractCreatorsCount.toString() : '',
+        ownerUserId: business.ownerUserId || business.owner_user_id || '',
+        priority: business.priority || 'Média'
       });
 
       // Buscar campanhas
@@ -164,7 +201,12 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
           notes: formData.notes
         },
         tags: formData.category ? [formData.category] : [],
-        status: formData.prospeccao
+        status: formData.prospeccao,
+        business_stage: formData.businessStage,
+        estimated_value: parseFloat(formData.estimatedValue) || 0,
+        contract_creators_count: parseInt(formData.contractCreatorsCount) || 0,
+        owner_user_id: formData.ownerUserId || null,
+        priority: formData.priority
       };
 
       console.log('📤 Enviando dados para API:', updateData);
@@ -236,8 +278,8 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
   const renderField = (
     label: string,
     field: keyof BusinessFormData,
-    type: 'text' | 'select' | 'textarea' = 'text',
-    options?: string[]
+    type: 'text' | 'select' | 'textarea' | 'number' = 'text',
+    options?: string[] | Array<{value: string, label: string}>
   ) => {
     const value = formData[field];
     
@@ -254,9 +296,13 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Selecione...</option>
-              {options?.map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
+              {options?.map(option => {
+                if (typeof option === 'string') {
+                  return <option key={option} value={option}>{option}</option>;
+                } else {
+                  return <option key={option.value} value={option.value}>{option.label}</option>;
+                }
+              })}
             </select>
           ) : type === 'textarea' ? (
             <textarea
@@ -265,6 +311,16 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder={`Digite ${label.toLowerCase()}`}
+            />
+          ) : type === 'number' ? (
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={value}
+              onChange={(e) => handleInputChange(field, e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={field === 'estimatedValue' ? 'Ex: 15000.00' : `Digite ${label.toLowerCase()}`}
             />
           ) : (
             <input
@@ -285,8 +341,19 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
   if (!isOpen || !business) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Enhanced Shadowbox/Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+        onClick={onClose}
+      />
+
+      {/* Modal Container */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div
+          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden transform transition-all duration-300 scale-100 animate-in zoom-in-95 slide-in-from-bottom-4"
+          onClick={(e) => e.stopPropagation()}
+        >
         
         {/* Header Profissional */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
@@ -438,12 +505,25 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
                   'Alimentação', 'Moda', 'Beleza', 'Tecnologia', 'Saúde', 'Educação', 'Entretenimento', 'Outros'
                 ])}
                 {renderField('Plano Atual', 'currentPlan', 'select', [
-                  'Basic - 3', 'Gold - 6', 'Premium - 12', 'Enterprise - 24'
+                  'Silver', 'Gold', 'Diamond', 'Personalizado'
                 ])}
                 {renderField('Status Comercial', 'comercial')}
                 {renderField('Cidade', 'cidade')}
                 {renderField('Status de Prospecção', 'prospeccao', 'select', [
                   'Reunião de briefing', 'Agendamentos', 'Entrega final', 'Finalizado'
+                ])}
+                {renderField('Etapa do Negócio', 'businessStage', 'select', [
+                  'Leads próprios frios', 'Leads próprios quentes', 'Leads indicados',
+                  'Enviando proposta', 'Marcado reunião', 'Reunião realizada',
+                  'Follow up', 'Contrato assinado', 'Não teve interesse', 'Não responde'
+                ])}
+                {renderField('Valor em R$', 'estimatedValue', 'number')}
+                {renderField('Criadores no Contrato', 'contractCreatorsCount', 'number')}
+                {renderField('Proprietário do Negócio', 'ownerUserId', 'select', users.map(u => ({ value: u.id, label: `${u.name} (${u.email})` })))}
+                {renderField('Prioridade', 'priority', 'select', [
+                  { value: 'Baixa', label: '🟢 Baixa' },
+                  { value: 'Média', label: '🟡 Média' },
+                  { value: 'Alta', label: '🔴 Alta' }
                 ])}
               </div>
             </div>
@@ -566,6 +646,7 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

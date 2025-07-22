@@ -78,7 +78,7 @@ export default function Toast({
 export function useToast() {
   const [toast, setToast] = useState<{
     message: string;
-    type: 'success' | 'error' | 'info';
+    type: 'success' | 'error' | 'info' | 'warning';
     isVisible: boolean;
   }>({
     message: '',
@@ -86,7 +86,7 @@ export function useToast() {
     isVisible: false,
   });
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     setToast({
       message,
       type,
@@ -108,6 +108,11 @@ export function useToast() {
   );
 
   return {
+    toast: {
+      message: toast.message || '',
+      type: toast.type || 'info',
+      isVisible: toast.isVisible || false
+    },
     showToast,
     hideToast,
     ToastComponent,

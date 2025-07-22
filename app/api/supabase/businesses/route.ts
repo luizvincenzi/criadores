@@ -5,17 +5,51 @@ const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🏢 Buscando negócios do Supabase...');
+    const { searchParams } = new URL(request.url);
+    const businessId = searchParams.get('id');
 
-    const { data, error } = await supabase
+    console.log('🏢 Buscando negócios do Supabase...', { businessId });
+
+    let query = supabase
       .from('businesses')
       .select(`
-        *,
-        responsible_user:users(full_name)
+        id,
+        organization_id,
+        name,
+        slug,
+        category_id,
+        current_plan_id,
+        contact_info,
+        address,
+        contract_info,
+        status,
+        business_stage,
+        estimated_value,
+        contract_creators_count,
+        owner_user_id,
+        priority,
+        current_stage_since,
+        expected_close_date,
+        responsible_user_id,
+        tags,
+        custom_fields,
+        metrics,
+        is_active,
+        created_at,
+        updated_at,
+        owner_user:users!owner_user_id(id, full_name, email),
+        responsible_user:users!responsible_user_id(id, full_name, email)
       `)
       .eq('organization_id', DEFAULT_ORG_ID)
-      .eq('is_active', true)
-      .order('name');
+      .eq('is_active', true);
+
+    if (businessId) {
+      query = query.eq('id', businessId);
+    } else {
+      query = query.order('name');
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('❌ Erro ao buscar negócios:', error);
@@ -26,6 +60,26 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`✅ ${data.length} negócios encontrados no Supabase`);
+
+    // Buscar informações dos usuários (proprietários e responsáveis) separadamente
+    const userIds = [...new Set([
+      ...data.map(b => b.owner_user_id).filter(Boolean),
+      ...data.map(b => b.responsible_user_id).filter(Boolean)
+    ])];
+
+    let usersMap = new Map();
+    if (userIds.length > 0) {
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (!usersError && users) {
+        users.forEach(user => {
+          usersMap.set(user.id, user);
+        });
+      }
+    }
 
     // Mapear para formato padronizado (usando apenas 'name')
     const businesses = data.map(business => ({
@@ -47,7 +101,13 @@ export async function GET(request: NextRequest) {
       dataAssinaturaContrato: business.contract_info?.signature_date || '',
       contratoValidoAte: business.contract_info?.valid_until || '',
       relatedFiles: business.contract_info?.files?.[0] || '',
-      notes: business.custom_fields?.notes || ''
+      notes: business.custom_fields?.notes || '',
+      businessStage: business.business_stage || 'Leads próprios frios',
+      estimatedValue: business.estimated_value || 0,
+      contractCreatorsCount: business.contract_creators_count || 0,
+      ownerUserId: business.owner_user_id || null,
+      ownerName: business.owner_user_id ? usersMap.get(business.owner_user_id)?.name || null : null,
+      priority: business.priority || 'Média'
     }));
 
     return NextResponse.json({
@@ -134,6 +194,11 @@ export async function POST(request: NextRequest) {
           files: body.relatedFiles ? [body.relatedFiles] : [],
           terms: {}
         },
+        business_stage: body.businessStage || 'Leads próprios frios',
+        estimated_value: parseFloat(body.estimatedValue) || 0.00,
+        contract_creators_count: parseInt(body.contractCreatorsCount) || 0,
+        owner_user_id: body.ownerUserId || null,
+        priority: body.priority || 'Média',
         custom_fields: {
           categoria: body.categoria || '',
           planoAtual: body.planoAtual || '',
@@ -198,6 +263,11 @@ export async function PUT(request: NextRequest) {
     if (updateData.contact_info) updateFields.contact_info = updateData.contact_info;
     if (updateData.address) updateFields.address = updateData.address;
     if (updateData.custom_fields) updateFields.custom_fields = updateData.custom_fields;
+    if (updateData.business_stage) updateFields.business_stage = updateData.business_stage;
+    if (updateData.estimated_value !== undefined) updateFields.estimated_value = updateData.estimated_value;
+    if (updateData.contract_creators_count !== undefined) updateFields.contract_creators_count = updateData.contract_creators_count;
+    if (updateData.owner_user_id !== undefined) updateFields.owner_user_id = updateData.owner_user_id;
+    if (updateData.priority) updateFields.priority = updateData.priority;
 
     const { data, error } = await supabase
       .from('businesses')
@@ -234,3 +304,5 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+

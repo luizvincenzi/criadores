@@ -14,8 +14,28 @@ export async function getBusinessesData() {
   const { data, error } = await supabase
     .from('businesses')
     .select(`
-      *,
-      responsible_user:users(full_name)
+      id,
+      organization_id,
+      name,
+      slug,
+      category_id,
+      current_plan_id,
+      contact_info,
+      address,
+      contract_info,
+      status,
+      business_stage,
+      estimated_value,
+      contract_creators_count,
+      owner_user_id,
+      priority,
+      responsible_user_id,
+      tags,
+      custom_fields,
+      metrics,
+      is_active,
+      created_at,
+      updated_at
     `)
     .eq('organization_id', DEFAULT_ORG_ID)
     .eq('is_active', true)
@@ -41,14 +61,19 @@ export async function getBusinessesData() {
     cidade: business.address?.city || '',
     whatsappResponsavel: business.contact_info?.whatsapp || '',
     prospeccao: business.status,
-    responsavel: business.responsible_user?.full_name || '',
+    responsavel: '', // Campo será preenchido separadamente se necessário
     instagram: business.contact_info?.instagram || '',
     grupoWhatsappCriado: business.custom_fields?.grupo_whatsapp_criado ? 'Sim' : 'Não',
     contratoAssinadoEnviado: business.contract_info?.signed ? 'Sim' : 'Não',
     dataAssinaturaContrato: business.contract_info?.signature_date || '',
     contratoValidoAte: business.contract_info?.valid_until || '',
     relatedFiles: business.contract_info?.files?.[0] || '',
-    notes: business.custom_fields?.notes || ''
+    notes: business.custom_fields?.notes || '',
+    businessStage: business.business_stage || 'Leads próprios frios',
+    estimatedValue: business.estimated_value || 0,
+    contractCreatorsCount: business.contract_creators_count || 0,
+    ownerUserId: business.owner_user_id || null,
+    priority: business.priority || 'Média'
   }));
 }
 
