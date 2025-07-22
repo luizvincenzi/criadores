@@ -40,6 +40,46 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
 
+  // Função para formatar data no padrão "Jun 25"
+  const formatMonthYearShort = (monthKey: string) => {
+    // Se for formato YYYYMM (ex: 202507)
+    if (monthKey && monthKey.length === 6 && /^\d{6}$/.test(monthKey)) {
+      const year = monthKey.substring(0, 4);
+      const month = monthKey.substring(4, 6);
+
+      const monthNames = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+
+      const monthIndex = parseInt(month) - 1;
+      const shortYear = year.substring(2, 4);
+
+      if (monthIndex >= 0 && monthIndex < 12) {
+        return `${monthNames[monthIndex]} ${shortYear}`;
+      }
+    }
+
+    // Se for formato "2025-07"
+    if (monthKey && monthKey.includes('-') && monthKey.length === 7) {
+      const [year, month] = monthKey.split('-');
+      const monthNames = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+
+      const monthIndex = parseInt(month) - 1;
+      const shortYear = year.substring(2, 4);
+
+      if (monthIndex >= 0 && monthIndex < 12) {
+        return `${monthNames[monthIndex]} ${shortYear}`;
+      }
+    }
+
+    // Fallback para outros formatos
+    return monthKey;
+  };
+
   useEffect(() => {
     if (isOpen && campaignGroup) {
       loadCreatorsData();
@@ -542,7 +582,7 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {campaignGroup.mes || campaignGroup.month || 'N/A'}
+                    {formatMonthYearShort(campaignGroup.mes || campaignGroup.month || '') || 'N/A'}
                   </span>
                   <div
                     className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-white/20 backdrop-blur-sm"
@@ -570,46 +610,15 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-end space-x-3">
-                {!isEditMode ? (
-                  <button
-                    onClick={toggleEditMode}
-                    className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Editar
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={toggleEditMode}
-                      className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={saveCampaignData}
-                      className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Salvar
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={onClose}
-                  className="p-3 hover:bg-white/10 rounded-full transition-colors"
-                  style={{ backgroundColor: 'transparent' }}
-                >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={onClose}
+                className="p-3 hover:bg-white/10 rounded-full transition-colors"
+                style={{ backgroundColor: 'transparent' }}
+              >
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -630,12 +639,50 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
             <div className="mb-8">
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Detalhes da Campanha
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Detalhes da Campanha
+                    </h3>
+
+                    {/* Botões de Ação */}
+                    <div className="flex items-center space-x-3">
+                      {!isEditMode ? (
+                        <button
+                          onClick={toggleEditMode}
+                          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          <span>Editar</span>
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={saveCampaignData}
+                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Salvar</span>
+                          </button>
+                          <button
+                            onClick={toggleEditMode}
+                            className="flex items-center space-x-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-full transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span>Cancelar</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="p-6 space-y-6">

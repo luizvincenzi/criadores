@@ -152,6 +152,46 @@ export default function CampaignsPage() {
     return monthKey;
   };
 
+  // Função para formatar data no padrão "Jun 25"
+  const formatMonthYearShort = (monthKey: string) => {
+    // Se for formato YYYYMM (ex: 202507)
+    if (monthKey && monthKey.length === 6 && /^\d{6}$/.test(monthKey)) {
+      const year = monthKey.substring(0, 4);
+      const month = monthKey.substring(4, 6);
+
+      const monthNames = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+
+      const monthIndex = parseInt(month) - 1;
+      const shortYear = year.substring(2, 4);
+
+      if (monthIndex >= 0 && monthIndex < 12) {
+        return `${monthNames[monthIndex]} ${shortYear}`;
+      }
+    }
+
+    // Se for formato "2025-07"
+    if (monthKey && monthKey.includes('-') && monthKey.length === 7) {
+      const [year, month] = monthKey.split('-');
+      const monthNames = [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+      ];
+
+      const monthIndex = parseInt(month) - 1;
+      const shortYear = year.substring(2, 4);
+
+      if (monthIndex >= 0 && monthIndex < 12) {
+        return `${monthNames[monthIndex]} ${shortYear}`;
+      }
+    }
+
+    // Fallback para outros formatos
+    return monthKey;
+  };
+
   // Calcular total de visualizações
   const calculateTotalViews = (campaigns: any[]) => {
     return campaigns.reduce((total, campaign) => {
@@ -513,7 +553,7 @@ export default function CampaignsPage() {
                       <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      {group.monthDisplay || group.mes || 'Mês não informado'}
+                      {formatMonthYearShort(group.month || group.mes || '') || 'Mês não informado'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
