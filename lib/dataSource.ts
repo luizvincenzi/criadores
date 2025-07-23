@@ -1,9 +1,11 @@
-// Configuração da fonte de dados - APENAS SUPABASE
-// Sistema migrado completamente para Supabase
+// Configuração da fonte de dados - SUPABASE OU MOCK
+// Sistema migrado completamente para Supabase, com suporte a modo demo
+
+const dataSourceFromEnv = process.env.NEXT_PUBLIC_DATA_SOURCE || 'supabase';
 
 export const DATA_SOURCE = {
-  current: 'supabase' as const,
-  
+  current: dataSourceFromEnv as 'supabase' | 'mock',
+
   apis: {
     supabase: {
       businesses: '/api/supabase/businesses',
@@ -30,9 +32,14 @@ export function getApiUrl(endpoint: keyof typeof DATA_SOURCE.apis.supabase): str
   return relativeUrl;
 }
 
-// Helper para verificar se está usando Supabase (sempre true agora)
+// Helper para verificar se está usando Supabase
 export function isUsingSupabase(): boolean {
-  return true;
+  return DATA_SOURCE.current === 'supabase';
+}
+
+// Helper para verificar se está usando modo mock
+export function isUsingMock(): boolean {
+  return DATA_SOURCE.current === 'mock';
 }
 
 // Helper para verificar se está usando Google Sheets (sempre false agora)
@@ -40,20 +47,79 @@ export function isUsingSheets(): boolean {
   return false;
 }
 
-// Função para buscar negócios do Supabase
+// Dados mock para demonstração
+const mockBusinesses = [
+  {
+    id: '1',
+    name: 'Loja Fashion Trends',
+    businessName: 'Loja Fashion Trends',
+    categoria: 'Moda',
+    plano: 'Gold',
+    responsavel: 'Ana Silva',
+    whatsapp: '(11) 99999-1111',
+    email: 'ana@fashiontrends.com',
+    business_stage: 'Leads próprios quentes',
+    estimated_value: 25000,
+    priority: 'Alta',
+    journeyStage: 'Reunião Briefing',
+    value: 25000,
+    description: 'Campanha de verão para roupas femininas'
+  },
+  {
+    id: '2',
+    name: 'Restaurante Sabor & Arte',
+    businessName: 'Restaurante Sabor & Arte',
+    categoria: 'Alimentação',
+    plano: 'Silver',
+    responsavel: 'Carlos Santos',
+    whatsapp: '(11) 99999-2222',
+    email: 'carlos@saborarte.com',
+    business_stage: 'Enviando proposta',
+    estimated_value: 15000,
+    priority: 'Média',
+    journeyStage: 'Agendamentos',
+    value: 15000,
+    description: 'Marketing digital para novo cardápio'
+  },
+  {
+    id: '3',
+    name: 'Academia FitLife',
+    businessName: 'Academia FitLife',
+    categoria: 'Fitness',
+    plano: 'Diamond',
+    responsavel: 'Maria Oliveira',
+    whatsapp: '(11) 99999-3333',
+    email: 'maria@fitlife.com',
+    business_stage: 'Follow up',
+    estimated_value: 35000,
+    priority: 'Alta',
+    journeyStage: 'Entrega Final',
+    value: 35000,
+    description: 'Campanha de ano novo fitness'
+  }
+];
+
+// Função para buscar negócios
 export async function fetchBusinesses() {
+  if (isUsingMock()) {
+    console.log('🎭 Usando dados mock para businesses');
+    return mockBusinesses;
+  }
+
   try {
     const response = await fetch(getApiUrl('businesses'));
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Erro ao buscar negócios');
     }
-    
+
     return data.data;
   } catch (error) {
     console.error('❌ Erro ao buscar negócios do Supabase:', error);
-    throw error;
+    // Fallback para dados mock em caso de erro
+    console.log('🔄 Usando dados mock como fallback');
+    return mockBusinesses;
   }
 }
 

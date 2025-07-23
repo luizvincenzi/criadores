@@ -148,6 +148,20 @@ const KANBAN_STAGES = [
     ),
     color: 'bg-green-50 border-green-200',
     description: 'Acompanhamento pós-reunião'
+  },
+  {
+    id: 'Declinado',
+    title: 'Declinado',
+    icon: (
+      <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <path d="M18 6L6 18"/>
+          <path d="M6 6l12 12"/>
+        </svg>
+      </div>
+    ),
+    color: 'bg-red-50 border-red-200',
+    description: 'Negócios rejeitados ou declinados'
   }
 ];
 

@@ -76,7 +76,7 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
   const stages = [
     'Leads próprios frios', 'Leads próprios quentes', 'Leads indicados',
     'Enviando proposta', 'Marcado reunião', 'Reunião realizada', 'Follow up',
-    'Contrato assinado'
+    'Contrato assinado', 'Declinado'
   ];
 
   // Carregar dados quando o modal abrir

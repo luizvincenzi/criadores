@@ -8,6 +8,7 @@ import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import AuthGuard from '@/components/AuthGuard';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [activeSection, setActiveSection] = useState('businesses');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuthStore();
+  const { getAccessibleMenuItems, hasPermission } = usePermissions();
 
   // Determinar seção ativa baseada na URL
   React.useEffect(() => {
@@ -46,10 +48,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [isMobileMenuOpen]);
 
-  const navigationItems = [
+  // Definir todos os itens de navegação possíveis
+  const allNavigationItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
+      resource: 'dashboard' as const,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <rect x="3" y="3" width="7" height="9"/>
@@ -65,6 +69,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       id: 'jornada',
       label: 'Jornada',
+      resource: 'jornada' as const,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -79,6 +84,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       id: 'businesses',
       label: 'Empresas',
+      resource: 'businesses' as const,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M3 21h18"/>
@@ -93,6 +99,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       id: 'deals',
       label: 'Negócios',
+      resource: 'deals' as const,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -105,6 +112,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       id: 'creators',
       label: 'Criadores',
+      resource: 'creators' as const,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -120,6 +128,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     {
       id: 'campaigns',
       label: 'Campanhas',
+      resource: 'campaigns' as const,
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M3 11l18-5v12L3 14v-3z"/>
@@ -131,6 +140,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       color: 'tertiary'
     }
   ];
+
+  // Filtrar itens de navegação baseado nas permissões do usuário
+  const navigationItems = allNavigationItems.filter(item =>
+    hasPermission(item.resource, 'read')
+  );
 
   return (
     <AuthGuard>

@@ -17,6 +17,7 @@ import { fetchCreators, isUsingSupabase } from '@/lib/dataSource';
 import CreatorModalNew from '@/components/CreatorModalNew';
 import AddCreatorModal from '@/components/AddCreatorModal';
 import Button from '@/components/ui/Button';
+import { PageGuard, ActionGuard } from '@/components/PermissionGuard';
 
 export default function CreatorsPage() {
   const [creators, setCreators] = useState<CreatorData[]>([]);
@@ -165,39 +166,42 @@ export default function CreatorsPage() {
   }
 
   return (
-    <div className="space-y-6" style={{ backgroundColor: '#f5f5f5', minHeight: 'calc(100vh - 8rem)' }}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-xl font-bold text-gray-900">Criadores</h1>
+    <PageGuard resource="creators">
+      <div className="space-y-6" style={{ backgroundColor: '#f5f5f5', minHeight: 'calc(100vh - 8rem)' }}>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-xl font-bold text-gray-900">Criadores</h1>
+            </div>
+            <p className="text-sm text-gray-600">
+              {filteredCreators.length} criadores encontrados
+            </p>
           </div>
-          <p className="text-sm text-gray-600">
-            {filteredCreators.length} criadores encontrados
-          </p>
+          <div className="flex space-x-2">
+            {/* Update button hidden in production */}
+            <Button
+              variant="outlined"
+              size="sm"
+              icon="🔄"
+              onClick={loadCreators}
+              className="hidden"
+            >
+              <span className="hidden sm:inline">Atualizar</span>
+              <span className="sm:hidden">Sync</span>
+            </Button>
+            <ActionGuard resource="creators" action="write">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                <span className="hidden sm:inline">Novo Criador</span>
+                <span className="sm:hidden">Novo</span>
+              </Button>
+            </ActionGuard>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          {/* Update button hidden in production */}
-          <Button
-            variant="outlined"
-            size="sm"
-            icon="🔄"
-            onClick={loadCreators}
-            className="hidden"
-          >
-            <span className="hidden sm:inline">Atualizar</span>
-            <span className="sm:hidden">Sync</span>
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            <span className="hidden sm:inline">Novo Criador</span>
-            <span className="sm:hidden">Novo</span>
-          </Button>
-        </div>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -438,6 +442,7 @@ export default function CreatorsPage() {
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={handleCreatorAdded}
       />
-    </div>
+      </div>
+    </PageGuard>
   );
 }

@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { fetchBusinesses, fetchCreators, fetchCampaigns, fetchCampaignJourney, isUsingSupabase } from '@/lib/dataSource';
 import Button from '@/components/ui/Button';
 import ReportsModal from '@/components/ReportsModal';
+import { PageGuard, ActionGuard } from '@/components/PermissionGuard';
 
 interface DashboardStats {
   totalBusinesses: number;
@@ -298,25 +299,28 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6" style={{ backgroundColor: '#f5f5f5', minHeight: 'calc(100vh - 8rem)' }}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 mb-1">Dashboard</h1>
-          <p className="text-sm text-gray-600">
-            Visão geral dos seus negócios, criadores e campanhas
-          </p>
-        </div>
+    <PageGuard resource="dashboard">
+      <div className="space-y-6" style={{ backgroundColor: '#f5f5f5', minHeight: 'calc(100vh - 8rem)' }}>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Dashboard</h1>
+            <p className="text-sm text-gray-600">
+              Visão geral dos seus negócios, criadores e campanhas
+            </p>
+          </div>
 
-        {/* Botão Relatórios */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setIsReportsModalOpen(true)}
-            className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-green-800 hover:bg-green-900 text-white px-4 py-2 text-sm rounded-full"
-          >
-            <span>Relatórios</span>
-          </button>
-        </div>
+          {/* Botão Relatórios */}
+          <div className="flex items-center space-x-3">
+            <ActionGuard resource="reports" action="read">
+              <button
+                onClick={() => setIsReportsModalOpen(true)}
+                className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-green-800 hover:bg-green-900 text-white px-4 py-2 text-sm rounded-full"
+              >
+                <span>Relatórios</span>
+              </button>
+            </ActionGuard>
+          </div>
         {/* Debug buttons hidden in production */}
         <div className="hidden"
           style={{ display: 'none' }}>
@@ -563,6 +567,7 @@ export default function DashboardPage() {
         isOpen={isReportsModalOpen}
         onClose={() => setIsReportsModalOpen(false)}
       />
-    </div>
+      </div>
+    </PageGuard>
   );
 }

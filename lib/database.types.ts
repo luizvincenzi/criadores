@@ -738,7 +738,7 @@ export interface Database {
     Enums: {
       user_role: 'admin' | 'manager' | 'user' | 'viewer'
       business_status: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
-      business_stage: 'Leads próprios frios' | 'Leads próprios quentes' | 'Leads indicados' | 'Enviando proposta' | 'Marcado reunião' | 'Reunião realizada' | 'Follow up' | 'Contrato assinado' | 'Não teve interesse' | 'Não responde'
+      business_stage: 'Leads próprios frios' | 'Leads próprios quentes' | 'Leads indicados' | 'Enviando proposta' | 'Marcado reunião' | 'Reunião realizada' | 'Follow up' | 'Contrato assinado' | 'Não teve interesse' | 'Não responde' | 'Declinado'
       business_priority: 'Baixa' | 'Média' | 'Alta'
       creator_status: 'Ativo' | 'Não parceiro' | 'Precisa engajar' | 'Inativo'
       campaign_status: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'

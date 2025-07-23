@@ -79,23 +79,28 @@ export async function POST(request: NextRequest) {
 }
 
 async function validatePassword(email: string, password: string, user: any): Promise<boolean> {
-  // Credenciais específicas dos usuários admin
-  const adminCredentials = [
+  // Credenciais específicas dos usuários
+  const userCredentials = [
+    // Usuários admin originais
     { email: 'luizvincenzi@gmail.com', password: 'admin123' },
     { email: 'connectcityops@gmail.com', password: 'admin2345' },
     { email: 'pgabrieldavila@gmail.com', password: 'admin2345' },
-    { email: 'marloncpascoal@gmail.com', password: 'admin2345' }
+    { email: 'marloncpascoal@gmail.com', password: 'admin2345' },
+    // Novos usuários do sistema
+    { email: 'comercial@criadores.app', password: 'Criadores2024!' },
+    { email: 'criadores.ops@gmail.com', password: 'CriadoresOps2024!' },
+    { email: 'test.ops@criadores.app', password: 'TestOps2024!' }
   ];
 
-  // Verificar se é um usuário admin com credenciais específicas
-  const adminUser = adminCredentials.find(admin => admin.email === email.toLowerCase());
-  if (adminUser) {
-    const isValidPassword = password === adminUser.password;
-    console.log(`${isValidPassword ? '✅' : '❌'} Validação de senha para admin: ${email}`);
+  // Verificar se é um usuário conhecido com credenciais específicas
+  const knownUser = userCredentials.find(cred => cred.email === email.toLowerCase());
+  if (knownUser) {
+    const isValidPassword = password === knownUser.password;
+    console.log(`${isValidPassword ? '✅' : '❌'} Validação de senha para usuário: ${email}`);
     return isValidPassword;
   }
 
-  // Se não é admin conhecido, rejeitar
+  // Se não é usuário conhecido, rejeitar
   console.log(`❌ Usuário não autorizado: ${email}`);
   return false;
 }

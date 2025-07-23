@@ -5,8 +5,14 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 // Configurações de rate limiting
 const RATE_LIMIT_CONFIG = {
-  login: { maxRequests: 5, windowMs: 15 * 60 * 1000 }, // 5 tentativas por 15 minutos
-  api: { maxRequests: 100, windowMs: 60 * 1000 }, // 100 requests por minuto
+  login: {
+    maxRequests: process.env.NODE_ENV === 'development' ? 50 : 5,
+    windowMs: process.env.NODE_ENV === 'development' ? 60 * 1000 : 15 * 60 * 1000
+  }, // Dev: 50/min, Prod: 5/15min
+  api: {
+    maxRequests: process.env.NODE_ENV === 'development' ? 1000 : 100,
+    windowMs: 60 * 1000
+  }, // Dev: 1000/min, Prod: 100/min
 };
 
 function getRateLimitKey(ip: string, path: string): string {
@@ -14,6 +20,17 @@ function getRateLimitKey(ip: string, path: string): string {
 }
 
 function checkRateLimit(key: string, config: { maxRequests: number; windowMs: number }): boolean {
+  // Em desenvolvimento, ser mais permissivo
+  if (process.env.NODE_ENV === 'development') {
+    // Limpar registros antigos periodicamente
+    const now = Date.now();
+    for (const [k, record] of rateLimitMap.entries()) {
+      if (now > record.resetTime) {
+        rateLimitMap.delete(k);
+      }
+    }
+  }
+
   const now = Date.now();
   const record = rateLimitMap.get(key);
 

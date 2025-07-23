@@ -12,6 +12,7 @@ import PlanBadge from '@/components/PlanBadge';
 import PriorityBadge from '@/components/PriorityBadge';
 import { Card, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { PageGuard, ActionGuard } from '@/components/PermissionGuard';
 
 
 
@@ -244,22 +245,25 @@ export default function BusinessesPage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-on-surface mb-2">Empresas</h1>
-          <p className="text-on-surface-variant">Gerencie suas empresas clientes e relacionamentos</p>
+    <PageGuard resource="businesses">
+      <div className="space-y-8">
+        {/* Header Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-on-surface mb-2">Empresas</h1>
+            <p className="text-on-surface-variant">Gerencie suas empresas clientes e relacionamentos</p>
+          </div>
+          <div className="flex space-x-3">
+            <ActionGuard resource="businesses" action="write">
+              <Button
+                variant="primary"
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                Nova Empresa
+              </Button>
+            </ActionGuard>
+          </div>
         </div>
-        <div className="flex space-x-3">
-          <Button
-            variant="primary"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            Nova Empresa
-          </Button>
-        </div>
-      </div>
 
       {/* Filtros */}
       <div className="flex items-center space-x-4 bg-white p-4 rounded-2xl shadow-sm">
@@ -515,6 +519,7 @@ export default function BusinessesPage() {
         onClose={() => setIsAddNoteOpen(false)}
         onNoteAdded={handleNoteAdded}
       />
-    </div>
+      </div>
+    </PageGuard>
   );
 }
