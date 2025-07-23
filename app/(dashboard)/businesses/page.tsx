@@ -514,7 +514,7 @@ export default function BusinessesPage() {
       {/* Add Note Modal */}
       <AddNoteModal
         businessId={timelineBusinessId}
-        userId="current-user-id" // TODO: Pegar do contexto de autenticação
+        userId="00000000-0000-0000-0000-000000000001" // User padrão do sistema
         isOpen={isAddNoteOpen}
         onClose={() => setIsAddNoteOpen(false)}
         onNoteAdded={handleNoteAdded}

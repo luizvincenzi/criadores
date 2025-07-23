@@ -15,15 +15,27 @@ export default function AddNoteModal({ businessId, userId, isOpen, onClose, onNo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!content.trim()) {
       alert('Por favor, digite o conteúdo da nota');
       return;
     }
 
+    if (!businessId) {
+      alert('ID do negócio não encontrado');
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     try {
+      console.log('📝 Enviando nova nota:', {
+        business_id: businessId,
+        user_id: userId || '00000000-0000-0000-0000-000000000001',
+        content: content.trim(),
+        note_type: noteType
+      });
+
       const response = await fetch('/api/crm/notes', {
         method: 'POST',
         headers: {
@@ -45,6 +57,7 @@ export default function AddNoteModal({ businessId, userId, isOpen, onClose, onNo
         setNoteType('general');
         onNoteAdded();
         onClose();
+        alert('Nota adicionada com sucesso!');
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
         console.error('❌ Erro ao adicionar nota:', errorData);
@@ -52,7 +65,7 @@ export default function AddNoteModal({ businessId, userId, isOpen, onClose, onNo
       }
     } catch (error) {
       console.error('❌ Erro ao adicionar nota:', error);
-      alert('Erro ao adicionar nota');
+      alert('Erro de conexão ao adicionar nota');
     } finally {
       setIsSubmitting(false);
     }

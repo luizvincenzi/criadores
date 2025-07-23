@@ -33,7 +33,11 @@ interface Note {
   id: string;
   content: string;
   created_at: string;
+  updated_at: string;
   user_name: string;
+  note_type: string;
+  business_id: string;
+  user_id: string;
 }
 
 interface DealDetailsModalProps {
@@ -51,6 +55,8 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
   const [notes, setNotes] = useState<Note[]>([]);
   const [isNotesLoading, setIsNotesLoading] = useState(false);
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
 
   // Estados para edição
   const [isEditing, setIsEditing] = useState(false);
@@ -119,16 +125,20 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
   };
 
   const loadNotes = async () => {
-    if (!deal?.id) return;
+    if (!deal?.business_id) return;
     setIsNotesLoading(true);
     try {
-      const response = await fetch(`/api/notes?dealId=${deal.id}`);
+      console.log('🔍 Carregando notas para business_id:', deal.business_id);
+      const response = await fetch(`/api/notes?business_id=${deal.business_id}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Notas carregadas:', data);
         setNotes(data.notes || []);
+      } else {
+        console.error('❌ Erro ao carregar notas:', response.status);
       }
     } catch (error) {
-      console.error('Erro ao carregar notas:', error);
+      console.error('❌ Erro ao carregar notas:', error);
     } finally {
       setIsNotesLoading(false);
     }
@@ -210,6 +220,50 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
 
   const handleNotesReload = () => {
     loadNotes();
+  };
+
+  const startEditingNote = (note: Note) => {
+    setEditingNoteId(note.id);
+    setEditingContent(note.content);
+  };
+
+  const cancelEditingNote = () => {
+    setEditingNoteId(null);
+    setEditingContent('');
+  };
+
+  const saveEditedNote = async (noteId: string) => {
+    if (!editingContent.trim()) {
+      alert('O conteúdo da nota não pode estar vazio');
+      return;
+    }
+
+    try {
+      console.log('✏️ Salvando edição da nota:', { noteId, content: editingContent });
+
+      const response = await fetch('/api/notes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: noteId,
+          content: editingContent.trim()
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ Nota editada com sucesso');
+        setEditingNoteId(null);
+        setEditingContent('');
+        loadNotes(); // Recarregar notas
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+        console.error('❌ Erro ao editar nota:', errorData);
+        alert('Erro ao editar nota: ' + (errorData.error || 'Erro desconhecido'));
+      }
+    } catch (error) {
+      console.error('❌ Erro ao editar nota:', error);
+      alert('Erro de conexão ao editar nota');
+    }
   };
 
   if (!isOpen || !deal) return null;
@@ -567,15 +621,89 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {notes.map((note) => (
-                    <div key={note.id} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="text-sm font-medium text-gray-900">{note.user_name}</span>
-                        <span className="text-xs text-gray-500">{formatDate(note.created_at)}</span>
+                  {notes.map((note) => {
+                    const getNoteIcon = (type: string) => {
+                      switch (type) {
+                        case 'internal': return '🔒';
+                        case 'client_facing': return '👥';
+                        case 'stage_change': return '🔄';
+                        default: return '📋';
+                      }
+                    };
+
+                    const isEditing = editingNoteId === note.id;
+                    const wasEdited = note.updated_at && note.updated_at !== note.created_at;
+
+                    return (
+                      <div key={note.id} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg">{getNoteIcon(note.note_type)}</span>
+                            <span className="text-sm font-medium text-gray-900">{note.user_name}</span>
+                            {wasEdited && (
+                              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                ✏️ Editada
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="text-xs text-gray-500 text-right">
+                              <div>Criada: {formatDate(note.created_at)}</div>
+                              {wasEdited && (
+                                <div>Editada: {formatDate(note.updated_at)}</div>
+                              )}
+                            </div>
+                            {!isEditing && (
+                              <button
+                                onClick={() => startEditingNote(note)}
+                                className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                                title="Editar nota"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {isEditing ? (
+                          <div className="space-y-3">
+                            <textarea
+                              value={editingContent}
+                              onChange={(e) => setEditingContent(e.target.value)}
+                              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={3}
+                              placeholder="Digite o conteúdo da nota..."
+                              maxLength={1000}
+                            />
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-500">
+                                {editingContent.length}/1000 caracteres
+                              </span>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={cancelEditingNote}
+                                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                                >
+                                  Cancelar
+                                </button>
+                                <button
+                                  onClick={() => saveEditedNote(note.id)}
+                                  disabled={!editingContent.trim()}
+                                  className="px-4 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  Salvar
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-700 leading-relaxed">{note.content}</p>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-700">{note.content}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -587,6 +715,7 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
         isOpen={isAddNoteModalOpen}
         onClose={() => setIsAddNoteModalOpen(false)}
         businessId={deal?.business_id || ''}
+        userId="00000000-0000-0000-0000-000000000001"
         onNoteAdded={handleNotesReload}
       />
     </div>
