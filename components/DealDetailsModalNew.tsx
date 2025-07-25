@@ -570,12 +570,20 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
                         <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                         <span className="text-gray-600">Movido para "{deal.stage}"</span>
                       </div>
-                      {notes.length > 0 && (
-                        <div className="flex items-center space-x-3 text-sm">
+                      {notes.length > 0 && notes.map((note, index) => (
+                        <div key={note.id} className="flex items-center space-x-3 text-sm">
                           <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                          <span className="text-gray-600">{notes.length} nota{notes.length > 1 ? 's' : ''} adicionada{notes.length > 1 ? 's' : ''}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">Nota adicionada</span>
+                            <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
+                              {new Date(note.created_at).toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: 'short'
+                              })}
+                            </div>
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </div>
                   </div>
                 </div>

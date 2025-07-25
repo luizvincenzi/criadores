@@ -286,13 +286,21 @@ function SortableDealCard({
         )}
       </div>
 
-      {/* Proprietário */}
-      <div className="flex items-center text-xs text-gray-500">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-1">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-        <span className="truncate">{deal.owner_name}</span>
+      {/* Proprietário e Data */}
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-1">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span className="truncate">{deal.owner_name}</span>
+        </div>
+        <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded-md text-xs font-medium ml-2">
+          {new Date(deal.created_at).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'short'
+          })}
+        </div>
       </div>
     </div>
   );
