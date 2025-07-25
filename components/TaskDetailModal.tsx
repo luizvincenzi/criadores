@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useCalendarSync } from '@/hooks/useCalendarSync';
+import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch';
 
 interface Task {
   id: string;
@@ -46,9 +48,19 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [calendarSyncStatus, setCalendarSyncStatus] = useState<any>(null);
+  const {
+    loading: calendarLoading,
+    error: calendarError,
+    checkSyncStatus,
+    toggleSync,
+    clearError
+  } = useCalendarSync();
+  const { authenticatedFetch } = useAuthenticatedFetch();
   const [formData, setFormData] = useState({
     title: '',
-    priority: 'medium' as Task['priority'],
+    category: 'outros',
+    priority: 'media' as Task['priority'],
     due_date: '',
     due_time: '',
     assigned_to: '',
@@ -59,9 +71,23 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
   useEffect(() => {
     if (task && isOpen) {
       const dueDate = task.due_date ? new Date(task.due_date) : null;
+      // Determinar categoria baseada no business_name
+      let category = 'outros';
+      if (task.business_name?.toLowerCase().includes('campanha')) {
+        category = 'campanhas';
+      } else if (task.business_name?.toLowerCase().includes('negócio') || task.business_name?.toLowerCase().includes('negocio')) {
+        category = 'negocios';
+      } else if (task.business_name?.toLowerCase().includes('criador')) {
+        category = 'criadores';
+      }
+
       setFormData({
         title: task.title,
-        priority: task.priority,
+        category: category,
+        priority: task.priority === 'low' ? 'baixa' :
+                 task.priority === 'medium' ? 'media' :
+                 task.priority === 'high' ? 'alta' :
+                 task.priority === 'urgent' ? 'alta' : 'media', // Converter urgent para alta
         due_date: dueDate ? dueDate.toISOString().split('T')[0] : '',
         due_time: dueDate ? dueDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
         assigned_to: task.assigned_to || '',
@@ -70,6 +96,43 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
       loadUsers();
     }
   }, [task, isOpen]);
+
+  // Verificar status de sincronização com Google Calendar
+  useEffect(() => {
+    if (task && isOpen) {
+      checkCalendarSyncStatus();
+    }
+  }, [task, isOpen]);
+
+  const checkCalendarSyncStatus = async () => {
+    if (!task) return;
+
+    try {
+      const status = await checkSyncStatus(task.id);
+      setCalendarSyncStatus(status);
+    } catch (error) {
+      console.error('Erro ao verificar status de sincronização:', error);
+    }
+  };
+
+  const handleCalendarSync = async () => {
+    if (!task) return;
+
+    try {
+      clearError();
+      const result = await toggleSync(task.id);
+
+      if (result) {
+        // Atualizar status de sincronização
+        await checkCalendarSyncStatus();
+
+        // Mostrar mensagem de sucesso (você pode implementar um toast aqui)
+        console.log('✅', result.message);
+      }
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -103,10 +166,16 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
         due_date: combinedDateTime,
         assigned_to: formData.assigned_to || null,
         estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
-        actual_hours: formData.actual_hours ? parseInt(formData.actual_hours) : null
+        actual_hours: formData.actual_hours ? parseInt(formData.actual_hours) : null,
+        business_name: formData.category === 'campanhas' ? 'Campanhas' :
+                      formData.category === 'negocios' ? 'Negócios' :
+                      formData.category === 'criadores' ? 'Criadores' : 'Outros',
+        journey_stage: formData.category === 'campanhas' ? 'Planejamento de campanha' :
+                      formData.category === 'negocios' ? 'Desenvolvimento de negócio' :
+                      formData.category === 'criadores' ? 'Gestão de criadores' : 'Tarefa geral'
       };
 
-      const response = await fetch('/api/jornada-tasks', {
+      const response = await authenticatedFetch('/api/jornada-tasks', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +208,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/jornada-tasks?id=${task.id}`, {
+      const response = await authenticatedFetch(`/api/jornada-tasks?id=${task.id}`, {
         method: 'DELETE'
       });
 
@@ -173,10 +242,13 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
 
   const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-50 border-red-200';
-      case 'high': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'low': return 'text-green-600 bg-green-50 border-green-200';
+      case 'urgent': return 'text-red-600 bg-red-50 border-red-200'; // Manter para compatibilidade
+      case 'high': return 'text-red-600 bg-red-50 border-red-200'; // Manter para compatibilidade
+      case 'alta': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'; // Manter para compatibilidade
+      case 'media': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'low': return 'text-green-600 bg-green-50 border-green-200'; // Manter para compatibilidade
+      case 'baixa': return 'text-green-600 bg-green-50 border-green-200';
       default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
@@ -214,16 +286,60 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
             </h2>
             <div className="flex items-center space-x-2">
               {!editMode && (
-                <button
-                  onClick={() => setEditMode(true)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Editar"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m18 2 3 3-11 11-4 1 1-4 11-11z" />
-                  </svg>
-                </button>
+                <>
+                  <button
+                    onClick={() => setEditMode(true)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Editar"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m18 2 3 3-11 11-4 1 1-4 11-11z" />
+                    </svg>
+                  </button>
+
+                  {/* Botão Agendar Google Calendar */}
+                  <button
+                    onClick={handleCalendarSync}
+                    disabled={calendarLoading || !calendarSyncStatus?.canSync}
+                    className={`transition-colors ${
+                      calendarSyncStatus?.isSynced
+                        ? 'text-green-600 hover:text-green-700'
+                        : calendarSyncStatus?.canSync
+                          ? 'text-blue-500 hover:text-blue-600'
+                          : 'text-gray-300 cursor-not-allowed'
+                    }`}
+                    title={
+                      calendarLoading ? 'Sincronizando...' :
+                      !calendarSyncStatus?.canSync ? 'Tarefa precisa ter data de vencimento' :
+                      calendarSyncStatus?.isSynced ? 'Remover do Google Calendar' : 'Agendar no Google Calendar'
+                    }
+                  >
+                    {calendarLoading ? (
+                      <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 2v4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 2v4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18" />
+                        {calendarSyncStatus?.isSynced ? (
+                          <>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 19h6" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 16v6" />
+                          </>
+                        ) : (
+                          <>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 19h6" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 16v6" />
+                          </>
+                        )}
+                      </svg>
+                    )}
+                  </button>
+                </>
               )}
               <button
                 onClick={handleDelete}
@@ -255,16 +371,79 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                 {/* Tarefa */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    O que você precisa fazer?
+                    Editar Tarefa
                   </label>
                   <textarea
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                    placeholder="Descreva sua tarefa..."
-                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
+                    placeholder="O que precisa ser feito?"
+                    rows={4}
                     required
                   />
+                </div>
+
+                {/* Categoria */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      {
+                        value: 'campanhas',
+                        label: 'Campanhas',
+                        icon: (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                          </svg>
+                        ),
+                        color: 'bg-purple-100 text-purple-800 border-purple-200'
+                      },
+                      {
+                        value: 'negocios',
+                        label: 'Negócios',
+                        icon: (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                        ),
+                        color: 'bg-blue-100 text-blue-800 border-blue-200'
+                      },
+                      {
+                        value: 'criadores',
+                        label: 'Criadores',
+                        icon: (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        ),
+                        color: 'bg-green-100 text-green-800 border-green-200'
+                      },
+                      {
+                        value: 'outros',
+                        label: 'Outros',
+                        icon: (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                        ),
+                        color: 'bg-gray-100 text-gray-800 border-gray-200'
+                      }
+                    ].map((category) => (
+                      <button
+                        key={category.value}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, category: category.value }))}
+                        className={`px-3 py-2 text-xs font-medium border rounded-lg transition-colors flex flex-col items-center space-y-1 ${
+                          formData.category === category.value
+                            ? category.color
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        {category.icon}
+                        <span>{category.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Atribuído a */}
@@ -293,9 +472,9 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { value: 'low', label: 'Baixa', color: 'bg-gray-100 text-gray-700 border-gray-200' },
-                      { value: 'medium', label: 'Média', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-                      { value: 'high', label: 'Alta', color: 'bg-red-100 text-red-700 border-red-200' }
+                      { value: 'baixa', label: 'Baixa', color: 'bg-green-100 text-green-800 border-green-200' },
+                      { value: 'media', label: 'Média', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+                      { value: 'alta', label: 'Alta', color: 'bg-red-100 text-red-800 border-red-200' }
                     ].map((priority) => (
                       <button
                         key={priority.value}
@@ -380,16 +559,71 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{task.title}</h3>
                   <div className="flex items-center space-x-3">
+                    {/* Categoria */}
+                    <span className={`px-3 py-1 text-sm font-medium border rounded-full flex items-center space-x-1 ${
+                      task.business_name?.toLowerCase().includes('campanha') ? 'bg-purple-100 text-purple-800 border-purple-200' :
+                      task.business_name?.toLowerCase().includes('negócio') || task.business_name?.toLowerCase().includes('negocio') ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                      task.business_name?.toLowerCase().includes('criador') ? 'bg-green-100 text-green-800 border-green-200' :
+                      'bg-gray-100 text-gray-800 border-gray-200'
+                    }`}>
+                      <span>
+                        {task.business_name?.toLowerCase().includes('campanha') ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                          </svg>
+                        ) : task.business_name?.toLowerCase().includes('negócio') || task.business_name?.toLowerCase().includes('negocio') ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                        ) : task.business_name?.toLowerCase().includes('criador') ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                        )}
+                      </span>
+                      <span>
+                        {task.business_name?.toLowerCase().includes('campanha') ? 'Campanhas' :
+                         task.business_name?.toLowerCase().includes('negócio') || task.business_name?.toLowerCase().includes('negocio') ? 'Negócios' :
+                         task.business_name?.toLowerCase().includes('criador') ? 'Criadores' : 'Outros'}
+                      </span>
+                    </span>
                     <span className={`px-3 py-1 text-sm font-medium border rounded-full ${getStatusColor(task.status)}`}>
                       {task.status === 'todo' ? 'A fazer' :
                        task.status === 'in_progress' ? 'Em andamento' :
                        task.status === 'review' ? 'Em revisão' : 'Concluído'}
                     </span>
                     <span className={`px-3 py-1 text-sm font-medium border rounded-full ${getPriorityColor(task.priority)}`}>
-                      {task.priority === 'low' ? 'Baixa' :
-                       task.priority === 'medium' ? 'Média' :
-                       task.priority === 'high' ? 'Alta' : 'Urgente'}
+                      {task.priority === 'low' || task.priority === 'baixa' ? 'Baixa' :
+                       task.priority === 'medium' || task.priority === 'media' ? 'Média' :
+                       task.priority === 'high' || task.priority === 'alta' || task.priority === 'urgent' ? 'Alta' : 'Média'}
                     </span>
+
+                    {/* Indicador de sincronização com Google Calendar */}
+                    {calendarSyncStatus?.isSynced && (
+                      <span className="px-3 py-1 text-sm font-medium border border-green-200 bg-green-50 text-green-700 rounded-full flex items-center space-x-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 2v4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 2v4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                        </svg>
+                        <span>Agendado</span>
+                      </span>
+                    )}
+
+                    {calendarSyncStatus?.syncError && (
+                      <span className="px-3 py-1 text-sm font-medium border border-red-200 bg-red-50 text-red-700 rounded-full flex items-center space-x-1" title={calendarSyncStatus.syncError}>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Erro sync</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 

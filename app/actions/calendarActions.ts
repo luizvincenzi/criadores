@@ -59,7 +59,7 @@ export async function createCalendarEvent(event: CalendarEvent) {
         dateTime: event.endDateTime,
         timeZone: 'America/Sao_Paulo',
       },
-      attendees: event.attendees?.map(email => ({ email })),
+      // attendees: event.attendees?.map(email => ({ email })), // Removido: Service accounts não podem convidar participantes
       location: event.location,
       reminders: {
         useDefault: false,
@@ -201,6 +201,157 @@ Descrição: ${businessData.description}
   } catch (error) {
     console.error('Erro ao criar agendamento automático:', error);
     throw error;
+  }
+}
+
+// Interface para tarefa
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  due_date?: string;
+  assigned_user?: {
+    full_name: string;
+    email: string;
+  };
+  business_name?: string;
+  campaign_month?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+}
+
+// Função para criar evento no calendário a partir de uma tarefa
+export async function createTaskCalendarEvent(task: Task) {
+  try {
+    if (!task.due_date) {
+      throw new Error('Tarefa deve ter uma data de vencimento para ser agendada');
+    }
+
+    // Garantir que a data seja interpretada corretamente no timezone de São Paulo
+    // Formato esperado: "2025-07-25T16:23:00"
+    let startDate: Date;
+    let endDate: Date;
+
+    if (task.due_date.includes('T')) {
+      // Tratar a string como horário local de São Paulo
+      // Remover qualquer timezone existente e tratar como local
+      const dateStr = task.due_date.replace(/[+-]\d{2}:\d{2}$|Z$/, '');
+
+      // Criar data assumindo que é horário de São Paulo
+      const [datePart, timePart] = dateStr.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hour, minute, second = 0] = timePart.split(':').map(Number);
+
+      // Criar data no timezone de São Paulo
+      startDate = new Date(year, month - 1, day, hour, minute, second);
+      endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // 1 hora de duração
+
+      console.log(`🕐 Data original: ${task.due_date}`);
+      console.log(`🕐 Horário criado: ${hour}:${minute.toString().padStart(2, '0')}`);
+      console.log(`🕐 Data local: ${startDate.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`);
+    } else {
+      // Fallback para formato de data simples
+      startDate = new Date(task.due_date);
+      endDate = new Date(startDate.getTime() + (60 * 60 * 1000));
+    }
+
+    // Determinar cor baseada na prioridade
+    const colorId = task.priority === 'urgent' ? '11' : // Vermelho
+                   task.priority === 'high' ? '6' :    // Laranja
+                   task.priority === 'medium' ? '5' :  // Amarelo
+                   '2'; // Verde para baixa
+
+    const event: CalendarEvent = {
+      summary: `📋 ${task.title}`,
+      description: `
+🎯 TAREFA: ${task.title}
+
+${task.description ? `📝 Descrição: ${task.description}\n` : ''}
+${task.business_name ? `🏢 Projeto: ${task.business_name}${task.campaign_month ? ` - ${task.campaign_month}` : ''}\n` : ''}
+${task.assigned_user ? `👤 Responsável: ${task.assigned_user.full_name}\n` : ''}
+🔥 Prioridade: ${task.priority === 'urgent' ? 'Urgente' :
+                task.priority === 'high' ? 'Alta' :
+                task.priority === 'medium' ? 'Média' : 'Baixa'}
+
+🔗 Ver tarefa: ${process.env.NEXT_PUBLIC_APP_URL || 'https://crm.criadores.com'}/tasks/${task.id}
+      `.trim(),
+      startDateTime: startDate.toISOString(),
+      endDateTime: endDate.toISOString()
+      // attendees: task.assigned_user ? [task.assigned_user.email] : [] // Removido: Service accounts não podem convidar participantes
+    };
+
+    const result = await createCalendarEvent(event);
+
+    console.log(`📅 Evento criado para tarefa "${task.title}":`, result.eventId);
+
+    return {
+      success: true,
+      eventId: result.eventId,
+      message: 'Tarefa agendada no Google Calendar com sucesso!'
+    };
+  } catch (error) {
+    console.error('❌ Erro ao agendar tarefa no calendário:', error);
+    throw new Error('Falha ao agendar tarefa no calendário');
+  }
+}
+
+// Função para atualizar evento de tarefa no calendário
+export async function updateTaskCalendarEvent(eventId: string, task: Task) {
+  try {
+    if (!task.due_date) {
+      throw new Error('Tarefa deve ter uma data de vencimento para ser atualizada');
+    }
+
+    const dueDate = new Date(task.due_date);
+    const startDate = new Date(dueDate);
+    const endDate = new Date(dueDate.getTime() + (60 * 60 * 1000));
+
+    const event: Partial<CalendarEvent> = {
+      summary: `📋 ${task.title}`,
+      description: `
+🎯 TAREFA: ${task.title}
+
+${task.description ? `📝 Descrição: ${task.description}\n` : ''}
+${task.business_name ? `🏢 Projeto: ${task.business_name}${task.campaign_month ? ` - ${task.campaign_month}` : ''}\n` : ''}
+${task.assigned_user ? `👤 Responsável: ${task.assigned_user.full_name}\n` : ''}
+🔥 Prioridade: ${task.priority === 'urgent' ? 'Urgente' :
+                task.priority === 'high' ? 'Alta' :
+                task.priority === 'medium' ? 'Média' : 'Baixa'}
+
+🔗 Ver tarefa: ${process.env.NEXT_PUBLIC_APP_URL || 'https://crm.criadores.com'}/tasks/${task.id}
+      `.trim(),
+      startDateTime: startDate.toISOString(),
+      endDateTime: endDate.toISOString(),
+      attendees: task.assigned_user ? [task.assigned_user.email] : []
+    };
+
+    const result = await updateCalendarEvent(eventId, event);
+
+    console.log(`📅 Evento atualizado para tarefa "${task.title}"`);
+
+    return {
+      success: true,
+      message: 'Agendamento da tarefa atualizado no Google Calendar!'
+    };
+  } catch (error) {
+    console.error('❌ Erro ao atualizar agendamento da tarefa:', error);
+    throw new Error('Falha ao atualizar agendamento da tarefa');
+  }
+}
+
+// Função para remover evento de tarefa do calendário
+export async function deleteTaskCalendarEvent(eventId: string) {
+  try {
+    const result = await deleteCalendarEvent(eventId);
+
+    console.log(`📅 Evento de tarefa removido do calendário`);
+
+    return {
+      success: true,
+      message: 'Agendamento removido do Google Calendar!'
+    };
+  } catch (error) {
+    console.error('❌ Erro ao remover agendamento da tarefa:', error);
+    throw new Error('Falha ao remover agendamento da tarefa');
   }
 }
 
