@@ -27,7 +27,7 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
   const [formData, setFormData] = useState({
     name: '',
     category: 'outros', // Nova categoria
-    priority: 'media', // Simplificado
+    priority: 'medium', // Usar valor válido do enum
     dueDate: new Date().toISOString().split('T')[0],
     dueTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false }),
     assignedTo: user?.id || '',
@@ -84,9 +84,7 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
                       formData.category === 'negocios' ? 'Negócios' :
                       formData.category === 'criadores' ? 'Criadores' : 'Outros',
         campaign_month: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
-        journey_stage: formData.category === 'campanhas' ? 'Planejamento de campanha' :
-                      formData.category === 'negocios' ? 'Desenvolvimento de negócio' :
-                      formData.category === 'criadores' ? 'Gestão de criadores' : 'Tarefa geral',
+        journey_stage: 'Reunião de briefing', // Usar sempre um valor válido do enum
         business_id: null,
         campaign_id: null,
         is_auto_generated: false,
@@ -138,7 +136,7 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
       setFormData({
         name: '',
         category: 'outros',
-        priority: 'media',
+        priority: 'medium',
         dueDate: new Date().toISOString().split('T')[0],
         dueTime: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false }),
         assignedTo: user?.id || '',
@@ -253,9 +251,9 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
               <label className="block text-sm font-medium text-gray-700 mb-2">Prioridade</label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: 'baixa', label: 'Baixa', color: 'bg-green-100 text-green-800 border-green-200' },
-                  { value: 'media', label: 'Média', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-                  { value: 'alta', label: 'Alta', color: 'bg-red-100 text-red-800 border-red-200' }
+                  { value: 'low', label: 'Baixa', color: 'bg-green-100 text-green-800 border-green-200' },
+                  { value: 'medium', label: 'Média', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+                  { value: 'high', label: 'Alta', color: 'bg-red-100 text-red-800 border-red-200' }
                 ].map((priority) => (
                   <button
                     key={priority.value}

@@ -60,7 +60,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
   const [formData, setFormData] = useState({
     title: '',
     category: 'outros',
-    priority: 'media' as Task['priority'],
+    priority: 'medium' as Task['priority'],
     due_date: '',
     due_time: '',
     assigned_to: '',
@@ -84,10 +84,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
       setFormData({
         title: task.title,
         category: category,
-        priority: task.priority === 'low' ? 'baixa' :
-                 task.priority === 'medium' ? 'media' :
-                 task.priority === 'high' ? 'alta' :
-                 task.priority === 'urgent' ? 'alta' : 'media', // Converter urgent para alta
+        priority: task.priority, // Usar o valor original do enum
         due_date: dueDate ? dueDate.toISOString().split('T')[0] : '',
         due_time: dueDate ? dueDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
         assigned_to: task.assigned_to || '',
@@ -170,9 +167,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
         business_name: formData.category === 'campanhas' ? 'Campanhas' :
                       formData.category === 'negocios' ? 'Negócios' :
                       formData.category === 'criadores' ? 'Criadores' : 'Outros',
-        journey_stage: formData.category === 'campanhas' ? 'Planejamento de campanha' :
-                      formData.category === 'negocios' ? 'Desenvolvimento de negócio' :
-                      formData.category === 'criadores' ? 'Gestão de criadores' : 'Tarefa geral'
+        journey_stage: 'Reunião de briefing' // Usar sempre um valor válido do enum
       };
 
       const response = await authenticatedFetch('/api/jornada-tasks', {
@@ -242,13 +237,10 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
 
   const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-50 border-red-200'; // Manter para compatibilidade
-      case 'high': return 'text-red-600 bg-red-50 border-red-200'; // Manter para compatibilidade
-      case 'alta': return 'text-red-600 bg-red-50 border-red-200';
-      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'; // Manter para compatibilidade
-      case 'media': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'low': return 'text-green-600 bg-green-50 border-green-200'; // Manter para compatibilidade
-      case 'baixa': return 'text-green-600 bg-green-50 border-green-200';
+      case 'urgent': return 'text-red-600 bg-red-50 border-red-200';
+      case 'high': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'low': return 'text-green-600 bg-green-50 border-green-200';
       default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
@@ -472,9 +464,9 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { value: 'baixa', label: 'Baixa', color: 'bg-green-100 text-green-800 border-green-200' },
-                      { value: 'media', label: 'Média', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-                      { value: 'alta', label: 'Alta', color: 'bg-red-100 text-red-800 border-red-200' }
+                      { value: 'low', label: 'Baixa', color: 'bg-green-100 text-green-800 border-green-200' },
+                      { value: 'medium', label: 'Média', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+                      { value: 'high', label: 'Alta', color: 'bg-red-100 text-red-800 border-red-200' }
                     ].map((priority) => (
                       <button
                         key={priority.value}
@@ -597,9 +589,9 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                        task.status === 'review' ? 'Em revisão' : 'Concluído'}
                     </span>
                     <span className={`px-3 py-1 text-sm font-medium border rounded-full ${getPriorityColor(task.priority)}`}>
-                      {task.priority === 'low' || task.priority === 'baixa' ? 'Baixa' :
-                       task.priority === 'medium' || task.priority === 'media' ? 'Média' :
-                       task.priority === 'high' || task.priority === 'alta' || task.priority === 'urgent' ? 'Alta' : 'Média'}
+                      {task.priority === 'low' ? 'Baixa' :
+                       task.priority === 'medium' ? 'Média' :
+                       task.priority === 'high' || task.priority === 'urgent' ? 'Alta' : 'Média'}
                     </span>
 
                     {/* Indicador de sincronização com Google Calendar */}
