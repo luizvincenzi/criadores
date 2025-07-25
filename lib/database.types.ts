@@ -697,6 +697,92 @@ export interface Database {
           created_at?: string
         }
       }
+      jornada_tasks: {
+        Row: {
+          id: string
+          organization_id: string
+          campaign_id: string | null
+          business_id: string | null
+          business_name: string
+          campaign_month: string
+          journey_stage: Database['public']['Enums']['jornada_stage']
+          title: string
+          description: string | null
+          task_type: Database['public']['Enums']['jornada_task_type']
+          status: Database['public']['Enums']['task_status']
+          priority: Database['public']['Enums']['task_priority']
+          assigned_to: string | null
+          created_by: string
+          due_date: string | null
+          completed_at: string | null
+          estimated_hours: number | null
+          actual_hours: number | null
+          is_auto_generated: boolean
+          auto_trigger_stage: Database['public']['Enums']['jornada_stage'] | null
+          depends_on_task_id: string | null
+          blocks_stage_progression: boolean
+          tags: string[]
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          campaign_id?: string | null
+          business_id?: string | null
+          business_name: string
+          campaign_month: string
+          journey_stage: Database['public']['Enums']['jornada_stage']
+          title: string
+          description?: string | null
+          task_type?: Database['public']['Enums']['jornada_task_type']
+          status?: Database['public']['Enums']['task_status']
+          priority?: Database['public']['Enums']['task_priority']
+          assigned_to?: string | null
+          created_by: string
+          due_date?: string | null
+          completed_at?: string | null
+          estimated_hours?: number | null
+          actual_hours?: number | null
+          is_auto_generated?: boolean
+          auto_trigger_stage?: Database['public']['Enums']['jornada_stage'] | null
+          depends_on_task_id?: string | null
+          blocks_stage_progression?: boolean
+          tags?: string[]
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          campaign_id?: string | null
+          business_id?: string | null
+          business_name?: string
+          campaign_month?: string
+          journey_stage?: Database['public']['Enums']['jornada_stage']
+          title?: string
+          description?: string | null
+          task_type?: Database['public']['Enums']['jornada_task_type']
+          status?: Database['public']['Enums']['task_status']
+          priority?: Database['public']['Enums']['task_priority']
+          assigned_to?: string | null
+          created_by?: string
+          due_date?: string | null
+          completed_at?: string | null
+          estimated_hours?: number | null
+          actual_hours?: number | null
+          is_auto_generated?: boolean
+          auto_trigger_stage?: Database['public']['Enums']['jornada_stage'] | null
+          depends_on_task_id?: string | null
+          blocks_stage_progression?: boolean
+          tags?: string[]
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       dashboard_stats: {
@@ -744,6 +830,8 @@ export interface Database {
       campaign_status: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
       task_status: 'todo' | 'in_progress' | 'review' | 'done'
       task_priority: 'low' | 'medium' | 'high' | 'urgent'
+      jornada_stage: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
+      jornada_task_type: 'briefing_preparation' | 'briefing_meeting' | 'creator_selection' | 'creator_contact' | 'scheduling_coordination' | 'content_approval' | 'delivery_review' | 'final_approval' | 'campaign_closure' | 'follow_up' | 'custom'
     }
   }
 }

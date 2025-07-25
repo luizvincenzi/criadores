@@ -10,13 +10,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const router = useRouter();
-  const { login, isAuthenticated } = useAuthStore();
+  const { login, isAuthenticated, setLoading: setAuthLoading } = useAuthStore();
 
   // Redireciona se já estiver autenticado
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('✅ Login: Usuário já autenticado, redirecionando para dashboard');
       router.push('/dashboard');
     }
   }, [isAuthenticated, router]);
@@ -24,7 +25,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setAuthLoading(true);
     setError('');
+
+    console.log('🔐 Login: Tentativa de login para:', email);
 
     try {
       const response = await fetch('/api/supabase/auth/login', {
@@ -36,21 +40,39 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
+      console.log('🔐 Login: Resposta da API:', { success: data.success, user: data.user });
 
       if (data.success && data.user) {
+        console.log('✅ Login: Sucesso, fazendo login no store com dados:', data.user);
         // Faz login no store
         login(data.user);
-        
-        // Redireciona para o dashboard
-        router.push('/dashboard');
+
+        // Verificar se o login foi persistido
+        setTimeout(() => {
+          const currentState = useAuthStore.getState();
+          console.log('🔍 Login: Estado atual do store:', {
+            isAuthenticated: currentState.isAuthenticated,
+            user: currentState.user?.email
+          });
+
+          if (currentState.isAuthenticated) {
+            console.log('✅ Login: Estado confirmado, redirecionando para dashboard');
+            router.push('/dashboard');
+          } else {
+            console.log('❌ Login: Estado não foi persistido corretamente');
+            setError('Erro ao salvar dados de login. Tente novamente.');
+          }
+        }, 200);
       } else {
+        console.log('❌ Login: Falha na autenticação:', data.error);
         setError(data.error || 'Erro ao fazer login');
       }
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('❌ Login: Erro de conexão:', error);
       setError('Erro de conexão. Tente novamente.');
     } finally {
       setLoading(false);
+      setAuthLoading(false);
     }
   };
 

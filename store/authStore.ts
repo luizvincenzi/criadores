@@ -5,17 +5,19 @@ interface User {
   id: string;
   full_name: string;
   email: string;
-  role: 'admin' | 'user';
-  permissions?: string[];
+  role: 'admin' | 'manager' | 'user' | 'viewer';
+  permissions?: Record<string, Record<string, boolean>>;
   organization?: any;
 }
 
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
+  isLoading: boolean;
   login: (userData: User) => void;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  setLoading: (loading: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -23,11 +25,14 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       isAuthenticated: false,
       user: null,
-      
+      isLoading: false,
+
       login: (userData: User) => {
+        console.log('🔐 Login realizado no store:', userData.email);
         set({
           isAuthenticated: true,
           user: userData,
+          isLoading: false,
         });
 
         // Registra o login no log de auditoria (Supabase)
@@ -45,10 +50,12 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         const currentUser = get().user;
+        console.log('🚪 Logout realizado no store:', currentUser?.email);
 
         set({
           isAuthenticated: false,
           user: null,
+          isLoading: false,
         });
 
         // Registra o logout no log de auditoria (Supabase)
@@ -61,8 +68,13 @@ export const useAuthStore = create<AuthState>()(
             });
           }, 100);
         }
+
+        // Redirecionar para login após logout
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       },
-      
+
       updateUser: (userData: Partial<User>) => {
         const currentUser = get().user;
         if (currentUser) {
@@ -71,12 +83,17 @@ export const useAuthStore = create<AuthState>()(
           });
         }
       },
+
+      setLoading: (loading: boolean) => {
+        set({ isLoading: loading });
+      },
     }),
     {
       name: 'auth-storage', // nome da chave no localStorage
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         user: state.user,
+        // Não persistir isLoading
       }),
     }
   )

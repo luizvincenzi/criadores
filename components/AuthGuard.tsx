@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { usePageAccess } from '@/hooks/usePermissions';
+import LoadingSpinner from './LoadingSpinner';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,66 +12,62 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const { isAuthenticated, user } = useAuthStore();
+  const [authChecked, setAuthChecked] = useState(false);
+  const { isAuthenticated, user, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const { hasAccess, accessDeniedMessage } = usePageAccess(pathname);
 
   useEffect(() => {
-    // Simula um pequeno delay para verificar autenticação
     const checkAuth = async () => {
+      console.log('🔍 AuthGuard: Verificando autenticação...', {
+        isAuthenticated,
+        user: user?.email,
+        pathname,
+        authChecked
+      });
+
       // Se não estiver autenticado, redireciona para login
       if (!isAuthenticated || !user) {
+        console.log('❌ AuthGuard: Usuário não autenticado, redirecionando para login');
         router.push('/login');
         return;
       }
 
-      // Se estiver autenticado, verifica se o usuário ainda é válido
-      try {
-        const response = await fetch('/api/auth/me', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: user.email }),
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-          // Se o usuário não for mais válido, faz logout
-          useAuthStore.getState().logout();
-          router.push('/login');
-          return;
-        }
-      } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-        // Em caso de erro, mantém o usuário logado se já estava
-      }
+      console.log('✅ AuthGuard: Usuário autenticado, verificando acesso à página');
 
       // Verificar se tem acesso à página atual
       if (!hasAccess) {
-        console.log(`❌ Usuário ${user.email} não tem acesso à página ${pathname}`);
-        // Redirecionar para página de acesso negado ou dashboard
+        console.log(`❌ AuthGuard: Usuário ${user.email} não tem acesso à página ${pathname}`);
         router.push('/dashboard');
         return;
       }
 
+      console.log('✅ AuthGuard: Acesso à página verificado, liberando acesso');
+      setAuthChecked(true);
       setIsLoading(false);
     };
 
-    checkAuth();
-  }, [isAuthenticated, user, router, pathname, hasAccess]);
+    // Pequeno delay para garantir que o estado foi hidratado
+    const timer = setTimeout(() => {
+      if (!authChecked) {
+        checkAuth();
+      } else {
+        setIsLoading(false);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, user, router, pathname, hasAccess, authChecked]);
 
   // Tela de carregamento
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-surface-dim flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-on-surface-variant">Verificando autenticação...</p>
-        </div>
-      </div>
+      <LoadingSpinner
+        fullScreen
+        size="lg"
+        message="Verificando autenticação..."
+      />
     );
   }
 

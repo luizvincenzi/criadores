@@ -41,6 +41,7 @@ export type Campaign = Tables<'campaigns'>;
 export type CampaignCreator = Tables<'campaign_creators'>;
 export type Lead = Tables<'leads'>;
 export type Task = Tables<'tasks'>;
+export type JornadaTask = Tables<'jornada_tasks'>;
 export type AuditLog = Tables<'audit_logs'>;
 
 // Enums
@@ -50,6 +51,8 @@ export type CreatorStatus = Enums<'creator_status'>;
 export type CampaignStatus = Enums<'campaign_status'>;
 export type TaskStatus = Enums<'task_status'>;
 export type TaskPriority = Enums<'task_priority'>;
+export type JornadaStage = Enums<'jornada_stage'>;
+export type JornadaTaskType = Enums<'jornada_task_type'>;
 
 // Helper para verificar se usuário está autenticado
 export const getCurrentUser = async () => {

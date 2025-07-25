@@ -4,7 +4,7 @@
  */
 
 export type Permission = 'read' | 'write' | 'delete';
-export type Resource = 'dashboard' | 'businesses' | 'creators' | 'campaigns' | 'deals' | 'jornada' | 'reports';
+export type Resource = 'dashboard' | 'businesses' | 'creators' | 'campaigns' | 'deals' | 'jornada' | 'reports' | 'tasks';
 export type Role = 'admin' | 'manager' | 'user' | 'viewer';
 
 // Definição de permissões por role
@@ -16,7 +16,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Resource, Permission[]>> = {
     campaigns: ['read', 'write', 'delete'],
     deals: ['read', 'write', 'delete'],
     jornada: ['read', 'write', 'delete'],
-    reports: ['read', 'write', 'delete']
+    reports: ['read', 'write', 'delete'],
+    tasks: ['read', 'write', 'delete'] // Admin vê todas as tarefas e pode criar para qualquer usuário
   },
   manager: {
     dashboard: ['read', 'write'],
@@ -25,7 +26,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Resource, Permission[]>> = {
     campaigns: ['read', 'write'],
     deals: ['read', 'write'],
     jornada: ['read', 'write'],
-    reports: ['read']
+    reports: ['read'],
+    tasks: ['read', 'write'] // Manager vê apenas suas próprias tarefas
   },
   user: {
     dashboard: ['read'],
@@ -34,7 +36,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Resource, Permission[]>> = {
     campaigns: ['read'],
     deals: ['read'],
     jornada: ['read'],
-    reports: []
+    reports: [],
+    tasks: ['read', 'write'] // User vê apenas suas próprias tarefas
   },
   viewer: {
     dashboard: ['read'],
@@ -43,7 +46,8 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Resource, Permission[]>> = {
     campaigns: ['read'],
     deals: ['read'],
     jornada: ['read'],
-    reports: []
+    reports: [],
+    tasks: ['read'] // Viewer vê apenas suas próprias tarefas (somente leitura)
   }
 };
 
@@ -170,6 +174,51 @@ export function isManagerOrAbove(user: UserWithPermissions | null): boolean {
 }
 
 /**
+ * Verifica se o usuário pode ver todas as tarefas (apenas admins)
+ */
+export function canViewAllTasks(user: UserWithPermissions | null): boolean {
+  return user?.role === 'admin';
+}
+
+/**
+ * Verifica se o usuário pode criar tarefas para outros usuários (apenas admins)
+ */
+export function canCreateTasksForOthers(user: UserWithPermissions | null): boolean {
+  return user?.role === 'admin';
+}
+
+/**
+ * Verifica se o usuário pode ver uma tarefa específica
+ */
+export function canViewTask(user: UserWithPermissions | null, taskAssignedTo: string): boolean {
+  if (!user) return false;
+
+  // Admin pode ver todas as tarefas
+  if (user.role === 'admin') return true;
+
+  // Outros usuários só podem ver suas próprias tarefas
+  return user.id === taskAssignedTo;
+}
+
+/**
+ * Verifica se o usuário pode editar uma tarefa específica
+ */
+export function canEditTask(user: UserWithPermissions | null, taskAssignedTo: string, taskCreatedBy?: string): boolean {
+  if (!user) return false;
+
+  // Admin pode editar todas as tarefas
+  if (user.role === 'admin') return true;
+
+  // Usuário pode editar suas próprias tarefas
+  if (user.id === taskAssignedTo) return true;
+
+  // Usuário pode editar tarefas que ele criou (mesmo que atribuídas a outros)
+  if (taskCreatedBy && user.id === taskCreatedBy) return true;
+
+  return false;
+}
+
+/**
  * Obtém mensagem de erro para acesso negado
  */
 export function getAccessDeniedMessage(resource: Resource, action: Permission): string {
@@ -180,7 +229,8 @@ export function getAccessDeniedMessage(resource: Resource, action: Permission): 
     campaigns: 'Campanhas',
     deals: 'Negócios',
     jornada: 'Jornada',
-    reports: 'Relatórios'
+    reports: 'Relatórios',
+    tasks: 'Tarefas'
   };
 
   const actionNames: Record<Permission, string> = {

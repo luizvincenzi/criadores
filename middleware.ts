@@ -97,6 +97,35 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = getClientIP(request);
 
+  // Verificar autenticação para rotas protegidas
+  const protectedRoutes = ['/dashboard', '/jornada', '/businesses', '/creators', '/campaigns', '/deals'];
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+
+  if (isProtectedRoute) {
+    // Temporariamente desabilitar verificação do middleware para debug
+    console.log('🔒 Middleware: Rota protegida detectada, mas verificação desabilitada para debug:', pathname);
+    // TODO: Reabilitar após corrigir o problema de persistência
+    /*
+    const authCookie = request.cookies.get('auth-storage');
+
+    if (!authCookie) {
+      console.log('🔒 Middleware: Rota protegida sem autenticação, redirecionando para login');
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    try {
+      const authData = JSON.parse(authCookie.value);
+      if (!authData.state?.isAuthenticated || !authData.state?.user) {
+        console.log('🔒 Middleware: Dados de autenticação inválidos, redirecionando para login');
+        return NextResponse.redirect(new URL('/login', request.url));
+      }
+    } catch (error) {
+      console.log('🔒 Middleware: Erro ao parsear dados de autenticação, redirecionando para login');
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+    */
+  }
+
   // Rate limiting para login
   if (pathname === '/api/auth/login') {
     const key = getRateLimitKey(ip, 'login');

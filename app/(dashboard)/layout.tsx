@@ -4,11 +4,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import Avatar from '@/components/ui/Avatar';
-import Button from '@/components/ui/Button';
-import AuthGuard from '@/components/AuthGuard';
+import { TasksSidebar } from '@/components/TasksSidebar';
 import { NotificationProvider } from '@/contexts/NotificationContext';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useTaskNotifications } from '@/hooks/useTaskNotifications';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,275 +14,277 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
-  const [activeSection, setActiveSection] = useState('businesses');
+  const [isTasksSidebarOpen, setIsTasksSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuthStore();
-  const { getAccessibleMenuItems, hasPermission } = usePermissions();
+  const { user, logout } = useAuthStore();
+  const { pendingTasksCount, refreshCount } = useTaskNotifications();
 
-  // Determinar seção ativa baseada na URL
-  React.useEffect(() => {
-    if (pathname.includes('dashboard')) setActiveSection('dashboard');
-    else if (pathname.includes('businesses')) setActiveSection('businesses');
-    else if (pathname.includes('deals')) setActiveSection('deals');
-    else if (pathname.includes('creators')) setActiveSection('creators');
-    else if (pathname.includes('campaigns')) setActiveSection('campaigns');
-    else if (pathname.includes('jornada')) setActiveSection('jornada');
+  const handleSignOut = async () => {
+    console.log('🚪 Layout: Iniciando logout');
+    try {
+      // Fazer logout no store (que já redireciona)
+      logout();
+    } catch (error) {
+      console.error('❌ Layout: Erro no logout:', error);
+      // Em caso de erro, forçar redirecionamento
+      window.location.href = '/login';
+    }
+  };
 
-    else setActiveSection('dashboard');
-  }, [pathname]);
+  // Atualizar contador quando a sidebar for fechada
+  const handleTasksSidebarClose = () => {
+    setIsTasksSidebarOpen(false);
+    refreshCount(); // Atualizar contador
+  };
 
-  // Fechar menu mobile quando clicar fora
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isMobileMenuOpen) {
-        const target = event.target as Element;
-        if (!target.closest('.mobile-nav-container')) {
-          setIsMobileMenuOpen(false);
-        }
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [isMobileMenuOpen]);
-
-  // Definir todos os itens de navegação possíveis
-  const allNavigationItems = [
+  const navigationItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
-      resource: 'dashboard' as const,
+      href: '/dashboard',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <rect x="3" y="3" width="7" height="9"/>
-          <rect x="14" y="3" width="7" height="5"/>
-          <rect x="14" y="12" width="7" height="9"/>
-          <rect x="3" y="16" width="7" height="5"/>
+          <rect x="3" y="3" width="7" height="9"></rect>
+          <rect x="14" y="3" width="7" height="5"></rect>
+          <rect x="14" y="12" width="7" height="9"></rect>
+          <rect x="3" y="16" width="7" height="5"></rect>
         </svg>
-      ),
-      href: '/dashboard',
-      count: 0,
-      color: 'primary'
+      )
     },
     {
       id: 'jornada',
       label: 'Jornada',
-      resource: 'jornada' as const,
+      href: '/jornada',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
         </svg>
-      ),
-      href: '/jornada',
-      count: 0,
-      color: 'primary'
+      )
     },
     {
       id: 'businesses',
       label: 'Empresas',
-      resource: 'businesses' as const,
+      href: '/businesses',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M3 21h18"/>
-          <path d="M5 21V7l8-4v18"/>
-          <path d="M19 21V11l-6-4"/>
+          <path d="M3 21h18"></path>
+          <path d="M5 21V7l8-4v18"></path>
+          <path d="M19 21V11l-6-4"></path>
         </svg>
-      ),
-      href: '/businesses',
-      count: 0,
-      color: 'primary'
+      )
     },
     {
       id: 'deals',
       label: 'Negócios',
-      resource: 'deals' as const,
+      href: '/deals',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
         </svg>
-      ),
-      href: '/deals',
-      count: 0,
-      color: 'primary'
+      )
     },
     {
       id: 'creators',
       label: 'Criadores',
-      resource: 'creators' as const,
+      href: '/creators',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
-      ),
-      href: '/creators',
-      count: 0,
-      color: 'secondary'
+      )
     },
     {
       id: 'campaigns',
       label: 'Campanhas',
-      resource: 'campaigns' as const,
+      href: '/campaigns',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M3 11l18-5v12L3 14v-3z"/>
           <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
         </svg>
-      ),
-      href: '/campaigns',
-      count: 0,
-      color: 'tertiary'
+      )
     }
   ];
 
-  // Filtrar itens de navegação baseado nas permissões do usuário
-  const navigationItems = allNavigationItems.filter(item =>
-    hasPermission(item.resource, 'read')
-  );
-
   return (
-    <AuthGuard>
-      <NotificationProvider>
-        <div className="min-h-screen bg-surface-dim">
-      {/* Top Header - Fixo e Compacto */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-outline-variant">
-        <div className="px-6 py-3 pb-0">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h1 className="text-2xl font-bold text-on-surface">CRM crIAdores</h1>
+    <NotificationProvider>
+      <div className="min-h-screen" style={{ backgroundColor: '#f5f5f5' }}>
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b">
+        <div className="px-6 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900">CRM crIAdores</h1>
             </div>
 
-            <div className="flex items-center space-x-3">
-              <div className="text-right">
-                <div className="text-sm font-medium text-on-surface">
-                  {user?.name || user?.email || 'Usuário'}
-                </div>
-                <div className="text-xs text-on-surface-variant">
-                  {user?.role === 'admin' ? 'Administrador' : 'Usuário'}
-                </div>
+            {/* Desktop User Info + Mobile Menu */}
+            <div className="flex items-center space-x-4">
+              {/* Desktop User Info */}
+              <div className="hidden md:flex items-center space-x-4">
+                <span className="text-sm text-gray-700">
+                  Olá, <span className="font-medium">{user?.full_name || 'Usuário'}</span>
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm text-gray-600 hover:text-red-600 transition-colors"
+                  title="Sair"
+                >
+                  Sair
+                </button>
               </div>
-              <Button
-                variant="text"
-                size="sm"
-                onClick={() => {
-                  const { logout } = useAuthStore.getState();
-                  logout();
-                  window.location.href = '/login';
-                }}
-                className="text-xs text-tertiary hover:bg-tertiary-container"
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                title="Menu"
               >
-                Sair
-              </Button>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
             </div>
           </div>
 
-          {/* Navigation - Desktop: Tabs, Mobile: Menu */}
-          <div className="relative">
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex justify-center -mx-6">
-              <div className="flex">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center justify-between mt-4">
+            {/* Espaço vazio à esquerda para centralizar */}
+            <div className="flex-1"></div>
+
+            {/* Links de navegação centralizados */}
+            <div className="flex space-x-1">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    pathname === item.href
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="mr-2">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Tasks Icon - Sempre à direita */}
+            <div className="flex-1 flex justify-end">
+              <button
+                onClick={() => setIsTasksSidebarOpen(!isTasksSidebarOpen)}
+                className={`p-2 rounded-lg transition-colors relative ${
+                  isTasksSidebarOpen
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+                title="Tarefas"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M3 6h18"/>
+                  <path d="M3 12h18"/>
+                  <path d="M3 18h18"/>
+                </svg>
+                {pendingTasksCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    {pendingTasksCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </nav>
+
+          {/* Mobile Menu Dropdown */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 py-4 border-t border-gray-100">
+              <div className="space-y-2">
                 {navigationItems.map((item) => (
                   <Link
                     key={item.id}
                     href={item.href}
-                    onClick={() => setActiveSection(item.id)}
-                    className={`nav-tab ${activeSection === item.id ? 'active' : ''}`}
-                    style={{
-                      paddingTop: '12px',
-                      paddingBottom: '16px',
-                      minHeight: '48px'
-                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      pathname === item.href
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
                   >
-                    <span className="mr-2">{item.icon}</span>
-                    <span className="font-medium text-sm">{item.label}</span>
-                    {item.count > 0 && (
-                      <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-medium ${
-                        activeSection === item.id
-                          ? 'bg-white text-gray-700 border border-gray-300'
-                          : 'bg-surface-container text-on-surface-variant'
-                      }`}>
-                        {item.count}
-                      </span>
-                    )}
+                    <span className="mr-3">{item.icon}</span>
+                    <span>{item.label}</span>
                   </Link>
                 ))}
-              </div>
-            </nav>
 
-            {/* Mobile Navigation */}
-            <div className="md:hidden mobile-nav-container">
-              {/* Mobile Menu Button */}
-              <div className="flex items-center justify-between px-6 py-3">
-                <div className="flex items-center space-x-3">
-                  {navigationItems.find(item => item.id === activeSection)?.icon}
-                  <span className="font-medium text-sm text-on-surface">
-                    {navigationItems.find(item => item.id === activeSection)?.label}
-                  </span>
-                </div>
+                {/* Mobile Tasks Button */}
                 <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 rounded-lg hover:bg-surface-container transition-colors"
+                  onClick={() => {
+                    setIsTasksSidebarOpen(!isTasksSidebarOpen);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    isTasksSidebarOpen
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
                 >
-                  <svg
-                    className={`w-5 h-5 text-on-surface transition-transform ${isMobileMenuOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <span className="mr-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 12l2 2 4-4"/>
+                      <path d="M3 6h18"/>
+                      <path d="M3 12h18"/>
+                      <path d="M3 18h18"/>
+                    </svg>
+                  </span>
+                  <span>Tarefas</span>
+                  {pendingTasksCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                      {pendingTasksCount}
+                    </span>
+                  )}
                 </button>
-              </div>
 
-              {/* Mobile Dropdown Menu */}
-              {isMobileMenuOpen && (
-                <div className="absolute top-full left-0 right-0 bg-white border-t border-outline-variant shadow-lg z-50">
-                  <div className="py-2">
-                    {navigationItems.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={item.href}
-                        onClick={() => {
-                          setActiveSection(item.id);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`flex items-center px-6 py-3 hover:bg-surface-container transition-colors ${
-                          activeSection === item.id ? 'bg-primary-container text-primary' : 'text-on-surface'
-                        }`}
-                      >
-                        <span className="mr-3">{item.icon}</span>
-                        <span className="font-medium text-sm">{item.label}</span>
-                        {item.count > 0 && (
-                          <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
-                            activeSection === item.id
-                              ? 'bg-primary text-on-primary'
-                              : 'bg-surface-container text-on-surface-variant'
-                          }`}>
-                            {item.count}
-                          </span>
-                        )}
-                      </Link>
-                    ))}
+                {/* Mobile User Info */}
+                <div className="px-4 py-3 border-t border-gray-100 mt-4">
+                  <div className="text-sm text-gray-700 mb-2">
+                    Olá, <span className="font-medium">{user?.full_name || 'Usuário'}</span>
                   </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="text-sm text-red-600 hover:text-red-700 transition-colors"
+                  >
+                    Sair
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </header>
 
-      {/* Main Content Area - Com padding-top para compensar header fixo */}
-      <main style={{ paddingTop: '140px' }} className="p-6">
+      {/* Main Content */}
+      <main
+        style={{ paddingTop: '120px' }}
+        className={`p-6 transition-all duration-300 ${isTasksSidebarOpen ? 'pr-[320px]' : ''}`}
+      >
         <div className="max-w-7xl mx-auto">
           {children}
         </div>
       </main>
+
+      {/* Tasks Sidebar */}
+      <TasksSidebar
+        isOpen={isTasksSidebarOpen}
+        onClose={handleTasksSidebarClose}
+      />
       </div>
-      </NotificationProvider>
-    </AuthGuard>
+    </NotificationProvider>
   );
 }

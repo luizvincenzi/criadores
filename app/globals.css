@@ -425,3 +425,61 @@ body {
 .text-secondary {
   color: var(--secondary) !important;
 }
+
+/* Custom Scrollbar Styles for Tasks Sidebar */
+.tasks-sidebar-scroll {
+  /* Webkit browsers */
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+.tasks-sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tasks-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+
+.tasks-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.tasks-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+  opacity: 1;
+}
+
+.tasks-sidebar-scroll:hover::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  opacity: 1;
+}
+
+/* General Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+  scroll-behavior: smooth;
+}
