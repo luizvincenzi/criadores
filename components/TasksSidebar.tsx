@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch';
+import { usePortalAuth } from '@/hooks/usePortalAuth';
 import SimpleNewTaskForm from './SimpleNewTaskForm';
 import { TaskDetailModal } from './TaskDetailModal';
 
@@ -31,11 +32,12 @@ interface Task {
 }
 
 interface TasksSidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  isPortal?: boolean;
 }
 
-export function TasksSidebar({ isOpen, onClose }: TasksSidebarProps) {
+export function TasksSidebar({ isOpen = true, onClose, isPortal = false }: TasksSidebarProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'my' | 'jornada' | 'business' | 'deals'>('all');
@@ -44,29 +46,35 @@ export function TasksSidebar({ isOpen, onClose }: TasksSidebarProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const { user } = useAuthStore();
+  const { user: portalUser } = usePortalAuth();
   const { hasPermission, isAdmin } = usePermissions();
   const { authenticatedFetch } = useAuthenticatedFetch();
+
+  // Determinar qual usuário usar baseado no contexto
+  const currentUser = isPortal ? portalUser : user;
 
   // Calcular tarefas não concluídas para notificações
   const pendingTasksCount = tasks.filter(task => task.status !== 'done').length;
 
   // Carregar tarefas
   const loadTasks = async () => {
-    // Verificar permissões antes de carregar
-    if (!hasPermission('tasks', 'read')) {
+    // Verificar permissões antes de carregar (apenas para CRM)
+    if (!isPortal && !hasPermission('tasks', 'read')) {
       console.warn('Usuário não tem permissão para ver tarefas');
       setTasks([]);
       return;
     }
 
+    if (!currentUser) return;
+
     setLoading(true);
     try {
-      let url = '/api/jornada-tasks';
+      let url = isPortal ? '/api/portal/tasks' : '/api/jornada-tasks';
       const params = new URLSearchParams();
 
       // Aplicar filtros baseados no tipo selecionado
-      if (filter === 'my' && user?.id) {
-        params.append('assigned_to', user.id);
+      if (filter === 'my' && currentUser?.id) {
+        params.append('assigned_to', currentUser.id);
       }
       // Para usuários não-admin, o backend já filtra automaticamente suas tarefas
 
@@ -78,7 +86,19 @@ export function TasksSidebar({ isOpen, onClose }: TasksSidebarProps) {
         url += `?${params.toString()}`;
       }
 
-      const response = await authenticatedFetch(url);
+      let response;
+      if (isPortal) {
+        // Para o portal, usar token do portal
+        const token = localStorage.getItem('portal_token');
+        response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      } else {
+        // Para o CRM, usar authenticatedFetch normal
+        response = await authenticatedFetch(url);
+      }
 
       // Verificar se a resposta é válida
       if (!response.ok) {
