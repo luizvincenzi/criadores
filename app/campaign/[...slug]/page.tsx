@@ -308,254 +308,121 @@ export default function CampaignLandingPage() {
               </a>
             )}
 
-            {/* Estatística de Criadores */}
-            <div className="flex items-center bg-gray-50 px-4 py-2 rounded-lg">
-              <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="text-sm font-semibold text-gray-800">
-                {campaignData.stats.totalCreators} criadores
-              </span>
-            </div>
+
           </div>
         </div>
       </div>
 
       {/* Informações Gerais da Campanha */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
-          {/* Informações Básicas */}
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center">
-              <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Informações Básicas - Expandida */}
+          <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center">
+              <svg className="w-5 h-5 md:w-6 md:h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Informações Gerais
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="text-sm font-medium text-gray-500">Descrição</label>
-                <p className="text-gray-900 mt-1">{campaignData.campaign.description || 'Não informada'}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Data de Início</label>
-                  <p className="text-gray-900 mt-1">{formatDate(campaignData.campaign.start_date)}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Data de Fim</label>
-                  <p className="text-gray-900 mt-1">{formatDate(campaignData.campaign.end_date)}</p>
+                <label className="text-sm font-medium text-gray-500 block mb-2">Descrição da Campanha</label>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-900 leading-relaxed">{campaignData.campaign.description || 'Não informada'}</p>
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Orçamento</label>
-                <p className="text-gray-900 mt-1">{formatCurrency(campaignData.campaign.budget)}</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500 block mb-2">Data de Início</label>
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <p className="text-gray-900 font-medium">{formatDate(campaignData.campaign.start_date)}</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500 block mb-2">Data de Fim</label>
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <p className="text-gray-900 font-medium">{formatDate(campaignData.campaign.end_date)}</p>
+                  </div>
+                </div>
               </div>
+
               <div>
-                <label className="text-sm font-medium text-gray-500">Quantidade de Criadores</label>
-                <p className="text-gray-900 mt-1">{campaignData.stats.totalCreators}</p>
+                <label className="text-sm font-medium text-gray-500 block mb-2">Tipo de Remuneração</label>
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                    <p className="text-green-800 font-semibold">Permuta direto com a empresa</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Objetivos */}
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center">
-              <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Objetivos
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Objetivo Principal</label>
-                <p className="text-gray-900 mt-1">{campaignData.campaign.objectives?.primary || 'Não definido'}</p>
-              </div>
-              {campaignData.campaign.objectives?.secondary && campaignData.campaign.objectives.secondary.length > 0 && (
+          {/* Objetivos e Entregáveis Combinados */}
+          <div className="space-y-6">
+            {/* Objetivos */}
+            <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center">
+                <svg className="w-5 h-5 md:w-6 md:h-6 mr-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Objetivos
+              </h2>
+              <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Objetivos Secundários</label>
-                  <ul className="mt-1 space-y-1">
-                    {campaignData.campaign.objectives.secondary.map((objective: string, index: number) => (
-                      <li key={index} className="text-gray-900 flex items-center">
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                        {objective}
-                      </li>
-                    ))}
-                  </ul>
+                  <label className="text-sm font-medium text-gray-500 block mb-2">Objetivo Principal</label>
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <p className="text-gray-900 font-medium">{campaignData.campaign.objectives?.primary || 'Não definido'}</p>
+                  </div>
                 </div>
-              )}
+                {campaignData.campaign.objectives?.secondary && campaignData.campaign.objectives.secondary.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500 block mb-2">Objetivos Secundários</label>
+                    <div className="space-y-2">
+                      {campaignData.campaign.objectives.secondary.map((objective: string, index: number) => (
+                        <div key={index} className="flex items-center bg-gray-50 rounded-lg p-3">
+                          <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                          <p className="text-gray-900">{objective}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Entregáveis */}
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center">
-              <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              Entregáveis
-            </h2>
-            <div className="space-y-4">
+            {/* Entregáveis */}
+            <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center">
+                <svg className="w-5 h-5 md:w-6 md:h-6 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Entregáveis
+              </h2>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Posts</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.deliverables?.posts || 0}</p>
+                <div className="bg-purple-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                    {campaignData.campaign.deliverables?.stories || 0}
+                  </div>
+                  <label className="text-sm font-medium text-purple-700">Stories</label>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Stories</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.deliverables?.stories || 0}</p>
+                <div className="bg-purple-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                    {campaignData.campaign.deliverables?.reels || 0}
+                  </div>
+                  <label className="text-sm font-medium text-purple-700">Reels</label>
                 </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Reels</label>
-                <p className="text-gray-900 mt-1">{campaignData.campaign.deliverables?.reels || 0}</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Briefing Detalhado */}
-      {campaignData.campaign.briefing_details && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-8">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center">
-              <svg className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Briefing Detalhado
-            </h2>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
-              {/* Formatos e Perfil */}
-              <div>
-                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4 flex items-center">
-                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 011 1v1a1 1 0 01-1 1h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7H3a1 1 0 01-1-1V5a1 1 0 011-1h4z" />
-                  </svg>
-                  Formatos e Perfil
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Formatos</label>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {campaignData.campaign.briefing_details.formatos && campaignData.campaign.briefing_details.formatos.length > 0 ? (
-                        campaignData.campaign.briefing_details.formatos.map((formato: string, index: number) => (
-                          <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                            {formato}
-                          </span>
-                        ))
-                      ) : (
-                        <p className="text-gray-900">Não especificados</p>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Perfil do Criador</label>
-                    <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.perfil_criador || 'Não especificado'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Comunicação Secundária</label>
-                    <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.comunicacao_secundaria || 'Não especificada'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Datas de Gravação */}
-              <div>
-                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4 flex items-center">
-                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Datas de Gravação
-                </h3>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Data de Início</label>
-                      <p className="text-gray-900 mt-1">{formatDate(campaignData.campaign.briefing_details.datas_gravacao?.inicio)}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Data de Fim</label>
-                      <p className="text-gray-900 mt-1">{formatDate(campaignData.campaign.briefing_details.datas_gravacao?.fim)}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Observações</label>
-                    <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.datas_gravacao?.observacoes || 'Nenhuma observação'}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Roteiro do Vídeo */}
-            <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-gray-200">
-              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4 flex items-center">
-                <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                Roteiro do Vídeo
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">O que precisa ser falado no vídeo</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.roteiro?.conteudo || 'Não especificado'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">História</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.roteiro?.historia || 'Não especificada'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Promoção/CTA</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.roteiro?.promocao_cta || 'Não especificado'}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Requisitos Técnicos */}
-            <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-gray-200">
-              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4 flex items-center">
-                <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Requisitos Técnicos
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Duração do Vídeo</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.requisitos_tecnicos?.duracao_video || 'Não especificada'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Qualidade</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.requisitos_tecnicos?.qualidade || 'Não especificada'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Formato de Entrega</label>
-                  <p className="text-gray-900 mt-1">{campaignData.campaign.briefing_details.requisitos_tecnicos?.formato_entrega || 'Não especificado'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Hashtags Obrigatórias</label>
-                  <div className="mt-1">
-                    {campaignData.campaign.briefing_details.requisitos_tecnicos?.hashtags_obrigatorias && campaignData.campaign.briefing_details.requisitos_tecnicos.hashtags_obrigatorias.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {campaignData.campaign.briefing_details.requisitos_tecnicos.hashtags_obrigatorias.map((hashtag: string, index: number) => (
-                          <span key={index} className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
-                            #{hashtag}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-900">Nenhuma hashtag obrigatória</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Footer Premium */}
       <footer className="bg-gradient-to-r from-gray-900 to-blue-900 text-white mt-12">
