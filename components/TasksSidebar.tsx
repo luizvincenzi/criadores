@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch';
-import { usePortalAuth } from '@/hooks/usePortalAuth';
+
 import SimpleNewTaskForm from './SimpleNewTaskForm';
 import { TaskDetailModal } from './TaskDetailModal';
 
@@ -46,12 +46,12 @@ export function TasksSidebar({ isOpen = true, onClose, isPortal = false }: Tasks
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const { user } = useAuthStore();
-  const { user: portalUser } = usePortalAuth();
+
   const { hasPermission, isAdmin } = usePermissions();
   const { authenticatedFetch } = useAuthenticatedFetch();
 
-  // Determinar qual usuário usar baseado no contexto
-  const currentUser = isPortal ? portalUser : user;
+  // Usar apenas o usuário do CRM
+  const currentUser = user;
 
   // Calcular tarefas não concluídas para notificações
   const pendingTasksCount = tasks.filter(task => task.status !== 'done').length;
