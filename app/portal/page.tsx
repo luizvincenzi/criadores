@@ -46,7 +46,7 @@ export default function PortalLandingPage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Link href="/portal/login">
+            <Link href="/portal-login">
               <Button variant="primary" size="lg" className="w-full sm:w-auto">
                 Acessar Portal
               </Button>
