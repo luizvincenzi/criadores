@@ -309,44 +309,88 @@ export default function CampaignJourneyKanban({ campaigns, onRefresh }: Campaign
     // Determinar o novo status baseado na coluna de destino
     let newStatus = '';
 
-    console.log('🎯 Drag & Drop Debug:', { activeId, overId, activeCampaign: activeCampaign.businessName });
+    console.log('🎯 Drag & Drop Debug:', {
+      activeId,
+      overId,
+      activeCampaign: {
+        businessName: activeCampaign.businessName,
+        currentStage: activeCampaign.journeyStage,
+        mes: activeCampaign.mes
+      }
+    });
 
     // Verificar se foi dropado em uma coluna ou em um card dentro da coluna
     const stageIds = ['Reunião de briefing', 'Agendamentos', 'Entrega final'];
 
+    console.log('🔍 Verificando destino:', {
+      overId,
+      overIdType: typeof overId,
+      stageIds,
+      isDirectColumn: stageIds.includes(overId)
+    });
+
     if (stageIds.includes(overId)) {
       // Dropado diretamente na coluna
       newStatus = overId;
-      console.log('✅ Dropado na coluna:', newStatus);
+      console.log('✅ Dropado na coluna:', { newStatus, type: typeof newStatus });
     } else {
       // Dropado em um card, encontrar a coluna do card
       const targetCampaign = campaigns.find(c => c.id === overId);
+      console.log('🔍 Procurando campanha alvo:', {
+        overId,
+        targetCampaign: targetCampaign ? {
+          id: targetCampaign.id,
+          businessName: targetCampaign.businessName,
+          journeyStage: targetCampaign.journeyStage
+        } : null
+      });
+
       if (targetCampaign) {
         newStatus = targetCampaign.journeyStage;
-        console.log('✅ Dropado em card, coluna:', newStatus);
+        console.log('✅ Dropado em card, coluna:', { newStatus, type: typeof newStatus });
       } else {
         console.log('❌ Não foi possível determinar a coluna de destino');
         return;
       }
     }
 
+    console.log('🎯 Status determinado:', {
+      newStatus,
+      newStatusType: typeof newStatus,
+      newStatusValue: JSON.stringify(newStatus),
+      currentStatus: activeCampaign.journeyStage,
+      isEqual: newStatus === activeCampaign.journeyStage
+    });
+
     // Se o status não mudou, não fazer nada
-    if (!newStatus || newStatus === activeCampaign.journeyStage) return;
+    if (!newStatus || newStatus === activeCampaign.journeyStage) {
+      console.log('⏭️ Não há mudança de status, cancelando');
+      return;
+    }
 
     try {
       console.log(`🔄 Movendo campanha via drag&drop: ${activeCampaign.businessName} - ${activeCampaign.mes}: ${activeCampaign.journeyStage} → ${newStatus}`);
+
+      const requestBody = {
+        businessName: activeCampaign.businessName,
+        mes: activeCampaign.mes,
+        newStatus: newStatus,
+        userEmail: 'Drag&Drop'
+      };
+
+      console.log('📤 Enviando request:', {
+        url: '/api/supabase/campaigns/status',
+        method: 'PUT',
+        body: requestBody,
+        bodyStringified: JSON.stringify(requestBody)
+      });
 
       const response = await fetch('/api/supabase/campaigns/status', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          businessName: activeCampaign.businessName,
-          mes: activeCampaign.mes,
-          newStatus: newStatus,
-          userEmail: 'Drag&Drop'
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const result = await response.json();

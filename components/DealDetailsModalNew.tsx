@@ -423,10 +423,14 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
                         >
                           <option value="Leads próprios frios">Leads próprios frios</option>
                           <option value="Leads próprios quentes">Leads próprios quentes</option>
-                          <option value="Reunião de briefing">Reunião de briefing</option>
-                          <option value="Proposta enviada">Proposta enviada</option>
-                          <option value="Negociação">Negociação</option>
+                          <option value="Leads indicados">Leads indicados</option>
+                          <option value="Enviando proposta">Enviando proposta</option>
+                          <option value="Marcado reunião">Marcado reunião</option>
+                          <option value="Reunião realizada">Reunião realizada</option>
+                          <option value="Follow up">Follow up</option>
+                          <option value="Negócio Fechado">Negócio Fechado</option>
                           <option value="Contrato assinado">Contrato assinado</option>
+                          <option value="Declinado">Declinado</option>
                         </select>
                       ) : (
                         <div>

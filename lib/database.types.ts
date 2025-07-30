@@ -705,7 +705,7 @@ export interface Database {
           business_id: string | null
           business_name: string
           campaign_month: string
-          journey_stage: Database['public']['Enums']['jornada_stage']
+          journey_stage: Database['public']['Enums']['campaign_status']
           title: string
           description: string | null
           task_type: Database['public']['Enums']['jornada_task_type']
@@ -718,7 +718,7 @@ export interface Database {
           estimated_hours: number | null
           actual_hours: number | null
           is_auto_generated: boolean
-          auto_trigger_stage: Database['public']['Enums']['jornada_stage'] | null
+          auto_trigger_stage: Database['public']['Enums']['campaign_status'] | null
           depends_on_task_id: string | null
           blocks_stage_progression: boolean
           tags: string[]
@@ -733,7 +733,7 @@ export interface Database {
           business_id?: string | null
           business_name: string
           campaign_month: string
-          journey_stage: Database['public']['Enums']['jornada_stage']
+          journey_stage: Database['public']['Enums']['campaign_status']
           title: string
           description?: string | null
           task_type?: Database['public']['Enums']['jornada_task_type']
@@ -746,7 +746,7 @@ export interface Database {
           estimated_hours?: number | null
           actual_hours?: number | null
           is_auto_generated?: boolean
-          auto_trigger_stage?: Database['public']['Enums']['jornada_stage'] | null
+          auto_trigger_stage?: Database['public']['Enums']['campaign_status'] | null
           depends_on_task_id?: string | null
           blocks_stage_progression?: boolean
           tags?: string[]
@@ -761,7 +761,7 @@ export interface Database {
           business_id?: string | null
           business_name?: string
           campaign_month?: string
-          journey_stage?: Database['public']['Enums']['jornada_stage']
+          journey_stage?: Database['public']['Enums']['campaign_status']
           title?: string
           description?: string | null
           task_type?: Database['public']['Enums']['jornada_task_type']
@@ -774,7 +774,7 @@ export interface Database {
           estimated_hours?: number | null
           actual_hours?: number | null
           is_auto_generated?: boolean
-          auto_trigger_stage?: Database['public']['Enums']['jornada_stage'] | null
+          auto_trigger_stage?: Database['public']['Enums']['campaign_status'] | null
           depends_on_task_id?: string | null
           blocks_stage_progression?: boolean
           tags?: string[]
@@ -824,13 +824,13 @@ export interface Database {
     Enums: {
       user_role: 'admin' | 'manager' | 'user' | 'viewer'
       business_status: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
-      business_stage: 'Leads próprios frios' | 'Leads próprios quentes' | 'Leads indicados' | 'Enviando proposta' | 'Marcado reunião' | 'Reunião realizada' | 'Follow up' | 'Contrato assinado' | 'Não teve interesse' | 'Não responde' | 'Declinado'
+      business_stage: 'Leads próprios frios' | 'Leads próprios quentes' | 'Leads indicados' | 'Enviando proposta' | 'Marcado reunião' | 'Reunião realizada' | 'Follow up' | 'Negócio Fechado' | 'Contrato assinado' | 'Não teve interesse' | 'Não responde' | 'Declinado'
       business_priority: 'Baixa' | 'Média' | 'Alta'
       creator_status: 'Ativo' | 'Não parceiro' | 'Precisa engajar' | 'Inativo'
       campaign_status: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
       task_status: 'todo' | 'in_progress' | 'review' | 'done'
       task_priority: 'low' | 'medium' | 'high' | 'urgent'
-      jornada_stage: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
+
       jornada_task_type: 'briefing_preparation' | 'briefing_meeting' | 'creator_selection' | 'creator_contact' | 'scheduling_coordination' | 'content_approval' | 'delivery_review' | 'final_approval' | 'campaign_closure' | 'follow_up' | 'custom'
     }
   }

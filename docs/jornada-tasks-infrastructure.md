@@ -24,7 +24,7 @@ CREATE TABLE jornada_tasks (
   -- Identificação da Jornada
   business_name VARCHAR(255) NOT NULL,
   campaign_month VARCHAR(50) NOT NULL,
-  journey_stage jornada_stage NOT NULL,
+  journey_stage campaign_status NOT NULL,
   
   -- Informações da Tarefa
   title VARCHAR(255) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE jornada_tasks (
   
   -- Automação
   is_auto_generated BOOLEAN DEFAULT false,
-  auto_trigger_stage jornada_stage,
+  auto_trigger_stage campaign_status,
   blocks_stage_progression BOOLEAN DEFAULT false,
   
   -- Dependências
@@ -62,7 +62,7 @@ CREATE TABLE jornada_tasks (
 
 ### ENUMs Específicos
 
-#### `jornada_stage`
+#### `campaign_status` (usado para jornadas)
 ```sql
 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
 ```
@@ -123,7 +123,7 @@ create_automatic_jornada_tasks(
 can_progress_to_next_stage(
   p_business_name VARCHAR(255),
   p_campaign_month VARCHAR(50),
-  p_current_stage jornada_stage
+  p_current_stage campaign_status
 ) RETURNS BOOLEAN
 ```
 

@@ -33,6 +33,7 @@ interface CampaignFormData {
   quantidadeCriadores: number;
   budget: number;
   objectives: string;
+  responsibleUserId: string; // Responsável pela campanha
   deliverables: {
     posts: number;
     stories: number;
@@ -55,10 +56,18 @@ interface CampaignFormData {
   };
 }
 
+interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+}
+
 export default function CampaignModalComplete({ isOpen, onClose, onSuccess }: CampaignModalCompleteProps) {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [filteredCreators, setFilteredCreators] = useState<Creator[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -72,6 +81,7 @@ export default function CampaignModalComplete({ isOpen, onClose, onSuccess }: Ca
     quantidadeCriadores: 1,
     budget: 0,
     objectives: '',
+    responsibleUserId: '',
     deliverables: {
       posts: 1,
       stories: 3,
@@ -146,13 +156,21 @@ export default function CampaignModalComplete({ isOpen, onClose, onSuccess }: Ca
       // Carregar criadores ativos
       const creatorsResponse = await fetch('/api/supabase/creators');
       const creatorsResult = await creatorsResponse.json();
-      
+
       if (creatorsResult.success) {
-        const activeCreators = creatorsResult.data.filter((creator: Creator) => 
+        const activeCreators = creatorsResult.data.filter((creator: Creator) =>
           creator.status === 'Ativo'
         );
         setCreators(activeCreators);
         setFilteredCreators(activeCreators);
+      }
+
+      // Carregar usuários
+      const usersResponse = await fetch('/api/supabase/users');
+      const usersResult = await usersResponse.json();
+
+      if (usersResult.success) {
+        setUsers(usersResult.users || []);
       }
 
     } catch (error) {
@@ -211,6 +229,7 @@ export default function CampaignModalComplete({ isOpen, onClose, onSuccess }: Ca
           description: formData.description,
           month: formData.month,
           budget: formData.budget,
+          responsible_user_id: formData.responsibleUserId || null,
           objectives: {
             primary: formData.objectives,
             secondary: [formData.comunicacaoSecundaria].filter(Boolean),
@@ -277,6 +296,7 @@ export default function CampaignModalComplete({ isOpen, onClose, onSuccess }: Ca
       quantidadeCriadores: 1,
       budget: 0,
       objectives: '',
+      responsibleUserId: '',
       deliverables: {
         posts: 1,
         stories: 3,
@@ -403,6 +423,24 @@ export default function CampaignModalComplete({ isOpen, onClose, onSuccess }: Ca
                       className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Descreva os objetivos e detalhes da campanha..."
                     />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Responsável pela Campanha</label>
+                    <select
+                      value={formData.responsibleUserId}
+                      onChange={(e) => handleInputChange('responsibleUserId', e.target.value)}
+                      className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Selecione um responsável</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.full_name} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Usuário responsável por gerenciar esta campanha
+                    </p>
                   </div>
                 </div>
               </div>

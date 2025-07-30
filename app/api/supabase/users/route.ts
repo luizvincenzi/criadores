@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
+
 // GET - Buscar usuários
 export async function GET(request: NextRequest) {
   try {
@@ -9,13 +11,15 @@ export async function GET(request: NextRequest) {
     const { data: users, error } = await supabase
       .from('users')
       .select('id, full_name, email, role')
+      .eq('organization_id', DEFAULT_ORG_ID)
       .eq('is_active', true)
-      .order('full_name');
+      .order('role', { ascending: true })
+      .order('full_name', { ascending: true });
 
     if (error) {
       console.error('❌ Erro ao buscar usuários:', error);
       return NextResponse.json(
-        { error: 'Erro ao buscar usuários', details: error.message },
+        { success: false, error: 'Erro ao buscar usuários', details: error.message },
         { status: 500 }
       );
     }
@@ -23,6 +27,7 @@ export async function GET(request: NextRequest) {
     console.log(`✅ ${users?.length || 0} usuários encontrados`);
 
     return NextResponse.json({
+      success: true,
       users: users || [],
       total: users?.length || 0
     });
@@ -30,7 +35,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erro interno ao buscar usuários:', error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { success: false, error: 'Erro interno do servidor' },
       { status: 500 }
     );
   }

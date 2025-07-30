@@ -505,7 +505,7 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
                 {renderField('Etapa do Negócio', 'businessStage', 'select', [
                   'Leads próprios frios', 'Leads próprios quentes', 'Leads indicados',
                   'Enviando proposta', 'Marcado reunião', 'Reunião realizada',
-                  'Follow up', 'Contrato assinado', 'Não teve interesse', 'Não responde'
+                  'Follow up', 'Negócio Fechado', 'Contrato assinado', 'Não teve interesse', 'Não responde', 'Declinado'
                 ])}
                 {renderField('Prioridade', 'priority', 'select', [
                   { value: 'Baixa', label: '🟢 Baixa' },

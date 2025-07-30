@@ -259,7 +259,9 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
     setExpandedCreators(newExpanded);
   };
 
-  if (!isOpen || !campaignGroup) return null;
+  if (!isOpen || !campaignGroup) {
+    return null;
+  }
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
@@ -635,16 +637,16 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
               />
             </div>
 
-            {/* Formulário Completo da Campanha */}
+            {/* Seção: Comunicação para Criador */}
             <div className="mb-8">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+              <div className="bg-white rounded-xl border border-blue-200 overflow-hidden">
+                <div className="bg-blue-50 px-6 py-4 border-b border-blue-200">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <h3 className="text-lg font-semibold text-blue-900 flex items-center">
                       <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
-                      Detalhes da Campanha
+                      Comunicação para Criador
                     </h3>
 
                     {/* Botões de Ação */}
@@ -686,7 +688,7 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                 </div>
 
                 <div className="p-6 space-y-6">
-                  {/* Informações Básicas */}
+                  {/* Informações Básicas para Criador */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -702,14 +704,14 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                         />
                       ) : (
                         <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                          {editFormData.title || 'Não informado'}
+                          {editFormData.title || 'Inauguração Conveniência'}
                         </p>
                       )}
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Orçamento
+                        Permuta
                       </label>
                       {isEditMode ? (
                         <input
@@ -919,15 +921,15 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
               </div>
             </div>
 
-            {/* Roteiro do Vídeo */}
+            {/* Seção: Comunicação Interna */}
             <div className="mb-8">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <div className="bg-white rounded-xl border border-green-200 overflow-hidden">
+                <div className="bg-green-50 px-6 py-4 border-b border-green-200">
+                  <h3 className="text-lg font-semibold text-green-900 flex items-center">
                     <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    Roteiro do Vídeo
+                    Comunicação Interna
                   </h3>
                 </div>
 
@@ -1076,179 +1078,107 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
+                  {/* Gestão de Criadores */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Criadores - Informações Parciais
+                        <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                          {creatorsData.length}
+                        </span>
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Para gestão completa dos criadores, acesse a aba <strong>Jornada</strong>
+                      </p>
+                    </div>
 
-            {/* Gestão Avançada de Criadores */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    Criadores - Informações Parciais
-                    <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
-                      {creatorsData.length}
-                    </span>
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Para gestão completa dos criadores, acesse a aba <strong>Jornada</strong>
-                  </p>
-                </div>
-
-                {isLoadingCreators && (
-                  <div className="flex items-center text-sm text-gray-500">
-                    <svg className="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Carregando dados...
+                    {isLoadingCreators && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <svg className="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Carregando dados...
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {creatorsData.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {creatorsData.map((creatorSlot, index) => {
-                    // Simular dados do criador baseado no que temos
-                    const mockCreatorData = {
-                      id: creatorSlot.creatorId || `creator-${index}`,
-                      name: creatorSlot.influenciador,
-                      social_media: {
-                        instagram: {
-                          username: creatorSlot.influenciador.toLowerCase().replace(/\s+/g, ''),
-                          followers: Math.floor(Math.random() * 100000) + 10000, // Mock data
-                          engagement_rate: Math.random() * 5 + 2,
-                          verified: Math.random() > 0.7
-                        },
-                        tiktok: {
-                          username: creatorSlot.influenciador.toLowerCase().replace(/\s+/g, ''),
-                          followers: Math.floor(Math.random() * 50000) + 5000
-                        }
-                      },
-                      contact_info: {
-                        whatsapp: '5511999999999', // Mock data
-                        email: `${creatorSlot.influenciador.toLowerCase().replace(/\s+/g, '')}@email.com`
-                      },
-                      profile_info: {
-                        category: 'Lifestyle',
-                        location: {
-                          city: 'São Paulo',
-                          state: 'SP'
-                        },
-                        rates: {
-                          post: 500,
-                          story: 200,
-                          reel: 800
-                        }
-                      },
-                      performance_metrics: {
-                        total_campaigns: Math.floor(Math.random() * 20) + 5,
-                        avg_engagement: Math.random() * 5 + 2,
-                        completion_rate: Math.floor(Math.random() * 20) + 80,
-                        rating: Math.random() * 1 + 4
-                      },
-                      status: 'Ativo'
-                    };
+                  {creatorsData.length > 0 ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {creatorsData.map((creatorSlot, index) => {
+                        // Simular dados do criador baseado no que temos
+                        const mockCreatorData = {
+                          id: creatorSlot.creatorId || `creator-${index}`,
+                          name: creatorSlot.influenciador,
+                          social_media: {
+                            instagram: {
+                              username: creatorSlot.influenciador.toLowerCase().replace(/\s+/g, ''),
+                              followers: Math.floor(Math.random() * 100000) + 10000, // Mock data
+                              engagement_rate: Math.random() * 5 + 2,
+                              verified: Math.random() > 0.7
+                            },
+                            tiktok: {
+                              username: creatorSlot.influenciador.toLowerCase().replace(/\s+/g, ''),
+                              followers: Math.floor(Math.random() * 50000) + 5000
+                            }
+                          },
+                          contact_info: {
+                            whatsapp: '5511999999999', // Mock data
+                            email: `${creatorSlot.influenciador.toLowerCase().replace(/\s+/g, '')}@email.com`
+                          },
+                          profile_info: {
+                            category: 'Lifestyle',
+                            location: {
+                              city: 'São Paulo',
+                              state: 'SP'
+                            },
+                            rates: {
+                              post: 500,
+                              story: 200,
+                              reel: 800
+                            }
+                          },
+                          performance_metrics: {
+                            total_campaigns: Math.floor(Math.random() * 20) + 5,
+                            avg_engagement: Math.random() * 5 + 2,
+                            completion_rate: Math.floor(Math.random() * 20) + 80,
+                            rating: Math.random() * 1 + 4
+                          },
+                          status: 'Ativo'
+                        };
 
-                    const deliverables = {
-                      briefing_complete: creatorSlot.briefingCompleto || 'Pendente',
-                      visit_datetime: creatorSlot.dataHoraVisita || '',
-                      guest_quantity: parseInt(creatorSlot.quantidadeConvidados) || 0,
-                      visit_confirmed: creatorSlot.visitaConfirmado || 'Pendente',
-                      post_datetime: creatorSlot.dataHoraPostagem || '',
-                      video_approved: creatorSlot.videoAprovado || 'Pendente',
-                      video_posted: creatorSlot.videoPostado || 'Não'
-                    };
+                        const deliverables = {
+                          briefing_complete: creatorSlot.briefingCompleto || 'Pendente',
+                          visit_datetime: creatorSlot.dataHoraVisita || '',
+                          guest_quantity: parseInt(creatorSlot.quantidadeConvidados) || 0,
+                          visit_confirmed: creatorSlot.visitaConfirmado || 'Pendente',
+                          post_datetime: creatorSlot.dataHoraPostagem || '',
+                          video_approved: creatorSlot.videoAprovado || 'Pendente',
+                          video_posted: creatorSlot.videoPostado || 'Não'
+                        };
 
-                    return (
-                      <CreatorAdvancedCard
-                        key={mockCreatorData.id}
-                        creator={mockCreatorData}
-                        deliverables={deliverables}
-                        campaignData={creatorSlot}
-                        isExpanded={expandedCreators.has(mockCreatorData.id)}
-                        onToggleExpand={() => toggleCreatorExpansion(mockCreatorData.id)}
-                      />
-                    );
-                  })}
-                </div>
-              ) : !isLoadingCreators ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">👥</div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Nenhum criador encontrado</h4>
-                  <p className="text-gray-500">Os dados dos criadores serão carregados quando disponíveis.</p>
-                </div>
-              ) : null}
-            </div>
-
-            {/* Detalhes das Campanhas */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                Detalhes das Campanhas
-              </h3>
-              
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Campanha
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Criador
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Responsável
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Data Visita
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Observações
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {(campaignGroup.campanhas || campaignGroup.campaigns || []).map((campaign, index) => (
-                        <tr key={`campaign-${index}-${campaign.id || campaign.campanha || index}`} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {campaign.campanha || campaign.nome}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.influenciador}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(campaign.status)}`}>
-                              {campaign.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {campaign.responsavel}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {formatDate(campaign.dataHoraVisita)}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            <div className="max-w-xs truncate" title={campaign.notas}>
-                              {campaign.notas || '-'}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                        return (
+                          <CreatorAdvancedCard
+                            key={mockCreatorData.id}
+                            creator={mockCreatorData}
+                            deliverables={deliverables}
+                            campaignData={creatorSlot}
+                            isExpanded={expandedCreators.has(mockCreatorData.id)}
+                            onToggleExpand={() => toggleCreatorExpansion(mockCreatorData.id)}
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : !isLoadingCreators ? (
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-4">👥</div>
+                      <h4 className="text-lg font-medium text-gray-900 mb-2">Nenhum criador encontrado</h4>
+                      <p className="text-gray-500">Os dados dos criadores serão carregados quando disponíveis.</p>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>

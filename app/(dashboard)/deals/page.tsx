@@ -139,15 +139,30 @@ const KANBAN_STAGES = [
     id: 'Follow up',
     title: 'Follow Up',
     icon: (
-      <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
+      <div className="w-6 h-6 bg-yellow-500 rounded-lg flex items-center justify-center">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
           <path d="M9 12l2 2 4-4"/>
           <circle cx="12" cy="12" r="10"/>
         </svg>
       </div>
     ),
-    color: 'bg-green-50 border-green-200',
+    color: 'bg-yellow-50 border-yellow-200',
     description: 'Acompanhamento pós-reunião'
+  },
+  {
+    id: 'Negócio Fechado',
+    title: 'Negócio Fechado',
+    icon: (
+      <div className="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <path d="M9 12l2 2 4-4"/>
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M16 8l-4 4-2-2"/>
+        </svg>
+      </div>
+    ),
+    color: 'bg-green-50 border-green-200',
+    description: 'Negócios fechados com sucesso'
   },
   {
     id: 'Declinado',

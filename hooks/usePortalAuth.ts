@@ -38,9 +38,9 @@ export function usePortalAuth() {
   useEffect(() => {
     if (!state.isLoading && !state.isAuthenticated) {
       // Permitir acesso às páginas públicas
-      const publicPaths = ['/portal', '/portal/login'];
+      const publicPaths = ['/portal', '/portal-login'];
       if (!publicPaths.includes(pathname)) {
-        router.push('/portal/login');
+        router.push('/portal-login');
       }
     }
   }, [state.isLoading, state.isAuthenticated, pathname, router]);
@@ -135,7 +135,7 @@ export function usePortalAuth() {
       });
       
       // Redirecionar para login
-      router.push('/portal/login');
+      router.push('/portal-login');
     }
   };
 

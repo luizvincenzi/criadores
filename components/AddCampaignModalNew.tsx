@@ -21,12 +21,21 @@ interface BusinessData {
   quantidadeCriadores: string;
 }
 
+interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+}
+
 export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddCampaignModalNewProps) {
   const [businesses, setBusinesses] = useState<BusinessData[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<BusinessData | null>(null);
   const [campaignName, setCampaignName] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [quantidadeCriadores, setQuantidadeCriadores] = useState('');
+  const [responsibleUserId, setResponsibleUserId] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingBusinesses, setIsLoadingBusinesses] = useState(false);
 
@@ -61,10 +70,11 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
 
   const availableMonths = generateMonths();
 
-  // Carregar businesses quando o modal abrir
+  // Carregar businesses e usuários quando o modal abrir
   useEffect(() => {
     if (isOpen) {
       loadBusinesses();
+      loadUsers();
       // Definir mês atual como padrão
       setSelectedMonth(availableMonths[0]?.value || '');
     }
@@ -75,7 +85,7 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
       setIsLoadingBusinesses(true);
       const response = await fetch('/api/get-businesses-for-campaigns');
       const result = await response.json();
-      
+
       if (result.success) {
         setBusinesses(result.businesses);
         console.log('📊 Businesses carregados:', result.businesses.length);
@@ -87,6 +97,22 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
       alert('Erro ao carregar lista de businesses');
     } finally {
       setIsLoadingBusinesses(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/supabase/users');
+      const result = await response.json();
+
+      if (result.success) {
+        setUsers(result.users);
+        console.log('👥 Usuários carregados:', result.users.length);
+      } else {
+        console.error('Erro ao carregar usuários:', result.error);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
     }
   };
 
@@ -122,6 +148,7 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
           campaignName,
           selectedMonth,
           quantidadeCriadores,
+          responsibleUserId,
           user: 'sistema' // TODO: pegar usuário logado
         })
       });
@@ -135,6 +162,7 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
         setSelectedBusiness(null);
         setCampaignName('');
         setQuantidadeCriadores('');
+        setResponsibleUserId('');
         setSelectedMonth(availableMonths[0]?.value || '');
         
         onSuccess();
@@ -282,6 +310,28 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
               </p>
             </div>
 
+            {/* Responsável pela Campanha */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Responsável pela Campanha
+              </label>
+              <select
+                value={responsibleUserId}
+                onChange={(e) => setResponsibleUserId(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Selecione um responsável</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.full_name} ({user.email})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Usuário responsável por gerenciar esta campanha
+              </p>
+            </div>
+
             {/* Resumo */}
             {selectedBusiness && (
               <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
@@ -289,9 +339,12 @@ export default function AddCampaignModalNew({ isOpen, onClose, onSuccess }: AddC
                 <div className="text-sm text-blue-800 space-y-1">
                   <p><strong>Business:</strong> {selectedBusiness.nome}</p>
                   <p><strong>Categoria:</strong> {selectedBusiness.categoria}</p>
-                  <p><strong>Responsável:</strong> {selectedBusiness.nomeResponsavel}</p>
+                  <p><strong>Responsável do Business:</strong> {selectedBusiness.nomeResponsavel}</p>
                   <p><strong>Mês:</strong> {selectedMonth} {new Date().getFullYear()}</p>
                   <p><strong>Criadores:</strong> {quantidadeCriadores} linhas serão criadas</p>
+                  {responsibleUserId && (
+                    <p><strong>Responsável pela Campanha:</strong> {users.find(u => u.id === responsibleUserId)?.full_name}</p>
+                  )}
                 </div>
               </div>
             )}

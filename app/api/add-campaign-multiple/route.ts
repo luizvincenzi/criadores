@@ -10,7 +10,7 @@ const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 export async function POST(request: NextRequest) {
   try {
-    const { businessData, campaignName, selectedMonth, quantidadeCriadores, user } = await request.json();
+    const { businessData, campaignName, selectedMonth, quantidadeCriadores, responsibleUserId, user } = await request.json();
 
     // Converter selectedMonth para month_year_id
     const monthYearId = parseInt(selectedMonth); // selectedMonth agora vem como "202507"
@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
       campaignName,
       selectedMonth,
       monthYearId,
-      quantidadeCriadores
+      quantidadeCriadores,
+      responsibleUserId
     });
 
     if (!businessData || !campaignName || !selectedMonth || !quantidadeCriadores) {
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
       month_year_id: monthYearId, // Nova coluna principal
       status: 'Reunião de briefing',
       budget: 0,
+      responsible_user_id: responsibleUserId || null, // Responsável pela campanha
       objectives: {
         primary: '',
         secondary: [],

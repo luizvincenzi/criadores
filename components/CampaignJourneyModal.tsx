@@ -52,7 +52,7 @@ function formatMonthYear(monthYear: string): string {
 
 export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStatusUpdate }: CampaignJourneyModalProps) {
   const { user } = useAuthStore();
-  const [currentStatus, setCurrentStatus] = useState('');
+  const [currentStatus, setCurrentStatus] = useState('Reunião de briefing'); // Valor padrão válido
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -159,7 +159,14 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
   // 🔄 Atualizar status quando campanha mudar
   useEffect(() => {
     if (campaign) {
-      setCurrentStatus(campaign.journeyStage);
+      // Garantir que o status seja válido, usar default se necessário
+      const validStatus = campaign.journeyStage || 'Reunião de briefing';
+      console.log('🔄 Definindo currentStatus:', {
+        campaignStage: campaign.journeyStage,
+        validStatus,
+        campaignData: campaign
+      });
+      setCurrentStatus(validStatus);
       // O hook useCampaignSlots já carrega automaticamente os dados
     }
   }, [campaign]);
@@ -267,6 +274,21 @@ export default function CampaignJourneyModal({ campaign, isOpen, onClose, onStat
   };
 
   const handleStatusChange = async (newStatus: string) => {
+    console.log('🔄 handleStatusChange chamado:', {
+      newStatus,
+      newStatusType: typeof newStatus,
+      currentStatus,
+      isUpdatingStatus
+    });
+
+    // Validar se o newStatus é válido
+    const validStatuses = ['Reunião de briefing', 'Agendamentos', 'Entrega final', 'Finalizado'];
+    if (!newStatus || !validStatuses.includes(newStatus)) {
+      console.error('❌ Status inválido recebido:', { newStatus, validStatuses });
+      alert(`❌ Status inválido: "${newStatus}". Valores válidos: ${validStatuses.join(', ')}`);
+      return;
+    }
+
     if (newStatus === currentStatus || isUpdatingStatus) return;
 
     // Validação especial para finalização

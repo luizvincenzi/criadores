@@ -17,7 +17,7 @@ export default function PortalLandingPage() {
               </div>
               <h1 className="text-xl font-bold text-on-surface">crIAdores</h1>
             </div>
-            <Link href="/portal/login">
+            <Link href="/portal-login">
               <Button variant="primary" size="md">
                 Entrar
               </Button>

@@ -13,13 +13,39 @@ export async function PUT(request: NextRequest) {
       businessName,
       mes,
       newStatus,
+      newStatusType: typeof newStatus,
+      newStatusValue: JSON.stringify(newStatus),
       userEmail
     });
 
-    if (!newStatus) {
+    // Validações mais rigorosas
+    if (!newStatus || newStatus === null || newStatus === undefined) {
+      console.error('❌ Status inválido:', { newStatus, type: typeof newStatus });
       return NextResponse.json({
         success: false,
-        error: 'Status é obrigatório'
+        error: 'Status é obrigatório e não pode ser null'
+      }, { status: 400 });
+    }
+
+    // Verificar se o status é uma string válida
+    if (typeof newStatus !== 'string' || newStatus.trim() === '') {
+      console.error('❌ Status deve ser uma string não vazia:', { newStatus, type: typeof newStatus });
+      return NextResponse.json({
+        success: false,
+        error: 'Status deve ser uma string válida'
+      }, { status: 400 });
+    }
+
+    // Validar valores permitidos do enum
+    const validStatuses = ['Reunião de briefing', 'Agendamentos', 'Entrega final', 'Finalizado'];
+    if (!validStatuses.includes(newStatus)) {
+      console.error('❌ Status não é um valor válido do enum:', {
+        newStatus,
+        validStatuses
+      });
+      return NextResponse.json({
+        success: false,
+        error: `Status "${newStatus}" não é válido. Valores permitidos: ${validStatuses.join(', ')}`
       }, { status: 400 });
     }
 
@@ -50,20 +76,37 @@ export async function PUT(request: NextRequest) {
     } else if (businessName && mes) {
       // Atualizar por business name e mês
       // Primeiro buscar o business_id
+      console.log(`🔍 Buscando business: "${businessName}"`);
       const { data: businesses, error: businessError } = await supabase
         .from('businesses')
-        .select('id')
-        .eq('name', businessName)
+        .select('id, name')
+        .ilike('name', `%${businessName}%`)
         .eq('organization_id', DEFAULT_ORG_ID)
         .single();
 
       if (businessError || !businesses) {
-        console.error('❌ Business não encontrado:', businessError);
+        console.error('❌ Business não encontrado:', {
+          businessName,
+          error: businessError,
+          found: businesses
+        });
+
+        // Tentar busca mais ampla para debug
+        const { data: allBusinesses } = await supabase
+          .from('businesses')
+          .select('id, name')
+          .eq('organization_id', DEFAULT_ORG_ID)
+          .limit(10);
+
+        console.log('📋 Businesses disponíveis:', allBusinesses?.map(b => b.name));
+
         return NextResponse.json({
           success: false,
-          error: 'Business não encontrado'
+          error: `Business "${businessName}" não encontrado. Businesses disponíveis: ${allBusinesses?.map(b => b.name).join(', ')}`
         }, { status: 404 });
       }
+
+      console.log(`✅ Business encontrado: "${businesses.name}" (ID: ${businesses.id})`);
 
       // Atualizar campanhas do business no mês específico
       const { data, error } = await supabase

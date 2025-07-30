@@ -22,7 +22,7 @@ export default function PortalLoginPage() {
     try {
       const success = await login(email, password);
       if (success) {
-        router.push('/portal/dashboard');
+        router.push('/portal-dashboard');
       } else {
         setError('Email ou senha incorretos');
       }

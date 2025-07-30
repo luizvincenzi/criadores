@@ -393,7 +393,7 @@ export async function POST(request: NextRequest) {
       },
       // Buscar usuário real da organização
       created_by: (await supabase.from('users').select('id').eq('organization_id', DEFAULT_ORG_ID).limit(1).single()).data?.id || null,
-      responsible_user_id: (await supabase.from('users').select('id').eq('organization_id', DEFAULT_ORG_ID).limit(1).single()).data?.id || null
+      responsible_user_id: body.responsible_user_id || null
     };
 
     const { data: campaign, error: campaignError } = await supabase
