@@ -39,6 +39,7 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
   const [expandedCreators, setExpandedCreators] = useState<Set<string>>(new Set());
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
+  const [businessData, setBusinessData] = useState<any>(null);
 
   // Função para formatar data no padrão "Jun 25"
   const formatMonthYearShort = (monthKey: string) => {
@@ -84,6 +85,7 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
     if (isOpen && campaignGroup) {
       loadCreatorsData();
       loadCampaignData();
+      loadBusinessData();
       // Gerar landing page automaticamente quando abrir o modal
       generateLandingPageAutomatically();
     }
@@ -169,6 +171,62 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
       }
     } catch (error) {
       console.error('❌ [MODAL DEBUG] Erro ao carregar dados da campanha:', error);
+    }
+  };
+
+  const loadBusinessData = async () => {
+    if (!campaignGroup) return;
+
+    try {
+      console.log('🏢 [MODAL DEBUG] Carregando dados da empresa:', {
+        businessName: campaignGroup.businessName,
+        businessId: campaignGroup.businessId,
+        campaignGroupKeys: Object.keys(campaignGroup)
+      });
+
+      // Buscar dados da empresa sempre por ID
+      if (!campaignGroup.businessId) {
+        console.warn('⚠️ [MODAL DEBUG] businessId não disponível no campaignGroup');
+        console.log('📋 [MODAL DEBUG] campaignGroup completo:', campaignGroup);
+        return;
+      }
+
+      const response = await fetch(`/api/supabase/businesses?id=${encodeURIComponent(campaignGroup.businessId)}`);
+      console.log('✅ [MODAL DEBUG] Fazendo busca por ID da empresa:', campaignGroup.businessId);
+      console.log('🌐 [MODAL DEBUG] URL da requisição:', `/api/supabase/businesses?id=${encodeURIComponent(campaignGroup.businessId)}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📡 [MODAL DEBUG] Resposta da API businesses:', {
+          success: data.success,
+          dataLength: data.data?.length,
+          error: data.error
+        });
+
+        if (data.success && data.data && data.data.length > 0) {
+          const business = data.data[0];
+          console.log('🏢 [MODAL DEBUG] Dados da empresa encontrados:', {
+            id: business.id,
+            name: business.name,
+            apresentacao_empresa_preview: business.apresentacao_empresa?.substring(0, 100) + '...',
+            apresentacao_empresa_full: business.apresentacao_empresa
+          });
+
+          console.log('💾 [MODAL DEBUG] Definindo businessData no estado...');
+          setBusinessData(business);
+
+          // Verificar se foi definido corretamente
+          setTimeout(() => {
+            console.log('🔍 [MODAL DEBUG] Estado businessData após definir:', businessData);
+          }, 100);
+        } else {
+          console.warn('⚠️ [MODAL DEBUG] Nenhuma empresa encontrada na resposta da API');
+        }
+      } else {
+        console.error('❌ [MODAL DEBUG] Erro na resposta da API:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ [MODAL DEBUG] Erro ao carregar dados da empresa:', error);
     }
   };
 
@@ -842,6 +900,32 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                         </p>
                       )}
                     </div>
+                  </div>
+
+                  {/* Apresentação da Empresa */}
+                  <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">
+                      Apresentação da Empresa
+                    </label>
+                    <p className="text-sm text-gray-900 font-medium">
+                      {(() => {
+                        const apresentacao = businessData?.apresentacao_empresa ||
+                                            businessData?.custom_fields?.apresentacaoEmpresa ||
+                                            'Não informado';
+
+                        console.log('🎨 [MODAL DEBUG] Renderizando apresentação da empresa:', {
+                          businessData: !!businessData,
+                          apresentacao_empresa: businessData?.apresentacao_empresa?.substring(0, 50) + '...',
+                          custom_fields: businessData?.custom_fields?.apresentacaoEmpresa?.substring(0, 50) + '...',
+                          resultado_final: apresentacao.substring(0, 50) + '...'
+                        });
+
+                        return apresentacao;
+                      })()}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Para editar a apresentação da empresa, acesse a aba <strong>Empresas</strong>
+                    </p>
                   </div>
 
                   {/* Datas de Gravação */}

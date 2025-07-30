@@ -108,19 +108,26 @@ export async function GET(request: NextRequest) {
     const transformedCampaigns = campaigns?.map(campaign => ({
       id: campaign.id,
       nome: campaign.title,
+      title: campaign.title, // Campo original
       businessName: campaign.business?.name || '',
       businessId: campaign.business?.id || '',
       mes: campaign.month,
+      month: campaign.month, // Campo original
       status: campaign.status,
       orcamento: campaign.budget || 0,
+      budget: campaign.budget || 0, // Campo original
       gastos: campaign.spent_amount || 0,
       dataInicio: campaign.start_date,
       dataFim: campaign.end_date,
       descricao: campaign.description || '',
+      description: campaign.description || '', // Campo original
       objetivos: campaign.objectives,
+      objectives: campaign.objectives, // Campo original
       entregaveis: campaign.deliverables,
+      deliverables: campaign.deliverables, // Campo original
       briefing_details: campaign.briefing_details,
       resultados: campaign.results,
+      results: campaign.results, // Campo original
       criadores: campaign.campaign_creators?.map(cc => ({
         id: cc.creator?.id,
         nome: cc.creator?.name,
@@ -597,7 +604,18 @@ export async function PUT(request: NextRequest) {
     if (body.spent_amount !== undefined) updateData.spent_amount = body.spent_amount;
     if (body.start_date !== undefined) updateData.start_date = body.start_date;
     if (body.end_date !== undefined) updateData.end_date = body.end_date;
-    if (body.objectives) updateData.objectives = body.objectives;
+    // Processar objectives - pode ser string ou objeto
+    if (body.objectives !== undefined) {
+      if (typeof body.objectives === 'string') {
+        updateData.objectives = {
+          primary: body.objectives,
+          secondary: body.comunicacaoSecundaria ? [body.comunicacaoSecundaria] : [],
+          kpis: { reach: 0, engagement: 0, conversions: 0 }
+        };
+      } else {
+        updateData.objectives = body.objectives;
+      }
+    }
     if (body.deliverables) updateData.deliverables = body.deliverables;
     if (body.results) updateData.results = body.results;
 
@@ -607,16 +625,16 @@ export async function PUT(request: NextRequest) {
         formatos: body.formatos || [],
         perfil_criador: body.perfilCriador || '',
         comunicacao_secundaria: body.comunicacaoSecundaria || '',
-        datas_gravacao: body.datasGravacao || {
-          data_inicio: null,
-          data_fim: null,
-          horarios_preferenciais: [],
-          observacoes: ''
+        datas_gravacao: {
+          data_inicio: body.datasGravacao?.dataInicio || null,
+          data_fim: body.datasGravacao?.dataFim || null,
+          horarios_preferenciais: body.datasGravacao?.horariosPreferenciais || [],
+          observacoes: body.datasGravacao?.observacoes || ''
         },
-        roteiro_video: body.roteiroVideo || {
-          o_que_falar: '',
-          historia: '',
-          promocao_cta: ''
+        roteiro_video: {
+          o_que_falar: body.roteiroVideo?.oQueFalar || '',
+          historia: body.roteiroVideo?.historia || '',
+          promocao_cta: body.roteiroVideo?.promocaoCta || ''
         }
       };
     }

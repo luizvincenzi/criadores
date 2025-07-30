@@ -126,7 +126,8 @@ export async function GET(request: NextRequest) {
           name,
           contact_info,
           address,
-          custom_fields
+          custom_fields,
+          apresentacao_empresa
         )
       `)
       .eq('id', campaignData.campaign.id)
@@ -163,7 +164,8 @@ export async function GET(request: NextRequest) {
         id: campaignData.business.id,
         name: campaignData.business.name,
         contact_info: fullCampaignData.business?.contact_info,
-        address: fullCampaignData.business?.address
+        address: fullCampaignData.business?.address,
+        apresentacao_empresa: fullCampaignData.business?.apresentacao_empresa
       },
       stats: {
         totalCreators: validCreators.length,

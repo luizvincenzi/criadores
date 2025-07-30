@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
 
 interface AddNoteModalProps {
   businessId: string;
@@ -9,6 +10,7 @@ interface AddNoteModalProps {
 }
 
 export default function AddNoteModal({ businessId, userId, isOpen, onClose, onNoteAdded }: AddNoteModalProps) {
+  const { user } = useAuthStore();
   const [content, setContent] = useState('');
   const [noteType, setNoteType] = useState('general');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,11 +31,15 @@ export default function AddNoteModal({ businessId, userId, isOpen, onClose, onNo
     setIsSubmitting(true);
 
     try {
+      // Usar o usuário logado ou fallback para o userId passado
+      const finalUserId = user?.id || userId || '00000000-0000-0000-0000-000000000001';
+
       console.log('📝 Enviando nova nota:', {
         business_id: businessId,
-        user_id: userId || '00000000-0000-0000-0000-000000000001',
+        user_id: finalUserId,
         content: content.trim(),
-        note_type: noteType
+        note_type: noteType,
+        user_name: user?.full_name || 'Usuário'
       });
 
       const response = await fetch('/api/crm/notes', {
@@ -43,7 +49,7 @@ export default function AddNoteModal({ businessId, userId, isOpen, onClose, onNo
         },
         body: JSON.stringify({
           business_id: businessId,
-          user_id: userId || '00000000-0000-0000-0000-000000000001', // User padrão se não fornecido
+          user_id: finalUserId,
           content: content.trim(),
           note_type: noteType,
           create_activity: false // Sistema de atividades desabilitado temporariamente

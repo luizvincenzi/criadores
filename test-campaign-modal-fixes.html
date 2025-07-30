@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Correções do Modal de Campanha</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        pre {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste - Correções do Modal de Campanha</h1>
+        <p>Este teste verifica se as correções nos modais de campanha estão funcionando corretamente.</p>
+
+        <!-- Teste 1: Salvamento de Objetivo Principal -->
+        <div class="test-section">
+            <h3>📝 Teste 1: Salvamento de Objetivo Principal</h3>
+            <p>Testa se o campo "Objetivo Principal" está sendo salvo corretamente.</p>
+            <button onclick="testObjectiveSaving()">Testar Salvamento de Objetivo</button>
+            <div id="objective-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Teste 2: Salvamento de Datas -->
+        <div class="test-section">
+            <h3>📅 Teste 2: Salvamento de Datas de Gravação</h3>
+            <p>Testa se as datas de início e fim estão sendo salvas corretamente.</p>
+            <button onclick="testDateSaving()">Testar Salvamento de Datas</button>
+            <div id="date-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Teste 3: Campo Apresentação da Empresa -->
+        <div class="test-section">
+            <h3>🏢 Teste 3: Campo Apresentação da Empresa</h3>
+            <p>Testa se o campo "Apresentação da Empresa" está sendo exibido e salvo.</p>
+            <button onclick="testBusinessPresentation()">Testar Apresentação da Empresa</button>
+            <div id="business-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Teste 4: Busca de Campanha -->
+        <div class="test-section">
+            <h3>🔍 Teste 4: Busca de Campanha para Teste</h3>
+            <p>Busca uma campanha existente para testar as funcionalidades.</p>
+            <button onclick="findTestCampaign()">Buscar Campanha de Teste</button>
+            <div id="search-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para buscar uma campanha de teste
+        async function findTestCampaign() {
+            const result = document.getElementById('search-result');
+            result.style.display = 'block';
+            result.innerHTML = '🔍 Buscando campanhas...';
+
+            try {
+                const response = await fetch('/api/supabase/campaigns');
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    const campaign = data.data[0];
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h4>✅ Campanha encontrada para teste:</h4>
+                        <p><strong>ID:</strong> ${campaign.id}</p>
+                        <p><strong>Título:</strong> ${campaign.title}</p>
+                        <p><strong>Business:</strong> ${campaign.business_name}</p>
+                        <p><strong>Mês:</strong> ${campaign.month}</p>
+                        
+                        <h5>📋 Dados atuais:</h5>
+                        <pre>${JSON.stringify({
+                            objectives: campaign.objectives,
+                            briefing_details: campaign.briefing_details
+                        }, null, 2)}</pre>
+                        
+                        <button onclick="testWithCampaign('${campaign.id}')">Usar esta campanha para testes</button>
+                    `;
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = '❌ Nenhuma campanha encontrada para teste.';
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `❌ Erro ao buscar campanhas: ${error.message}`;
+            }
+        }
+
+        // Função para testar salvamento de objetivo
+        async function testObjectiveSaving() {
+            const result = document.getElementById('objective-result');
+            result.style.display = 'block';
+            result.innerHTML = '🧪 Testando salvamento de objetivo...';
+
+            try {
+                // Buscar uma campanha para testar
+                const searchResponse = await fetch('/api/supabase/campaigns');
+                const searchData = await searchResponse.json();
+
+                if (!searchData.success || !searchData.data || searchData.data.length === 0) {
+                    throw new Error('Nenhuma campanha encontrada para teste');
+                }
+
+                const campaign = searchData.data[0];
+                const testObjective = `Objetivo de teste - ${new Date().toISOString()}`;
+
+                // Tentar atualizar o objetivo
+                const updateResponse = await fetch('/api/supabase/campaigns', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: campaign.id,
+                        objectives: testObjective,
+                        comunicacaoSecundaria: 'Comunicação secundária de teste'
+                    })
+                });
+
+                const updateResult = await updateResponse.json();
+
+                if (updateResult.success) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h4>✅ Objetivo salvo com sucesso!</h4>
+                        <p><strong>Campanha:</strong> ${campaign.title}</p>
+                        <p><strong>Novo objetivo:</strong> ${testObjective}</p>
+                        <pre>${JSON.stringify(updateResult.data.objectives, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(updateResult.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `❌ Erro no teste: ${error.message}`;
+            }
+        }
+
+        // Função para testar salvamento de datas
+        async function testDateSaving() {
+            const result = document.getElementById('date-result');
+            result.style.display = 'block';
+            result.innerHTML = '🧪 Testando salvamento de datas...';
+
+            try {
+                // Buscar uma campanha para testar
+                const searchResponse = await fetch('/api/supabase/campaigns');
+                const searchData = await searchResponse.json();
+
+                if (!searchData.success || !searchData.data || searchData.data.length === 0) {
+                    throw new Error('Nenhuma campanha encontrada para teste');
+                }
+
+                const campaign = searchData.data[0];
+                const today = new Date().toISOString().split('T')[0];
+                const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+                // Tentar atualizar as datas
+                const updateResponse = await fetch('/api/supabase/campaigns', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: campaign.id,
+                        datasGravacao: {
+                            dataInicio: today,
+                            dataFim: tomorrow,
+                            observacoes: 'Teste de datas de gravação'
+                        }
+                    })
+                });
+
+                const updateResult = await updateResponse.json();
+
+                if (updateResult.success) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h4>✅ Datas salvas com sucesso!</h4>
+                        <p><strong>Campanha:</strong> ${campaign.title}</p>
+                        <p><strong>Data início:</strong> ${today}</p>
+                        <p><strong>Data fim:</strong> ${tomorrow}</p>
+                        <pre>${JSON.stringify(updateResult.data.briefing_details?.datas_gravacao, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(updateResult.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `❌ Erro no teste: ${error.message}`;
+            }
+        }
+
+        // Função para testar apresentação da empresa
+        async function testBusinessPresentation() {
+            const result = document.getElementById('business-result');
+            result.style.display = 'block';
+            result.innerHTML = '🧪 Testando apresentação da empresa...';
+
+            try {
+                // Buscar empresas
+                const businessResponse = await fetch('/api/supabase/businesses');
+                const businessData = await businessResponse.json();
+
+                if (!businessData.success || !businessData.data || businessData.data.length === 0) {
+                    throw new Error('Nenhuma empresa encontrada para teste');
+                }
+
+                const business = businessData.data[0];
+                const testPresentation = `Apresentação de teste - ${new Date().toISOString()}`;
+
+                // Tentar atualizar a apresentação
+                const updateResponse = await fetch('/api/supabase/businesses', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: business.id,
+                        apresentacao_empresa: testPresentation
+                    })
+                });
+
+                const updateResult = await updateResponse.json();
+
+                if (updateResult.success) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h4>✅ Apresentação da empresa salva com sucesso!</h4>
+                        <p><strong>Empresa:</strong> ${business.name}</p>
+                        <p><strong>Nova apresentação:</strong> ${testPresentation}</p>
+                        <p><strong>Campo no banco:</strong> ${updateResult.data.apresentacao_empresa}</p>
+                    `;
+                } else {
+                    throw new Error(updateResult.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `❌ Erro no teste: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

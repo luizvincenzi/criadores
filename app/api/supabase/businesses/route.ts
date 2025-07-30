@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
         is_active,
         created_at,
         updated_at,
+        apresentacao_empresa,
         owner_user:users!owner_user_id(id, full_name, email),
         responsible_user:users!responsible_user_id(id, full_name, email)
       `)
@@ -107,7 +108,10 @@ export async function GET(request: NextRequest) {
       contractCreatorsCount: business.contract_creators_count || 0,
       ownerUserId: business.owner_user_id || null,
       ownerName: business.owner_user_id ? usersMap.get(business.owner_user_id)?.full_name || null : null,
-      priority: business.priority || 'Média'
+      priority: business.priority || 'Média',
+      apresentacao_empresa: business.apresentacao_empresa || '',
+      apresentacaoEmpresa: business.apresentacao_empresa || '', // Compatibilidade
+      custom_fields: business.custom_fields || {}
     }));
 
     return NextResponse.json({
@@ -270,13 +274,9 @@ export async function PUT(request: NextRequest) {
     if (updateData.owner_user_id !== undefined) updateFields.owner_user_id = updateData.owner_user_id;
     if (updateData.priority) updateFields.priority = updateData.priority;
 
-    // Atualizar apresentacao_empresa no custom_fields se fornecido
+    // Atualizar apresentacao_empresa diretamente na tabela
     if (updateData.apresentacao_empresa !== undefined) {
-      const currentCustomFields = updateData.custom_fields || {};
-      updateFields.custom_fields = {
-        ...currentCustomFields,
-        apresentacaoEmpresa: updateData.apresentacao_empresa
-      };
+      updateFields.apresentacao_empresa = updateData.apresentacao_empresa;
     }
 
     const { data, error } = await supabase

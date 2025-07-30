@@ -26,6 +26,7 @@ interface CampaignData {
     name: string;
     contact_info?: any;
     address?: any;
+    apresentacao_empresa?: string;
   };
   stats: {
     totalCreators: number;
@@ -103,6 +104,23 @@ export default function CampaignLandingPage() {
 
         if (!result.success) {
           throw new Error(result.error || 'Erro desconhecido');
+        }
+
+        // Se não há apresentação da empresa, buscar dados completos da empresa
+        if (!result.data.business.apresentacao_empresa && result.data.business.id) {
+          console.log('🔍 [LANDING PAGE] Buscando dados completos da empresa...');
+          try {
+            const businessResponse = await fetch(`/api/supabase/businesses?id=${result.data.business.id}`);
+            const businessData = await businessResponse.json();
+
+            if (businessData.success && businessData.data && businessData.data.length > 0) {
+              result.data.business.apresentacao_empresa = businessData.data[0].apresentacao_empresa || '';
+              console.log('✅ [LANDING PAGE] Apresentação da empresa carregada:',
+                result.data.business.apresentacao_empresa ? 'PRESENTE' : 'AUSENTE');
+            }
+          } catch (businessError) {
+            console.warn('⚠️ [LANDING PAGE] Erro ao buscar dados da empresa:', businessError);
+          }
         }
 
         setCampaignData(result.data);
@@ -313,11 +331,57 @@ export default function CampaignLandingPage() {
         </div>
       </div>
 
-      {/* Informações Gerais da Campanha */}
+      {/* Sobre a Empresa - Largura Total */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
+        <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-6 md:mb-8">
+          <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">
+            Sobre a Empresa
+          </label>
+          <div className="text-sm text-gray-900 space-y-3">
+            {campaignData.business.apresentacao_empresa ? (
+              campaignData.business.apresentacao_empresa.split('\n').map((paragraph: string, index: number) => {
+                const cleanParagraph = paragraph.trim();
+                if (cleanParagraph === '') return null;
+
+                // Se contém ** no início e fim, é um título em negrito
+                if (cleanParagraph.match(/^\*\*.*\*\*$/)) {
+                  const title = cleanParagraph.replace(/\*\*/g, '');
+                  return (
+                    <h4 key={index} className="font-semibold text-blue-700 text-sm mt-3 first:mt-0">
+                      {title}
+                    </h4>
+                  );
+                }
+
+                // Se contém bullet points (•)
+                if (cleanParagraph.includes('•')) {
+                  return (
+                    <div key={index} className="flex items-start ml-1">
+                      <span className="w-1 h-1 bg-blue-500 rounded-full mr-2 mt-2 flex-shrink-0"></span>
+                      <p className="text-gray-800 text-sm leading-relaxed">{cleanParagraph.replace('•', '').trim()}</p>
+                    </div>
+                  );
+                }
+
+                // Parágrafo normal
+                return (
+                  <p key={index} className="text-gray-800 text-sm leading-relaxed">
+                    {cleanParagraph}
+                  </p>
+                );
+              }).filter(Boolean)
+            ) : (
+              <p className="text-gray-500 text-sm italic">
+                Informações sobre a empresa serão adicionadas em breve.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Grid de Informações */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
-          {/* Informações Básicas - Expandida */}
+          {/* Informações Básicas - Reformulada */}
           <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center">
               <svg className="w-5 h-5 md:w-6 md:h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,56 +390,96 @@ export default function CampaignLandingPage() {
               Informações Gerais
             </h2>
             <div className="space-y-6">
+              {/* Descrição da Campanha - Melhorada */}
               <div>
-                <label className="text-sm font-medium text-gray-500 block mb-2">Descrição da Campanha</label>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-gray-900 leading-relaxed">{campaignData.campaign.description || 'Não informada'}</p>
+                <label className="text-sm font-medium text-gray-500 block mb-3">Descrição da Campanha</label>
+                <div className="bg-gray-50 rounded-lg p-4 md:p-6">
+                  <div className="text-gray-900 leading-relaxed space-y-4">
+                    {campaignData.campaign.description ? (
+                      campaignData.campaign.description.split('\n').map((paragraph: string, index: number) => {
+                        const cleanParagraph = paragraph.replace(/\t/g, '').trim();
+                        if (cleanParagraph === '') return null;
+
+                        // Se contém "Cena" no início, é um título de seção
+                        if (cleanParagraph.match(/^Cena \d+/)) {
+                          return (
+                            <div key={index} className="mt-6 first:mt-0">
+                              <h4 className="font-bold text-blue-700 text-lg mb-3 border-l-4 border-blue-500 pl-4">
+                                {cleanParagraph}
+                              </h4>
+                            </div>
+                          );
+                        }
+
+                        // Se contém bullet points (• ou tabs seguidos de •)
+                        if (cleanParagraph.includes('•') || paragraph.includes('\t•')) {
+                          // Tratar linha com múltiplos bullet points
+                          const parts = cleanParagraph.split('•').filter(part => part.trim());
+                          if (parts.length > 1) {
+                            return (
+                              <div key={index} className="space-y-2 ml-4">
+                                {parts.map((part, partIndex) => {
+                                  if (partIndex === 0 && !part.trim()) return null; // Pular primeira parte vazia
+                                  return (
+                                    <div key={partIndex} className="flex items-start">
+                                      <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                                      <p className="text-gray-800 leading-relaxed">{part.trim()}</p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          } else {
+                            // Linha única com bullet point
+                            return (
+                              <div key={index} className="flex items-start ml-4">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                                <p className="text-gray-800 leading-relaxed">{cleanParagraph.replace('•', '').trim()}</p>
+                              </div>
+                            );
+                          }
+                        }
+
+                        // Parágrafo normal
+                        return (
+                          <p key={index} className="text-gray-800 leading-relaxed">
+                            {cleanParagraph}
+                          </p>
+                        );
+                      }).filter(Boolean) // Remove elementos null
+                    ) : (
+                      <p className="text-gray-500 italic">Não informada</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500 block mb-2">Data de Início</label>
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <p className="text-gray-900 font-medium">{formatDate(campaignData.campaign.start_date)}</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500 block mb-2">Data de Fim</label>
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <p className="text-gray-900 font-medium">{formatDate(campaignData.campaign.end_date)}</p>
-                  </div>
-                </div>
-              </div>
-
+              {/* Valor da Remuneração */}
               <div>
-                <label className="text-sm font-medium text-gray-500 block mb-2">Tipo de Remuneração</label>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <div className="flex items-center">
-                    <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                    <p className="text-green-800 font-semibold">Permuta direto com a empresa</p>
+                <label className="text-sm font-medium text-gray-500 block mb-3">Valor da Remuneração</label>
+                <div className="bg-green-50 rounded-lg p-4 md:p-6 border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <svg className="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                      <div>
+                        <p className="text-green-800 font-semibold text-lg">Permuta direto com a empresa</p>
+                        <p className="text-green-700 text-sm">Valor estimado da permuta</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-green-800">
+                        R$ {campaignData.campaign.budget ? campaignData.campaign.budget.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Sobre a Empresa */}
-          {(campaignData.business.apresentacao_empresa || campaignData.business.apresentacaoEmpresa || campaignData.business.custom_fields?.apresentacaoEmpresa) && (
-            <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center">
-                <svg className="w-5 h-5 md:w-6 md:h-6 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                Sobre a Empresa
-              </h2>
-              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                <p className="text-gray-900 leading-relaxed whitespace-pre-line">{campaignData.business.apresentacao_empresa || campaignData.business.apresentacaoEmpresa || campaignData.business.custom_fields?.apresentacaoEmpresa || ''}</p>
-              </div>
-            </div>
-          )}
+
 
           {/* Objetivos e Entregáveis Combinados */}
           <div className="space-y-6">

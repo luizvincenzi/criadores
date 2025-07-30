@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Problemas dos Modais</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        pre {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .input-test {
+            margin: 10px 0;
+        }
+        .input-test input, .input-test textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐛 Debug - Problemas dos Modais</h1>
+        <p>Este teste ajuda a identificar e corrigir os problemas específicos nos modais.</p>
+
+        <!-- Teste 1: Debug Apresentação da Empresa -->
+        <div class="test-section">
+            <h3>🏢 Debug: Apresentação da Empresa</h3>
+            <p>Testa o salvamento do campo apresentacao_empresa na aba empresas.</p>
+            
+            <div class="input-test">
+                <label>Texto de teste para apresentação:</label>
+                <textarea id="apresentacao-input" rows="3" placeholder="Digite um texto de teste para a apresentação da empresa...">Esta é uma apresentação de teste da empresa - ${new Date().toISOString()}</textarea>
+            </div>
+            
+            <button onclick="debugApresentacaoEmpresa()">Debug Apresentação da Empresa</button>
+            <div id="apresentacao-debug" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Teste 2: Debug Objetivo Principal -->
+        <div class="test-section">
+            <h3>🎯 Debug: Objetivo Principal</h3>
+            <p>Testa o salvamento do campo objectives na aba campanhas.</p>
+            
+            <div class="input-test">
+                <label>Objetivo de teste:</label>
+                <textarea id="objetivo-input" rows="3" placeholder="Digite um objetivo de teste...">Objetivo de teste - Aumentar vendas e reconhecimento da marca - ${new Date().toISOString()}</textarea>
+            </div>
+            
+            <button onclick="debugObjetivoPrincipal()">Debug Objetivo Principal</button>
+            <div id="objetivo-debug" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Teste 3: Verificar Estado Atual -->
+        <div class="test-section">
+            <h3>🔍 Verificar Estado Atual</h3>
+            <p>Verifica o estado atual dos dados no banco.</p>
+            
+            <button onclick="verificarEstadoAtual()">Verificar Estado Atual</button>
+            <div id="estado-debug" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Debug da apresentação da empresa
+        async function debugApresentacaoEmpresa() {
+            const result = document.getElementById('apresentacao-debug');
+            const input = document.getElementById('apresentacao-input');
+            const textoTeste = input.value;
+            
+            result.style.display = 'block';
+            result.innerHTML = '🔍 Debugando apresentação da empresa...';
+
+            try {
+                // 1. Buscar uma empresa para teste
+                console.log('🔍 Buscando empresas...');
+                const businessResponse = await fetch('/api/supabase/businesses');
+                const businessData = await businessResponse.json();
+
+                if (!businessData.success || !businessData.data || businessData.data.length === 0) {
+                    throw new Error('Nenhuma empresa encontrada');
+                }
+
+                const business = businessData.data[0];
+                console.log('🏢 Empresa encontrada:', business);
+
+                // 2. Tentar atualizar a apresentação
+                console.log('💾 Atualizando apresentação da empresa...');
+                const updatePayload = {
+                    id: business.id,
+                    apresentacao_empresa: textoTeste
+                };
+                
+                console.log('📤 Payload de atualização:', updatePayload);
+
+                const updateResponse = await fetch('/api/supabase/businesses', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatePayload)
+                });
+
+                const updateResult = await updateResponse.json();
+                console.log('📥 Resultado da atualização:', updateResult);
+
+                // 3. Verificar se foi salvo
+                console.log('🔍 Verificando se foi salvo...');
+                const verifyResponse = await fetch(`/api/supabase/businesses?id=${business.id}`);
+                const verifyData = await verifyResponse.json();
+                console.log('📊 Dados após atualização:', verifyData);
+
+                if (updateResult.success) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h4>✅ Debug da Apresentação da Empresa</h4>
+                        <p><strong>Empresa:</strong> ${business.name}</p>
+                        <p><strong>Texto enviado:</strong> ${textoTeste}</p>
+                        <p><strong>Status da atualização:</strong> ${updateResult.success ? 'Sucesso' : 'Falha'}</p>
+                        
+                        <h5>📋 Dados retornados pela API:</h5>
+                        <pre>${JSON.stringify({
+                            apresentacao_empresa: updateResult.data?.apresentacao_empresa,
+                            custom_fields: updateResult.data?.custom_fields
+                        }, null, 2)}</pre>
+                        
+                        <h5>🔍 Verificação após salvamento:</h5>
+                        <pre>${JSON.stringify({
+                            apresentacao_empresa: verifyData.data?.[0]?.apresentacao_empresa,
+                            custom_fields: verifyData.data?.[0]?.custom_fields
+                        }, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(updateResult.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                console.error('❌ Erro no debug:', error);
+                result.className = 'result error';
+                result.innerHTML = `❌ Erro no debug: ${error.message}`;
+            }
+        }
+
+        // Debug do objetivo principal
+        async function debugObjetivoPrincipal() {
+            const result = document.getElementById('objetivo-debug');
+            const input = document.getElementById('objetivo-input');
+            const objetivoTeste = input.value;
+            
+            result.style.display = 'block';
+            result.innerHTML = '🔍 Debugando objetivo principal...';
+
+            try {
+                // 1. Buscar uma campanha para teste
+                console.log('🔍 Buscando campanhas...');
+                const campaignResponse = await fetch('/api/supabase/campaigns');
+                const campaignData = await campaignResponse.json();
+
+                if (!campaignData.success || !campaignData.data || campaignData.data.length === 0) {
+                    throw new Error('Nenhuma campanha encontrada');
+                }
+
+                const campaign = campaignData.data[0];
+                console.log('📋 Campanha encontrada:', campaign);
+
+                // 2. Tentar atualizar o objetivo
+                console.log('💾 Atualizando objetivo da campanha...');
+                const updatePayload = {
+                    id: campaign.id,
+                    objectives: objetivoTeste,
+                    comunicacaoSecundaria: 'Comunicação secundária de teste'
+                };
+                
+                console.log('📤 Payload de atualização:', updatePayload);
+
+                const updateResponse = await fetch('/api/supabase/campaigns', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatePayload)
+                });
+
+                const updateResult = await updateResponse.json();
+                console.log('📥 Resultado da atualização:', updateResult);
+
+                // 3. Verificar se foi salvo
+                console.log('🔍 Verificando se foi salvo...');
+                const verifyResponse = await fetch(`/api/supabase/campaigns?campaignId=${campaign.id}`);
+                const verifyData = await verifyResponse.json();
+                console.log('📊 Dados após atualização:', verifyData);
+
+                if (updateResult.success) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h4>✅ Debug do Objetivo Principal</h4>
+                        <p><strong>Campanha:</strong> ${campaign.title}</p>
+                        <p><strong>Objetivo enviado:</strong> ${objetivoTeste}</p>
+                        <p><strong>Status da atualização:</strong> ${updateResult.success ? 'Sucesso' : 'Falha'}</p>
+                        
+                        <h5>📋 Dados retornados pela API:</h5>
+                        <pre>${JSON.stringify({
+                            objectives: updateResult.data?.objectives,
+                            briefing_details: updateResult.data?.briefing_details
+                        }, null, 2)}</pre>
+                        
+                        <h5>🔍 Verificação após salvamento:</h5>
+                        <pre>${JSON.stringify({
+                            objectives: verifyData.data?.[0]?.objectives,
+                            briefing_details: verifyData.data?.[0]?.briefing_details
+                        }, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(updateResult.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                console.error('❌ Erro no debug:', error);
+                result.className = 'result error';
+                result.innerHTML = `❌ Erro no debug: ${error.message}`;
+            }
+        }
+
+        // Verificar estado atual
+        async function verificarEstadoAtual() {
+            const result = document.getElementById('estado-debug');
+            result.style.display = 'block';
+            result.innerHTML = '🔍 Verificando estado atual...';
+
+            try {
+                // Buscar empresas
+                const businessResponse = await fetch('/api/supabase/businesses');
+                const businessData = await businessResponse.json();
+
+                // Buscar campanhas
+                const campaignResponse = await fetch('/api/supabase/campaigns');
+                const campaignData = await campaignResponse.json();
+
+                result.className = 'result success';
+                result.innerHTML = `
+                    <h4>📊 Estado Atual do Sistema</h4>
+                    
+                    <h5>🏢 Empresas (${businessData.data?.length || 0}):</h5>
+                    <pre>${JSON.stringify(businessData.data?.slice(0, 2).map(b => ({
+                        id: b.id,
+                        name: b.name,
+                        apresentacao_empresa: b.apresentacao_empresa,
+                        custom_fields: b.custom_fields
+                    })), null, 2)}</pre>
+                    
+                    <h5>📋 Campanhas (${campaignData.data?.length || 0}):</h5>
+                    <pre>${JSON.stringify(campaignData.data?.slice(0, 2).map(c => ({
+                        id: c.id,
+                        title: c.title,
+                        objectives: c.objectives,
+                        briefing_details: c.briefing_details
+                    })), null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `❌ Erro ao verificar estado: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

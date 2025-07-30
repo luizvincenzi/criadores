@@ -233,7 +233,8 @@ export async function getCampaignBySeoUrl(seoUrl: string): Promise<{
           name,
           contact_info,
           address,
-          custom_fields
+          custom_fields,
+          apresentacao_empresa
         )
       `)
       .eq('business_id', matchedBusiness.id)

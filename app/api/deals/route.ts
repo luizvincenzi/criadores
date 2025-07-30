@@ -192,8 +192,29 @@ export async function PUT(request: NextRequest) {
     console.log(`  - Proprietário: ${updatedBusiness.owner_user_id || 'N/A'}`);
     console.log(`  - Timestamp: ${new Date().toISOString()}`);
 
-    // Futuramente, quando a tabela business_activities estiver funcionando,
-    // podemos reativar o código de inserção de atividades aqui
+    // Registrar mudança de etapa como nota no histórico
+    if (previous_stage && previous_stage !== stage) {
+      try {
+        const stageChangeNote = {
+          business_id: id,
+          user_id: updatedBusiness.owner_user_id || '00000000-0000-0000-0000-000000000001',
+          content: `Etapa alterada de "${previous_stage}" para "${stage}"${timeInPreviousStage ? ` (${timeInPreviousStage} dias na etapa anterior)` : ''}`,
+          note_type: 'stage_change'
+        };
+
+        const { error: noteError } = await supabase
+          .from('business_notes')
+          .insert([stageChangeNote]);
+
+        if (noteError) {
+          console.error('❌ Erro ao criar nota de mudança de etapa:', noteError);
+        } else {
+          console.log('✅ Nota de mudança de etapa criada');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao registrar mudança de etapa:', error);
+      }
+    }
 
     // Buscar informações do proprietário para retorno
     let owner = null;

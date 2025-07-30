@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AddNoteModal from './AddNoteModal';
+import { useAuthStore } from '@/store/authStore';
 
 interface Deal {
   id: string;
@@ -48,6 +49,7 @@ interface DealDetailsModalProps {
 }
 
 export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdate }: DealDetailsModalProps) {
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('info');
   const [businessDetails, setBusinessDetails] = useState<BusinessDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,6 +87,17 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR');
+  };
+
+  const formatDateWithTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleDateString('pt-BR', { month: 'short' });
+    const time = date.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `${day} de ${month} às ${time}`;
   };
 
   const formatCurrency = (value: number) => {
@@ -566,28 +579,42 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
                   <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Histórico</h3>
                     <div className="space-y-4">
-                      <div className="flex items-center space-x-3 text-sm">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-gray-600">Criado em {formatDate(deal.created_at)}</span>
-                      </div>
-                      <div className="flex items-center space-x-3 text-sm">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span className="text-gray-600">Movido para "{deal.stage}"</span>
-                      </div>
-                      {notes.length > 0 && notes.map((note, index) => (
-                        <div key={note.id} className="flex items-center space-x-3 text-sm">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-600">Nota adicionada</span>
-                            <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
-                              {new Date(note.created_at).toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: 'short'
-                              })}
+                      {/* Criar um array combinado de todas as atividades e ordenar por data */}
+                      {(() => {
+                        const activities = [
+                          {
+                            id: 'created',
+                            type: 'created',
+                            date: deal.created_at,
+                            content: `Criado em ${formatDateWithTime(deal.created_at)}`
+                          },
+                          ...notes.map(note => ({
+                            id: note.id,
+                            type: note.note_type === 'stage_change' ? 'stage_change' : 'note',
+                            date: note.created_at,
+                            content: note.note_type === 'stage_change'
+                              ? note.content
+                              : `Nota adicionada por ${note.user_name}`,
+                            note: note
+                          }))
+                        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                        return activities.map((activity) => (
+                          <div key={activity.id} className="flex items-center space-x-3 text-sm">
+                            <div className={`w-3 h-3 rounded-full ${
+                              activity.type === 'created' ? 'bg-blue-500' :
+                              activity.type === 'stage_change' ? 'bg-green-500' :
+                              'bg-purple-500'
+                            }`}></div>
+                            <div className="flex items-center space-x-2 flex-1">
+                              <span className="text-gray-600">{activity.content}</span>
+                              <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
+                                {formatDateWithTime(activity.date)}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ));
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -660,9 +687,9 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="text-xs text-gray-500 text-right">
-                              <div>Criada: {formatDate(note.created_at)}</div>
+                              <div>Criada: {formatDateWithTime(note.created_at)}</div>
                               {wasEdited && (
-                                <div>Editada: {formatDate(note.updated_at)}</div>
+                                <div>Editada: {formatDateWithTime(note.updated_at)}</div>
                               )}
                             </div>
                             {!isEditing && (
@@ -727,7 +754,7 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
         isOpen={isAddNoteModalOpen}
         onClose={() => setIsAddNoteModalOpen(false)}
         businessId={deal?.business_id || ''}
-        userId="00000000-0000-0000-0000-000000000001"
+        userId={user?.id || "00000000-0000-0000-0000-000000000001"}
         onNoteAdded={handleNotesReload}
       />
     </div>
