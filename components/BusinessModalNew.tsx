@@ -47,6 +47,7 @@ interface BusinessFormData {
   contractCreatorsCount: string;   // S = Quantidade de criadores no contrato
   ownerUserId: string;             // T = Proprietário do negócio
   priority: string;                // U = Prioridade
+  apresentacaoEmpresa: string;     // V = Apresentação da empresa
 }
 
 export default function BusinessModalNew({ business, isOpen, onClose, onBusinessUpdated }: BusinessModalProps) {
@@ -73,7 +74,8 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
     estimatedValue: '',
     contractCreatorsCount: '',
     ownerUserId: '',
-    priority: 'Média'
+    priority: 'Média',
+    apresentacaoEmpresa: ''
   });
   const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
@@ -126,7 +128,8 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
         estimatedValue: business.estimatedValue ? business.estimatedValue.toString() : '',
         contractCreatorsCount: business.contractCreatorsCount ? business.contractCreatorsCount.toString() : '',
         ownerUserId: business.ownerUserId || business.owner_user_id || '',
-        priority: business.priority || 'Média'
+        priority: business.priority || 'Média',
+        apresentacaoEmpresa: business.apresentacao_empresa || ''
       });
 
       // Buscar campanhas
@@ -206,7 +209,8 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
         estimated_value: parseFloat(formData.estimatedValue) || 0,
         contract_creators_count: parseInt(formData.contractCreatorsCount) || 0,
         owner_user_id: formData.ownerUserId || null,
-        priority: formData.priority
+        priority: formData.priority,
+        apresentacao_empresa: formData.apresentacaoEmpresa
       };
 
       console.log('📤 Enviando dados para API:', updateData);
@@ -516,6 +520,9 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
                 {renderField('Criadores no Contrato', 'contractCreatorsCount', 'number')}
                 <div className="md:col-span-2">
                   {renderField('Proprietário do Negócio', 'ownerUserId', 'select', users.map(u => ({ value: u.id, label: `${u.full_name || u.name} (${u.email})` })))}
+                </div>
+                <div className="md:col-span-2">
+                  {renderField('Apresentação da Empresa', 'apresentacaoEmpresa', 'textarea')}
                 </div>
               </div>
             </div>

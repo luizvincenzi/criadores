@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
         tags,
         custom_fields,
         metrics,
+        apresentacao_empresa,
         is_active,
         created_at,
         updated_at,
@@ -207,6 +208,7 @@ export async function POST(request: NextRequest) {
           grupoWhatsappCriado: body.grupoWhatsappCriado || 'Não',
           notes: body.notes || ''
         },
+        apresentacao_empresa: body.apresentacaoEmpresa || '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -268,6 +270,7 @@ export async function PUT(request: NextRequest) {
     if (updateData.contract_creators_count !== undefined) updateFields.contract_creators_count = updateData.contract_creators_count;
     if (updateData.owner_user_id !== undefined) updateFields.owner_user_id = updateData.owner_user_id;
     if (updateData.priority) updateFields.priority = updateData.priority;
+    if (updateData.apresentacao_empresa !== undefined) updateFields.apresentacao_empresa = updateData.apresentacao_empresa;
 
     const { data, error } = await supabase
       .from('businesses')

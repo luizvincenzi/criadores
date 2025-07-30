@@ -32,6 +32,7 @@ interface BusinessFormData {
   ownerUserId: string;
   priority: string;
   indicadoPorCriador: string;
+  apresentacaoEmpresa: string;
 }
 
 export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddBusinessModalProps) {
@@ -58,7 +59,8 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
     contractCreatorsCount: '',
     ownerUserId: '',
     priority: 'Média',
-    indicadoPorCriador: ''
+    indicadoPorCriador: '',
+    apresentacaoEmpresa: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -174,7 +176,8 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
           contractCreatorsCount: formData.contractCreatorsCount,
           ownerUserId: formData.ownerUserId,
           priority: formData.priority,
-          indicadoPorCriador: formData.indicadoPorCriador
+          indicadoPorCriador: formData.indicadoPorCriador,
+          apresentacaoEmpresa: formData.apresentacaoEmpresa
         })
       });
 
@@ -192,7 +195,7 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
         contratoAssinadoEnviado: 'Não', dataAssinaturaContrato: '', contratoValidoAte: '',
         relatedFiles: '', notes: '', businessStage: 'Leads próprios frios',
         estimatedValue: '', contractCreatorsCount: '', ownerUserId: '',
-        priority: 'Média', indicadoPorCriador: ''
+        priority: 'Média', indicadoPorCriador: '', apresentacaoEmpresa: ''
       });
 
       onSuccess();
@@ -356,6 +359,20 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
                       ))}
                     </select>
                   </div>
+
+                  {/* Apresentação da Empresa */}
+                  <div className="md:col-span-3">
+                    <label className="block text-sm font-semibold text-blue-700 mb-2">
+                      Apresentação da Empresa
+                    </label>
+                    <textarea
+                      value={formData.apresentacaoEmpresa}
+                      onChange={(e) => handleInputChange('apresentacaoEmpresa', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      rows={4}
+                      placeholder="Descreva a empresa, seus valores, história, diferenciais e informações importantes para as campanhas..."
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -468,7 +485,7 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
                   {/* Proprietário do Negócio */}
                   <div>
                     <label className="block text-sm font-semibold text-purple-700 mb-2">
-                      Proprietário do Negócio
+                      Prospectado por
                     </label>
                     <select
                       value={formData.ownerUserId}
@@ -484,23 +501,7 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
                     </select>
                   </div>
 
-                  {/* Status de Prospecção */}
-                  <div>
-                    <label className="block text-sm font-semibold text-purple-700 mb-2">
-                      Status de Prospecção
-                    </label>
-                    <select
-                      value={formData.prospeccao}
-                      onChange={(e) => handleInputChange('prospeccao', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    >
-                      <option value="">Selecione um status</option>
-                      <option value="Reunião de briefing">Reunião de briefing</option>
-                      <option value="Agendamentos">Agendamentos</option>
-                      <option value="Entrega final">Entrega final</option>
-                      <option value="Finalizado">Finalizado</option>
-                    </select>
-                  </div>
+              
 
                   {/* Etapa do Negócio */}
                   <div>

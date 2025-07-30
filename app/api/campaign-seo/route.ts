@@ -125,7 +125,8 @@ export async function GET(request: NextRequest) {
           id,
           name,
           contact_info,
-          address
+          address,
+          apresentacao_empresa
         )
       `)
       .eq('id', campaignData.campaign.id)

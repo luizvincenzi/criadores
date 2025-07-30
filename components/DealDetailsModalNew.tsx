@@ -532,7 +532,7 @@ export default function DealDetailsModalNew({ isOpen, onClose, deal, onDealUpdat
                           <button
                             onClick={() => {
                               const phone = businessDetails.whatsappResponsavel.replace(/\D/g, '');
-                              const message = `Olá! Sou da equipe CRM crIAdores. Como posso ajudar?`;
+                              const message = `Olá! Sou da equipe crIAdores`;
                               window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(message)}`, '_blank');
                             }}
                             className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white rounded-xl px-4 py-3 text-sm font-medium transition-colors"
