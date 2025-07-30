@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
           name,
           contact_info,
           address,
-          apresentacao_empresa
+          custom_fields
         )
       `)
       .eq('id', campaignData.campaign.id)

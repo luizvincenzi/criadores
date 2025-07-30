@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['googleapis'],
   // Configuração adicional para Vercel - REMOVIDO TEMPORARIAMENTE PARA DEBUG
   // output: 'standalone',
+
+  // Evitar prerender de APIs que estão causando erro
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+
+  // Configuração de export para evitar problemas com APIs
+  trailingSlash: false,
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;
