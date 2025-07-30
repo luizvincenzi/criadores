@@ -14,9 +14,9 @@ const nextConfig: NextConfig = {
   // Configuração adicional para Vercel - REMOVIDO TEMPORARIAMENTE PARA DEBUG
   // output: 'standalone',
 
-  // Evitar prerender de APIs que estão causando erro
+  // Configurações experimentais
   experimental: {
-    missingSuspenseWithCSRBailout: false,
+    // Configurações futuras podem ser adicionadas aqui
   },
 
   // Configuração de export para evitar problemas com APIs
