@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const userData = await getCurrentUserFromRequest(request);
     if (!userData) {
       return NextResponse.json(
-        { error: 'Usuário não autenticado' },
+        { error: 'Usuário não autenticado', tasks: [], total: 0 },
         { status: 401 }
       );
     }
@@ -125,7 +125,12 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('❌ Erro ao buscar tarefas da jornada:', error);
       return NextResponse.json(
-        { error: 'Erro ao buscar tarefas', details: error.message },
+        {
+          error: 'Erro ao buscar tarefas',
+          details: error.message,
+          tasks: [],
+          total: 0
+        },
         { status: 500 }
       );
     }
@@ -141,7 +146,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erro interno ao buscar tarefas da jornada:', error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      {
+        error: 'Erro interno do servidor',
+        tasks: [],
+        total: 0
+      },
       { status: 500 }
     );
   }

@@ -129,7 +129,7 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
         contractCreatorsCount: business.contractCreatorsCount ? business.contractCreatorsCount.toString() : '',
         ownerUserId: business.ownerUserId || business.owner_user_id || '',
         priority: business.priority || 'Média',
-        apresentacaoEmpresa: business.apresentacao_empresa || ''
+        apresentacaoEmpresa: business.apresentacao_empresa || business.apresentacaoEmpresa || ''
       });
 
       // Buscar campanhas

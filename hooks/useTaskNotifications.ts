@@ -46,7 +46,7 @@ export const useTaskNotifications = () => {
 
       const data = await response.json();
 
-      if (data.tasks) {
+      if (data && Array.isArray(data.tasks)) {
         // Contar apenas tarefas não concluídas
         const pendingCount = data.tasks.filter((task: Task) => task.status !== 'done').length;
         setPendingTasksCount(pendingCount);

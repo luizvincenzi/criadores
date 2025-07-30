@@ -363,7 +363,7 @@ export default function CampaignLandingPage() {
           </div>
 
           {/* Sobre a Empresa */}
-          {campaignData.business.apresentacao_empresa && (
+          {(campaignData.business.apresentacao_empresa || campaignData.business.apresentacaoEmpresa) && (
             <div className="bg-white rounded-xl shadow-sm p-6 md:p-8">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center">
                 <svg className="w-5 h-5 md:w-6 md:h-6 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,7 +372,7 @@ export default function CampaignLandingPage() {
                 Sobre a Empresa
               </h2>
               <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                <p className="text-gray-900 leading-relaxed whitespace-pre-line">{campaignData.business.apresentacao_empresa}</p>
+                <p className="text-gray-900 leading-relaxed whitespace-pre-line">{campaignData.business.apresentacao_empresa || campaignData.business.apresentacaoEmpresa || ''}</p>
               </div>
             </div>
           )}
