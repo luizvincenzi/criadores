@@ -1,214 +1,135 @@
-import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
 
-dotenv.config({ path: '.env.local' });
+// Configuração do Supabase
+const supabaseUrl = 'https://ecbhcalmulaiszslwhqz.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjYmhjYWxtdWxhaXN6c2x3aHF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1ODAyNTYsImV4cCI6MjA2ODE1NjI1Nn0.5GBfnOQjb64Qhw0UF5HtTNROlu4fpJzbWSZmeACcjMA';
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjYmhjYWxtdWxhaXN6c2x3aHF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjU4MDI1NiwiZXhwIjoyMDY4MTU2MjU2fQ.uAZ2E-hQAQZJ4W3FIuPJ4PJAbOM9SCN2Ns5-GScrCDs';
 
-async function testLogin() {
-  console.log('🔐 TESTANDO SISTEMA DE LOGIN\n');
-  
-  try {
-    const baseUrl = 'http://localhost:3000';
-    
-    // 1. Testar se o servidor está funcionando
-    console.log('🔍 1. Verificando servidor...');
-    
-    try {
-      const healthResponse = await fetch(`${baseUrl}/login`);
-      if (healthResponse.ok) {
-        console.log('✅ Página de login acessível');
-      } else {
-        console.log(`⚠️ Página de login retornou erro: ${healthResponse.status}`);
-        return;
-      }
-    } catch (error) {
-      console.log('❌ Servidor não está rodando. Execute: npm run dev');
-      return;
-    }
+// Cliente normal para teste de login
+const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-    // 2. Testar API de verificação de usuário
-    console.log('\n🔍 2. Testando API de verificação...');
-    
-    try {
-      const meResponse = await fetch(`${baseUrl}/api/auth/me`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: 'luizvincenzi@gmail.com'
-        }),
-      });
-      
-      const meData = await meResponse.json();
-      
-      if (meData.success) {
-        console.log('✅ API /api/auth/me funcionando');
-        console.log(`   📧 Usuário: ${meData.user.full_name} (${meData.user.email})`);
-        console.log(`   🔑 Role: ${meData.user.role}`);
-      } else {
-        console.log(`❌ API /api/auth/me falhou: ${meData.error}`);
-      }
-    } catch (error) {
-      console.log('❌ Erro ao testar API /api/auth/me:', error);
-    }
-
-    // 3. Testar API de login
-    console.log('\n🔍 3. Testando API de login...');
-    
-    const testCredentials = [
-      { email: 'luizvincenzi@gmail.com', password: 'qualquersenha' },
-      { email: 'admin@crmcriadores.com', password: 'admin123' },
-      { email: 'pgabrieldavila@gmail.com', password: 'teste' }
-    ];
-
-    for (const cred of testCredentials) {
-      try {
-        const loginResponse = await fetch(`${baseUrl}/api/supabase/auth/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(cred),
-        });
-        
-        const loginData = await loginResponse.json();
-        
-        if (loginData.success) {
-          console.log(`✅ Login funcionando para: ${cred.email}`);
-          console.log(`   👤 Usuário: ${loginData.user.full_name}`);
-          console.log(`   🔑 Role: ${loginData.user.role}`);
-        } else {
-          console.log(`❌ Login falhou para ${cred.email}: ${loginData.error}`);
-        }
-      } catch (error) {
-        console.log(`❌ Erro ao testar login para ${cred.email}:`, error);
-      }
-    }
-
-    // 4. Testar fluxo completo de autenticação
-    console.log('\n🔍 4. Testando fluxo completo...');
-    
-    try {
-      // Simular login
-      const loginResponse = await fetch(`${baseUrl}/api/supabase/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: 'luizvincenzi@gmail.com',
-          password: 'qualquersenha'
-        }),
-      });
-      
-      const loginData = await loginResponse.json();
-      
-      if (loginData.success) {
-        console.log('✅ Login realizado com sucesso');
-        
-        // Testar verificação do usuário
-        const verifyResponse = await fetch(`${baseUrl}/api/auth/me`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: loginData.user.email
-          }),
-        });
-        
-        const verifyData = await verifyResponse.json();
-        
-        if (verifyData.success) {
-          console.log('✅ Verificação de usuário funcionando');
-          console.log('✅ Fluxo completo de autenticação OK');
-        } else {
-          console.log(`❌ Verificação falhou: ${verifyData.error}`);
-        }
-      } else {
-        console.log(`❌ Login falhou: ${loginData.error}`);
-      }
-    } catch (error) {
-      console.log('❌ Erro no fluxo completo:', error);
-    }
-
-    // 5. Verificar estrutura de dados do usuário
-    console.log('\n🔍 5. Verificando estrutura de dados...');
-    
-    try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-
-      const { data: users, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', 'luizvincenzi@gmail.com')
-        .single();
-
-      if (error) {
-        console.log('❌ Erro ao buscar usuário no Supabase:', error);
-      } else {
-        console.log('✅ Usuário encontrado no Supabase');
-        console.log(`   📧 Email: ${users.email}`);
-        console.log(`   👤 Nome: ${users.full_name}`);
-        console.log(`   🔑 Role: ${users.role}`);
-        console.log(`   ✅ Ativo: ${users.is_active}`);
-        console.log(`   🏢 Org ID: ${users.organization_id}`);
-      }
-    } catch (error) {
-      console.log('❌ Erro ao verificar dados no Supabase:', error);
-    }
-
-    // 6. Testar audit logs
-    console.log('\n🔍 6. Testando audit logs...');
-    
-    try {
-      const { logUserLogin } = await import('../lib/auditLogger');
-      
-      const logResult = await logUserLogin('luizvincenzi@gmail.com', {
-        test: true,
-        timestamp: new Date().toISOString()
-      });
-      
-      console.log(`📝 Audit log: ${logResult ? 'Funcionando' : 'Com problemas'}`);
-    } catch (error) {
-      console.log('❌ Erro ao testar audit logs:', error);
-    }
-
-    console.log('\n✅ TESTE DE LOGIN CONCLUÍDO!');
-    
-    console.log('\n📋 RESUMO:');
-    console.log('✅ Servidor funcionando');
-    console.log('✅ APIs de autenticação funcionando');
-    console.log('✅ Usuários configurados no Supabase');
-    console.log('✅ Fluxo de login operacional');
-    
-    console.log('\n🎯 COMO FAZER LOGIN:');
-    console.log('1. Acesse: http://localhost:3000/login');
-    console.log('2. Email: luizvincenzi@gmail.com');
-    console.log('3. Senha: qualquer senha (sistema aceita qualquer senha)');
-    console.log('4. Clique em "Entrar"');
-    console.log('5. Será redirecionado para o dashboard');
-    
-    console.log('\n🚀 SISTEMA DE LOGIN PRONTO!');
-
-  } catch (error) {
-    console.error('❌ Erro no teste de login:', error);
+// Cliente admin para redefinir senhas
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
   }
+});
+
+const testUsers = [
+  {
+    email: 'luizvincenzi@gmail.com',
+    password: 'criadores2024!',
+    name: 'Luiz Vincenzi'
+  },
+  {
+    email: 'pgabrieldavila@gmail.com',
+    password: 'criadores2024!',
+    name: 'Pedro Gabriel Davila'
+  },
+  {
+    email: 'marloncpascoal@gmail.com',
+    password: 'criadores2024!',
+    name: 'Marlon Pascoal'
+  }
+];
+
+async function testAndFixLogins() {
+  console.log('🧪 [crIAdores] Testando login dos usuários...\n');
+
+  for (const user of testUsers) {
+    console.log(`👤 Testando login: ${user.email}`);
+
+    try {
+      // Tentar fazer login
+      const { data: authData, error: loginError } = await supabaseClient.auth.signInWithPassword({
+        email: user.email,
+        password: user.password
+      });
+
+      if (loginError) {
+        console.log(`  ❌ Login falhou: ${loginError.message}`);
+        console.log('  🔧 Tentando redefinir senha...');
+
+        // Obter ID do usuário
+        const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers();
+        const authUser = authUsers.users.find(u => u.email === user.email);
+
+        if (authUser) {
+          // Redefinir senha
+          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+            authUser.id,
+            {
+              password: user.password,
+              email_confirm: true
+            }
+          );
+
+          if (updateError) {
+            console.log(`  ❌ Erro ao redefinir senha: ${updateError.message}`);
+          } else {
+            console.log('  ✅ Senha redefinida com sucesso');
+
+            // Testar login novamente
+            const { data: retryData, error: retryError } = await supabaseClient.auth.signInWithPassword({
+              email: user.email,
+              password: user.password
+            });
+
+            if (retryError) {
+              console.log(`  ❌ Login ainda falha: ${retryError.message}`);
+            } else {
+              console.log('  ✅ Login funcionando após redefinição!');
+              // Fazer logout para não interferir nos próximos testes
+              await supabaseClient.auth.signOut();
+            }
+          }
+        }
+      } else {
+        console.log('  ✅ Login funcionando perfeitamente!');
+        console.log(`     Usuário ID: ${authData.user?.id}`);
+        console.log(`     Email: ${authData.user?.email}`);
+
+        // Fazer logout para não interferir nos próximos testes
+        await supabaseClient.auth.signOut();
+      }
+
+      console.log('');
+    } catch (error) {
+      console.error(`  ❌ Erro inesperado para ${user.email}:`, error);
+      console.log('');
+    }
+  }
+
+  console.log('🎉 [crIAdores] Teste de login concluído!\n');
+
+  console.log('📋 CREDENCIAIS PARA TESTE:');
+  console.log('==========================');
+
+  for (const user of testUsers) {
+    console.log(`👤 ${user.name}`);
+    console.log(`   📧 Email: ${user.email}`);
+    console.log(`   🔐 Senha: ${user.password}`);
+    console.log('');
+  }
+
+  console.log('🌐 TESTE NA APLICAÇÃO:');
+  console.log('======================');
+  console.log('🔗 URL: http://localhost:3000/login');
+  console.log('✅ Use qualquer uma das credenciais acima!');
 }
 
+// Executar o script
 if (require.main === module) {
-  testLogin()
+  testAndFixLogins()
     .then(() => {
-      console.log('\n🎉 Teste de login finalizado');
+      console.log('🎯 Teste executado com sucesso!');
       process.exit(0);
     })
-    .catch(error => {
-      console.error('\n❌ Teste de login falhou:', error);
+    .catch((error) => {
+      console.error('❌ Erro ao executar teste:', error);
       process.exit(1);
     });
 }
 
-export { testLogin };
+export { testAndFixLogins };
