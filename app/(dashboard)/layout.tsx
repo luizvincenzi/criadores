@@ -22,12 +22,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const handleSignOut = async () => {
     console.log('🚪 Layout: Iniciando logout');
     try {
-      // Fazer logout no store (que já redireciona)
-      logout();
+      // Fazer logout no store
+      await logout();
+      // Redirecionar para página inicial
+      window.location.href = '/';
     } catch (error) {
       console.error('❌ Layout: Erro no logout:', error);
-      // Em caso de erro, forçar redirecionamento
-      window.location.href = '/login';
+      // Em caso de erro, forçar redirecionamento para página inicial
+      window.location.href = '/';
     }
   };
 
@@ -262,7 +264,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main Content */}
       <main
         style={{ paddingTop: '120px' }}
-        className={`p-6 transition-all duration-300 ${isTasksSidebarOpen ? 'pr-[320px]' : ''}`}
+        className={`dashboard-bg p-6 transition-all duration-300 ${isTasksSidebarOpen ? 'pr-[320px]' : ''}`}
       >
         <div className="max-w-7xl mx-auto">
           {children}

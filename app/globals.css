@@ -426,6 +426,11 @@ body {
   color: var(--secondary) !important;
 }
 
+/* Dashboard Background */
+.dashboard-bg {
+  background-color: #f5f5f5 !important;
+}
+
 /* Custom Scrollbar Styles for Tasks Sidebar */
 .tasks-sidebar-scroll {
   /* Webkit browsers */

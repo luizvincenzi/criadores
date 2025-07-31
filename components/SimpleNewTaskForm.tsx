@@ -24,6 +24,9 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
 
+  // Verificar se é usuário business (não admin)
+  const isBusinessUser = user?.role !== 'admin';
+
   const [formData, setFormData] = useState({
     name: '',
     category: 'outros', // Nova categoria
@@ -35,10 +38,10 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
   });
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isBusinessUser) {
       loadUsers();
     }
-  }, [isOpen]);
+  }, [isOpen, isBusinessUser]);
 
   const loadUsers = async () => {
     try {
@@ -77,11 +80,10 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
         priority: formData.priority,
         status: 'todo',
         due_date: combinedDateTime,
-        assigned_to: formData.assignedTo || user?.id,
+        assigned_to: isBusinessUser ? user?.id : (formData.assignedTo || user?.id),
         created_by: user?.id,
         estimated_hours: null,
         business_name: formData.category === 'campanhas' ? 'Campanhas' :
-                      formData.category === 'negocios' ? 'Negócios' :
                       formData.category === 'criadores' ? 'Criadores' : 'Outros',
         campaign_month: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
         journey_stage: 'Reunião de briefing', // Usar sempre um valor válido do enum
@@ -198,16 +200,7 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
                     ),
                     color: 'bg-purple-100 text-purple-800 border-purple-200'
                   },
-                  {
-                    value: 'negocios',
-                    label: 'Negócios',
-                    icon: (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    ),
-                    color: 'bg-blue-100 text-blue-800 border-blue-200'
-                  },
+
                   {
                     value: 'criadores',
                     label: 'Criadores',
@@ -228,7 +221,7 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
                     ),
                     color: 'bg-gray-100 text-gray-800 border-gray-200'
                   }
-                ].map((category) => (
+                ].filter(category => !isBusinessUser || category.value !== 'negocios').map((category) => (
                   <button
                     key={category.value}
                     type="button"
@@ -271,21 +264,24 @@ export default function SimpleNewTaskForm({ isOpen, onClose, onTaskCreated }: Si
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Responsável</label>
-              <select
-                value={formData.assignedTo}
-                onChange={(e) => handleInputChange('assignedTo', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Selecione um responsável</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.full_name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Campo Responsável - apenas para admins */}
+            {!isBusinessUser && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Responsável</label>
+                <select
+                  value={formData.assignedTo}
+                  onChange={(e) => handleInputChange('assignedTo', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Selecione um responsável</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>

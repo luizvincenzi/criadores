@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useCalendarSync } from '@/hooks/useCalendarSync';
 import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch';
+import { useAuthStore } from '@/store/authStore';
 
 interface Task {
   id: string;
@@ -45,9 +46,13 @@ interface TaskDetailModalProps {
 }
 
 export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDeleted }: TaskDetailModalProps) {
+  const { user } = useAuthStore();
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+
+  // Verificar se é usuário business (não admin)
+  const isBusinessUser = user?.role !== 'admin';
   const [calendarSyncStatus, setCalendarSyncStatus] = useState<any>(null);
   const {
     loading: calendarLoading,
@@ -165,7 +170,6 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
         estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
         actual_hours: formData.actual_hours ? parseInt(formData.actual_hours) : null,
         business_name: formData.category === 'campanhas' ? 'Campanhas' :
-                      formData.category === 'negocios' ? 'Negócios' :
                       formData.category === 'criadores' ? 'Criadores' : 'Outros',
         journey_stage: 'Reunião de briefing' // Usar sempre um valor válido do enum
       };
@@ -390,16 +394,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                         ),
                         color: 'bg-purple-100 text-purple-800 border-purple-200'
                       },
-                      {
-                        value: 'negocios',
-                        label: 'Negócios',
-                        icon: (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                          </svg>
-                        ),
-                        color: 'bg-blue-100 text-blue-800 border-blue-200'
-                      },
+
                       {
                         value: 'criadores',
                         label: 'Criadores',
@@ -420,7 +415,7 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                         ),
                         color: 'bg-gray-100 text-gray-800 border-gray-200'
                       }
-                    ].map((category) => (
+                    ].filter(category => !isBusinessUser || category.value !== 'negocios').map((category) => (
                       <button
                         key={category.value}
                         type="button"
@@ -438,24 +433,26 @@ export function TaskDetailModal({ task, isOpen, onClose, onTaskUpdated, onTaskDe
                   </div>
                 </div>
 
-                {/* Atribuído a */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Atribuído a
-                  </label>
-                  <select
-                    value={formData.assigned_to}
-                    onChange={(e) => setFormData(prev => ({ ...prev, assigned_to: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Selecione um usuário</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Atribuído a - apenas para admins */}
+                {!isBusinessUser && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Atribuído a
+                    </label>
+                    <select
+                      value={formData.assigned_to}
+                      onChange={(e) => setFormData(prev => ({ ...prev, assigned_to: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Selecione um usuário</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.full_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Prioridade */}
                 <div>

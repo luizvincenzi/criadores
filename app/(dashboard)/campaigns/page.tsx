@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { fetchCampaigns, isUsingSupabase } from '@/lib/dataSource';
+import { useAuthStore } from '@/store/authStore';
 import CampaignGroupModal from '@/components/CampaignGroupModal';
 import AddCampaignModalNew from '@/components/AddCampaignModalNew';
 import CampaignModalComplete from '@/components/CampaignModalComplete';
@@ -22,6 +23,7 @@ interface GroupedCampaignData {
 }
 
 export default function CampaignsPage() {
+  const { user, session } = useAuthStore();
   const [groupedCampaigns, setGroupedCampaigns] = useState<GroupedCampaignData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCampaignGroup, setSelectedCampaignGroup] = useState<GroupedCampaignData | null>(null);
@@ -32,8 +34,10 @@ export default function CampaignsPage() {
   const [monthFilter, setMonthFilter] = useState('all');
 
   useEffect(() => {
-    loadCampaigns();
-  }, []);
+    if (user) {
+      loadCampaigns();
+    }
+  }, [user]);
 
   // Função para agrupar campanhas do Supabase por negócio e mês
   const groupCampaignsByBusiness = (campaigns: any[]): GroupedCampaignData[] => {
@@ -113,11 +117,25 @@ export default function CampaignsPage() {
     try {
       console.log('📊 Carregando campanhas do Supabase...');
 
+      // Obter business_id do usuário logado
+      const businessId = session?.business_id || user?.business_id;
+      console.log('🏢 Business ID do usuário:', businessId);
+
       // Usar dados do Supabase (única fonte agora)
       const campaignsData = await fetchCampaigns();
 
+      // Filtrar campanhas pelo business_id do usuário (se não for admin)
+      let filteredCampaigns = campaignsData;
+      if (user?.role !== 'admin' && businessId) {
+        filteredCampaigns = campaignsData.filter(campaign =>
+          campaign.businessId === businessId ||
+          campaign.business_id === businessId
+        );
+        console.log(`🔍 Campanhas filtradas para business ${businessId}:`, filteredCampaigns.length);
+      }
+
       // Transformar dados do Supabase para formato agrupado
-      const groupedData = groupCampaignsByBusiness(campaignsData);
+      const groupedData = groupCampaignsByBusiness(filteredCampaigns);
       setGroupedCampaigns(groupedData);
     } catch (error) {
       console.error('Erro ao carregar campanhas:', error);
