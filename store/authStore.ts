@@ -81,6 +81,7 @@ export const useAuthStore = create<AuthStore>()(
               role,
               permissions,
               avatar_url,
+              is_active,
               created_at,
               updated_at,
               last_login
