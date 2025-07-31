@@ -15,12 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CRM crIAdores - Gestão Inteligente de Influenciadores",
-  description: "Sistema completo de gestão de influenciadores, campanhas e negócios. Controle total do seu pipeline de criadores de conteúdo.",
-  keywords: "CRM, influenciadores, criadores, campanhas, gestão, marketing digital",
-  authors: [{ name: "Luiz Vincenzi" }],
-  creator: "Luiz Vincenzi",
-  publisher: "CRM crIAdores",
+  title: "crIAdores - Plataforma de Gestão de Campanhas",
+  description: "Gerencie suas campanhas de influenciadores de forma profissional. Organize eventos, acompanhe criadores e otimize resultados.",
+  keywords: "campanhas, influenciadores, marketing, gestão, eventos, criadores",
+  authors: [{ name: "crIAdores Team" }],
+  creator: "crIAdores",
+  publisher: "crIAdores",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "CRM crIAdores - Gestão Inteligente de Influenciadores",
-    description: "Sistema completo de gestão de influenciadores, campanhas e negócios.",
+    title: "crIAdores - Plataforma de Gestão de Campanhas",
+    description: "Gerencie suas campanhas de influenciadores de forma profissional.",
     type: "website",
     locale: "pt_BR"
   }

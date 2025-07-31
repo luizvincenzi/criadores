@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { UserRole } from '@/lib/auth-types';
 
 // Simulação de rate limiting (em produção, usar Redis/Upstash)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -93,13 +94,122 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+// 🔒 FUNÇÃO PARA EXTRAIR DADOS DO USUÁRIO DO TOKEN
+async function getUserFromRequest(request: NextRequest) {
+  try {
+    // Tentar obter token do cookie ou header
+    const token = request.cookies.get('auth-token')?.value ||
+                  request.headers.get('authorization')?.replace('Bearer ', '');
+
+    if (!token) return null;
+
+    // Em produção, validar JWT aqui
+    // Por enquanto, simular dados do usuário baseado no token
+    // TODO: Implementar validação JWT real
+
+    return null; // Retornar dados do usuário após validação
+  } catch (error) {
+    console.error('🔒 Erro ao extrair usuário:', error);
+    return null;
+  }
+}
+
+// 🔒 FUNÇÃO PARA VALIDAR ACESSO POR BUSINESS_ID
+function validateBusinessAccess(userRole: UserRole, userBusinessId: string | null, requestedBusinessId: string | null): boolean {
+  // Admins podem acessar qualquer business
+  if (userRole === UserRole.ADMIN) {
+    return true;
+  }
+
+  // Empresas e criadores só podem acessar seu próprio business
+  if (userRole === UserRole.BUSINESS || userRole === UserRole.CREATOR) {
+    return userBusinessId === requestedBusinessId;
+  }
+
+  return false;
+}
+
+// 🔒 FUNÇÃO PARA EXTRAIR BUSINESS_ID DA URL OU HEADERS
+function extractBusinessIdFromRequest(request: NextRequest): string | null {
+  // 1. Tentar obter do header (APIs)
+  const headerBusinessId = request.headers.get('x-business-id') ||
+                           request.headers.get('x-client-business-id');
+  if (headerBusinessId) return headerBusinessId;
+
+  // 2. Tentar obter da URL (rotas com business_id)
+  const url = new URL(request.url);
+  const businessIdParam = url.searchParams.get('business_id');
+  if (businessIdParam) return businessIdParam;
+
+  // 3. Tentar obter do path (rotas como /business/[id])
+  const pathSegments = url.pathname.split('/');
+  const businessIndex = pathSegments.indexOf('business');
+  if (businessIndex !== -1 && pathSegments[businessIndex + 1]) {
+    return pathSegments[businessIndex + 1];
+  }
+
+  return null;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = getClientIP(request);
 
-  // Verificar autenticação para rotas protegidas
-  const protectedRoutes = ['/dashboard', '/jornada', '/businesses', '/creators', '/campaigns', '/deals'];
+  // 🎯 MODO CLIENTE: Sempre ativo na plataforma crIAdores cliente
+  const isClientMode = true;
+  const clientBusinessId = process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
+
+  if (isClientMode && clientBusinessId) {
+    // 🔒 HEADERS DE SEGURANÇA CRÍTICOS
+    request.headers.set('x-client-business-id', clientBusinessId);
+    request.headers.set('x-client-mode', 'true');
+    request.headers.set('x-criadores-platform', 'client');
+
+    console.log('🔒 [MIDDLEWARE] Headers de segurança aplicados:', {
+      businessId: clientBusinessId,
+      mode: 'client',
+      path: pathname
+    });
+  }
+
+  // 🔒 ROTAS PROTEGIDAS DA PLATAFORMA crIAdores CLIENTE
+  const protectedRoutes = ['/dashboard', '/eventos', '/campanhas', '/criadores', '/tarefas'];
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+
+  // 🔒 APIs PROTEGIDAS QUE REQUEREM BUSINESS_ID
+  const protectedApiRoutes = ['/api/client/'];
+  const isProtectedApiRoute = protectedApiRoutes.some(route => pathname.startsWith(route));
+
+  // 🔒 VALIDAÇÃO ADICIONAL PARA APIs CLIENTE
+  if (isProtectedApiRoute) {
+    const businessIdFromRequest = extractBusinessIdFromRequest(request);
+
+    if (!businessIdFromRequest && !clientBusinessId) {
+      console.error('❌ [SECURITY] API chamada sem business_id:', pathname);
+      return NextResponse.json({
+        success: false,
+        error: 'Business ID obrigatório para esta operação'
+      }, { status: 403 });
+    }
+
+    // Validar se business_id da request bate com o configurado
+    if (businessIdFromRequest && clientBusinessId && businessIdFromRequest !== clientBusinessId) {
+      console.error('❌ [SECURITY] Business ID inválido na API:', {
+        requested: businessIdFromRequest,
+        expected: clientBusinessId,
+        path: pathname
+      });
+      return NextResponse.json({
+        success: false,
+        error: 'Acesso não autorizado para esta empresa'
+      }, { status: 403 });
+    }
+
+    console.log('✅ [SECURITY] API autorizada:', {
+      path: pathname,
+      businessId: businessIdFromRequest || clientBusinessId
+    });
+  }
 
   if (isProtectedRoute) {
     // Temporariamente desabilitar verificação do middleware para debug

@@ -31,45 +31,20 @@ export default function LoginPage() {
     console.log('🔐 Login: Tentativa de login para:', email);
 
     try {
-      const response = await fetch('/api/supabase/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      console.log('🔐 [crIAdores] Iniciando autenticação...');
 
-      const data = await response.json();
-      console.log('🔐 Login: Resposta da API:', { success: data.success, user: data.user });
+      const result = await login(email, password);
 
-      if (data.success && data.user) {
-        console.log('✅ Login: Sucesso, fazendo login no store com dados:', data.user);
-        // Faz login no store
-        login(data.user);
-
-        // Verificar se o login foi persistido
-        setTimeout(() => {
-          const currentState = useAuthStore.getState();
-          console.log('🔍 Login: Estado atual do store:', {
-            isAuthenticated: currentState.isAuthenticated,
-            user: currentState.user?.email
-          });
-
-          if (currentState.isAuthenticated) {
-            console.log('✅ Login: Estado confirmado, redirecionando para dashboard');
-            router.push('/dashboard');
-          } else {
-            console.log('❌ Login: Estado não foi persistido corretamente');
-            setError('Erro ao salvar dados de login. Tente novamente.');
-          }
-        }, 200);
+      if (result.success) {
+        console.log('✅ [crIAdores] Login realizado com sucesso');
+        router.push('/dashboard');
       } else {
-        console.log('❌ Login: Falha na autenticação:', data.error);
-        setError(data.error || 'Erro ao fazer login');
+        console.log('❌ [crIAdores] Falha na autenticação:', result.error);
+        setError(result.error || 'Erro ao fazer login');
       }
     } catch (error) {
-      console.error('❌ Login: Erro de conexão:', error);
-      setError('Erro de conexão. Tente novamente.');
+      console.error('❌ [crIAdores] Erro inesperado:', error);
+      setError('Erro interno. Tente novamente.');
     } finally {
       setLoading(false);
       setAuthLoading(false);
