@@ -15,15 +15,41 @@ export default function Home() {
     router.push('/login');
   };
 
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white/95 backdrop-blur-sm shadow-sm fixed w-full top-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-gray-900">crIAdores</span>
+              <span className="text-2xl font-bold text-gray-900">
+                crI<span className="text-blue-600">A</span>dores
+              </span>
             </div>
+            <nav className="hidden md:flex space-x-8">
+              <button onClick={() => scrollToSection('about')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Sobre
+              </button>
+              <button onClick={() => scrollToSection('mission')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Missão
+              </button>
+              <button onClick={() => scrollToSection('team')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Equipe
+              </button>
+              <button onClick={() => scrollToSection('why')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Por que
+              </button>
+              <button onClick={() => scrollToSection('process')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Processo
+              </button>
+              <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Contato
+              </button>
+            </nav>
             <Button
               onClick={handleLogin}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
@@ -35,42 +61,97 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Gerencie suas
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> campanhas </span>
-            de influenciadores
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            A plataforma crIAdores completa para empresas que querem organizar, acompanhar e otimizar
-            suas campanhas de marketing com influenciadores de forma profissional.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={handleGetStarted}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105"
-            >
-              Começar Agora
-            </Button>
-            <Button
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-8 py-4 rounded-xl font-semibold text-lg transition-all"
-            >
-              Ver Funcionalidades
-            </Button>
+      <section className="bg-gradient-to-br from-gray-900 to-gray-800 text-white pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
+        <div className="max-w-7xl mx-auto relative">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            <div className="flex-1 text-center lg:text-left">
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  Conectando Negócios Locais a Criadores de Conteúdo
+                </span>
+              </h1>
+              <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+                Potencialize sua empresa com campanhas de influência local que geram resultados reais e aumentam suas vendas.
+              </p>
+              <Button
+                onClick={handleGetStarted}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 shadow-lg"
+              >
+                Comece Agora
+              </Button>
+            </div>
+            <div className="flex-1 max-w-lg">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+                <h3 className="text-2xl font-bold mb-6 text-white">Nossa Abordagem</h3>
+                <p className="text-gray-300 mb-6">
+                  Curadoria profissional, IA aplicada e métricas transparentes para garantir o sucesso das suas campanhas.
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-blue-600/20 rounded-xl">
+                    <div className="text-2xl font-bold text-blue-400 mb-1">500+</div>
+                    <div className="text-sm text-gray-300">Criadores</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-600/20 rounded-xl">
+                    <div className="text-2xl font-bold text-purple-400 mb-1">100+</div>
+                    <div className="text-sm text-gray-300">Empresas</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-600/20 rounded-xl">
+                    <div className="text-2xl font-bold text-green-400 mb-1">95%</div>
+                    <div className="text-sm text-gray-300">Satisfação</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
+              O que é a crIAdores?
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mt-8">
+              Uma plataforma inovadora que conecta negócios locais a criadores de conteúdo autênticos
+            </p>
+          </div>
+
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="flex-1">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+                Rede Conectada de Criadores Locais
+              </h3>
+              <p className="text-lg text-gray-600 mb-6">
+                A crIAdores é uma comunidade ativa de criadores de conteúdo locais que utilizam inteligência artificial para criar campanhas que geram resultados reais para os negócios.
+              </p>
+              <p className="text-lg text-gray-600 mb-8">
+                Nossa abordagem combina curadoria profissional, conteúdo orgânico e métricas transparentes para garantir o sucesso das suas campanhas de marketing.
+              </p>
+            </div>
+            <div className="flex-1">
+              <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center shadow-2xl">
+                <div className="text-lg font-medium">
+                  Nossa comunidade de criadores autênticos que impulsionam negócios locais
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
               Tudo que você precisa em um só lugar
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mt-8">
               Ferramentas profissionais para gerenciar cada etapa das suas campanhas
             </p>
           </div>
@@ -163,59 +244,461 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Mission Section */}
+      <section id="mission" className="py-20 bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 relative inline-block">
+              Nossa Missão, Visão e Valores
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded"></div>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto mt-8">
+              Guiando negócios locais rumo ao sucesso através da influência autêntica
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/10 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2">
+              <div className="text-5xl text-blue-400 mb-6">
+                <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-4">Nossa Missão</h3>
+              <p className="text-gray-300">
+                Potencializar o poder de nano e micro influenciadores locais para impulsionar negócios locais por meio de conexões autênticas e bem estruturadas.
+              </p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/10 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2">
+              <div className="text-5xl text-purple-400 mb-6">
+                <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-4">Nossa Visão</h3>
+              <p className="text-gray-300">
+                Ter 10.000 negócios ativos na plataforma, gerando mais de R$ 10 milhões por mês em oportunidades financeiras para mais de 60 mil criadores.
+              </p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/10 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2">
+              <div className="text-5xl text-green-400 mb-6">
+                <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-4">Nossos Valores</h3>
+              <p className="text-gray-300">
+                Comunidade, Over Delivery, Protagonismo, Foco em Vendas, Foco em Resultado e IA First.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Team Section */}
+      <section id="team" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
+              Nossa Equipe
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mt-8">
+              Os visionários por trás da crIAdores
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
+              <div className="h-64 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-center p-6">
+                <div>
+                  <div className="text-xl font-bold">Gabriel d'Avila</div>
+                  <div className="text-blue-200">Founder</div>
+                </div>
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Gabriel d'Avila</h3>
+                <p className="text-gray-600">Founder</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
+              <div className="h-64 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-center p-6">
+                <div>
+                  <div className="text-xl font-bold">Luiz Vincenzi</div>
+                  <div className="text-purple-200">Founder</div>
+                </div>
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Luiz Vincenzi</h3>
+                <p className="text-gray-600">Founder</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
+              <div className="h-64 bg-gradient-to-br from-green-600 to-blue-600 flex items-center justify-center text-white text-center p-6">
+                <div>
+                  <div className="text-xl font-bold">Marlon Pascoal</div>
+                  <div className="text-green-200">Advisor</div>
+                </div>
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Marlon Pascoal</h3>
+                <p className="text-gray-600">Advisor</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
+              <div className="h-64 bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center text-white text-center p-6">
+                <div>
+                  <div className="text-xl font-bold">Rafaela Frederick</div>
+                  <div className="text-orange-200">Operações</div>
+                </div>
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Rafaela Frederick</h3>
+                <p className="text-gray-600">Operações</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
+              <div className="h-64 bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center text-white text-center p-6">
+                <div>
+                  <div className="text-xl font-bold">Dayana Rocha</div>
+                  <div className="text-pink-200">Comercial</div>
+                </div>
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Dayana Rocha</h3>
+                <p className="text-gray-600">Comercial</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Pronto para organizar suas campanhas?
+            Vamos conversar sobre o futuro do seu negócio?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Junte-se às empresas que já usam nossa plataforma para
-            gerenciar campanhas de influenciadores de forma profissional.
+            Entre em contato com nossa equipe e descubra como podemos potencializar sua presença digital local
           </p>
           <Button
-            onClick={handleGetStarted}
+            onClick={() => scrollToSection('contact')}
             className="bg-white hover:bg-gray-100 text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105"
           >
-            Começar Gratuitamente
+            Fale Conosco
           </Button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      {/* Why Section */}
+      <section id="why" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center mb-4">
-                <span className="text-xl font-bold">crIAdores</span>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
+              Por que investir em micro influenciadores?
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mt-8">
+              Estratégia inteligente para maximizar seu retorno sobre investimento
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-blue-600">
+              <div className="text-4xl text-blue-600 mb-6">
+                <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                </svg>
               </div>
-              <p className="text-gray-400 mb-4 max-w-md">
-                A plataforma crIAdores completa para empresas que querem profissionalizar
-                a gestão de campanhas com influenciadores.
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Engajamento Real</h3>
+              <p className="text-gray-600">
+                Maior envolvimento por proximidade e conteúdo alinhado à cultura local gera conexões autênticas com seu público-alvo.
               </p>
             </div>
 
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-green-600">
+              <div className="text-4xl text-green-600 mb-6">
+                <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Custo-Benefício</h3>
+              <p className="text-gray-600">
+                Investimento acessível com maior retorno sobre valor aplicado em comparação com mídias tradicionais.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-purple-600">
+              <div className="text-4xl text-purple-600 mb-6">
+                <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Promoção Orgânica</h3>
+              <p className="text-gray-600">
+                Conteúdo natural e recorrente com recomendação genuína que constrói autoridade de marca de forma sustentável.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Process Section */}
+      <section id="process" className="py-20 bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 relative inline-block">
+              Como funciona na prática
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded"></div>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto mt-8">
+              Um processo estruturado para garantir resultados consistentes
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                1
+              </div>
+              <h3 className="text-lg font-bold mb-3">Briefing Personalizado</h3>
+              <p className="text-gray-300 text-sm">
+                Entendemos seu objetivo comercial e definimos a estratégia ideal para sua marca.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                2
+              </div>
+              <h3 className="text-lg font-bold mb-3">Seleção Precisa</h3>
+              <p className="text-gray-300 text-sm">
+                Selecionamos criadores ideais ao seu perfil e o cliente decide quais se encaixam mais no perfil adequado.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-pink-600 to-red-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                3
+              </div>
+              <h3 className="text-lg font-bold mb-3">Conteúdo Guiado</h3>
+              <p className="text-gray-300 text-sm">
+                Criadores recebem orientação e entregam posts criativos alinhados com sua marca.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                4
+              </div>
+              <h3 className="text-lg font-bold mb-3">Aprovação Segura</h3>
+              <p className="text-gray-300 text-sm">
+                Você valida todo o conteúdo antes da publicação para garantir alinhamento total.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-600 to-yellow-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+                5
+              </div>
+              <h3 className="text-lg font-bold mb-3">Medição e Evolução</h3>
+              <p className="text-gray-300 text-sm">
+                Análise de resultados e novos ciclos para alcançar ainda mais resultados.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
+              Entre em Contato
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mt-8">
+              Nossa equipe está pronta para ajudar seu negócio a crescer
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="space-y-8">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Telefone</h3>
+                  <p className="text-gray-600">Luiz Vincenzi: 42 99115-9229</p>
+                  <p className="text-gray-600">Gabriel d'Avila: 43 99952-0526</p>
+                  <p className="text-gray-600">Dayana Rocha: 43 98408-6249</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Email</h3>
+                  <p className="text-gray-600">luizvincenzi@gmail.com</p>
+                  <p className="text-gray-600">pgabrieldavila@gmail.com</p>
+                  <p className="text-gray-600">comercial@criadores.app</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Localização</h3>
+                  <p className="text-gray-600">Servindo pequenas e médias empresas em cidades por todo o Brasil</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-2xl p-8">
+              <form className="space-y-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nome Completo
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Seu nome"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="business" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nome do Negócio
+                  </label>
+                  <input
+                    type="text"
+                    id="business"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Nome da sua empresa"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                    Mensagem
+                  </label>
+                  <textarea
+                    id="message"
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Como podemos ajudar seu negócio?"
+                  ></textarea>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all"
+                >
+                  Enviar Mensagem
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="col-span-1 md:col-span-1">
+              <div className="flex items-center mb-4">
+                <span className="text-2xl font-bold">crIAdores</span>
+              </div>
+              <p className="text-gray-400 mb-6 max-w-md">
+                Conectando negócios locais a criadores de conteúdo autênticos para impulsionar vendas e engajamento.
+              </p>
+              <div className="flex space-x-4">
+                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                  </svg>
+                </a>
+                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+                  </svg>
+                </a>
+                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+
             <div>
-              <h3 className="font-semibold mb-4">Produto</h3>
+              <h3 className="font-semibold mb-4 text-lg">Links Rápidos</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#features" className="hover:text-white transition-colors">Funcionalidades</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Preços</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrações</a></li>
+                <li><button onClick={() => scrollToSection('about')} className="hover:text-white transition-colors">Sobre Nós</button></li>
+                <li><button onClick={() => scrollToSection('mission')} className="hover:text-white transition-colors">Missão e Valores</button></li>
+                <li><button onClick={() => scrollToSection('team')} className="hover:text-white transition-colors">Nossa Equipe</button></li>
+                <li><button onClick={() => scrollToSection('why')} className="hover:text-white transition-colors">Por que Micro Influenciadores</button></li>
+                <li><button onClick={() => scrollToSection('process')} className="hover:text-white transition-colors">Como Funciona</button></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Suporte</h3>
+              <h3 className="font-semibold mb-4 text-lg">Serviços</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Central de Ajuda</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contato</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Curadoria de Influenciadores</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Campanhas Estruturadas</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Conteúdo Orgânico</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Métricas e Relatórios</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Consultoria Local</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-4 text-lg">Contato</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="tel:42991159229" className="hover:text-white transition-colors">42 99115-9229</a></li>
+                <li><a href="tel:43999520526" className="hover:text-white transition-colors">43 99952-0526</a></li>
+                <li><a href="tel:43984086249" className="hover:text-white transition-colors">43 98408-6249</a></li>
+                <li><a href="mailto:comercial@criadores.app" className="hover:text-white transition-colors">comercial@criadores.app</a></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
             <p>&copy; 2024 crIAdores. Todos os direitos reservados.</p>
           </div>
         </div>
