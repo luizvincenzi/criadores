@@ -79,9 +79,6 @@ export const useAuthStore = create<AuthStore>()(
               email,
               full_name,
               role,
-              status,
-              business_id,
-              creator_id,
               permissions,
               avatar_url,
               created_at,
@@ -99,41 +96,46 @@ export const useAuthStore = create<AuthStore>()(
             return { success: false, error: 'Usuário não autorizado' };
           }
 
-          // 3. Validar status do usuário
-          if (userData.status !== UserStatus.ACTIVE) {
-            console.error('❌ Usuário inativo:', userData.status);
+          // 3. Validar se usuário está ativo
+          if (!userData.is_active) {
+            console.error('❌ Usuário inativo');
             await supabase.auth.signOut();
             set({ error: 'Conta inativa. Entre em contato com o suporte.', isLoading: false });
             return { success: false, error: 'Conta inativa' };
           }
 
           // 4. Validar acesso baseado no tipo de usuário
-          const clientBusinessId = process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
-          
-          if (userData.role === UserRole.BUSINESS || userData.role === UserRole.CREATOR) {
-            if (!userData.business_id) {
-              console.error('❌ Business ID não configurado para usuário:', userData.role);
-              await supabase.auth.signOut();
-              set({ error: 'Configuração de conta incompleta', isLoading: false });
-              return { success: false, error: 'Configuração incompleta' };
-            }
+          const clientBusinessId = process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID || '00000000-0000-0000-0000-000000000002';
 
-            // Verificar se o usuário pode acessar este business específico
-            if (clientBusinessId && !canAccessBusiness(userData as User, clientBusinessId)) {
-              console.error('❌ Usuário não autorizado para este business:', userData.business_id, 'vs', clientBusinessId);
-              await supabase.auth.signOut();
-              set({ error: 'Acesso não autorizado para esta empresa', isLoading: false });
-              return { success: false, error: 'Acesso não autorizado' };
-            }
+          // Admins podem acessar tudo
+          if (userData.role === 'admin') {
+            console.log('✅ Acesso de administrador autorizado');
+          }
+          // Usuários business e outros tipos têm acesso à plataforma cliente
+          else if (['manager', 'user', 'viewer'].includes(userData.role)) {
+            console.log('✅ Acesso de usuário autorizado para plataforma cliente');
+          }
+          else {
+            console.error('❌ Tipo de usuário não autorizado:', userData.role);
+            await supabase.auth.signOut();
+            set({ error: 'Tipo de conta não autorizado para esta plataforma', isLoading: false });
+            return { success: false, error: 'Acesso não autorizado' };
           }
 
           // 5. Criar sessão
-          const user: User = userData as User;
+          const user: User = {
+            ...userData,
+            status: 'active' as UserStatus,
+            business_id: clientBusinessId, // Usar o business_id da plataforma cliente
+            creator_id: undefined,
+            permissions: userData.permissions || []
+          };
+
           const session: AuthSession = {
             user,
-            business_id: user.business_id || clientBusinessId || undefined,
-            creator_id: user.creator_id,
-            permissions: user.permissions || [],
+            business_id: clientBusinessId,
+            creator_id: undefined,
+            permissions: userData.permissions || [],
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h
           };
 
