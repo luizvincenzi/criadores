@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthStore>()(
             return { success: false, error: 'Usuário não encontrado' };
           }
 
-          // 2. Buscar dados do usuário na tabela users
+          // 3. Buscar dados do usuário na tabela users
           const { data: userData, error: userError } = await supabase
             .from('users')
             .select(`
@@ -172,7 +172,7 @@ export const useAuthStore = create<AuthStore>()(
       // 🚪 LOGOUT
       logout: async () => {
         console.log('🚪 [crIAdores] Fazendo logout...');
-        
+
         try {
           await supabase.auth.signOut();
         } catch (error) {

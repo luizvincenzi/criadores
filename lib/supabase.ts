@@ -1,18 +1,37 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Configuração hardcoded para evitar problemas de environment variables
+const supabaseUrl = 'https://ecbhcalmulaiszslwhqz.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjYmhjYWxtdWxhaXN6c2x3aHF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1ODAyNTYsImV4cCI6MjA2ODE1NjI1Nn0.5GBfnOQjb64Qhw0UF5HtTNROlu4fpJzbWSZmeACcjMA';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+console.log('🔧 [SUPABASE] Configurando cliente:', {
+  url: supabaseUrl,
+  keyLength: supabaseAnonKey?.length || 0
+});
+
+if (!supabaseUrl) {
+  throw new Error('Supabase URL não configurada');
 }
 
+if (!supabaseAnonKey) {
+  throw new Error('Supabase Anon Key não configurada');
+}
+
+// Criar uma única instância do Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  },
+  global: {
+    headers: {
+      'x-criadores-platform': 'client',
+    },
   },
 });
+
+console.log('✅ [SUPABASE] Cliente configurado com sucesso');
 
 // Client para uso no servidor (com service role key)
 export const supabaseAdmin = createClient(
