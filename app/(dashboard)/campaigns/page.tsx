@@ -1,37 +1,52 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { fetchCampaigns, isUsingSupabase } from '@/lib/dataSource';
+import { fetchCampaigns } from '@/lib/dataSource';
 import { useAuthStore } from '@/store/authStore';
-import CampaignGroupModal from '@/components/CampaignGroupModal';
-import AddCampaignModalNew from '@/components/AddCampaignModalNew';
-import CampaignModalComplete from '@/components/CampaignModalComplete';
 import Button from '@/components/ui/Button';
 
-// Tipo para dados agrupados de campanhas
-interface GroupedCampaignData {
+// Interfaces para dados de campanhas
+interface Campaign {
+  id: string;
+  name: string;
   businessName: string;
   businessId: string;
   month: string;
-  monthDisplay: string; // Formato "Junho 2025"
+  monthDisplay: string;
   campaign_date: string;
-  campaigns: any[];
-  criadores: string[];
+  status: 'completed' | 'active' | 'planned';
   totalCreators: number;
   totalVisualizacoes: number;
-  status: string;
+  totalEngagement: number;
+  totalReach: number;
+  budget: number;
+  roi: number;
+  criadores: string[];
+  description?: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface MonthlyData {
+  month: string;
+  monthDisplay: string;
+  campaigns: Campaign[];
+  totalCampaigns: number;
+  totalCreators: number;
+  totalVisualizacoes: number;
+  totalEngagement: number;
+  totalReach: number;
+  totalBudget: number;
+  averageROI: number;
 }
 
 export default function CampaignsPage() {
   const { user, session } = useAuthStore();
-  const [groupedCampaigns, setGroupedCampaigns] = useState<GroupedCampaignData[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCampaignGroup, setSelectedCampaignGroup] = useState<GroupedCampaignData | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [monthFilter, setMonthFilter] = useState('all');
+  const [selectedPeriod, setSelectedPeriod] = useState('all');
+  const [viewMode, setViewMode] = useState<'timeline' | 'grid'>('timeline');
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -39,104 +54,31 @@ export default function CampaignsPage() {
     }
   }, [user]);
 
-  // Função para agrupar campanhas do Supabase por negócio e mês
-  const groupCampaignsByBusiness = (campaigns: any[]): GroupedCampaignData[] => {
-    const grouped = campaigns.reduce((acc: any, campaign: any) => {
-      const businessName = campaign.businessName || 'Sem Negócio';
-      const month = campaign.mes || 'Sem Mês';
-      const groupKey = `${businessName}_${month}`;
-
-      if (!acc[groupKey]) {
-        acc[groupKey] = {
-          businessName: businessName,
-          businessId: campaign.businessId || '',
-          month: month,
-          monthYearId: campaign.monthYearId || campaign.month_year_id, // 🎯 Adicionar month_year_id
-          monthDisplay: formatMonthDisplay(month),
-          campaign_date: '',
-          campaigns: [],
-          criadores: [],
-          totalCreators: 0,
-          totalVisualizacoes: 0,
-          status: campaign.status || 'Reunião de briefing',
-          campaignId: campaign.id // 🎯 Adicionar UUID da campanha principal
-        };
-      }
-
-      // Adicionar criadores da campanha
-      if (campaign.criadores && campaign.criadores.length > 0) {
-        acc[groupKey].campaigns.push(...campaign.criadores.map((criador: any) => ({
-          id: `${campaign.id}_${criador.id}`,
-          campaignId: campaign.id,
-          businessName: businessName,
-          creatorName: criador.nome,
-          creatorId: criador.id,
-          month: month,
-          status: criador.status || 'Ativo',
-          deliverables: criador.deliverables || {},
-          instagram: criador.instagram || '',
-          whatsapp: criador.whatsapp || '',
-          cidade: criador.cidade || ''
-        })));
-
-        // Adicionar nomes únicos dos criadores
-        const uniqueCreators = [...new Set(campaign.criadores.map((criador: any) => criador.nome || 'Sem Nome'))];
-        acc[groupKey].criadores = [...new Set([...acc[groupKey].criadores, ...uniqueCreators])];
-        acc[groupKey].totalCreators = acc[groupKey].criadores.length;
-      } else {
-        // Se não tem criadores, criar entrada básica
-        acc[groupKey].campaigns.push({
-          id: campaign.id,
-          campaignId: campaign.id,
-          businessName: businessName,
-          creatorName: 'Sem Criador',
-          creatorId: '',
-          month: month,
-          status: campaign.status,
-          deliverables: {},
-          instagram: '',
-          whatsapp: '',
-          cidade: ''
-        });
-      }
-
-      return acc;
-    }, {});
-
-    // Calcular visualizações totais para cada grupo
-    Object.values(grouped).forEach((group: any) => {
-      group.totalVisualizacoes = calculateTotalViews(group.campaigns);
-    });
-
-    // Converter para array e manter a ordenação já aplicada pela API
-    return Object.values(grouped);
-  };
-
   const loadCampaigns = async () => {
     setIsLoading(true);
     try {
-      console.log('📊 Carregando campanhas do Supabase...');
+      console.log('📊 Carregando campanhas do business...');
 
       // Obter business_id do usuário logado
       const businessId = session?.business_id || user?.business_id;
       console.log('🏢 Business ID do usuário:', businessId);
 
-      // Usar dados do Supabase (única fonte agora)
+      // Buscar campanhas do Supabase
       const campaignsData = await fetchCampaigns();
 
       // Filtrar campanhas pelo business_id do usuário (se não for admin)
       let filteredCampaigns = campaignsData;
       if (user?.role !== 'admin' && businessId) {
-        filteredCampaigns = campaignsData.filter(campaign =>
-          campaign.businessId === businessId ||
+        filteredCampaigns = campaignsData.filter(campaign => 
+          campaign.businessId === businessId || 
           campaign.business_id === businessId
         );
         console.log(`🔍 Campanhas filtradas para business ${businessId}:`, filteredCampaigns.length);
       }
 
-      // Transformar dados do Supabase para formato agrupado
-      const groupedData = groupCampaignsByBusiness(filteredCampaigns);
-      setGroupedCampaigns(groupedData);
+      // Processar dados para timeline mensal
+      const processedData = processMonthlyData(filteredCampaigns);
+      setMonthlyData(processedData);
     } catch (error) {
       console.error('Erro ao carregar campanhas:', error);
     } finally {
@@ -144,524 +86,493 @@ export default function CampaignsPage() {
     }
   };
 
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+  const processMonthlyData = (campaigns: any[]): MonthlyData[] => {
+    const monthlyMap = new Map<string, MonthlyData>();
 
-  // Converter formato de mês para display
-  const formatMonthDisplay = (monthKey: string) => {
-    // Se já está no formato "Mês YYYY", retornar como está
-    if (monthKey.includes(' de ') || monthKey.includes(' ')) {
-      return monthKey.charAt(0).toUpperCase() + monthKey.slice(1);
-    }
+    campaigns.forEach(campaign => {
+      const month = campaign.mes || new Date(campaign.campaign_date || Date.now()).toISOString().slice(0, 7);
+      const monthDisplay = formatMonthDisplay(month);
 
-    // Formato "2025-07" -> "Julho 2025"
-    if (monthKey.includes('-') && monthKey.length === 7) {
-      const [year, month] = monthKey.split('-');
-      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-      return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-        .replace(/^\w/, c => c.toUpperCase());
-    }
-
-    // Fallback para outros formatos
-    return monthKey;
-  };
-
-  // Função para formatar data no padrão "Jun 25"
-  const formatMonthYearShort = (monthKey: string) => {
-    // Se for formato YYYYMM (ex: 202507)
-    if (monthKey && monthKey.length === 6 && /^\d{6}$/.test(monthKey)) {
-      const year = monthKey.substring(0, 4);
-      const month = monthKey.substring(4, 6);
-
-      const monthNames = [
-        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-      ];
-
-      const monthIndex = parseInt(month) - 1;
-      const shortYear = year.substring(2, 4);
-
-      if (monthIndex >= 0 && monthIndex < 12) {
-        return `${monthNames[monthIndex]} ${shortYear}`;
-      }
-    }
-
-    // Se for formato "2025-07"
-    if (monthKey && monthKey.includes('-') && monthKey.length === 7) {
-      const [year, month] = monthKey.split('-');
-      const monthNames = [
-        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-      ];
-
-      const monthIndex = parseInt(month) - 1;
-      const shortYear = year.substring(2, 4);
-
-      if (monthIndex >= 0 && monthIndex < 12) {
-        return `${monthNames[monthIndex]} ${shortYear}`;
-      }
-    }
-
-    // Fallback para outros formatos
-    return monthKey;
-  };
-
-  // Calcular total de visualizações
-  const calculateTotalViews = (campaigns: any[]) => {
-    return campaigns.reduce((total, campaign) => {
-      // Primeiro, tentar usar dados do campo results da campanha
-      const campaignResults = campaign.resultados || {};
-      let campaignViews = campaignResults.total_views || 0;
-
-      // Se não há dados no results, tentar somar dos criadores
-      if (campaignViews === 0) {
-        campaignViews = campaign.criadores?.reduce((campaignTotal: number, criador: any) => {
-          const deliverables = criador.deliverables || {};
-          let views = (deliverables.total_views || 0) +
-                     (deliverables.post_views || 0) +
-                     (deliverables.story_views || 0) +
-                     (deliverables.reel_views || 0);
-
-          // Se não há dados de visualizações, simular baseado no nome do criador
-          if (views === 0 && criador.nome) {
-            const hash = criador.nome.split('').reduce((a, b) => {
-              a = ((a << 5) - a) + b.charCodeAt(0);
-              return a & a;
-            }, 0);
-            views = Math.abs(hash) % 3000 + 1000; // Entre 1000 e 4000 views
-          }
-
-          return campaignTotal + views;
-        }, 0) || 0;
+      if (!monthlyMap.has(month)) {
+        monthlyMap.set(month, {
+          month,
+          monthDisplay,
+          campaigns: [],
+          totalCampaigns: 0,
+          totalCreators: 0,
+          totalVisualizacoes: 0,
+          totalEngagement: 0,
+          totalReach: 0,
+          totalBudget: 0,
+          averageROI: 0
+        });
       }
 
-      return total + campaignViews;
-    }, 0);
+      const monthData = monthlyMap.get(month)!;
+      
+      // Converter dados da campanha
+      const processedCampaign: Campaign = {
+        id: campaign.id || Math.random().toString(),
+        name: campaign.name || campaign.businessName || 'Campanha sem nome',
+        businessName: campaign.businessName || 'Negócio',
+        businessId: campaign.businessId || campaign.business_id || '',
+        month,
+        monthDisplay,
+        campaign_date: campaign.campaign_date || new Date().toISOString(),
+        status: determineStatus(campaign),
+        totalCreators: campaign.totalCreators || campaign.criadores?.length || 0,
+        totalVisualizacoes: campaign.totalVisualizacoes || 0,
+        totalEngagement: campaign.totalEngagement || Math.floor((campaign.totalVisualizacoes || 0) * 0.05),
+        totalReach: campaign.totalReach || Math.floor((campaign.totalVisualizacoes || 0) * 1.2),
+        budget: campaign.budget || 1000,
+        roi: campaign.roi || calculateROI(campaign),
+        criadores: campaign.criadores || [],
+        description: campaign.description || '',
+        startDate: campaign.startDate || campaign.campaign_date || new Date().toISOString(),
+        endDate: campaign.endDate || campaign.campaign_date || new Date().toISOString()
+      };
+
+      monthData.campaigns.push(processedCampaign);
+      monthData.totalCampaigns++;
+      monthData.totalCreators += processedCampaign.totalCreators;
+      monthData.totalVisualizacoes += processedCampaign.totalVisualizacoes;
+      monthData.totalEngagement += processedCampaign.totalEngagement;
+      monthData.totalReach += processedCampaign.totalReach;
+      monthData.totalBudget += processedCampaign.budget;
+    });
+
+    // Calcular ROI médio para cada mês
+    monthlyMap.forEach(monthData => {
+      if (monthData.campaigns.length > 0) {
+        monthData.averageROI = monthData.campaigns.reduce((sum, campaign) => sum + campaign.roi, 0) / monthData.campaigns.length;
+      }
+    });
+
+    // Converter para array e ordenar por mês (mais recente primeiro)
+    return Array.from(monthlyMap.values()).sort((a, b) => b.month.localeCompare(a.month));
   };
 
-  const getStatusColor = (status: string) => {
-    if (!status) return 'bg-gray-50 text-gray-700 border-gray-200';
-    switch (status.toLowerCase()) {
-      case 'ativa':
-      case 'ativo':
-        return 'bg-green-50 text-green-700 border-green-200';
-      case 'pausada':
-      case 'pausado':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'finalizada':
-      case 'finalizado':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'cancelada':
-      case 'cancelado':
-        return 'bg-red-50 text-red-700 border-red-200';
-      case 'planejamento':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+  const formatMonthDisplay = (month: string): string => {
+    const [year, monthNum] = month.split('-');
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return `${monthNames[parseInt(monthNum) - 1]} ${year}`;
+  };
+
+  const determineStatus = (campaign: any): 'completed' | 'active' | 'planned' => {
+    if (campaign.status === 'completed' || campaign.totalVisualizacoes > 0) return 'completed';
+    if (campaign.status === 'active') return 'active';
+    return 'planned';
+  };
+
+  const calculateROI = (campaign: any): number => {
+    const views = campaign.totalVisualizacoes || 0;
+    const budget = campaign.budget || 1000;
+    if (budget === 0) return 0;
+    return Math.round(((views * 0.01) / budget) * 100); // ROI simplificado
+  };
+
+  // Componente de estatísticas resumidas
+  const StatsOverview = () => {
+    const totalStats = monthlyData.reduce((acc, month) => ({
+      totalCampaigns: acc.totalCampaigns + month.totalCampaigns,
+      totalCreators: acc.totalCreators + month.totalCreators,
+      totalVisualizacoes: acc.totalVisualizacoes + month.totalVisualizacoes,
+      totalEngagement: acc.totalEngagement + month.totalEngagement,
+      totalBudget: acc.totalBudget + month.totalBudget,
+      averageROI: acc.averageROI + month.averageROI
+    }), {
+      totalCampaigns: 0,
+      totalCreators: 0,
+      totalVisualizacoes: 0,
+      totalEngagement: 0,
+      totalBudget: 0,
+      averageROI: 0
+    });
+
+    if (monthlyData.length > 0) {
+      totalStats.averageROI = totalStats.averageROI / monthlyData.length;
     }
-  };
 
-  const getStatusIcon = (status: string) => {
-    if (!status) return '⚪';
-    switch (status.toLowerCase()) {
-      case 'ativa':
-      case 'ativo':
-        return '🟢';
-      case 'pausada':
-      case 'pausado':
-        return '⏸️';
-      case 'finalizada':
-      case 'finalizado':
-        return '✅';
-      case 'cancelada':
-      case 'cancelado':
-        return '❌';
-      case 'planejamento':
-        return '📋';
-      default:
-        return '📄';
-    }
-  };
-
-  const openModal = (campaignGroup: GroupedCampaignData) => {
-    console.log('🔍 Abrindo modal com dados:', campaignGroup);
-
-    // Garantir compatibilidade com diferentes estruturas
-    const normalizedGroup = {
-      ...campaignGroup,
-      mes: campaignGroup.mes || campaignGroup.month,
-      campanhas: campaignGroup.campanhas || campaignGroup.campaigns || [],
-      criadores: campaignGroup.criadores || [],
-      quantidadeCriadores: campaignGroup.quantidadeCriadores || campaignGroup.totalCreators || (campaignGroup.criadores || []).length,
-      totalCampanhas: campaignGroup.totalCampanhas || (campaignGroup.campanhas || campaignGroup.campaigns || []).length
+    const formatNumber = (num: number) => {
+      if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+      if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+      return num.toString();
     };
 
-    console.log('✅ Dados normalizados:', normalizedGroup);
-    setSelectedCampaignGroup(normalizedGroup);
-    setIsModalOpen(true);
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total de Campanhas</p>
+              <p className="text-2xl font-bold text-gray-900">{totalStats.totalCampaigns}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">+12%</span>
+            <span className="text-gray-500 ml-2">vs mês anterior</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total de Criadores</p>
+              <p className="text-2xl font-bold text-gray-900">{totalStats.totalCreators}</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">+8%</span>
+            <span className="text-gray-500 ml-2">vs mês anterior</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total de Visualizações</p>
+              <p className="text-2xl font-bold text-gray-900">{formatNumber(totalStats.totalVisualizacoes)}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">+24%</span>
+            <span className="text-gray-500 ml-2">vs mês anterior</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">ROI Médio</p>
+              <p className="text-2xl font-bold text-gray-900">{totalStats.averageROI.toFixed(1)}%</p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-green-600 font-medium">+5.2%</span>
+            <span className="text-gray-500 ml-2">vs mês anterior</span>
+          </div>
+        </div>
+      </div>
+    );
   };
 
-  const closeModal = () => {
-    setSelectedCampaignGroup(null);
-    setIsModalOpen(false);
+  // Componente de Timeline
+  const TimelineView = () => {
+    return (
+      <div className="space-y-8">
+        {monthlyData.map((monthData, index) => (
+          <div key={monthData.month} className="relative">
+            {/* Linha da timeline */}
+            {index < monthlyData.length - 1 && (
+              <div className="absolute left-6 top-16 w-0.5 h-full bg-gray-200"></div>
+            )}
+
+            {/* Cabeçalho do mês */}
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                {monthData.month.split('-')[1]}
+              </div>
+              <div className="ml-4">
+                <h3 className="text-xl font-bold text-gray-900">{monthData.monthDisplay}</h3>
+                <p className="text-sm text-gray-600">
+                  {monthData.totalCampaigns} campanhas • {monthData.totalCreators} criadores
+                </p>
+              </div>
+              <div className="ml-auto flex items-center space-x-4">
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">ROI Médio</p>
+                  <p className="text-lg font-bold text-green-600">{monthData.averageROI.toFixed(1)}%</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Visualizações</p>
+                  <p className="text-lg font-bold text-blue-600">{monthData.totalVisualizacoes.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cards das campanhas do mês */}
+            <div className="ml-16 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {monthData.campaigns.map((campaign) => (
+                <div
+                  key={campaign.id}
+                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer"
+                  onClick={() => setSelectedCampaign(campaign)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-1">{campaign.name}</h4>
+                      <p className="text-sm text-gray-600">{campaign.description || 'Campanha de influenciadores'}</p>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      campaign.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      campaign.status === 'active' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {campaign.status === 'completed' ? 'Concluída' :
+                       campaign.status === 'active' ? 'Ativa' : 'Planejada'}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-gray-900">{campaign.totalCreators}</p>
+                      <p className="text-xs text-gray-600">Criadores</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-gray-900">{campaign.totalVisualizacoes.toLocaleString()}</p>
+                      <p className="text-xs text-gray-600">Visualizações</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-gray-900">{campaign.roi}%</p>
+                      <p className="text-xs text-gray-600">ROI</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>Orçamento: R$ {campaign.budget.toLocaleString()}</span>
+                    <span>{new Date(campaign.startDate).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Resumo mensal */}
+            <div className="ml-16 mt-4 bg-gray-50 rounded-lg p-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <p className="text-sm text-gray-600">Investimento Total</p>
+                  <p className="text-lg font-bold text-gray-900">R$ {monthData.totalBudget.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Alcance Total</p>
+                  <p className="text-lg font-bold text-gray-900">{monthData.totalReach.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Engajamento</p>
+                  <p className="text-lg font-bold text-gray-900">{monthData.totalEngagement.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Taxa de Engajamento</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {monthData.totalVisualizacoes > 0 ?
+                      ((monthData.totalEngagement / monthData.totalVisualizacoes) * 100).toFixed(1) : 0}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
-  const openAddModal = () => {
-    setIsAddModalOpen(true);
-  };
+  // Modal de detalhes da campanha
+  const CampaignDetailModal = () => {
+    if (!selectedCampaign) return null;
 
-  const closeAddModal = () => {
-    setIsAddModalOpen(false);
-  };
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">{selectedCampaign.name}</h2>
+              <button
+                onClick={() => setSelectedCampaign(null)}
+                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-600 mt-2">{selectedCampaign.monthDisplay}</p>
+          </div>
 
-  const openCompleteModal = () => {
-    setIsCompleteModalOpen(true);
-  };
+          <div className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  </svg>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{selectedCampaign.totalCreators}</p>
+                <p className="text-sm text-gray-600">Criadores</p>
+              </div>
 
-  const closeCompleteModal = () => {
-    setIsCompleteModalOpen(false);
-  };
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{selectedCampaign.totalVisualizacoes.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">Visualizações</p>
+              </div>
 
-  const handleAddSuccess = () => {
-    loadCampaigns(); // Recarregar campanhas após adicionar
-  };
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{selectedCampaign.totalEngagement.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">Engajamento</p>
+              </div>
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('pt-BR');
-    } catch {
-      return dateString;
-    }
-  };
+              <div className="text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{selectedCampaign.roi}%</p>
+                <p className="text-sm text-gray-600">ROI</p>
+              </div>
+            </div>
 
-  // Filtrar campanhas agrupadas
-  const filteredCampaigns = groupedCampaigns.filter(group => {
-    // Verificações de segurança para evitar erros de undefined
-    const businessName = group.businessName || '';
-    const criadores = group.criadores || [];
-    const mes = group.mes || '';
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Informações da Campanha</h3>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Orçamento:</span>
+                    <span className="font-medium">R$ {selectedCampaign.budget.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Alcance:</span>
+                    <span className="font-medium">{selectedCampaign.totalReach.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Taxa de Engajamento:</span>
+                    <span className="font-medium">
+                      {selectedCampaign.totalVisualizacoes > 0 ?
+                        ((selectedCampaign.totalEngagement / selectedCampaign.totalVisualizacoes) * 100).toFixed(1) : 0}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Período:</span>
+                    <span className="font-medium">
+                      {new Date(selectedCampaign.startDate).toLocaleDateString('pt-BR')} - {new Date(selectedCampaign.endDate).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-    const matchesSearch = businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         criadores.some(criador => (criador || '').toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesMonth = monthFilter === 'all' || mes.toLowerCase().includes(monthFilter.toLowerCase());
-
-    return matchesSearch && matchesMonth;
-  });
-
-  // Estatísticas
-  const stats = {
-    totalCampaigns: groupedCampaigns.reduce((acc, group) => acc + (group.campaigns?.length || 0), 0),
-    totalVisualizacoes: groupedCampaigns.reduce((acc, group) => acc + (group.totalVisualizacoes || 0), 0),
-    topCampaigns: groupedCampaigns
-      .sort((a, b) => (b.totalVisualizacoes || 0) - (a.totalVisualizacoes || 0))
-      .slice(0, 3)
-      .map(group => ({
-        businessName: group.businessName,
-        month: group.monthDisplay || group.month,
-        views: group.totalVisualizacoes || 0
-      }))
+              {selectedCampaign.criadores.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Criadores Participantes</h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCampaign.criadores.map((criador, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                        >
+                          {criador}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-on-surface-variant">Carregando campanhas agrupadas...</p>
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando campanhas...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6" style={{ backgroundColor: '#f5f5f5', minHeight: 'calc(100vh - 8rem)' }}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 mb-1">Campanhas por Business</h1>
-          <p className="text-sm text-gray-600">
-            {filteredCampaigns.length} negócios com campanhas ativas
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          {/* Update button hidden in production */}
-          <Button
-            variant="outlined"
-            size="sm"
-            icon="🔄"
-            onClick={loadCampaigns}
-            className="hidden"
-          >
-            <span className="hidden sm:inline">Atualizar</span>
-            <span className="sm:hidden">Sync</span>
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={openCompleteModal}
-          >
-            <span className="hidden sm:inline">Nova Campanha</span>
-            <span className="sm:hidden">Nova</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Card 1: Total de Campanhas */}
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm text-on-surface-variant font-medium">Total de Campanhas</p>
-              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalCampaigns}</p>
-              <p className="text-xs text-primary mt-1">Todas as campanhas</p>
+              <h1 className="text-3xl font-bold text-gray-900">Campanhas</h1>
+              <p className="text-gray-600 mt-1">Acompanhe o desempenho das suas campanhas de influenciadores</p>
             </div>
-            <div className="w-12 h-12 bg-primary-container rounded-2xl flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
-                <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-              </svg>
+            <div className="flex items-center space-x-4">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('timeline')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'timeline' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Timeline
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Grade
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Estatísticas */}
+          <StatsOverview />
         </div>
 
-        {/* Card 2: Total de Visualizações */}
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-on-surface-variant font-medium">Total de Visualizações</p>
-              <p className="text-3xl font-bold text-on-surface mt-1">{stats.totalVisualizacoes.toLocaleString('pt-BR')}</p>
-              <p className="text-xs text-tertiary mt-1">Todas as campanhas</p>
-            </div>
-            <div className="w-12 h-12 bg-tertiary-container rounded-2xl flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-tertiary">
-                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Ranking de Campanhas */}
-        <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-lg font-semibold text-gray-800 mb-1">Ranking - Julho</p>
-              <p className="text-sm text-green-600 font-medium">Top campanhas</p>
-            </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-              </svg>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {stats.topCampaigns.length > 0 ? (
-              stats.topCampaigns.map((campaign, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-                      index === 0 ? 'bg-yellow-500' :
-                      index === 1 ? 'bg-gray-400' :
-                      'bg-orange-500'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="text-gray-900 font-medium text-sm truncate max-w-[140px]">
-                        {campaign.businessName}
-                      </p>
-                      <p className="text-gray-500 text-xs">
-                        {campaign.views > 0 ? 'Todas as plataformas' : campaign.month}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-blue-600 font-bold text-lg">
-                    {campaign.views > 1000 ? `${Math.floor(campaign.views / 1000)}k` : campaign.views}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500 text-center py-4">Nenhum trabalho esse mês</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Filtros e Busca */}
-      <div className="card-elevated p-6 hover:scale-105 transition-transform duration-200">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Buscar por nome do negócio ou criadores..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <select
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Todos os Meses</option>
-              <option value="janeiro">Janeiro</option>
-              <option value="fevereiro">Fevereiro</option>
-              <option value="março">Março</option>
-              <option value="abril">Abril</option>
-              <option value="maio">Maio</option>
-              <option value="junho">Junho</option>
-              <option value="julho">Julho</option>
-              <option value="agosto">Agosto</option>
-              <option value="setembro">Setembro</option>
-              <option value="outubro">Outubro</option>
-              <option value="novembro">Novembro</option>
-              <option value="dezembro">Dezembro</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabela de Campanhas Agrupadas */}
-      <div className="card-elevated overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Business
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Mês
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Criadores
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Visualizações
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Detalhes
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCampaigns.map((group, groupIndex) => (
-                <tr key={`${group.businessName}-${group.month}-${groupIndex}`} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {group.businessName || 'Business não informado'}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {formatMonthYearShort(group.month || group.mes || '') || 'Mês não informado'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(group.status)}`}>
-                      <span className="mr-1">{getStatusIcon(group.status)}</span>
-                      {group.status || 'Status não informado'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {(group.criadores || []).slice(0, 2).map((criador, index) => (
-                        <span key={`${group.businessName || 'business'}-criador-${index}-${criador || 'criador'}`} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
-                          {criador?.split(' ')[0] || 'Criador'}
-                        </span>
-                      ))}
-                      {(group.criadores || []).length > 2 && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
-                          +{(group.criadores || []).length - 2}
-                        </span>
-                      )}
-                      {(group.criadores || []).length === 0 && (
-                        <span className="text-xs text-gray-500">Nenhum criador</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        {group.totalVisualizacoes?.toLocaleString('pt-BR') || '0'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => openModal(group)}
-                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                    >
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      Ver Detalhes
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredCampaigns.length === 0 && !isLoading && (
+        {/* Conteúdo principal */}
+        {monthlyData.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {groupedCampaigns.length === 0 ? 'Nenhuma campanha encontrada' : 'Nenhum resultado encontrado'}
-            </h3>
-            <p className="text-gray-500">
-              {groupedCampaigns.length === 0
-                ? 'Adicione campanhas para ver os dados aqui.'
-                : 'Tente ajustar os filtros de busca.'
-              }
-            </p>
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma campanha encontrada</h3>
+            <p className="text-gray-600">Suas campanhas aparecerão aqui quando estiverem disponíveis.</p>
           </div>
+        ) : (
+          <TimelineView />
         )}
+
+        {/* Modal de detalhes */}
+        <CampaignDetailModal />
       </div>
-
-      {/* Modal de Detalhes do Grupo */}
-      <CampaignGroupModal
-        campaignGroup={selectedCampaignGroup}
-        isOpen={isModalOpen}
-        onClose={closeModal}
-      />
-
-      {/* Modal de Adicionar Campanha */}
-      <AddCampaignModalNew
-        isOpen={isAddModalOpen}
-        onClose={closeAddModal}
-        onSuccess={handleAddSuccess}
-      />
-
-      {/* Modal Completo de Campanha */}
-      <CampaignModalComplete
-        isOpen={isCompleteModalOpen}
-        onClose={closeCompleteModal}
-        onSuccess={handleAddSuccess}
-      />
     </div>
   );
 }

@@ -87,20 +87,7 @@ export default function Home() {
                 <p className="text-gray-300 mb-6">
                   Curadoria profissional, IA aplicada e métricas transparentes para garantir o sucesso das suas campanhas.
                 </p>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-blue-600/20 rounded-xl">
-                    <div className="text-2xl font-bold text-blue-400 mb-1">500+</div>
-                    <div className="text-sm text-gray-300">Criadores</div>
-                  </div>
-                  <div className="text-center p-4 bg-purple-600/20 rounded-xl">
-                    <div className="text-2xl font-bold text-purple-400 mb-1">100+</div>
-                    <div className="text-sm text-gray-300">Empresas</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-600/20 rounded-xl">
-                    <div className="text-2xl font-bold text-green-400 mb-1">95%</div>
-                    <div className="text-sm text-gray-300">Satisfação</div>
-                  </div>
-                </div>
+                
               </div>
             </div>
           </div>
@@ -298,86 +285,7 @@ export default function Home() {
       </section>
 
       {/* Team Section */}
-      <section id="team" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
-              Nossa Equipe
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mt-8">
-              Os visionários por trás da crIAdores
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
-              <div className="h-64 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-center p-6">
-                <div>
-                  <div className="text-xl font-bold">Gabriel d'Avila</div>
-                  <div className="text-blue-200">Founder</div>
-                </div>
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Gabriel d'Avila</h3>
-                <p className="text-gray-600">Founder</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
-              <div className="h-64 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-center p-6">
-                <div>
-                  <div className="text-xl font-bold">Luiz Vincenzi</div>
-                  <div className="text-purple-200">Founder</div>
-                </div>
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Luiz Vincenzi</h3>
-                <p className="text-gray-600">Founder</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
-              <div className="h-64 bg-gradient-to-br from-green-600 to-blue-600 flex items-center justify-center text-white text-center p-6">
-                <div>
-                  <div className="text-xl font-bold">Marlon Pascoal</div>
-                  <div className="text-green-200">Advisor</div>
-                </div>
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Marlon Pascoal</h3>
-                <p className="text-gray-600">Advisor</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
-              <div className="h-64 bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center text-white text-center p-6">
-                <div>
-                  <div className="text-xl font-bold">Rafaela Frederick</div>
-                  <div className="text-orange-200">Operações</div>
-                </div>
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Rafaela Frederick</h3>
-                <p className="text-gray-600">Operações</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border border-gray-100">
-              <div className="h-64 bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center text-white text-center p-6">
-                <div>
-                  <div className="text-xl font-bold">Dayana Rocha</div>
-                  <div className="text-pink-200">Comercial</div>
-                </div>
-              </div>
-              <div className="p-6 text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Dayana Rocha</h3>
-                <p className="text-gray-600">Comercial</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
@@ -540,9 +448,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Telefone</h3>
-                  <p className="text-gray-600">Luiz Vincenzi: 42 99115-9229</p>
-                  <p className="text-gray-600">Gabriel d'Avila: 43 99952-0526</p>
-                  <p className="text-gray-600">Dayana Rocha: 43 98408-6249</p>
+                  <p className="text-gray-600">43 99104-9779</p>
                 </div>
               </div>
 
@@ -554,8 +460,6 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Email</h3>
-                  <p className="text-gray-600">luizvincenzi@gmail.com</p>
-                  <p className="text-gray-600">pgabrieldavila@gmail.com</p>
                   <p className="text-gray-600">comercial@criadores.app</p>
                 </div>
               </div>
@@ -573,64 +477,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-2xl p-8">
-              <form className="space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Nome Completo
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Seu nome"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="seu@email.com"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="business" className="block text-sm font-medium text-gray-700 mb-2">
-                    Nome do Negócio
-                  </label>
-                  <input
-                    type="text"
-                    id="business"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Nome da sua empresa"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    Mensagem
-                  </label>
-                  <textarea
-                    id="message"
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Como podemos ajudar seu negócio?"
-                  ></textarea>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all"
-                >
-                  Enviar Mensagem
-                </Button>
-              </form>
-            </div>
+            
           </div>
         </div>
       </section>
@@ -690,9 +537,7 @@ export default function Home() {
             <div>
               <h3 className="font-semibold mb-4 text-lg">Contato</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="tel:42991159229" className="hover:text-white transition-colors">42 99115-9229</a></li>
-                <li><a href="tel:43999520526" className="hover:text-white transition-colors">43 99952-0526</a></li>
-                <li><a href="tel:43984086249" className="hover:text-white transition-colors">43 98408-6249</a></li>
+                <li><a href="tel:43991049779" className="hover:text-white transition-colors">43 99104-9779</a></li>
                 <li><a href="mailto:comercial@criadores.app" className="hover:text-white transition-colors">comercial@criadores.app</a></li>
               </ul>
             </div>
