@@ -32,7 +32,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { businesses, loadBusinessesFromSheet } = useBusinessStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, session, isAuthenticated } = useAuthStore();
 
   // Função para formatar data no padrão "Jun 25"
   const formatMonthYearShort = (monthKey: string) => {
@@ -232,28 +232,66 @@ export default function DashboardPage() {
       console.log(`🔄 Dashboard: Iniciando carregamento (${isUsingSupabase() ? 'Supabase' : 'Google Sheets'})...`);
 
       try {
-        // Usar dados do Supabase (única fonte agora)
-        console.log('📡 Dashboard: Carregando dados do Supabase...');
+        // Obter business_id do usuário logado
+        const businessId = session?.business_id || user?.business_id;
+        const isAdmin = user?.role === 'admin';
 
+        console.log('📡 Dashboard: Carregando dados do Supabase...', {
+          businessId,
+          isAdmin,
+          userRole: user?.role
+        });
+
+        // Carregar dados com filtros apropriados
         const [businessesResult, creatorsResult, campaignsResult, journeyResult] = await Promise.all([
-          fetchBusinesses(),
+          fetchBusinesses(isAdmin ? undefined : { businessId }),
           fetchCreators(),
-          fetchCampaigns(),
-          fetchCampaignJourney()
+          fetchCampaigns(isAdmin ? {} : { businessId }),
+          fetchCampaignJourney(isAdmin ? {} : { businessName: undefined }) // Será filtrado depois
         ]);
 
         // Carregar também no businessStore
         await loadBusinessesFromSheet();
 
+        // Filtrar dados por business se não for admin
+        let filteredBusinesses = businessesResult;
+        let filteredCampaigns = campaignsResult;
+        let filteredJourney = journeyResult;
+
+        if (!isAdmin && businessId) {
+          // Filtrar negócios
+          filteredBusinesses = businessesResult.filter(business =>
+            business.id === businessId || business.business_id === businessId
+          );
+
+          // Filtrar campanhas
+          filteredCampaigns = campaignsResult.filter(campaign =>
+            campaign.businessId === businessId || campaign.business_id === businessId
+          );
+
+          // Filtrar jornada por nome do negócio
+          const businessNames = filteredBusinesses.map(b => b.name || b.businessName).filter(Boolean);
+          filteredJourney = journeyResult.filter(journey =>
+            businessNames.includes(journey.businessName)
+          );
+
+          console.log('🔍 Dashboard: Dados filtrados para business:', {
+            businessId,
+            negócios: filteredBusinesses.length,
+            campanhas: filteredCampaigns.length,
+            jornada: filteredJourney.length
+          });
+        }
+
         console.log('✅ Dashboard: Dados do Supabase carregados:', {
-          negócios: businessesResult.length,
+          negócios: filteredBusinesses.length,
           criadores: creatorsResult.length,
-          campanhas: campaignsResult.length,
-          jornada: journeyResult.length
+          campanhas: filteredCampaigns.length,
+          jornada: filteredJourney.length
         });
 
-        // Processar dados
-        await processDashboardData(businessesResult, creatorsResult, campaignsResult, journeyResult);
+        // Processar dados filtrados
+        await processDashboardData(filteredBusinesses, creatorsResult, filteredCampaigns, filteredJourney);
 
       } catch (error) {
         console.error('❌ Dashboard: Erro ao carregar:', error);
@@ -264,7 +302,7 @@ export default function DashboardPage() {
     };
 
     loadData();
-  }, [loadBusinessesFromSheet]);
+  }, [loadBusinessesFromSheet, user, session]);
 
   useEffect(() => {
     if (businesses.length > 0) {

@@ -67,9 +67,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )
     },
     {
-      id: 'campanhas',
+      id: 'campaigns',
       label: 'Campanhas',
-      href: '/campanhas',
+      href: '/campaigns',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M3 11l18-5v12L3 14v-3z"/>
@@ -112,7 +112,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">CRM crIAdores</h1>
+              <h1 className="text-2xl font-bold text-gray-900">crIAdores</h1>
             </div>
 
             {/* Desktop User Info + Mobile Menu */}

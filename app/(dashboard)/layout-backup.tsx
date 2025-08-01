@@ -155,7 +155,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="px-6 py-3 pb-0">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h1 className="text-2xl font-bold text-on-surface">CRM crIAdores</h1>
+              <h1 className="text-2xl font-bold text-on-surface">crIAdores</h1>
             </div>
           </div>
 
