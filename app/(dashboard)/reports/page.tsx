@@ -73,7 +73,18 @@ export default function ReportsPage() {
       
       // Gerar postagens para cada criador da campanha
       for (let i = 0; i < creatorCount; i++) {
-        const creatorName = campaign.criadores?.[i] || `Criador ${i + 1}`;
+        // Verificar se criadores é um array de objetos ou strings
+        let creatorName = `Criador ${i + 1}`;
+        if (campaign.criadores && campaign.criadores[i]) {
+          const creator = campaign.criadores[i];
+          // Se for um objeto, pegar o nome
+          if (typeof creator === 'object' && creator !== null) {
+            creatorName = creator.nome || creator.name || `Criador ${i + 1}`;
+          } else if (typeof creator === 'string') {
+            creatorName = creator;
+          }
+        }
+
         const platforms: ('instagram' | 'tiktok' | 'youtube')[] = ['instagram', 'tiktok', 'youtube'];
         const platform = platforms[Math.floor(Math.random() * platforms.length)];
         

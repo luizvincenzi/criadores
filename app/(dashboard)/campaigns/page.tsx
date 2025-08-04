@@ -489,14 +489,24 @@ export default function CampaignsPage() {
                   <h3 className="font-semibold text-gray-900 mb-2">Criadores Participantes</h3>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex flex-wrap gap-2">
-                      {selectedCampaign.criadores.map((criador, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                        >
-                          {criador}
-                        </span>
-                      ))}
+                      {selectedCampaign.criadores.map((criador, index) => {
+                        // Verificar se criador é um objeto ou string
+                        let creatorName = 'Criador';
+                        if (typeof criador === 'object' && criador !== null) {
+                          creatorName = criador.nome || criador.name || `Criador ${index + 1}`;
+                        } else if (typeof criador === 'string') {
+                          creatorName = criador;
+                        }
+
+                        return (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                          >
+                            {creatorName}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
