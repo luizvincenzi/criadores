@@ -19,6 +19,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
   const { user, logout } = useAuthStore();
   const { pendingTasksCount, refreshCount } = useTaskNotifications();
 
@@ -53,6 +54,37 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const handleSettings = () => {
     setIsUserDropdownOpen(false);
     setIsSettingsModalOpen(true);
+  };
+
+  const handleInstagramConnect = async () => {
+    setIsConnectingInstagram(true);
+    try {
+      // Obter business_id do usuário
+      const businessId = user?.business_id || 'default-business-id';
+
+      const response = await fetch('/api/instagram/connect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ businessId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Redirecionar para autorização do Instagram
+        window.location.href = data.authUrl;
+      } else {
+        console.error('Erro ao conectar Instagram:', data.error);
+        alert('Erro ao conectar com Instagram. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro ao conectar Instagram:', error);
+      alert('Erro ao conectar com Instagram. Tente novamente.');
+    } finally {
+      setIsConnectingInstagram(false);
+    }
   };
 
   // Atualizar contador quando a sidebar for fechada
@@ -373,7 +405,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
                       <input
                         type="text"
-                        value={user?.business_name || 'Empresa'}
+                        value={user?.full_name || 'Empresa'}
                         readOnly
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                       />
@@ -393,7 +425,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Plano Atual</label>
                       <input
                         type="text"
-                        value={user?.current_plan || 'Básico'}
+                        value={user?.role || 'Básico'}
                         readOnly
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                       />
@@ -422,8 +454,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <p className="text-sm text-blue-700 mb-3">
                           Conecte sua conta do Instagram para acompanhar os resultados das postagens dos criadores em tempo real.
                         </p>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                          Conectar Instagram
+                        <button
+                          onClick={handleInstagramConnect}
+                          disabled={isConnectingInstagram}
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+                        >
+                          {isConnectingInstagram ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                              Conectando...
+                            </>
+                          ) : (
+                            'Conectar Instagram'
+                          )}
                         </button>
                       </div>
                     </div>
