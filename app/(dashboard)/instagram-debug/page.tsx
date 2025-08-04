@@ -214,7 +214,7 @@ export default function InstagramDebugPage() {
             
             <div className="flex items-start">
               <span className="font-bold mr-2">2.</span>
-              <span>Adicione a URL de callback: <code className="bg-blue-100 px-2 py-1 rounded">http://localhost:3001/api/instagram/callback</code></span>
+              <span>Adicione a URL de callback: <code className="bg-blue-100 px-2 py-1 rounded">https://criadores.app/api/instagram/callback</code></span>
             </div>
             
             <div className="flex items-start">

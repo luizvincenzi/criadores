@@ -33,15 +33,13 @@ Conectar sua conta Instagram Business para extrair dados reais de posts, métric
 ### 1.3 Configurar URLs Autorizadas
 ```
 OAuth Redirect URIs:
-- http://localhost:3001/api/instagram/callback
 - https://criadores.app/api/instagram/callback
+- https://localhost:3000/api/instagram/callback (apenas para desenvolvimento)
 
 Deauthorize Callback URL:
-- http://localhost:3001/api/instagram/deauth
 - https://criadores.app/api/instagram/deauth
 
 Data Deletion Request URL:
-- http://localhost:3001/api/instagram/delete
 - https://criadores.app/api/instagram/delete
 ```
 
