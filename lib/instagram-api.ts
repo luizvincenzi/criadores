@@ -55,28 +55,34 @@ class InstagramAPI {
 
   constructor() {
     this.config = {
-      appId: process.env.INSTAGRAM_APP_ID || '1411553980014110',
+      appId: process.env.INSTAGRAM_APP_ID || '582288514801639', // App principal do Facebook
       appSecret: process.env.INSTAGRAM_APP_SECRET || 'e73a71b54123c6a7ae9b5d11a9361b51',
       redirectUri: process.env.INSTAGRAM_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/instagram/callback`,
       scopes: [
-        'user_profile',
-        'user_media',
+        'instagram_graph_user_profile',
+        'instagram_graph_user_media',
         'instagram_basic',
-        'instagram_manage_insights',
-        'pages_show_list',
-        'pages_read_engagement'
+        'pages_show_list'
       ]
     };
   }
 
-  // Gerar URL de autorização
+  // Gerar URL de autorização para Instagram Business
   getAuthorizationUrl(businessId: string): string {
     const params = new URLSearchParams({
       client_id: this.config.appId,
       redirect_uri: this.config.redirectUri,
       scope: this.config.scopes.join(','),
       response_type: 'code',
-      state: businessId // Para identificar qual business está conectando
+      state: businessId, // Para identificar qual business está conectando
+      display: 'popup' // Melhor experiência para web
+    });
+
+    console.log('🔗 Instagram: Gerando URL de autorização', {
+      appId: this.config.appId,
+      redirectUri: this.config.redirectUri,
+      scopes: this.config.scopes,
+      businessId
     });
 
     return `${this.authUrl}?${params.toString()}`;
