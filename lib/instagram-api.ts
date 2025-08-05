@@ -236,6 +236,65 @@ class InstagramAPI {
       return false;
     }
   }
+
+  // Obter dados de um post específico pelo ID
+  async getMediaById(mediaId: string, accessToken: string): Promise<InstagramMedia | null> {
+    try {
+      const fields = 'id,media_type,media_url,permalink,timestamp,caption,like_count,comments_count';
+      const url = `${this.baseUrl}/${mediaId}?fields=${fields}&access_token=${accessToken}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('❌ Erro na API do Instagram:', data.error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('❌ Erro ao obter dados do post:', error);
+      return null;
+    }
+  }
+
+  // Obter insights de um post específico
+  async getMediaInsights(mediaId: string, accessToken: string): Promise<InstagramInsights | null> {
+    try {
+      // Insights disponíveis para posts
+      const metrics = 'impressions,reach,engagement,likes,comments,saves,shares';
+      const url = `${this.baseUrl}/${mediaId}/insights?metric=${metrics}&access_token=${accessToken}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('❌ Erro ao obter insights:', data.error);
+        return null;
+      }
+
+      // Converter array de insights em objeto
+      const insights: any = {};
+      if (data.data) {
+        data.data.forEach((insight: any) => {
+          insights[insight.name] = insight.values[0]?.value || 0;
+        });
+      }
+
+      return {
+        impressions: insights.impressions || 0,
+        reach: insights.reach || 0,
+        engagement: insights.engagement || 0,
+        likes: insights.likes || 0,
+        comments: insights.comments || 0,
+        shares: insights.shares || 0,
+        saves: insights.saves || 0
+      };
+    } catch (error) {
+      console.error('❌ Erro ao obter insights do post:', error);
+      return null;
+    }
+  }
 }
 
 // Funções utilitárias

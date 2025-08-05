@@ -1,30 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { instagramAPI } from '@/lib/instagram-api';
+import { APP_CONFIG, isAdmin } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   try {
     const { businessId } = await request.json();
 
     // 👑 USUÁRIOS ADMINISTRADORES: Acesso total
-    const adminEmails = ['luizvincenzi@gmail.com'];
     const userEmail = request.headers.get('x-user-email');
-    const isAdmin = adminEmails.includes(userEmail || '');
+    const userIsAdmin = isAdmin(userEmail || '');
 
     // Usar Business ID fornecido ou fallback para desenvolvimento
     const finalBusinessId = businessId ||
-                           process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID ||
-                           '00000000-0000-0000-0000-000000000002';
+                           APP_CONFIG.CLIENT_BUSINESS_ID;
 
     console.log('📱 Instagram Connect: Iniciando processo', {
       businessId: finalBusinessId,
       originalBusinessId: businessId,
-      isAdmin,
+      isAdmin: userIsAdmin,
       userEmail,
-      appId: process.env.INSTAGRAM_APP_ID,
-      redirectUri: process.env.INSTAGRAM_REDIRECT_URI
+      appId: APP_CONFIG.INSTAGRAM.APP_ID,
+      redirectUri: APP_CONFIG.INSTAGRAM.REDIRECT_URI
     });
 
-    if (!finalBusinessId && !isAdmin) {
+    if (!finalBusinessId && !userIsAdmin) {
       console.error('❌ Instagram Connect: Business ID não fornecido');
       return NextResponse.json(
         { error: 'Business ID é obrigatório' },
@@ -33,11 +32,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar variáveis de ambiente
-    if (!process.env.INSTAGRAM_APP_ID || !process.env.INSTAGRAM_APP_SECRET) {
+    if (!APP_CONFIG.INSTAGRAM.APP_ID || !APP_CONFIG.INSTAGRAM.APP_SECRET) {
       console.error('❌ Instagram Connect: Variáveis de ambiente não configuradas', {
-        hasAppId: !!process.env.INSTAGRAM_APP_ID,
-        hasAppSecret: !!process.env.INSTAGRAM_APP_SECRET,
-        hasRedirectUri: !!process.env.INSTAGRAM_REDIRECT_URI
+        hasAppId: !!APP_CONFIG.INSTAGRAM.APP_ID,
+        hasAppSecret: !!APP_CONFIG.INSTAGRAM.APP_SECRET,
+        hasRedirectUri: !!APP_CONFIG.INSTAGRAM.REDIRECT_URI
       });
       return NextResponse.json(
         { error: 'Configuração Instagram incompleta' },
@@ -58,8 +57,9 @@ export async function POST(request: NextRequest) {
       authUrl,
       message: 'URL de autorização gerada com sucesso',
       debug: {
-        appId: process.env.INSTAGRAM_APP_ID,
-        redirectUri: process.env.INSTAGRAM_REDIRECT_URI
+        appId: APP_CONFIG.INSTAGRAM.APP_ID,
+        redirectUri: APP_CONFIG.INSTAGRAM.REDIRECT_URI,
+        baseUrl: APP_CONFIG.BASE_URL
       }
     });
 

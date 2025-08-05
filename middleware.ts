@@ -160,9 +160,8 @@ export function middleware(request: NextRequest) {
   const clientBusinessId = process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
 
   // 👑 USUÁRIOS ADMINISTRADORES: Acesso total ao sistema
-  const adminEmails = ['luizvincenzi@gmail.com'];
   const userEmail = request.headers.get('x-user-email');
-  const isAdmin = adminEmails.includes(userEmail || '');
+  const isAdmin = ['luizvincenzi@gmail.com'].includes(userEmail || '');
 
   if (isClientMode && clientBusinessId) {
     // 🔒 HEADERS DE SEGURANÇA CRÍTICOS
