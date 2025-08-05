@@ -13,14 +13,16 @@ const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 export async function GET(request: NextRequest) {
   try {
     // 🔒 FILTRO CLIENTE: Obter business_id da empresa logada
-    const clientBusinessId = request.headers.get('x-client-business-id') || 
-                            process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
-    
+    const clientBusinessId = request.headers.get('x-client-business-id') ||
+                            request.headers.get('x-business-id') ||
+                            process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID ||
+                            '00000000-0000-0000-0000-000000000002';
+
     if (!clientBusinessId) {
       return NextResponse.json({
         success: false,
-        error: 'ID da empresa cliente não configurado'
-      }, { status: 400 });
+        error: 'Business ID obrigatório para esta operação'
+      }, { status: 403 });
     }
 
     console.log('🎉 [CLIENT EVENTS] Buscando eventos para empresa:', clientBusinessId);

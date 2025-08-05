@@ -302,6 +302,19 @@ export function middleware(request: NextRequest) {
 
   // Continuar com a requisição e adicionar headers de segurança
   const response = NextResponse.next();
+
+  // 🔒 ADICIONAR BUSINESS ID AOS HEADERS DA RESPONSE PARA O FRONTEND
+  if (isClientMode && clientBusinessId) {
+    response.headers.set('x-client-business-id', clientBusinessId);
+    response.headers.set('x-client-mode', 'true');
+
+    console.log('🔒 [MIDDLEWARE] Headers de segurança aplicados:', {
+      businessId: clientBusinessId,
+      mode: 'client',
+      path: pathname
+    });
+  }
+
   return addSecurityHeaders(response);
 }
 

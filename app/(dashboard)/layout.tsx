@@ -59,8 +59,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const handleInstagramConnect = async () => {
     setIsConnectingInstagram(true);
     try {
-      // Obter business_id do usuário
-      const businessId = user?.business_id || 'default-business-id';
+      // Obter business_id do usuário ou usar o configurado no ambiente
+      const businessId = user?.business_id || process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID || '00000000-0000-0000-0000-000000000002';
 
       const response = await fetch('/api/instagram/connect', {
         method: 'POST',

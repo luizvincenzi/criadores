@@ -22,7 +22,7 @@ export default function InstagramDebugPage() {
 
   const loadDebugInfo = async () => {
     try {
-      const businessId = user?.business_id || 'test-business-id';
+      const businessId = user?.business_id || process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID || '00000000-0000-0000-0000-000000000002';
       
       const response = await fetch('/api/instagram/connect', {
         method: 'POST',
@@ -56,7 +56,7 @@ export default function InstagramDebugPage() {
     setTestResult('');
     
     try {
-      const businessId = user?.business_id || 'test-business-id';
+      const businessId = user?.business_id || process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID || '00000000-0000-0000-0000-000000000002';
       
       const response = await fetch('/api/instagram/connect', {
         method: 'POST',
