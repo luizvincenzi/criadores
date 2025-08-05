@@ -31,15 +31,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar variáveis de ambiente
+    // Verificar variáveis de ambiente com debug detalhado
+    const configStatus = {
+      hasAppId: !!APP_CONFIG.INSTAGRAM.APP_ID,
+      hasAppSecret: !!APP_CONFIG.INSTAGRAM.APP_SECRET,
+      hasRedirectUri: !!APP_CONFIG.INSTAGRAM.REDIRECT_URI,
+      appId: APP_CONFIG.INSTAGRAM.APP_ID,
+      redirectUri: APP_CONFIG.INSTAGRAM.REDIRECT_URI,
+      envAppId: process.env.INSTAGRAM_APP_ID,
+      envRedirectUri: process.env.INSTAGRAM_REDIRECT_URI,
+      envAppSecret: process.env.INSTAGRAM_APP_SECRET ? 'CONFIGURADO' : 'NÃO CONFIGURADO'
+    };
+
+    console.log('🔍 Instagram Connect: Status da configuração', configStatus);
+
     if (!APP_CONFIG.INSTAGRAM.APP_ID || !APP_CONFIG.INSTAGRAM.APP_SECRET) {
-      console.error('❌ Instagram Connect: Variáveis de ambiente não configuradas', {
-        hasAppId: !!APP_CONFIG.INSTAGRAM.APP_ID,
-        hasAppSecret: !!APP_CONFIG.INSTAGRAM.APP_SECRET,
-        hasRedirectUri: !!APP_CONFIG.INSTAGRAM.REDIRECT_URI
-      });
+      console.error('❌ Instagram Connect: Variáveis de ambiente não configuradas', configStatus);
       return NextResponse.json(
-        { error: 'Configuração Instagram incompleta' },
+        {
+          error: 'Configuração Instagram incompleta',
+          debug: configStatus,
+          instructions: [
+            'Verifique se INSTAGRAM_APP_ID está configurado no .env.local',
+            'Verifique se INSTAGRAM_APP_SECRET está configurado no .env.local',
+            'Verifique se INSTAGRAM_REDIRECT_URI está configurado no .env.local',
+            'Reinicie o servidor após alterar variáveis de ambiente'
+          ]
+        },
         { status: 500 }
       );
     }

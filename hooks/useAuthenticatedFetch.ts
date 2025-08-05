@@ -7,14 +7,24 @@ export const useAuthenticatedFetch = () => {
   const { user } = useAuthStore();
 
   const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
-    // Garantir que a URL use o domínio correto
+    // Em desenvolvimento, usar URLs relativas para evitar problemas de CSP
     let finalUrl = url;
-    if (url.startsWith('/')) {
-      // URL relativa - construir URL completa
-      finalUrl = buildUrl(url);
-    } else if (url.includes('localhost') || url.includes('127.0.0.1')) {
-      // Substituir localhost pelo domínio configurado
-      finalUrl = url.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, APP_CONFIG.BASE_URL);
+
+    // Se estamos em desenvolvimento (localhost), usar URLs relativas
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      if (url.startsWith('/')) {
+        finalUrl = url; // Manter URL relativa
+      } else if (url.includes('criadores.app')) {
+        // Converter URL absoluta para relativa em desenvolvimento
+        finalUrl = url.replace(/https?:\/\/(www\.)?criadores\.app/, '');
+      }
+    } else {
+      // Em produção, usar URLs completas
+      if (url.startsWith('/')) {
+        finalUrl = buildUrl(url);
+      } else if (url.includes('localhost') || url.includes('127.0.0.1')) {
+        finalUrl = url.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, APP_CONFIG.BASE_URL);
+      }
     }
 
     const headers: Record<string, string> = {

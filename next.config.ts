@@ -14,6 +14,32 @@ const nextConfig: NextConfig = {
   // Configuração adicional para Vercel - REMOVIDO TEMPORARIAMENTE PARA DEBUG
   // output: 'standalone',
 
+  // Headers de segurança e CSP
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://criadores.app https://www.criadores.app https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com https://graph.facebook.com https://graph.instagram.com",
+              "frame-src 'self' https://www.facebook.com https://www.instagram.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'"
+            ].join('; ')
+          }
+        ]
+      }
+    ];
+  },
+
   // Configurações experimentais
   experimental: {
     // Configurações futuras podem ser adicionadas aqui
