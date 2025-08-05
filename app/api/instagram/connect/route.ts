@@ -5,13 +5,26 @@ export async function POST(request: NextRequest) {
   try {
     const { businessId } = await request.json();
 
+    // 👑 USUÁRIOS ADMINISTRADORES: Acesso total
+    const adminEmails = ['luizvincenzi@gmail.com'];
+    const userEmail = request.headers.get('x-user-email');
+    const isAdmin = adminEmails.includes(userEmail || '');
+
+    // Usar Business ID fornecido ou fallback para desenvolvimento
+    const finalBusinessId = businessId ||
+                           process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID ||
+                           '00000000-0000-0000-0000-000000000002';
+
     console.log('📱 Instagram Connect: Iniciando processo', {
-      businessId,
+      businessId: finalBusinessId,
+      originalBusinessId: businessId,
+      isAdmin,
+      userEmail,
       appId: process.env.INSTAGRAM_APP_ID,
       redirectUri: process.env.INSTAGRAM_REDIRECT_URI
     });
 
-    if (!businessId) {
+    if (!finalBusinessId && !isAdmin) {
       console.error('❌ Instagram Connect: Business ID não fornecido');
       return NextResponse.json(
         { error: 'Business ID é obrigatório' },
@@ -33,10 +46,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Gerar URL de autorização do Instagram
-    const authUrl = instagramAPI.getAuthorizationUrl(businessId);
+    const authUrl = instagramAPI.getAuthorizationUrl(finalBusinessId);
 
     console.log('✅ Instagram Connect: URL de autorização gerada', {
-      businessId,
+      businessId: finalBusinessId,
       authUrl: authUrl.substring(0, 100) + '...'
     });
 

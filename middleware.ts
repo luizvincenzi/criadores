@@ -159,6 +159,11 @@ export function middleware(request: NextRequest) {
   const isClientMode = true;
   const clientBusinessId = process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
 
+  // 👑 USUÁRIOS ADMINISTRADORES: Acesso total ao sistema
+  const adminEmails = ['luizvincenzi@gmail.com'];
+  const userEmail = request.headers.get('x-user-email');
+  const isAdmin = adminEmails.includes(userEmail || '');
+
   if (isClientMode && clientBusinessId) {
     // 🔒 HEADERS DE SEGURANÇA CRÍTICOS
     request.headers.set('x-client-business-id', clientBusinessId);
@@ -184,7 +189,14 @@ export function middleware(request: NextRequest) {
   if (isProtectedApiRoute) {
     const businessIdFromRequest = extractBusinessIdFromRequest(request);
 
-    if (!businessIdFromRequest && !clientBusinessId) {
+    // 👑 ADMINISTRADORES: Bypass da validação de Business ID
+    if (isAdmin) {
+      console.log('👑 [ADMIN] Acesso administrativo autorizado:', {
+        email: userEmail,
+        path: pathname,
+        businessId: businessIdFromRequest || 'ALL_ACCESS'
+      });
+    } else if (!businessIdFromRequest && !clientBusinessId) {
       console.error('❌ [SECURITY] API chamada sem business_id:', pathname);
       return NextResponse.json({
         success: false,
@@ -192,12 +204,13 @@ export function middleware(request: NextRequest) {
       }, { status: 403 });
     }
 
-    // Validar se business_id da request bate com o configurado
-    if (businessIdFromRequest && clientBusinessId && businessIdFromRequest !== clientBusinessId) {
+    // Validar se business_id da request bate com o configurado (exceto para admins)
+    if (!isAdmin && businessIdFromRequest && clientBusinessId && businessIdFromRequest !== clientBusinessId) {
       console.error('❌ [SECURITY] Business ID inválido na API:', {
         requested: businessIdFromRequest,
         expected: clientBusinessId,
-        path: pathname
+        path: pathname,
+        userEmail: userEmail
       });
       return NextResponse.json({
         success: false,
