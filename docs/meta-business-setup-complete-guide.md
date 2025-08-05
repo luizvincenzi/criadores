@@ -71,8 +71,6 @@ Configurar completamente o app no Meta Business (Facebook Developers) para conec
    - **Valid OAuth Redirect URIs:**
      ```
      https://criadores.app/api/instagram/callback
-     https://localhost:3000/api/instagram/callback
-     https://localhost:3001/api/instagram/callback
      ```
    - **Deauthorize Callback URL:**
      ```
