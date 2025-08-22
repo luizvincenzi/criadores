@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fale Conosco - crIAdores</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #3b82f6;
+            --accent: #60a5fa;
+            --light: #f1f5f9;
+            --dark: #020617;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --gradient-start: #1e40af;
+            --gradient-end: #3b82f6;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --chat-bg: #f8fafc;
+            --user-message: #3b82f6;
+            --bot-message: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chatbot-container {
+            width: 100%;
+            max-width: 500px;
+            height: 700px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjwvc3ZnPg==');
+            opacity: 0.3;
+        }
+
+        .logo-chat {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .bot-avatar {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+        }
+
+        .user-avatar {
+            background: linear-gradient(135deg, var(--success), #34d399);
+            color: white;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 15px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .bot-message {
+            background: var(--bot-message);
+            border: 1px solid #e2e8f0;
+            color: var(--text-primary);
+            border-bottom-left-radius: 6px;
+        }
+
+        .user-message {
+            background: var(--user-message);
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .option-button {
+            background: white;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 12px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .option-button:hover {
+            background: var(--secondary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 15px 18px;
+            background: var(--bot-message);
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            border-bottom-left-radius: 6px;
+            max-width: 75%;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="chat-header">
+            <button class="back-button" onclick="window.location.href='home.html'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="logo-chat">crIAdores</div>
+            <div class="chat-subtitle">Vamos conversar sobre seu negócio!</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <div class="chat-input-area">
+            <div class="input-group">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua resposta..." disabled>
+                <button class="send-button" id="sendButton" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="chatbot.js"></script>
+</body>
+</html>

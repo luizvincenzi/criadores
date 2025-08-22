@@ -12,7 +12,7 @@ export default function Home() {
   };
 
   const handleGetStarted = () => {
-    router.push('/login');
+    router.push('/chatbot-homepage');
   };
 
   const scrollToSection = (sectionId: string) => {

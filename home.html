@@ -147,6 +147,14 @@
             color: var(--primary);
             text-decoration: none;
             font-family: 'Space+Grotesk', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-image {
+            height: 40px;
+            width: auto;
         }
 
         .logo span {
@@ -837,6 +845,283 @@
                 background-position: 0% 50%;
             }
         }
+
+        /* Chatbot Modal Styles */
+        .chatbot-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .chatbot-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chatbot-container {
+            width: 90%;
+            max-width: 500px;
+            height: 80vh;
+            max-height: 700px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .close-chatbot {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .close-chatbot:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .chatbot-progress {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .chatbot-progress-fill {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chatbot-message {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chatbot-message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .chatbot-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .chatbot-avatar.bot {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+        }
+
+        .chatbot-avatar.user {
+            background: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        .chatbot-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .chatbot-bubble.bot {
+            background: #f1f5f9;
+            color: var(--text-primary);
+            border-bottom-left-radius: 6px;
+        }
+
+        .chatbot-bubble.user {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .chatbot-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .chatbot-option {
+            background: white;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .chatbot-option:hover {
+            background: var(--secondary);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .chatbot-input-area {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chatbot-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chatbot-input:focus {
+            border-color: var(--secondary);
+        }
+
+        .chatbot-send {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            font-size: 1rem;
+        }
+
+        .chatbot-send:hover {
+            transform: scale(1.05);
+        }
+
+        .chatbot-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chatbot-container {
+                width: 95%;
+                height: 90vh;
+                border-radius: 15px;
+            }
+
+            .chatbot-message {
+                max-width: 90%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -844,7 +1129,9 @@
     <header>
         <div class="container">
             <nav class="navbar">
-                <a href="#" class="logo">crI<span>A</span>dores</a>
+                <a href="#" class="logo">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8dGV4dCB4PSIxMCIgeT0iNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzBmMTcyYSI+Y3I8L3RleHQ+CjxyZWN0IHg9IjkwIiB5PSIyMCIgd2lkdGg9IjE1IiBoZWlnaHQ9IjQwIiBmaWxsPSIjM2I4MmY2Ii8+CjxyZWN0IHg9IjkwIiB5PSIyMCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjM2I4MmY2Ii8+Cjx0ZXh0IHg9IjEzNSIgeT0iNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzBmMTcyYSI+ZG9yZXM8L3RleHQ+Cjwvc3ZnPgo=" alt="crIAdores" class="logo-image">
+                </a>
                 <ul class="nav-links">
                     <li><a href="#about">Sobre</a></li>
                     <li><a href="#mission">Missão</a></li>
@@ -864,7 +1151,10 @@
                 <div class="hero-text fade-in">
                     <h1>Conectando Negócios Locais a Criadores de Conteúdo</h1>
                     <p>Potencialize sua empresa com campanhas de influência local que geram resultados reais e aumentam suas vendas.</p>
-                    <a href="#contact" class="btn">Comece Agora</a>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <button onclick="openChatbot()" class="btn">Comece Agora</button>
+                        <a href="#process" class="btn btn-outline">Como Funciona</a>
+                    </div>
                 </div>
                 <div class="hero-image fade-in">
                     <div class="hero-card">
@@ -888,6 +1178,9 @@
                     <h3>Rede Conectada de Criadores Locais</h3>
                     <p>A crIAdores é uma comunidade ativa de criadores de conteúdo locais que utilizam inteligência artificial para criar campanhas que geram resultados reais para os negócios.</p>
                     <p>Nossa abordagem combina curadoria profissional, conteúdo orgânico e métricas transparentes para garantir o sucesso das suas campanhas de marketing.</p>
+                    <div style="margin-top: 30px;">
+                        <a href="chatbot.html" class="btn">Quero Saber Mais</a>
+                    </div>
                 </div>
                 <div class="about-image fade-in">
                     Nossa comunidade de criadores autênticos que impulsionam negócios locais
@@ -1141,7 +1434,10 @@
         <div class="container">
             <h2 class="fade-in">Vamos conversar sobre o futuro do seu negócio?</h2>
             <p class="fade-in">Entre em contato com nossa equipe e descubra como podemos potencializar sua presença digital local</p>
-            <a href="#contact" class="btn fade-in">Fale Conosco</a>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <a href="chatbot.html" class="btn fade-in">Fale Conosco Agora</a>
+                <a href="#contact" class="btn btn-outline fade-in">Ver Contatos</a>
+            </div>
         </div>
     </section>
 
@@ -1316,5 +1612,35 @@
         // Add gradient animation to hero section
         document.querySelector('.hero').classList.add('gradient-bg');
     </script>
+
+    <!-- Chatbot Modal -->
+    <div id="chatbotModal" class="chatbot-modal">
+        <div class="chatbot-container">
+            <div class="chatbot-header">
+                <h3>🤖 Assistente crIAdores</h3>
+                <button class="close-chatbot" onclick="closeChatbot()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chatbot-progress">
+                <div id="chatbotProgressFill" class="chatbot-progress-fill"></div>
+            </div>
+            <div id="chatbotMessages" class="chatbot-messages">
+                <!-- Messages will be added here dynamically -->
+            </div>
+            <div id="chatbotInputArea" class="chatbot-input-area" style="display: none;">
+                <input type="text" id="chatbotInput" class="chatbot-input" placeholder="Digite sua resposta...">
+                <button id="chatbotSend" class="chatbot-send">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <!-- Chatbot Script -->
+    <script src="chatbot-modal.js"></script>
 </body>
 </html>
