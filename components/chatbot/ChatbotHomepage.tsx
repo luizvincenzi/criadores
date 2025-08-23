@@ -285,9 +285,10 @@ export default function ChatbotHomepage({
   };
 
   const addMessage = (content: string, type: 'bot' | 'user') => {
-    setMessageIdCounter(prev => prev + 1);
+    const newCounter = messageIdCounter + 1;
+    setMessageIdCounter(newCounter);
     const newMessage: Message = {
-      id: `${type}-${messageIdCounter}-${Date.now()}`,
+      id: `${type}-${newCounter}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       content,
       timestamp: new Date()
@@ -483,7 +484,7 @@ export default function ChatbotHomepage({
           </button>
           <h1 className="text-2xl font-medium">
             <span className="text-gray-700">cr</span>
-            <span className="text-black font-bold">IA</span>
+            <span className="text-black font-bold text-2xl">IA</span>
             <span className="text-gray-700">dores</span>
           </h1>
           <div className="w-16"></div> {/* Spacer */}
