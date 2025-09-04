@@ -20,113 +20,591 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white/95 backdrop-blur-sm shadow-sm fixed w-full top-0 z-50 transition-all duration-300">
+      <header className="bg-white/80 backdrop-blur-md fixed w-full top-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center">
-              <span className="text-2xl font-medium text-gray-900">
-                <span className="text-gray-700">cr</span>
-                <span className="text-black font-bold text-2xl">IA</span>
-                <span className="text-gray-700">dores</span>
+              <span className="text-2xl font-bold text-gray-900">
+                <span className="text-gray-600">cr</span>
+                <span className="text-black font-bold">IA</span>
+                <span className="text-gray-600">dores</span>
               </span>
             </div>
-            <nav className="hidden md:flex space-x-8">
-              <button onClick={() => scrollToSection('about')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+            <nav className="hidden md:flex space-x-6">
+              <button onClick={() => scrollToSection('about')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Sobre
               </button>
-              <button onClick={() => scrollToSection('mission')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              <button onClick={() => scrollToSection('mission')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Missão
               </button>
-              <button onClick={() => scrollToSection('team')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              <button onClick={() => scrollToSection('team')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Equipe
               </button>
-              <button onClick={() => scrollToSection('why')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              <button onClick={() => scrollToSection('why')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Por que
               </button>
-              <button onClick={() => scrollToSection('process')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              <button onClick={() => scrollToSection('process')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Processo
               </button>
-              <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              <button onClick={() => scrollToSection('contact')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Contato
               </button>
             </nav>
-            <Button
+            <button
               onClick={handleLogin}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              className="inline-flex items-center justify-center duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Entrar
-            </Button>
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-gray-900 to-gray-800 text-white pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
-        <div className="max-w-7xl mx-auto relative">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-            <div className="flex-1 text-center lg:text-left">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  Conectando Negócios Locais a Criadores de Conteúdo
-                </span>
-              </h1>
-              <p className="text-xl text-gray-300 mb-8 max-w-2xl">
-                Potencialize sua empresa com campanhas de influência local que geram resultados reais e aumentam suas vendas.
-              </p>
-              <Button
-                onClick={handleGetStarted}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 shadow-lg"
-              >
-                Comece Agora
-              </Button>
-            </div>
-            <div className="flex-1 max-w-lg">
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-                <h3 className="text-2xl font-bold mb-6 text-white">Nossa Abordagem</h3>
-                <p className="text-gray-300 mb-6">
-                  Curadoria profissional, IA aplicada e métricas transparentes para garantir o sucesso das suas campanhas.
-                </p>
-                
+      {/* Hero Section - Conexão Empresas & Criadores */}
+      <section className="relative bg-gradient-to-br from-slate-50 to-white min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+
+          {/* Left Content */}
+          <div className="z-10 text-center lg:text-left">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight mb-6">
+              Conectamos <span className="text-blue-600">empresas locais</span> com <span className="text-blue-600">criadores locais</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed mb-8 font-normal">
+              Criamos conexões reais que geram engajamento real para pessoas reais da sua cidade.
+              Unindo negócios locais aos criadores da comunidade.
+            </p>
+
+            <button
+              onClick={handleGetStarted}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              <span>Conectar Agora</span>
+              <span>→</span>
+            </button>
+          </div>
+
+          {/* Right Visual - Connection Network */}
+          <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] flex items-center justify-center order-first lg:order-last">
+            <div className="relative w-full h-full flex items-center justify-center">
+
+              {/* Empresas Locais - Lado Esquerdo */}
+              <div className="absolute left-[-20px] sm:left-[-30px] lg:left-[-60px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-4 lg:gap-6">
+                <div className="text-center">
+                  <div className="text-sm sm:text-base lg:text-lg font-bold text-gray-600 mb-2 lg:mb-4">
+                    EMPRESAS<br />LOCAIS
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '0s', animationDuration: '3s'}}>
+                    🏪
+                  </div>
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '0.5s', animationDuration: '3s'}}>
+                    🍞
+                  </div>
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '1s', animationDuration: '3s'}}>
+                    💪
+                  </div>
+                </div>
               </div>
+
+              {/* Cidade no Centro */}
+              <div className="relative w-56 h-36 sm:w-64 sm:h-40 lg:w-80 lg:h-56 bg-white/95 backdrop-blur-sm rounded-2xl lg:rounded-3xl flex flex-col items-center justify-center shadow-2xl z-10">
+                <div className="text-base sm:text-lg lg:text-xl font-bold text-gray-600 mb-2 lg:mb-4">CIDADE</div>
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="text-xs sm:text-sm text-gray-500 text-center">
+                    Pessoas reais da sua cidade
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-400 text-center">
+                    Engajamento real
+                  </div>
+                </div>
+              </div>
+
+              {/* Criadores Locais - Lado Direito */}
+              <div className="absolute right-[-20px] sm:right-[-30px] lg:right-[-60px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-4 lg:gap-6">
+                <div className="text-center">
+                  <div className="text-sm sm:text-base lg:text-lg font-bold text-gray-600 mb-2 lg:mb-4">
+                    CRIADORES<br />LOCAIS
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '1.5s', animationDuration: '3s'}}>
+                    📸
+                  </div>
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '2s', animationDuration: '3s'}}>
+                    📱
+                  </div>
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '2.5s', animationDuration: '3s'}}>
+                    🎤
+                  </div>
+                </div>
+              </div>
+
+              {/* Linhas de Conexão - Hidden on mobile */}
+              <div className="hidden lg:block absolute top-[180px] left-[-10px] w-[100px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[20deg]"></div>
+              <div className="hidden lg:block absolute top-[300px] left-[-10px] w-[100px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse"></div>
+              <div className="hidden lg:block absolute top-[420px] left-[-10px] w-[100px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[20deg]"></div>
+
+              <div className="hidden lg:block absolute top-[180px] right-[-10px] w-[100px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[20deg]" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden lg:block absolute top-[300px] right-[-10px] w-[100px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden lg:block absolute top-[420px] right-[-10px] w-[100px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[20deg]" style={{animationDelay: '1.5s'}}></div>
+
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      {/* Clean Apple-Style Demo */}
+      <section className="py-20 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-0">
+            <div className="relative bg-white rounded-3xl p-12 sm:p-16 shadow-xl border border-gray-200/50 overflow-hidden">
+              {/* Subtle background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-white rounded-3xl"></div>
+
+              <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 items-center">
+                {/* Business Card - Clean */}
+                <div className="bg-gray-50 rounded-2xl p-10 text-center border border-gray-200/50 hover:shadow-lg transition-all duration-300">
+                  <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2 text-lg">Seu Negócio</h4>
+                  <p className="text-sm text-gray-600">Empresa Local</p>
+                </div>
+
+                {/* Connection - Minimal */}
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Conectamos
+                  </p>
+                </div>
+
+                {/* Creators Card - Clean */}
+                <div className="bg-gray-50 rounded-2xl p-10 text-center border border-gray-200/50 hover:shadow-lg transition-all duration-300">
+                  <div className="w-16 h-16 bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-6 text-lg">Criadores Locais</h4>
+                  <div className="flex space-x-3">
+                    <div className="flex-1 bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
+                      <div className="w-8 h-8 mx-auto mb-2 bg-gray-900 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+                        </svg>
+                      </div>
+                      <p className="text-xs text-gray-700 font-medium">Instagram</p>
+                    </div>
+                    <div className="flex-1 bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
+                      <div className="w-8 h-8 mx-auto mb-2 bg-gray-900 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.10z"/>
+                        </svg>
+                      </div>
+                      <p className="text-xs text-gray-700 font-medium">TikTok</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Clean floating stats */}
+              <div className="absolute -top-4 -right-4 bg-white rounded-xl p-4 shadow-lg border border-gray-200/50">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">150%</div>
+                  <p className="text-xs text-gray-600">Engajamento</p>
+                </div>
+              </div>
+
+              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-4 shadow-lg border border-gray-200/50">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">95%</div>
+                  <p className="text-xs text-gray-600">Satisfação</p>
+                </div>
+              </div>
+            </div>
+          </div>
+      </section>
+
+
+
+      {/* Use Cases Section */}
+      <section className="relative py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-blue-200/20 to-blue-300/20 rounded-full blur-3xl opacity-60"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-blue-200/20 to-indigo-200/20 rounded-full blur-3xl opacity-50"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center mb-16 sm:mb-20">
+            {/* Premium Badge */}
+            <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200/50 text-blue-700 text-xs sm:text-sm font-medium mb-6 sm:mb-8 shadow-lg">
+              <span className="w-2 h-2 bg-blue-600 rounded-full mr-2 sm:mr-3 animate-pulse"></span>
+              Resultados Comprovados
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 px-4 sm:px-0">
+              Histórias de <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Sucesso</span>
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
+              Veja como empresas locais estão <span className="font-semibold text-gray-800">transformando seus negócios</span> com nossa plataforma de marketing de influência
+            </p>
+          </div>
+
+          {/* Premium Cases Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 mb-16">
+            {/* Row 1 */}
+            <div className="relative group overflow-hidden rounded-3xl aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105">
+              <img
+                src="/images/usecase1.png"
+                alt="Boussole - 51 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4">
+                <div className="flex items-center justify-between text-white">
+                  <div className="flex items-center text-sm font-medium">
+                    <svg className="w-4 h-4 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                    </svg>
+                    51 mil
+                  </div>
+                  <div className="text-xs bg-blue-600 px-2 py-1 rounded-full font-semibold">
+                    Viral
+                  </div>
+                </div>
+                <p className="text-xs text-gray-300 mt-1 font-medium">Boussole</p>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-3xl aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105">
+              <img
+                src="/images/usecase2.png"
+                alt="John O'Groat - 35.2 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4">
+                <div className="flex items-center justify-between text-white">
+                  <div className="flex items-center text-sm font-medium">
+                    <svg className="w-4 h-4 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                    </svg>
+                    35.2 mil
+                  </div>
+                  <div className="text-xs bg-blue-600 px-2 py-1 rounded-full font-semibold">
+                    Top
+                  </div>
+                </div>
+                <p className="text-xs text-gray-300 mt-1 font-medium">John O'Groat</p>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase3.png"
+                alt="Que Poké Gostoso - 11 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  11 mil
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase4.png"
+                alt="Boussole Sequência - 60.7 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  60.7 mil
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase5.png"
+                alt="Vert - 42.6 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  42.6 mil
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase6.png"
+                alt="Buffet Livre - 11.6 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  11.6 mil
+                </div>
+              </div>
+            </div>
+
+            {/* Row 2 */}
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase7.png"
+                alt="Festa - 321 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  321 mil
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase8.png"
+                alt="Sequência de Fondue - 5 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  5 mil
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase9.png"
+                alt="Rádio Mix - 10.6 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  10.6 mil
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase10.png"
+                alt="Boussole Grupo - 32.2 mil visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  32.2 mil
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase11.png"
+                alt="Loja Grupo - 9.406 visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  9.406
+                </div>
+              </div>
+            </div>
+
+            <div className="relative group overflow-hidden rounded-2xl aspect-[3/4] bg-gray-100">
+              <img
+                src="/images/usecase12.png"
+                alt="Purão Vegano - 6.827 visualizações"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="flex items-center text-white text-sm">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                  </svg>
+                  6.827
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium CTA - Responsive */}
+          <div className="text-center px-4 sm:px-0">
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-xl border border-white/50">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
+                Pronto para <span className="text-blue-600">resultados como esses?</span>
+              </h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6 max-w-md mx-auto">
+                Junte-se a centenas de empresas que já transformaram seu marketing local
+              </p>
+              <button
+                onClick={handleGetStarted}
+                className="inline-flex items-center justify-center duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary text-base sm:text-lg bg-blue-600 hover:bg-blue-700 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-lg font-medium transition-colors"
+              >
+                📈 Ver Mais Cases de Sucesso
+                <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-white">
+      <section id="about" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
-              O que é a crIAdores?
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+              Sobre a Plataforma
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-black">
+              O que é a 
+              <span className="text-gray-600">cr</span>
+              <span className="text-black font-bold">IA</span>
+              <span className="text-gray-600">dores</span>?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mt-8">
-              Uma plataforma inovadora que conecta negócios locais a criadores de conteúdo autênticos
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Uma plataforma inovadora que conecta negócios locais a criadores de conteúdo autênticos,
+              <span className="font-semibold text-gray-800"> potencializando resultados</span> através da inteligência artificial.
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-center gap-16">
-            <div className="flex-1">
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-                Rede Conectada de Criadores Locais
-              </h3>
-              <p className="text-lg text-gray-600 mb-6">
-                A crIAdores é uma comunidade ativa de criadores de conteúdo locais que utilizam inteligência artificial para criar campanhas que geram resultados reais para os negócios.
-              </p>
-              <p className="text-lg text-gray-600 mb-8">
-                Nossa abordagem combina curadoria profissional, conteúdo orgânico e métricas transparentes para garantir o sucesso das suas campanhas de marketing.
-              </p>
-            </div>
-            <div className="flex-1">
-              <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center shadow-2xl">
-                <div className="text-lg font-medium">
-                  Nossa comunidade de criadores autênticos que impulsionam negócios locais
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Rede Conectada */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
               </div>
+              <h3 className="text-xl font-bold text-black mb-4">Rede Conectada</h3>
+              <p className="text-gray-600 mb-6">
+                Comunidade ativa de criadores de conteúdo locais verificados e engajados.
+              </p>
+              <div className="bg-blue-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600 mb-1">10k+</div>
+                <div className="text-sm text-gray-600">Criadores Ativos</div>
+              </div>
+            </div>
+
+            {/* IA Aplicada */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">IA Aplicada</h3>
+              <p className="text-gray-600 mb-6">
+                Conteúdo guiado por inteligência artificial para melhores resultados e engajamento.
+              </p>
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-green-600 mb-1">95%</div>
+                <div className="text-sm text-gray-600">Taxa de Sucesso</div>
+              </div>
+            </div>
+
+            {/* Resultados Reais */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+              <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mb-6">
+                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Resultados Reais</h3>
+              <p className="text-gray-600 mb-6">
+                Campanhas estruturadas para gerar vendas e engajamento comprovados.
+              </p>
+              <div className="bg-orange-50 rounded-lg p-4 text-center">
+                <div className="text-2xl font-bold text-orange-600 mb-1">24h</div>
+                <div className="text-sm text-gray-600">Tempo de Resposta</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="text-center mt-16">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 max-w-2xl mx-auto">
+              <h3 className="text-2xl font-bold text-black mb-4">
+                Pronto para começar?
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Conecte seu negócio aos melhores criadores da sua região e veja seus resultados crescerem.
+              </p>
+              <button
+                onClick={handleGetStarted}
+                className="inline-flex items-center justify-center duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Começar Agora
+                <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -138,7 +616,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
               Tudo que você precisa em um só lugar
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-600 rounded"></div>
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mt-8">
               Ferramentas profissionais para gerenciar cada etapa das suas campanhas
@@ -161,8 +639,8 @@ export default function Home() {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-gray-600 rounded-xl flex items-center justify-center mb-6">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -203,8 +681,8 @@ export default function Home() {
             </div>
 
             {/* Feature 5 */}
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-pink-600 rounded-xl flex items-center justify-center mb-6">
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-yellow-600 rounded-xl flex items-center justify-center mb-6">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -239,7 +717,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 relative inline-block">
               Nossa Missão, Visão e Valores
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded"></div>
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-400 rounded"></div>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto mt-8">
               Guiando negócios locais rumo ao sucesso através da influência autêntica
@@ -260,7 +738,7 @@ export default function Home() {
             </div>
 
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/10 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2">
-              <div className="text-5xl text-purple-400 mb-6">
+              <div className="text-5xl text-blue-400 mb-6">
                 <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                 </svg>
@@ -290,7 +768,7 @@ export default function Home() {
       
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20 bg-blue-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Vamos conversar sobre o futuro do seu negócio?
@@ -313,7 +791,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
               Por que investir em micro influenciadores?
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-600 rounded"></div>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mt-8">
               Estratégia inteligente para maximizar seu retorno sobre investimento
@@ -345,8 +823,8 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-purple-600">
-              <div className="text-4xl text-purple-600 mb-6">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-green-600">
+              <div className="text-4xl text-green-600 mb-6">
                 <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
@@ -366,7 +844,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 relative inline-block">
               Como funciona na prática
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded"></div>
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-400 rounded"></div>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto mt-8">
               Um processo estruturado para garantir resultados consistentes
@@ -375,7 +853,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
                 1
               </div>
               <h3 className="text-lg font-bold mb-3">Briefing Personalizado</h3>
@@ -385,7 +863,7 @@ export default function Home() {
             </div>
 
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
                 2
               </div>
               <h3 className="text-lg font-bold mb-3">Seleção Precisa</h3>
@@ -395,7 +873,7 @@ export default function Home() {
             </div>
 
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-pink-600 to-red-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
+              <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
                 3
               </div>
               <h3 className="text-lg font-bold mb-3">Conteúdo Guiado</h3>
@@ -433,7 +911,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
               Entre em Contato
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-600 rounded"></div>
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mt-8">
               Nossa equipe está pronta para ajudar seu negócio a crescer
@@ -459,7 +937,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-600 via-pink-600 to-orange-400 rounded-lg flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
                   </svg>
@@ -467,7 +945,7 @@ export default function Home() {
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Instagram</h3>
                   <p className="text-gray-600">
-                    <a href="https://www.instagram.com/criadores.app/" target="_blank" rel="noopener noreferrer" className="hover:text-pink-600 transition-colors">
+                    <a href="https://www.instagram.com/criadores.app/" target="_blank" rel="noopener noreferrer" className="hover:text-orange-600 transition-colors">
                       @criadores.app
                     </a>
                   </p>
@@ -511,23 +989,7 @@ export default function Home() {
               <p className="text-gray-400 mb-6 max-w-md">
                 Conectando negócios locais a criadores de conteúdo autênticos para impulsionar vendas e engajamento.
               </p>
-              <div className="flex space-x-4">
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-                  </svg>
-                </a>
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
-                  </svg>
-                </a>
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                  </svg>
-                </a>
-              </div>
+
             </div>
 
             <div>
@@ -555,15 +1017,18 @@ export default function Home() {
             <div>
               <h3 className="font-semibold mb-4 text-lg">Contato</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="https://wa.me/5543991049779" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">WhatsApp: 43 99104-9779</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4 text-lg">Redes Sociais</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="https://www.instagram.com/criadores.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a></li>
-                <li><a href="https://www.tiktok.com/@criadores.app?_t=ZM-8z6CVJvQ6Ny&_r=1" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a></li>
+                <li>
+                  <span className="block font-medium text-white mb-1">WhatsApp</span>
+                  <a href="https://wa.me/5543991049779" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">43 99104-9779</a>
+                </li>
+                <li>
+                  <span className="block font-medium text-white mb-1 mt-4">Instagram</span>
+                  <a href="https://www.instagram.com/criadores.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@criadores.app</a>
+                </li>
+                <li>
+                  <span className="block font-medium text-white mb-1 mt-4">TikTok</span>
+                  <a href="https://www.tiktok.com/@criadores.app?_t=ZM-8z6CVJvQ6Ny&_r=1" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@criadores.app</a>
+                </li>
               </ul>
             </div>
           </div>

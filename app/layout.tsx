@@ -15,26 +15,72 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "crIAdores - Plataforma de Gestão de Campanhas",
-  description: "Gerencie suas campanhas de influenciadores de forma profissional. Organize eventos, acompanhe criadores e otimize resultados.",
-  keywords: "campanhas, influenciadores, marketing, gestão, eventos, criadores",
-  authors: [{ name: "crIAdores Team" }],
+  title: {
+    default: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo",
+    template: "%s | crIAdores"
+  },
+  description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais para pequenas e médias empresas.",
+  keywords: [
+    "micro influenciadores",
+    "marketing local",
+    "criadores de conteúdo",
+    "campanhas de marketing",
+    "influencer marketing",
+    "negócios locais",
+    "pequenas empresas",
+    "marketing digital",
+    "redes sociais",
+    "Instagram",
+    "TikTok",
+    "Brasil"
+  ],
+  authors: [{ name: "crIAdores", url: "https://criadores.app" }],
   creator: "crIAdores",
   publisher: "crIAdores",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/icon.svg", type: "image/svg+xml", sizes: "64x64" }
+      { url: "/faviconcriadoresIA2.png", type: "image/png" },
+      { url: "/faviconcriadoresIA2.png", type: "image/png", sizes: "32x32" }
     ],
-    shortcut: "/favicon.svg",
-    apple: "/icon.svg"
+    shortcut: "/faviconcriadoresIA2.png",
+    apple: "/faviconcriadoresIA2.png"
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "crIAdores - Plataforma de Gestão de Campanhas",
-    description: "Gerencie suas campanhas de influenciadores de forma profissional.",
+    title: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo",
+    description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais.",
     type: "website",
-    locale: "pt_BR"
+    locale: "pt_BR",
+    url: "https://criadores.app",
+    siteName: "crIAdores",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo",
+    description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos.",
+    images: ["/og-image.jpg"]
+  },
+  alternates: {
+    canonical: "https://criadores.app"
   }
 };
 
