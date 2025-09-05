@@ -1,18 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/kanban.css";
 import { ToastContainer } from "@/components/ui/ToastContainer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Onest será carregada via CSS para melhor performance
+const onest = {
+  variable: "--font-onest",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -50,11 +50,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/faviconcriadoresIA2.png", type: "image/png" },
-      { url: "/faviconcriadoresIA2.png", type: "image/png", sizes: "32x32" }
+      { url: "/faviconcriadores1.png", type: "image/png" },
+      { url: "/faviconcriadores1.png", type: "image/png", sizes: "32x32" }
     ],
-    shortcut: "/faviconcriadoresIA2.png",
-    apple: "/faviconcriadoresIA2.png"
+    shortcut: "/faviconcriadores1.png",
+    apple: "/faviconcriadores1.png"
   },
   manifest: "/manifest.json",
   openGraph: {
@@ -103,9 +103,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
           rel="stylesheet"
         />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Onest:wght@100;200;300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${onest.variable} font-onest antialiased`}
       >
         {children}
         <ToastContainer />

@@ -26,7 +26,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center">
-              <span className="text-2xl font-onest font-normal text-gray-900 tracking-tight">
+              <span className="text-2xl font-onest tracking-tight">
                 <span className="text-gray-600 font-light">cr</span>
                 <span className="text-black font-bold">IA</span>
                 <span className="text-gray-600 font-light">dores</span>
@@ -63,99 +63,120 @@ export default function Home() {
       </header>
 
       {/* Hero Section - Conexão Empresas & Criadores */}
-      <section className="relative bg-white min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <section className="relative bg-gray-50 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-600 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
+        </div>
+
+        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
 
           {/* Left Content */}
           <div className="text-center lg:text-left order-1 lg:order-1">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 leading-tight mb-6">
               Conectamos <span className="text-blue-600">empresas locais</span> com <span className="text-blue-600">criadores locais</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed mb-8">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-8 font-normal">
               Criamos conexões reais que geram engajamento real para seus clientes na sua cidade.
               Unindo negócios locais aos criadores da comunidade.
             </p>
 
             <button
               onClick={handleGetStarted}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               <span>Conectar Agora</span>
               <span>→</span>
             </button>
           </div>
 
-          {/* Right Visual - Simple Connection Network */}
+          {/* Right Visual - Premium Connection Network */}
           <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] flex items-center justify-center order-2 lg:order-2">
             <div className="relative w-full h-full flex items-center justify-center">
 
               {/* Empresas Locais - Lado Esquerdo */}
-              <div className="absolute left-0 sm:left-[-20px] lg:left-[-40px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-4 lg:gap-6">
+              <div className="absolute left-0 sm:left-[-20px] lg:left-[-40px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-6 lg:gap-8">
                 <div className="text-center">
-                  <div className="text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-3 lg:mb-4">
+                  <div className="text-xs sm:text-sm lg:text-base font-medium text-gray-500 mb-4 lg:mb-6 tracking-wide">
                     EMPRESAS<br />LOCAIS
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-md">
+                <div className="flex flex-col gap-4 sm:gap-5 lg:gap-7">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105">
                     🏪
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-md">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105">
                     🍞
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-md">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105">
                     💪
                   </div>
                 </div>
               </div>
 
-              {/* Cidade no Centro */}
-              <div className="relative w-56 h-36 sm:w-64 sm:h-40 lg:w-80 lg:h-56 bg-white rounded-2xl lg:rounded-3xl flex flex-col items-center justify-center shadow-xl z-10 border border-gray-200">
-                <div className="text-base sm:text-lg lg:text-xl font-bold text-gray-700 mb-2 lg:mb-4">🏙️ CIDADE</div>
-                <div className="flex flex-col items-center space-y-2">
-                  <div className="text-sm sm:text-base text-gray-600 text-center font-medium">
-                    Seus clientes na sua cidade
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  </div>
-                  <div className="text-sm sm:text-base text-gray-500 text-center">
-                    Engajamento real
+              {/* Cidade no Centro - Premium */}
+              <div className="relative w-72 h-44 sm:w-80 sm:h-48 lg:w-96 lg:h-64 bg-gradient-to-br from-white via-gray-50/30 to-white rounded-3xl lg:rounded-[2.5rem] flex flex-col items-center justify-center shadow-2xl z-10 border border-gray-200/30 backdrop-blur-sm">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/10 to-transparent rounded-3xl lg:rounded-[2.5rem]"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-50/20 to-transparent rounded-3xl lg:rounded-[2.5rem]"></div>
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4 lg:mb-6">🏙️</div>
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-3 lg:mb-5 tracking-tight">CIDADE</div>
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="text-sm sm:text-base lg:text-lg text-gray-600 text-center font-medium">
+                      Seus clientes na sua cidade
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full opacity-80"></div>
+                      <div className="w-3 h-3 bg-blue-500 rounded-full opacity-60"></div>
+                      <div className="w-3 h-3 bg-blue-500 rounded-full opacity-40"></div>
+                    </div>
+                    <div className="text-sm sm:text-base lg:text-lg text-gray-500 text-center font-medium">
+                      Engajamento real
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Criadores Locais - Lado Direito */}
-              <div className="absolute right-0 sm:right-[-20px] lg:right-[-40px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-4 lg:gap-6">
+              <div className="absolute right-0 sm:right-[-20px] lg:right-[-40px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-6 lg:gap-8">
                 <div className="text-center">
-                  <div className="text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-3 lg:mb-4">
+                  <div className="text-xs sm:text-sm lg:text-base font-medium text-gray-500 mb-4 lg:mb-6 tracking-wide">
                     CRIADORES<br />LOCAIS
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-md">
+                <div className="flex flex-col gap-4 sm:gap-5 lg:gap-7">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105">
                     📸
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-md">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105">
                     📱
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl shadow-md">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-2xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-500 hover:scale-105">
                     🎤
                   </div>
                 </div>
               </div>
 
-              {/* Linhas de Conexão Simples */}
-              <div className="hidden lg:block absolute top-[200px] left-[80px] w-[120px] h-[2px] bg-blue-300 rounded-full opacity-50"></div>
-              <div className="hidden lg:block absolute top-[250px] left-[80px] w-[120px] h-[2px] bg-blue-300 rounded-full opacity-50"></div>
-              <div className="hidden lg:block absolute top-[300px] left-[80px] w-[120px] h-[2px] bg-blue-300 rounded-full opacity-50"></div>
+              {/* Linhas de Conexão Premium */}
+              <div className="hidden lg:block absolute top-[240px] left-[120px] w-[160px] h-[1px] bg-gradient-to-r from-gray-300 via-blue-400 to-transparent opacity-50"></div>
+              <div className="hidden lg:block absolute top-[300px] left-[120px] w-[160px] h-[1px] bg-gradient-to-r from-gray-300 via-blue-400 to-transparent opacity-50"></div>
+              <div className="hidden lg:block absolute top-[360px] left-[120px] w-[160px] h-[1px] bg-gradient-to-r from-gray-300 via-blue-400 to-transparent opacity-50"></div>
 
-              <div className="hidden lg:block absolute top-[200px] right-[80px] w-[120px] h-[2px] bg-blue-300 rounded-full opacity-50"></div>
-              <div className="hidden lg:block absolute top-[250px] right-[80px] w-[120px] h-[2px] bg-blue-300 rounded-full opacity-50"></div>
-              <div className="hidden lg:block absolute top-[300px] right-[80px] w-[120px] h-[2px] bg-blue-300 rounded-full opacity-50"></div>
+              <div className="hidden lg:block absolute top-[240px] right-[120px] w-[160px] h-[1px] bg-gradient-to-l from-gray-300 via-blue-400 to-transparent opacity-50"></div>
+              <div className="hidden lg:block absolute top-[300px] right-[120px] w-[160px] h-[1px] bg-gradient-to-l from-gray-300 via-blue-400 to-transparent opacity-50"></div>
+              <div className="hidden lg:block absolute top-[360px] right-[120px] w-[160px] h-[1px] bg-gradient-to-l from-gray-300 via-blue-400 to-transparent opacity-50"></div>
+
+              {/* Pontos de conexão elegantes */}
+              <div className="hidden lg:block absolute top-[237px] left-[280px] w-2 h-2 bg-blue-400 rounded-full opacity-60"></div>
+              <div className="hidden lg:block absolute top-[297px] left-[280px] w-2 h-2 bg-blue-400 rounded-full opacity-60"></div>
+              <div className="hidden lg:block absolute top-[357px] left-[280px] w-2 h-2 bg-blue-400 rounded-full opacity-60"></div>
+
+              <div className="hidden lg:block absolute top-[237px] right-[280px] w-2 h-2 bg-blue-400 rounded-full opacity-60"></div>
+              <div className="hidden lg:block absolute top-[297px] right-[280px] w-2 h-2 bg-blue-400 rounded-full opacity-60"></div>
+              <div className="hidden lg:block absolute top-[357px] right-[280px] w-2 h-2 bg-blue-400 rounded-full opacity-60"></div>
 
 
             </div>
@@ -170,18 +191,10 @@ export default function Home() {
               Sobre a Plataforma
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-black">
-              O que é a <span className="inline-block font-onest font-normal text-4xl md:text-5xl">
-                <span className="text-gray-600 font-light">cr</span>
-                <span className="text-black font-bold">IA</span>
-                <span className="text-gray-600 font-light">dores</span>
-              </span>?
+              O que é a <span className="inline-block bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent font-black text-4xl md:text-5xl">crIAdores</span>?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              A <span className="font-onest font-normal">
-                <span className="text-gray-600 font-light">cr</span>
-                <span className="text-black font-bold">IA</span>
-                <span className="text-gray-600 font-light">dores</span>
-              </span> é uma plataforma revolucionária que conecta empresas locais com criadores de conteúdo autênticos da sua região.
+              A <span className="font-bold text-blue-600">crIAdores</span> é uma plataforma revolucionária que conecta empresas locais com criadores de conteúdo autênticos da sua região.
               <br /><br />
               Utilizamos <span className="font-semibold text-gray-800">inteligência artificial</span> para criar parcerias perfeitas que geram resultados reais para o seu negócio e oportunidades genuínas para criadores locais.
             </p>
@@ -298,10 +311,10 @@ export default function Home() {
       <section className="py-20" style={{backgroundColor: '#f5f5f5'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gray-100 border border-gray-200 text-gray-700 text-sm font-medium mb-6">
               Nossos Princípios
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               Nossos Valores
             </h2>
           </div>
@@ -309,8 +322,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Comunidade */}
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-gray-200 transition-colors">
+                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
@@ -1159,79 +1172,91 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section id="mission" className="py-20 bg-gray-900 text-white">
+
+      {/* Seção Nossos Serviços Premium */}
+      <section className="py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 relative inline-block">
-              Nossa Missão, Visão e Valores
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-400 rounded"></div>
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gray-100 border border-gray-200 text-gray-700 text-sm font-medium mb-8">
+              ✨ Nossos Serviços
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-onest">
+              O que você <span className="text-gray-600">recebe?</span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mt-8">
-              Guiando negócios locais rumo ao sucesso através da influência autêntica
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Soluções completas e premium para transformar sua estratégia de influencer marketing
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {/* Nossa Missão */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/10 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2">
-              <div className="text-5xl text-blue-400 mb-6">
-                <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Curadoria Profissional */}
+            <div className="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-gray-200 transition-all duration-500 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 font-onest">Curadoria Profissional</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Selecionamos influenciadores ideais para o seu perfil e objetivos específicos
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-4">Nossa Missão</h3>
-              <p className="text-gray-300">
-                Democratizar o acesso ao marketing de influência para negócios locais, criando conexões autênticas que geram resultados reais.
-              </p>
             </div>
 
-            {/* Nossa Visão */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/10 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2">
-              <div className="text-5xl text-green-400 mb-6">
-                <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                </svg>
+            {/* Campanhas Estruturadas */}
+            <div className="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-gray-200 transition-all duration-500 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 font-onest">Campanhas Estruturadas</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Briefings claros e objetivos definidos em conjunto com sua equipe
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-4">Nossa Visão</h3>
-              <p className="text-gray-300">
-                Ter 10.000 negócios ativos na plataforma, gerando mais de R$ 10 milhões por mês em oportunidades financeiras para mais de 60 mil criadores.
-              </p>
             </div>
 
-            {/* Nossos Valores */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/10 hover:bg-white/10 transition-all duration-300 hover:transform hover:-translate-y-2">
-              <div className="text-5xl text-yellow-400 mb-6">
-                <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            {/* Conteúdo Orgânico */}
+            <div className="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-gray-200 transition-all duration-500 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 font-onest">Conteúdo Orgânico</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Ações frequentes e autênticas nas redes de cada criador
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-4">Nossos Valores</h3>
-              <p className="text-gray-300">
-                Autenticidade, transparência e foco em resultados. Valorizamos parcerias duradouras e crescimento mútuo.
-              </p>
+            </div>
+
+            {/* Métricas e Relatórios */}
+            <div className="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-gray-200 transition-all duration-500 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 font-onest">Métricas e Relatórios</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Acompanhamento e análise transparente dos resultados obtidos
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Team Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">
-              Nossa Equipe
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Profissionais dedicados a conectar empresas e criadores
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
-              <div className="w-12 h-12 bg-gray-600 rounded-xl flex items-center justify-center mb-6">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -1303,6 +1328,7 @@ export default function Home() {
       </section>
 
 
+
       {/* Team Section */}
 
 
@@ -1324,125 +1350,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Section */}
-      <section id="why" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
-              Por que investir em micro influenciadores?
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-600 rounded"></div>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mt-8">
-              Estratégia inteligente para maximizar seu retorno sobre investimento
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-blue-600">
-              <div className="text-4xl text-blue-600 mb-6">
-                <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Engajamento Real</h3>
-              <p className="text-gray-600">
-                Maior envolvimento por proximidade e conteúdo alinhado à cultura local gera conexões autênticas com seu público-alvo.
-              </p>
-            </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-green-600">
-              <div className="text-4xl text-green-600 mb-6">
-                <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Custo-Benefício</h3>
-              <p className="text-gray-600">
-                Investimento acessível com maior retorno sobre valor aplicado em comparação com mídias tradicionais.
-              </p>
-            </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:transform hover:-translate-y-2 border-l-4 border-green-600">
-              <div className="text-4xl text-green-600 mb-6">
-                <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Promoção Orgânica</h3>
-              <p className="text-gray-600">
-                Conteúdo natural e recorrente com recomendação genuína que constrói autoridade de marca de forma sustentável.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Process Section */}
-      <section id="process" className="py-20 bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 relative inline-block">
-              Como funciona na prática
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-blue-400 rounded"></div>
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mt-8">
-              Um processo estruturado para garantir resultados consistentes
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                1
-              </div>
-              <h3 className="text-lg font-bold mb-3">Briefing Personalizado</h3>
-              <p className="text-gray-300 text-sm">
-                Entendemos seu objetivo comercial e definimos a estratégia ideal para sua marca.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                2
-              </div>
-              <h3 className="text-lg font-bold mb-3">Seleção Precisa</h3>
-              <p className="text-gray-300 text-sm">
-                Selecionamos criadores ideais ao seu perfil e o cliente decide quais se encaixam mais no perfil adequado.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                3
-              </div>
-              <h3 className="text-lg font-bold mb-3">Conteúdo Guiado</h3>
-              <p className="text-gray-300 text-sm">
-                Criadores recebem orientação e entregam posts criativos alinhados com sua marca.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                4
-              </div>
-              <h3 className="text-lg font-bold mb-3">Aprovação Segura</h3>
-              <p className="text-gray-300 text-sm">
-                Você valida todo o conteúdo antes da publicação para garantir alinhamento total.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-600 to-yellow-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg">
-                5
-              </div>
-              <h3 className="text-lg font-bold mb-3">Medição e Evolução</h3>
-              <p className="text-gray-300 text-sm">
-                Análise de resultados e novos ciclos para alcançar ainda mais resultados.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Contact Section */}
       <section id="contact" className="py-20 bg-white">
@@ -1519,7 +1429,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center mb-4">
-                <span className="text-2xl font-onest font-normal">
+                <span className="text-2xl font-onest tracking-tight">
                   <span className="text-gray-400 font-light">cr</span>
                   <span className="text-white font-bold">IA</span>
                   <span className="text-gray-400 font-light">dores</span>
