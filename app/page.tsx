@@ -63,17 +63,24 @@ export default function Home() {
       </header>
 
       {/* Hero Section - Conexão Empresas & Criadores */}
-      <section className="relative bg-gradient-to-br from-slate-50 to-white min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <section className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-white min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-600 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
+        </div>
+
+        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
 
           {/* Left Content */}
-          <div className="z-10 text-center lg:text-left">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight mb-6">
+          <div className="text-center lg:text-left order-1 lg:order-1">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-gray-900 leading-tight mb-6">
               Conectamos <span className="text-blue-600">empresas locais</span> com <span className="text-blue-600">criadores locais</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed mb-8 font-normal">
-              Criamos conexões reais que geram engajamento real para pessoas reais da sua cidade.
+            <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 font-normal">
+              Criamos conexões reais que geram engajamento real para seus clientes na sua cidade.
               Unindo negócios locais aos criadores da comunidade.
             </p>
 
@@ -87,75 +94,75 @@ export default function Home() {
           </div>
 
           {/* Right Visual - Connection Network */}
-          <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] flex items-center justify-center order-first lg:order-last">
+          <div className="relative h-[350px] sm:h-[450px] lg:h-[550px] flex items-center justify-center order-2 lg:order-2">
             <div className="relative w-full h-full flex items-center justify-center">
 
               {/* Empresas Locais - Lado Esquerdo */}
-              <div className="absolute left-[-20px] sm:left-[-30px] lg:left-[-60px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-4 lg:gap-6">
+              <div className="absolute left-[-10px] sm:left-[-20px] lg:left-[-40px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-3 lg:gap-5">
                 <div className="text-center">
-                  <div className="text-sm sm:text-base lg:text-lg font-bold text-gray-600 mb-2 lg:mb-4">
+                  <div className="text-xs sm:text-sm lg:text-base font-bold text-gray-700 mb-2 lg:mb-3">
                     EMPRESAS<br />LOCAIS
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '0s', animationDuration: '3s'}}>
+                <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 lg:w-18 lg:h-18 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl text-blue-700 shadow-lg animate-bounce border-2 border-blue-300" style={{animationDelay: '0s', animationDuration: '3s'}}>
                     🏪
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '0.5s', animationDuration: '3s'}}>
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 lg:w-18 lg:h-18 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl text-green-700 shadow-lg animate-bounce border-2 border-green-300" style={{animationDelay: '0.5s', animationDuration: '3s'}}>
                     🍞
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '1s', animationDuration: '3s'}}>
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 lg:w-18 lg:h-18 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl text-orange-700 shadow-lg animate-bounce border-2 border-orange-300" style={{animationDelay: '1s', animationDuration: '3s'}}>
                     💪
                   </div>
                 </div>
               </div>
 
               {/* Cidade no Centro */}
-              <div className="relative w-56 h-36 sm:w-64 sm:h-40 lg:w-80 lg:h-56 bg-white/95 backdrop-blur-sm rounded-2xl lg:rounded-3xl flex flex-col items-center justify-center shadow-2xl z-10">
-                <div className="text-base sm:text-lg lg:text-xl font-bold text-gray-600 mb-2 lg:mb-4">CIDADE</div>
+              <div className="relative w-48 h-32 sm:w-56 sm:h-36 lg:w-72 lg:h-48 bg-gradient-to-br from-white to-blue-50 backdrop-blur-sm rounded-2xl lg:rounded-3xl flex flex-col items-center justify-center shadow-2xl z-10 border border-blue-200">
+                <div className="text-sm sm:text-base lg:text-lg font-bold text-blue-700 mb-2 lg:mb-3">🏙️ CIDADE</div>
                 <div className="flex flex-col items-center space-y-2">
-                  <div className="text-xs sm:text-sm text-gray-500 text-center">
-                    Pessoas reais da sua cidade
+                  <div className="text-xs sm:text-sm text-blue-600 text-center font-medium">
+                    Seus clientes na sua cidade
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-400 text-center">
+                  <div className="text-xs sm:text-sm text-blue-500 text-center font-medium">
                     Engajamento real
                   </div>
                 </div>
               </div>
 
               {/* Criadores Locais - Lado Direito */}
-              <div className="absolute right-[-20px] sm:right-[-30px] lg:right-[-60px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-4 lg:gap-6">
+              <div className="absolute right-[-10px] sm:right-[-20px] lg:right-[-40px] top-1/2 transform -translate-y-1/2 flex flex-col items-center gap-3 lg:gap-5">
                 <div className="text-center">
-                  <div className="text-sm sm:text-base lg:text-lg font-bold text-gray-600 mb-2 lg:mb-4">
+                  <div className="text-xs sm:text-sm lg:text-base font-bold text-gray-700 mb-2 lg:mb-3">
                     CRIADORES<br />LOCAIS
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '1.5s', animationDuration: '3s'}}>
+                <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 lg:w-18 lg:h-18 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl text-purple-700 shadow-lg animate-bounce border-2 border-purple-300" style={{animationDelay: '1.5s', animationDuration: '3s'}}>
                     📸
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '2s', animationDuration: '3s'}}>
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 lg:w-18 lg:h-18 bg-gradient-to-br from-pink-100 to-pink-200 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl text-pink-700 shadow-lg animate-bounce border-2 border-pink-300" style={{animationDelay: '2s', animationDuration: '3s'}}>
                     📱
                   </div>
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl text-gray-700 shadow-lg animate-bounce" style={{animationDelay: '2.5s', animationDuration: '3s'}}>
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 lg:w-18 lg:h-18 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl text-indigo-700 shadow-lg animate-bounce border-2 border-indigo-300" style={{animationDelay: '2.5s', animationDuration: '3s'}}>
                     🎤
                   </div>
                 </div>
               </div>
 
-              {/* Linhas de Conexão - Hidden on mobile */}
-              <div className="hidden lg:block absolute top-[220px] left-[20px] w-[120px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[15deg]"></div>
-              <div className="hidden lg:block absolute top-[300px] left-[20px] w-[120px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse"></div>
-              <div className="hidden lg:block absolute top-[380px] left-[20px] w-[120px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[15deg]"></div>
+              {/* Linhas de Conexão Melhoradas */}
+              <div className="hidden sm:block absolute top-[140px] left-[60px] w-[100px] h-[2px] bg-gradient-to-r from-blue-300 via-blue-500 to-transparent rounded-full opacity-70 animate-pulse transform -rotate-[8deg]"></div>
+              <div className="hidden sm:block absolute top-[175px] left-[60px] w-[100px] h-[2px] bg-gradient-to-r from-blue-300 via-blue-500 to-transparent rounded-full opacity-70 animate-pulse"></div>
+              <div className="hidden sm:block absolute top-[210px] left-[60px] w-[100px] h-[2px] bg-gradient-to-r from-blue-300 via-blue-500 to-transparent rounded-full opacity-70 animate-pulse transform rotate-[8deg]"></div>
 
-              <div className="hidden lg:block absolute top-[220px] right-[20px] w-[120px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[15deg]" style={{animationDelay: '1.5s'}}></div>
-              <div className="hidden lg:block absolute top-[300px] right-[20px] w-[120px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse" style={{animationDelay: '1.5s'}}></div>
-              <div className="hidden lg:block absolute top-[380px] right-[20px] w-[120px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[15deg]" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden sm:block absolute top-[140px] right-[60px] w-[100px] h-[2px] bg-gradient-to-l from-blue-300 via-blue-500 to-transparent rounded-full opacity-70 animate-pulse transform rotate-[8deg]" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden sm:block absolute top-[175px] right-[60px] w-[100px] h-[2px] bg-gradient-to-l from-blue-300 via-blue-500 to-transparent rounded-full opacity-70 animate-pulse" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden sm:block absolute top-[210px] right-[60px] w-[100px] h-[2px] bg-gradient-to-l from-blue-300 via-blue-500 to-transparent rounded-full opacity-70 animate-pulse transform -rotate-[8deg]" style={{animationDelay: '1.5s'}}></div>
 
 
             </div>
