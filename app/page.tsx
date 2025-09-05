@@ -79,7 +79,7 @@ export default function Home() {
 
             <button
               onClick={handleGetStarted}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               <span>Conectar Agora</span>
               <span>→</span>
@@ -149,13 +149,13 @@ export default function Home() {
               </div>
 
               {/* Linhas de Conexão - Hidden on mobile */}
-              <div className="hidden lg:block absolute top-[180px] left-[-10px] w-[100px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[20deg]"></div>
-              <div className="hidden lg:block absolute top-[300px] left-[-10px] w-[100px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse"></div>
-              <div className="hidden lg:block absolute top-[420px] left-[-10px] w-[100px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[20deg]"></div>
+              <div className="hidden lg:block absolute top-[220px] left-[20px] w-[120px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[15deg]"></div>
+              <div className="hidden lg:block absolute top-[300px] left-[20px] w-[120px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse"></div>
+              <div className="hidden lg:block absolute top-[380px] left-[20px] w-[120px] h-[2px] bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[15deg]"></div>
 
-              <div className="hidden lg:block absolute top-[180px] right-[-10px] w-[100px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[20deg]" style={{animationDelay: '1.5s'}}></div>
-              <div className="hidden lg:block absolute top-[300px] right-[-10px] w-[100px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse" style={{animationDelay: '1.5s'}}></div>
-              <div className="hidden lg:block absolute top-[420px] right-[-10px] w-[100px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[20deg]" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden lg:block absolute top-[220px] right-[20px] w-[120px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform rotate-[15deg]" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden lg:block absolute top-[300px] right-[20px] w-[120px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse" style={{animationDelay: '1.5s'}}></div>
+              <div className="hidden lg:block absolute top-[380px] right-[20px] w-[120px] h-[2px] bg-gradient-to-l from-transparent via-gray-400 to-transparent rounded-full opacity-50 animate-pulse transform -rotate-[15deg]" style={{animationDelay: '1.5s'}}></div>
 
 
             </div>
@@ -165,83 +165,7 @@ export default function Home() {
 
 
 
-      {/* Clean Apple-Style Demo */}
-      <section className="py-20 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4 sm:px-0">
-            <div className="relative bg-white rounded-3xl p-12 sm:p-16 shadow-xl border border-gray-200/50 overflow-hidden">
-              {/* Subtle background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-white rounded-3xl"></div>
 
-              <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 items-center">
-                {/* Business Card - Clean */}
-                <div className="bg-gray-50 rounded-2xl p-10 text-center border border-gray-200/50 hover:shadow-lg transition-all duration-300">
-                  <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <h4 className="font-semibold text-gray-900 mb-2 text-lg">Seu Negócio</h4>
-                  <p className="text-sm text-gray-600">Empresa Local</p>
-                </div>
-
-                {/* Connection - Minimal */}
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-medium text-gray-700">
-                    Conectamos
-                  </p>
-                </div>
-
-                {/* Creators Card - Clean */}
-                <div className="bg-gray-50 rounded-2xl p-10 text-center border border-gray-200/50 hover:shadow-lg transition-all duration-300">
-                  <div className="w-16 h-16 bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <h4 className="font-semibold text-gray-900 mb-6 text-lg">Criadores Locais</h4>
-                  <div className="flex space-x-3">
-                    <div className="flex-1 bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
-                      <div className="w-8 h-8 mx-auto mb-2 bg-gray-900 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8 1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
-                        </svg>
-                      </div>
-                      <p className="text-xs text-gray-700 font-medium">Instagram</p>
-                    </div>
-                    <div className="flex-1 bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
-                      <div className="w-8 h-8 mx-auto mb-2 bg-gray-900 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.10z"/>
-                        </svg>
-                      </div>
-                      <p className="text-xs text-gray-700 font-medium">TikTok</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Clean floating stats */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-xl p-4 shadow-lg border border-gray-200/50">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">150%</div>
-                  <p className="text-xs text-gray-600">Engajamento</p>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-4 shadow-lg border border-gray-200/50">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">95%</div>
-                  <p className="text-xs text-gray-600">Satisfação</p>
-                </div>
-              </div>
-            </div>
-          </div>
-      </section>
 
 
 
@@ -523,14 +447,12 @@ export default function Home() {
               Sobre a Plataforma
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-black">
-              O que é a 
-              <span className="text-gray-600">cr</span>
-              <span className="text-black font-bold">IA</span>
-              <span className="text-gray-600">dores</span>?
+              O que é a <span className="inline-block bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent font-black text-4xl md:text-5xl">crIAdores</span>?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Uma plataforma inovadora que conecta negócios locais a criadores de conteúdo autênticos,
-              <span className="font-semibold text-gray-800"> potencializando resultados</span> através da inteligência artificial.
+              A <span className="font-bold text-blue-600">crIAdores</span> é uma plataforma revolucionária que conecta empresas locais com criadores de conteúdo autênticos da sua região.
+              <br /><br />
+              Utilizamos <span className="font-semibold text-gray-800">inteligência artificial</span> para criar parcerias perfeitas que geram resultados reais para o seu negócio e oportunidades genuínas para criadores locais.
             </p>
           </div>
 
@@ -543,13 +465,9 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-black mb-4">Rede Conectada</h3>
-              <p className="text-gray-600 mb-6">
-                Comunidade ativa de criadores de conteúdo locais verificados e engajados.
+              <p className="text-gray-600">
+                Comunidade ativa de criadores de conteúdo locais verificados e engajados, prontos para promover seu negócio de forma autêntica.
               </p>
-              <div className="bg-blue-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600 mb-1">10k+</div>
-                <div className="text-sm text-gray-600">Criadores Ativos</div>
-              </div>
             </div>
 
             {/* IA Aplicada */}
@@ -560,13 +478,9 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-black mb-4">IA Aplicada</h3>
-              <p className="text-gray-600 mb-6">
-                Conteúdo guiado por inteligência artificial para melhores resultados e engajamento.
+              <p className="text-gray-600">
+                Conteúdo guiado por inteligência artificial para melhores resultados e engajamento. Nossa tecnologia analisa perfis e sugere as melhores parcerias.
               </p>
-              <div className="bg-green-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-green-600 mb-1">95%</div>
-                <div className="text-sm text-gray-600">Taxa de Sucesso</div>
-              </div>
             </div>
 
             {/* Resultados Reais */}
@@ -577,13 +491,9 @@ export default function Home() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-black mb-4">Resultados Reais</h3>
-              <p className="text-gray-600 mb-6">
-                Campanhas estruturadas para gerar vendas e engajamento comprovados.
+              <p className="text-gray-600">
+                Campanhas estruturadas para gerar vendas e engajamento comprovados. Acompanhe métricas detalhadas e veja o impacto real no seu negócio.
               </p>
-              <div className="bg-orange-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600 mb-1">24h</div>
-                <div className="text-sm text-gray-600">Tempo de Resposta</div>
-              </div>
             </div>
           </div>
 
