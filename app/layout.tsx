@@ -50,11 +50,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/faviconcriadores1.png", type: "image/png" },
-      { url: "/faviconcriadores1.png", type: "image/png", sizes: "32x32" }
+      { url: "/faviconcriadoresA3.png", type: "image/png" },
+      { url: "/faviconcriadoresA3.png", type: "image/png", sizes: "32x32" }
     ],
-    shortcut: "/faviconcriadores1.png",
-    apple: "/faviconcriadores1.png"
+    shortcut: "/faviconcriadoresA3.png",
+    apple: "/faviconcriadoresA3.png"
   },
   manifest: "/manifest.json",
   openGraph: {
