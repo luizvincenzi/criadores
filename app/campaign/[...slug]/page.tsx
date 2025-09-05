@@ -550,7 +550,9 @@ export default function CampaignLandingPage() {
             {/* Logo crIAdores Grande */}
             <div className="mb-6">
               <h2 className="text-4xl font-bold">
-                cr<span className="text-blue-400">IA</span>dores
+                <span className="text-gray-300 font-light">cr</span>
+                <span className="text-white font-bold">IA</span>
+                <span className="text-gray-300 font-light">dores</span>
               </h2>
               <p className="text-blue-200 mt-2 text-lg">Conectando negócios locais com criadores locais</p>
             </div>
@@ -561,7 +563,7 @@ export default function CampaignLandingPage() {
                 Criada em: {formatDate(campaignData.campaign.created_at)}
               </p>
               <p className="text-xs mt-2 text-gray-400">
-                Powered by crIAdores © 2025
+                Powered by <span className="text-gray-300 font-light">cr</span><span className="text-white font-bold">IA</span><span className="text-gray-300 font-light">dores</span> © 2025
               </p>
             </div>
           </div>

@@ -10,7 +10,7 @@ module.exports = {
       colors: {
         // Material Design 3 Color System
         primary: {
-          DEFAULT: '#1a73e8',
+          DEFAULT: '#0b3553',
           container: '#d2e3fc',
         },
         secondary: {

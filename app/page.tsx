@@ -48,10 +48,10 @@ export default function Home() {
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
-              <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors duration-200 border border-gray-300 rounded-lg hover:border-gray-400">
+              <button onClick={() => window.location.href = '/login'} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors duration-200 border border-gray-300 rounded-full hover:border-gray-400">
                 Entrar
               </button>
-              <button onClick={() => window.open('https://criadores.ai/chatbot', '_blank')} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -93,10 +93,10 @@ export default function Home() {
                   Processo
                 </button>
                 <div className="px-3 py-2 space-y-2">
-                  <button className="w-full px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg">
+                  <button onClick={() => window.location.href = '/login'} className="w-full px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-full">
                     Entrar
                   </button>
-                  <button onClick={() => window.open('https://criadores.ai/chatbot', '_blank')} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+                  <button onClick={() => window.location.href = '/chatbot-homepage'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                     <span className="hidden sm:inline">Começar Agora</span>
                     <span className="sm:hidden">Começar</span>
                   </button>
@@ -123,7 +123,7 @@ export default function Home() {
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 font-onest font-normal">
               Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade.
             </p>
-            <button onClick={() => window.open('https://criadores.ai/chatbot', '_blank')} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+            <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
               <span className="hidden sm:inline">Conectar Agora</span>
               <span className="sm:hidden">Conectar</span>
             </button>
@@ -131,13 +131,13 @@ export default function Home() {
 
           {/* Visual Interactive - Circular Design with Radial Shadow */}
           <div className="relative h-[500px] sm:h-[600px] lg:h-[700px] flex items-center justify-center order-2 lg:order-2">
-            {/* Background with radial shadow */}
-            <div className="absolute inset-0 bg-gradient-radial from-gray-100 via-gray-50 to-transparent rounded-full shadow-[0_0_100px_rgba(0,0,0,0.1)]"></div>
+            {/* Background with improved radial gradient */}
+            <div className="absolute inset-0 bg-gradient-radial from-blue-50/30 via-gray-50/20 to-transparent rounded-full shadow-[0_0_150px_rgba(59,130,246,0.1)]"></div>
 
             <div className="relative w-full h-full flex items-center justify-center">
 
               {/* Center - Cidade (Larger and Central) */}
-              <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-white via-blue-50 to-blue-100 rounded-full flex flex-col items-center justify-center shadow-2xl z-20 border-4 border-white backdrop-blur-sm transform hover:scale-105 transition-all duration-500">
+              <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-white via-blue-50/80 to-blue-100/60 rounded-full flex flex-col items-center justify-center shadow-2xl z-20 border-4 border-white/90 backdrop-blur-sm transform hover:scale-105 transition-all duration-500 ring-1 ring-blue-100/50">
                 <div className="text-4xl sm:text-5xl lg:text-6xl mb-3 lg:mb-4">🏙️</div>
                 <div className="text-base sm:text-lg lg:text-xl font-bold text-blue-700 mb-2">CIDADE</div>
                 <div className="flex flex-col items-center space-y-2">
@@ -218,7 +218,11 @@ export default function Home() {
               O que é a <span className="inline-block bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent font-black text-4xl md:text-5xl">crIAdores</span>?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              A <span className="font-bold text-blue-600">crIAdores</span> é uma plataforma revolucionária que conecta empresas locais com criadores de conteúdo autênticos da sua região.<br/><br/>
+              A <span className="font-bold">
+                <span className="text-gray-600 font-light">cr</span>
+                <span className="text-blue-600 font-bold">IA</span>
+                <span className="text-gray-600 font-light">dores</span>
+              </span> é uma plataforma revolucionária que conecta empresas locais com criadores de conteúdo autênticos da sua região.<br/><br/>
               Utilizamos <span className="font-semibold text-gray-800">inteligência artificial</span> para criar parcerias perfeitas que geram resultados reais para o seu negócio e oportunidades genuínas para criadores locais.
             </p>
           </div>
@@ -267,7 +271,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6">
                 Conecte seu negócio aos melhores criadores da sua região e veja seus resultados crescerem.
               </p>
-              <button onClick={() => window.open('https://criadores.ai/chatbot', '_blank')} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -355,7 +359,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6 font-onest">
                 Junte-se a centenas de empresas que já transformaram seu marketing com influenciadores locais
               </p>
-              <button onClick={() => window.open('https://criadores.ai/chatbot', '_blank')} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
+              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -364,64 +368,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section id="mission" className="py-20 bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-onest font-bold mb-4">
-              Nossa <span className="text-blue-400">Missão</span>
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Democratizar o marketing de influência e fortalecer comunidades locais
-            </p>
+      {/* CTA Section 1 - Conecte-se com Criadores */}
+      <section className="py-20 bg-gradient-to-br from-blue-600 to-blue-800">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-medium mb-6">
+            <span className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
+            Oportunidade Única
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Missão */}
-            <div className="text-center">
-              <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-onest font-bold mb-4 text-blue-400">Missão</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Conectar empresas locais com criadores de conteúdo da sua região,
-                criando campanhas autênticas que geram resultados reais e fortalecem
-                a economia local.
-              </p>
-            </div>
-
-            {/* Visão */}
-            <div className="text-center">
-              <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-onest font-bold mb-4 text-purple-400">Visão</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Ser a principal plataforma de marketing de influência local no Brasil,
-                transformando a forma como marcas e criadores se conectam e colaboram
-                em suas comunidades.
-              </p>
-            </div>
-
-            {/* Valores */}
-            <div className="text-center">
-              <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-onest font-bold mb-4 text-green-400">Valores</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Autenticidade, transparência, inovação e compromisso com o
-                crescimento sustentável das comunidades locais através de
-                parcerias genuínas e duradouras.
-              </p>
-            </div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+            Conecte-se com os <span className="text-blue-200">Melhores Criadores</span> da Sua Região
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+            Não perca mais tempo procurando influenciadores. Nossa IA conecta você automaticamente
+            com criadores locais que <strong className="text-white">realmente engajam</strong> com seu público-alvo.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
+              <span className="hidden sm:inline">🚀 Começar Agora</span>
+              <span className="sm:hidden">🚀 Começar</span>
+            </button>
           </div>
         </div>
       </section>
@@ -642,119 +607,62 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section id="team" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
-              Nossa <span className="text-blue-600">Equipe</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Conheça as pessoas por trás da revolução do marketing de influência local
-            </p>
-          </div>
+      {/* CTA Section 2 - Garantia de Resultados */}
+      <section className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-8 md:p-12 border border-green-200">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Team Member 1 */}
-            <div className="text-center group">
-              <div className="relative mb-6">
-                <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold shadow-lg group-hover:shadow-xl transition-all duration-300">
-                  LV
+              {/* Left Content */}
+              <div>
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 border border-green-300 text-green-700 text-sm font-medium mb-6">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                  Garantia Total
                 </div>
-                <div className="absolute inset-0 bg-blue-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              </div>
-              <h3 className="text-xl font-onest font-bold text-gray-900 mb-2">Luiz Vincenzi</h3>
-              <p className="text-blue-600 font-medium mb-3">CEO & Fundador</p>
-              <p className="text-gray-600 text-sm">
-                Especialista em marketing digital com mais de 10 anos de experiência
-                conectando marcas e criadores de conteúdo.
-              </p>
-            </div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                  Trabalhe Apenas com <span className="text-green-600">Criadores Verificados</span>
+                </h2>
+                <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+                  Nossa IA analisa milhares de perfis e seleciona apenas criadores com
+                  <strong className="text-green-600"> histórico comprovado de engajamento real</strong> na sua região.
+                </p>
 
-            {/* Team Member 2 */}
-            <div className="text-center group">
-              <div className="relative mb-6">
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold shadow-lg group-hover:shadow-xl transition-all duration-300">
-                  AS
+                {/* Benefits */}
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700 font-medium">Criadores pré-verificados pela nossa IA</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700 font-medium">Garantia de engajamento real (sem bots)</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700 font-medium">Suporte completo durante toda a campanha</span>
+                  </div>
                 </div>
-                <div className="absolute inset-0 bg-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              </div>
-              <h3 className="text-xl font-onest font-bold text-gray-900 mb-2">Ana Silva</h3>
-              <p className="text-purple-600 font-medium mb-3">CTO</p>
-              <p className="text-gray-600 text-sm">
-                Desenvolvedora full-stack apaixonada por criar soluções tecnológicas
-                que simplificam processos complexos.
-              </p>
-            </div>
 
-            {/* Team Member 3 */}
-            <div className="text-center group">
-              <div className="relative mb-6">
-                <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold shadow-lg group-hover:shadow-xl transition-all duration-300">
-                  RC
-                </div>
-                <div className="absolute inset-0 bg-green-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              </div>
-              <h3 className="text-xl font-onest font-bold text-gray-900 mb-2">Rafael Costa</h3>
-              <p className="text-green-600 font-medium mb-3">Head de Marketing</p>
-              <p className="text-gray-600 text-sm">
-                Estrategista de marketing com expertise em campanhas de influência
-                e crescimento de comunidades digitais.
-              </p>
-            </div>
-          </div>
-
-          {/* Company Values */}
-          <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-2xl">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-onest font-bold text-gray-900 mb-4">
-                Nossos Valores em Ação
-              </h3>
-              <p className="text-gray-600">
-                Cada membro da nossa equipe vive estes valores no dia a dia
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </div>
-                <h4 className="font-onest font-semibold text-gray-900 mb-2">Paixão</h4>
-                <p className="text-gray-600 text-sm">Amor pelo que fazemos</p>
+                <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105">
+                  <span className="hidden sm:inline">🛡️ Garantir Meus Criadores</span>
+                  <span className="sm:hidden">🛡️ Garantir</span>
+                </button>
               </div>
 
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h4 className="font-onest font-semibold text-gray-900 mb-2">Excelência</h4>
-                <p className="text-gray-600 text-sm">Busca constante pela qualidade</p>
-              </div>
 
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h4 className="font-onest font-semibold text-gray-900 mb-2">Colaboração</h4>
-                <p className="text-gray-600 text-sm">Trabalho em equipe sempre</p>
-              </div>
 
-              <div className="text-center">
-                <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h4 className="font-onest font-semibold text-gray-900 mb-2">Inovação</h4>
-                <p className="text-gray-600 text-sm">Sempre buscando o novo</p>
-              </div>
             </div>
           </div>
         </div>
@@ -774,38 +682,38 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Boussole</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.37.52.png" alt="Boussole" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Cartagena</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.37.56.png" alt="Cartagena" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Allure</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.04.png" alt="Allure" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Purão</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.09.png" alt="Purão" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Govinda</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.14.png" alt="Govinda" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">VOXX</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.19.png" alt="VOXX" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Bela Saga</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.24.png" alt="Bela Saga" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Neno Gemas</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.29.png" alt="Neno Gemas" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Vert</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.33.png" alt="Vert" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Fogo</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.38.png" alt="Fogo" className="max-h-16 max-w-full object-contain" />
             </div>
-            <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
-              <span className="text-lg font-bold text-gray-700">Brasil</span>
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300 border border-gray-100">
+              <img src="/images business/Captura de Tela 2025-09-05 às 17.38.42.png" alt="Brasil" className="max-h-16 max-w-full object-contain" />
             </div>
             <div className="bg-gray-50 rounded-2xl p-6 flex items-center justify-center h-24 hover:shadow-md transition-all duration-300">
               <span className="text-lg font-bold text-gray-700">+Muitos</span>
@@ -1019,7 +927,7 @@ export default function Home() {
               <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6 max-w-md mx-auto">
                 Junte-se a centenas de empresas que já transformaram seu marketing local
               </p>
-              <button onClick={() => window.open('https://criadores.ai/chatbot', '_blank')} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
                 <span className="hidden sm:inline">📈 Ver Mais Cases de Sucesso</span>
                 <span className="sm:hidden">📈 Cases</span>
                 <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1027,6 +935,33 @@ export default function Home() {
                 </svg>
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section 3 - Urgência */}
+      <section className="py-20 bg-gradient-to-r from-orange-500 to-red-600">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-medium mb-6">
+            <span className="w-2 h-2 bg-yellow-300 rounded-full mr-2 animate-pulse"></span>
+            Últimas Vagas Disponíveis
+          </div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+            Não Perca Mais <span className="text-yellow-200">Oportunidades de Vendas</span>
+          </h2>
+          <p className="text-xl text-orange-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+            Enquanto você hesita, seus concorrentes já estão trabalhando com os <strong className="text-white">melhores criadores da região</strong>.
+            Garante sua vaga agora e comece a vender mais ainda esta semana.
+          </p>
+
+
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
+              <span className="hidden sm:inline">⚡ Garantir Minha Vaga Agora</span>
+              <span className="sm:hidden">⚡ Garantir Vaga</span>
+            </button>
+
           </div>
         </div>
       </section>
@@ -1161,7 +1096,7 @@ export default function Home() {
       </div>
 
       {/* Footer crIAdores */}
-      <footer id="contato" className="bg-gradient-to-br from-blue-600 to-blue-800">
+      <footer id="contato" className="bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900">
         <div className="max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-4 gap-12">
 
@@ -1169,10 +1104,11 @@ export default function Home() {
             <div className="lg:col-span-2 space-y-8">
               <div>
                 <div className="flex items-center space-x-2 mb-6">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
-                    <span className="text-blue-600 font-bold text-xl">C</span>
-                  </div>
-                  <span className="text-2xl font-bold text-white">crIAdores</span>
+                  <span className="text-3xl font-onest tracking-tight">
+                    <span className="text-gray-300 font-light">cr</span>
+                    <span className="text-white font-bold">IA</span>
+                    <span className="text-gray-300 font-light">dores</span>
+                  </span>
                 </div>
                 <p className="text-blue-100 leading-relaxed text-lg max-w-lg">
                   Especialistas em conectar <strong className="text-white">negócios locais aos melhores criadores</strong> da região.
@@ -1184,7 +1120,7 @@ export default function Home() {
               <div className="pt-4">
                 <h4 className="text-blue-100 font-bold mb-6 text-lg">Siga-nos</h4>
                 <div className="space-y-4">
-                  <a href="https://instagram.com/criadores.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
+                  <a href="https://instagram.com/criadores.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
                     <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                         <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
@@ -1194,11 +1130,11 @@ export default function Home() {
                     </div>
                     <div>
                       <div className="font-bold text-base">Instagram</div>
-                      <div className="text-sm font-medium text-blue-100/80">@criadores.ai</div>
+                      <div className="text-sm font-medium text-blue-100/80">@criadores.app</div>
                     </div>
                   </a>
 
-                  <a href="https://www.tiktok.com/@criadores.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
+                  <a href="https://www.tiktok.com/@criadores.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
                     <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"></path>
@@ -1206,7 +1142,7 @@ export default function Home() {
                     </div>
                     <div>
                       <div className="font-bold text-base">TikTok</div>
-                      <div className="text-sm font-medium text-blue-100/80">@criadores.ai</div>
+                      <div className="text-sm font-medium text-blue-100/80">@criadores.app</div>
                     </div>
                   </a>
                 </div>
@@ -1217,7 +1153,7 @@ export default function Home() {
             <div className="space-y-8">
               <h3 className="text-2xl font-bold text-white">Contato</h3>
               <div className="space-y-6">
-                <a href="https://wa.me/5543984038074" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
+                <a href="https://wa.me/5543991049779" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
                   <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                       <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>
@@ -1225,7 +1161,7 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="font-bold text-lg">WhatsApp</div>
-                    <div className="text-sm font-medium text-blue-100/80">(43) 98403-8074</div>
+                    <div className="text-sm font-medium text-blue-100/80">(43) 99104-9779</div>
                   </div>
                 </a>
               </div>
@@ -1284,7 +1220,7 @@ export default function Home() {
 
               {/* CTA Principal */}
               <div className="pt-6">
-                <button onClick={() => window.open('https://criadores.ai/chatbot', '_blank')} className="bg-white hover:bg-gray-100 text-blue-600 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2">
+                <button onClick={() => window.location.href = '/chatbot-homepage'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                   Começar Agora
                 </button>
               </div>
@@ -1293,11 +1229,15 @@ export default function Home() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-blue-500/20 bg-blue-800">
+        <div className="border-t border-blue-500/20 bg-gradient-to-b from-blue-900 to-blue-950">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-center items-center gap-6">
               <div className="text-blue-100 text-center">
-                <div className="text-lg font-semibold">© 2024 crIAdores</div>
+                <div className="text-lg font-semibold">© 2024
+                  <span className="text-gray-300 font-light">cr</span>
+                  <span className="text-white font-bold">IA</span>
+                  <span className="text-gray-300 font-light">dores</span>
+                </div>
                 <div className="text-sm">Todos os direitos reservados.</div>
               </div>
             </div>
@@ -1305,7 +1245,7 @@ export default function Home() {
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-blue-900 border-t border-blue-500/20">
+        <div className="bg-gradient-to-b from-blue-950 to-slate-900 border-t border-blue-500/20">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="text-blue-100 leading-relaxed space-y-4 max-w-4xl mx-auto">
               <p className="text-center">

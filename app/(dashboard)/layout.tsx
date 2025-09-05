@@ -188,7 +188,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">crIAdores</h1>
+              <h1 className="text-2xl font-bold">
+                <span className="text-gray-600 font-light">cr</span>
+                <span className="text-gray-900 font-bold">IA</span>
+                <span className="text-gray-600 font-light">dores</span>
+              </h1>
             </div>
 
             {/* Desktop User Info + Mobile Menu */}
