@@ -844,6 +844,231 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {/* Benefits Section */}
+      <section className="py-20" style={{backgroundColor: '#f5f5f5'}}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+              Vantagens Exclusivas
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">
+              Benefícios para sua Empresa
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Visibilidade Regional */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Visibilidade Regional</h3>
+              <p className="text-gray-600">
+                Sua marca mais presente na região
+              </p>
+            </div>
+
+            {/* Melhor Custo-Benefício */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Melhor Custo-Benefício</h3>
+              <p className="text-gray-600">
+                Investimento mais eficiente vs. mídia tradicional
+              </p>
+            </div>
+
+            {/* Vendas Locais */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Vendas Locais</h3>
+              <p className="text-gray-600">
+                Aumento do potencial de vendas
+              </p>
+            </div>
+
+            {/* Autoridade Verdadeira */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Autoridade Verdadeira</h3>
+              <p className="text-gray-600">
+                Associação com influenciadores autênticos
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+              Processo Simplificado
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">
+              Como funciona na prática
+            </h2>
+          </div>
+
+          <div className="relative">
+            {/* Connection Line */}
+            <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-200 via-green-200 via-orange-200 via-purple-200 to-red-200 transform -translate-y-1/2 z-0"></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8 relative z-10">
+              {/* Step 1 */}
+              <div className="text-center">
+                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                  1
+                </div>
+                <h3 className="text-lg font-bold mb-3">Briefing Personalizado</h3>
+                <p className="text-gray-600 text-sm">
+                  Entendemos seu objetivo comercial
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="text-center">
+                <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                  2
+                </div>
+                <h3 className="text-lg font-bold mb-3">Seleção Precisa</h3>
+                <p className="text-gray-600 text-sm">
+                  Selecionamos criadores ideais ao seu perfil e o cliente decide quais se encaixam mais no perfil adequado
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="text-center">
+                <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                  3
+                </div>
+                <h3 className="text-lg font-bold mb-3">Conteúdo Guiado</h3>
+                <p className="text-gray-600 text-sm">
+                  Criadores recebem orientação e entregam posts criativos
+                </p>
+              </div>
+
+              {/* Step 4 */}
+              <div className="text-center">
+                <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                  4
+                </div>
+                <h3 className="text-lg font-bold mb-3">Aprovação Segura</h3>
+                <p className="text-gray-600 text-sm">
+                  Você valida todo o conteúdo
+                </p>
+              </div>
+
+              {/* Step 5 */}
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg relative z-10">
+                  5
+                </div>
+                <h3 className="text-lg font-bold mb-3">Medição e Evolução</h3>
+                <p className="text-gray-600 text-sm">
+                  Análise e novos ciclos para mais resultados
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* What Makes Us Different Section */}
+      <section className="py-20" style={{backgroundColor: '#f5f5f5'}}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+              Nossos Diferenciais
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">
+              O que nos torna diferentes?
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Foco no Local */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Foco no Local</h3>
+              <p className="text-gray-600">
+                Prioridade para influenciadores de conexão verdadeira
+              </p>
+            </div>
+
+            {/* Mentoria Constante */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Mentoria Constante</h3>
+              <p className="text-gray-600">
+                Capacitação dos criadores para evolução contínua
+              </p>
+            </div>
+
+            {/* Curadoria de Qualidade */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Curadoria de Qualidade</h3>
+              <p className="text-gray-600">
+                Supervisão de conteúdo em todas as etapas
+              </p>
+            </div>
+
+            {/* IA Aliada */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">IA Aliada</h3>
+              <p className="text-gray-600">
+                Inteligência artificial para ganho de escala e performance
+              </p>
+            </div>
+
+            {/* Foco em Vendas */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center md:col-span-2 lg:col-span-1">
+              <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-black mb-4">Foco em Vendas</h3>
+              <p className="text-gray-600">
+                Tudo pensado para conversão comercial
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* About Section */}
       <section id="about" className="py-20 bg-gray-50">
@@ -926,8 +1151,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20" style={{backgroundColor: '#f5f5f5'}}>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 relative inline-block">
