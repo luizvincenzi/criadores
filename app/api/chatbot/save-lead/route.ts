@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         valid_until: null,
         signature_date: null
       }),
-      status: "Lead - Primeiro contato",
+      status: "Reunião de briefing",
       tags: [],
       custom_fields: JSON.stringify({
         notes: `Lead gerado via chatbot - ${userData.userType === 'empresa' ? 'Empresa' : 'Criador'}`,
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         active_campaigns: 0
       }),
       is_active: true,
-      business_stage: "Lead qualificado",
+      business_stage: "Leads próprios quentes",
       estimated_value: "0.00",
       contract_creators_count: 0,
       priority: "Média",

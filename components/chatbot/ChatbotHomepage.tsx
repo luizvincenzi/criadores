@@ -16,7 +16,6 @@ interface UserData {
   businessSegment?: string;
   businessGoal?: string;
   hasWorkedWithInfluencers?: string;
-  investmentRange?: string;
   creatorNiche?: string;
   followersCount?: string;
   hasWorkedWithBrands?: string;
@@ -24,7 +23,6 @@ interface UserData {
   email?: string;
   whatsapp?: string;
   instagram?: string;
-  lgpdConsent?: string;
 }
 
 interface ChatStep {
@@ -124,7 +122,7 @@ export default function ChatbotHomepage({
     },
     {
       id: 'businessGoal',
-      message: 'Qual é o principal objetivo da sua empresa com influenciadores?',
+      message: 'Qual é o principal objetivo da sua empresa com crIAdores?',
       type: 'options',
       field: 'businessGoal',
       options: [
@@ -137,24 +135,12 @@ export default function ChatbotHomepage({
     },
     {
       id: 'hasWorkedWithInfluencers',
-      message: 'Sua empresa já contratou influenciadores antes?',
+      message: 'Sua empresa já contratou crIAdores antes?',
       type: 'options',
       field: 'hasWorkedWithInfluencers',
       options: [
         { text: '✅ Sim, já contratamos', value: 'sim' },
         { text: '❌ Não, seria a primeira vez', value: 'nao' }
-      ],
-      nextStep: 'investmentRange'
-    },
-    {
-      id: 'investmentRange',
-      message: 'Qual a faixa de investimento mensal em marketing da sua empresa?',
-      type: 'options',
-      field: 'investmentRange',
-      options: [
-        { text: '💰 Até R$ 500', value: 'ate_500' },
-        { text: '💰💰 R$ 500 - R$ 2.000', value: '500_2000' },
-        { text: '💰💰💰 Acima de R$ 2.000', value: 'acima_2000' }
       ],
       nextStep: 'email'
     },
@@ -216,30 +202,16 @@ export default function ChatbotHomepage({
     },
     {
       id: 'instagram',
-      message: 'Qual é o seu Instagram? (apenas o @usuario)',
+      message: (userData: UserData) => userData.userType === 'empresa'
+        ? 'Qual é o Instagram da sua empresa? (apenas o @usuario)'
+        : 'Qual é o seu Instagram? (apenas o @usuario)',
       type: 'input',
       field: 'instagram',
       validation: (value) => value.length >= 2,
-      errorMessage: 'Por favor, digite seu Instagram.',
-      nextStep: 'lgpdConsent'
+      errorMessage: 'Por favor, digite o Instagram.',
+      nextStep: 'final'
     },
-    {
-      id: 'lgpdConsent',
-      message: 'Para finalizar, você autoriza o uso dos seus dados para contato conforme nossa política de privacidade?',
-      type: 'options',
-      field: 'lgpdConsent',
-      options: [
-        { text: '✅ Sim, autorizo', value: 'sim' },
-        { text: '❌ Não autorizo', value: 'nao' }
-      ],
-      nextStep: (value) => value === 'sim' ? 'final' : 'noConsent'
-    },
-    {
-      id: 'noConsent',
-      message: 'Entendo! Sem o consentimento não podemos prosseguir. Caso mude de ideia, estaremos aqui! 😊',
-      type: 'bot',
-      final: true
-    },
+
     {
       id: 'final',
       message: (userData: UserData) => {
@@ -281,7 +253,12 @@ export default function ChatbotHomepage({
   }, [currentStep]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 100);
   };
 
   const addMessage = (content: string, type: 'bot' | 'user') => {
@@ -369,6 +346,11 @@ export default function ChatbotHomepage({
     setInputValue('');
     setShowInput(false);
 
+    // Scroll após resposta do usuário
+    setTimeout(() => {
+      scrollToBottom();
+    }, 200);
+
     setTimeout(() => {
       const nextStepIndex = getNextStepIndex(step, processedValue);
       setCurrentStep(nextStepIndex);
@@ -379,10 +361,16 @@ export default function ChatbotHomepage({
     const step = steps[currentStep];
     addMessage(text, 'user');
 
+    // Scroll após resposta do usuário
+    setTimeout(() => {
+      scrollToBottom();
+    }, 200);
+
     // Se for uma ação final, executar a ação
     if (step.final) {
       if (value === 'whatsapp') {
-        window.open('https://wa.me/5542991159229?text=Olá! Vim através do site da crIAdores e gostaria de saber mais sobre os serviços.', '_blank');
+        const whatsappMessage = generateWhatsAppMessage(userData);
+        window.open(`https://wa.me/5543991049779?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
       } else if (value === 'home') {
         router.push('/');
       }
@@ -460,7 +448,9 @@ export default function ChatbotHomepage({
       case 'whatsapp':
         return 'Digite seu WhatsApp...';
       case 'instagram':
-        return 'Digite seu Instagram...';
+        return userData.userType === 'empresa'
+          ? 'Digite o Instagram da empresa...'
+          : 'Digite seu Instagram...';
       case 'businessName':
         return 'Digite o nome da empresa...';
       default:
@@ -482,20 +472,20 @@ export default function ChatbotHomepage({
             </svg>
             Voltar
           </button>
-          <h1 className="text-2xl font-medium">
-            <span className="text-gray-700">cr</span>
-            <span className="text-black font-bold text-2xl">IA</span>
-            <span className="text-gray-700">dores</span>
+          <h1 className="text-2xl font-medium font-onest">
+            <span className="text-gray-600 font-light">cr</span>
+            <span className="text-[#0b3553] font-bold">IA</span>
+            <span className="text-gray-600 font-light">dores</span>
           </h1>
           <div className="w-16"></div> {/* Spacer */}
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-gradient-to-r from-yellow-400 via-blue-500 to-purple-600 h-1">
+      <div className="bg-gray-200 h-1">
         <div
-          className="bg-white h-full transition-all duration-500"
-          style={{ width: `${100 - progress}%`, marginLeft: `${progress}%` }}
+          className="bg-[#0b3553] h-full transition-all duration-500"
+          style={{ width: `${progress}%` }}
         />
       </div>
 
@@ -507,11 +497,15 @@ export default function ChatbotHomepage({
               {/* Message */}
               {message.type === 'bot' ? (
                 <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-gray-800 font-bold text-xs">IA</span>
+                  <div className="w-10 h-10 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                    <img
+                      src="/faviconcriadoresA3.png"
+                      alt="crIAdores IA"
+                      className="w-6 h-6 object-contain"
+                    />
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm leading-relaxed whitespace-pre-line text-gray-800">
+                    <div className="bg-white px-4 py-3 rounded-lg border border-gray-200 shadow-sm text-sm leading-relaxed whitespace-pre-line text-gray-800">
                       {message.content.replace(/\*\*(.*?)\*\*/g, '$1')}
                     </div>
                   </div>
@@ -546,24 +540,26 @@ export default function ChatbotHomepage({
                     </div>
                   ) : showInput ? (
                     /* Mostrar input se não há opções */
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        placeholder={getInputPlaceholder()}
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        autoFocus
-                      />
-                      <button
-                        onClick={handleSend}
-                        className="w-10 h-10 bg-gray-600 text-white rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                      </button>
+                    <div className="flex justify-end">
+                      <div className="flex items-center space-x-2 w-80">
+                        <input
+                          type="text"
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                          placeholder={getInputPlaceholder()}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          autoFocus
+                        />
+                        <button
+                          onClick={handleSend}
+                          className="w-8 h-8 bg-[#0b3553] text-white rounded-full flex items-center justify-center hover:bg-[#0a2d42] transition-colors flex-shrink-0"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </div>
@@ -574,8 +570,12 @@ export default function ChatbotHomepage({
           {/* Typing Indicator */}
           {isTyping && (
             <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-gray-800 font-bold text-xs">IA</span>
+              <div className="w-10 h-10 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                <img
+                  src="/faviconcriadoresA3.png"
+                  alt="crIAdores IA"
+                  className="w-6 h-6 object-contain"
+                />
               </div>
               <div className="flex space-x-1 py-2">
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -593,6 +593,45 @@ export default function ChatbotHomepage({
 }
 
 // Funções auxiliares
+function generateWhatsAppMessage(userData: UserData): string {
+  const leadId = generateLeadId();
+
+  if (userData.userType === 'empresa') {
+    return `Olá! Vim através do site da crIAdores e gostaria de saber mais sobre os serviços, segue as minhas informações:
+
+Obrigado, ${userData.name}! 🎉
+
+📋 Resumo dos seus dados:
+• Empresa: ${userData.businessName}
+• Segmento: ${getSegmentText(userData.businessSegment!)}
+• Objetivo: ${getGoalText(userData.businessGoal!)}
+• WhatsApp: ${userData.whatsapp}
+• E-mail: ${userData.email}
+• Instagram: ${userData.instagram}
+
+🎯 Próximos passos:
+Nossa equipe entrará em contato em até 24h para apresentar uma proposta personalizada!
+
+📱 Protocolo: ${leadId}`;
+  } else {
+    return `Olá! Vim através do site da crIAdores e gostaria de saber mais sobre os serviços, segue as minhas informações:
+
+Obrigado, ${userData.name}! 🎉
+
+📋 Resumo dos seus dados:
+• Nicho: ${getNicheText(userData.creatorNiche!)}
+• Seguidores: ${getFollowersText(userData.followersCount!)}
+• WhatsApp: ${userData.whatsapp}
+• E-mail: ${userData.email}
+• Instagram: ${userData.instagram}
+
+🌟 Próximos passos:
+Em breve entraremos em contato para te incluir em nossas campanhas!
+
+📱 Protocolo: ${leadId}`;
+  }
+}
+
 function generateLeadId(): string {
   return 'CRI' + Date.now().toString().slice(-6);
 }

@@ -36,22 +36,23 @@ export default function Home() {
               <button onClick={() => scrollToSection('mission')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Missão
               </button>
-              <button onClick={() => scrollToSection('team')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
-                Equipe
-              </button>
+
               <button onClick={() => scrollToSection('why')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Por que
               </button>
               <button onClick={() => scrollToSection('process')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Processo
               </button>
+              <a href="/blog" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
+                Blog
+              </a>
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
               <button onClick={() => window.location.href = '/login'} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors duration-200 border border-gray-300 rounded-full hover:border-gray-400">
                 Entrar
               </button>
-              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -83,20 +84,20 @@ export default function Home() {
                 <button onClick={() => scrollToSection('mission')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
                   Missão
                 </button>
-                <button onClick={() => scrollToSection('team')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
-                  Equipe
-                </button>
                 <button onClick={() => scrollToSection('why')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
                   Por que
                 </button>
                 <button onClick={() => scrollToSection('process')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
                   Processo
                 </button>
+                <a href="/blog" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
+                  Blog
+                </a>
                 <div className="px-3 py-2 space-y-2">
                   <button onClick={() => window.location.href = '/login'} className="w-full px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-full">
                     Entrar
                   </button>
-                  <button onClick={() => window.location.href = '/chatbot-homepage'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+                  <button onClick={() => window.location.href = '/criavoz-homepage'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                     <span className="hidden sm:inline">Começar Agora</span>
                     <span className="sm:hidden">Começar</span>
                   </button>
@@ -117,13 +118,13 @@ export default function Home() {
 
         <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
           <div className="text-center lg:text-left order-1 lg:order-1">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-onest font-semibold text-gray-900 leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-onest font-bold text-gray-900 leading-tight mb-8">
               Conectamos <span className="text-blue-600">empresas locais</span> com <span className="text-blue-600">criadores locais</span>
             </h1>
-            <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 font-onest font-normal">
-              Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade.
+            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed mb-10 font-onest font-normal">
+              Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade para <strong className="text-blue-600">acelerar resultados e otimizar potencializando o negócio</strong> das empresas que trabalham com a gente.
             </p>
-            <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+            <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
               <span className="hidden sm:inline">Conectar Agora</span>
               <span className="sm:hidden">Conectar</span>
             </button>
@@ -131,21 +132,38 @@ export default function Home() {
 
           {/* Visual Interactive - Circular Design with Radial Shadow */}
           <div className="relative h-[500px] sm:h-[600px] lg:h-[700px] flex items-center justify-center order-2 lg:order-2">
-            {/* Background with improved radial gradient */}
-            <div className="absolute inset-0 bg-gradient-radial from-blue-50/30 via-gray-50/20 to-transparent rounded-full shadow-[0_0_150px_rgba(59,130,246,0.1)]"></div>
+            {/* Background with improved radial gradient and smoother transition */}
+            <div className="absolute inset-0 bg-gradient-radial from-blue-100/40 via-blue-50/30 via-gray-50/20 to-transparent rounded-full shadow-[0_0_200px_rgba(59,130,246,0.15)] animate-pulse" style={{animationDuration: '6s'}}></div>
+
+            {/* Connection lines between empresas and criadores */}
+            <div className="absolute inset-0">
+              <svg className="w-full h-full opacity-30" viewBox="0 0 400 400">
+                <defs>
+                  <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.6"/>
+                    <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.6"/>
+                  </linearGradient>
+                </defs>
+                {/* Animated connection lines */}
+                <path d="M100 150 Q200 200 300 150" stroke="url(#connectionGradient)" strokeWidth="3" fill="none" className="animate-pulse" style={{animationDelay: '1s', animationDuration: '4s'}}/>
+                <path d="M100 250 Q200 200 300 250" stroke="url(#connectionGradient)" strokeWidth="3" fill="none" className="animate-pulse" style={{animationDelay: '2s', animationDuration: '4s'}}/>
+                <path d="M150 100 Q200 200 250 300" stroke="url(#connectionGradient)" strokeWidth="2" fill="none" className="animate-pulse" style={{animationDelay: '3s', animationDuration: '4s'}}/>
+              </svg>
+            </div>
 
             <div className="relative w-full h-full flex items-center justify-center">
 
-              {/* Center - Cidade (Larger and Central) */}
-              <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-white via-blue-50/80 to-blue-100/60 rounded-full flex flex-col items-center justify-center shadow-2xl z-20 border-4 border-white/90 backdrop-blur-sm transform hover:scale-105 transition-all duration-500 ring-1 ring-blue-100/50">
-                <div className="text-4xl sm:text-5xl lg:text-6xl mb-3 lg:mb-4">🏙️</div>
-                <div className="text-base sm:text-lg lg:text-xl font-bold text-blue-700 mb-2">CIDADE</div>
+              {/* Center - Conexão (Larger and Central) */}
+              <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-white via-blue-50/90 to-blue-100/70 rounded-full flex flex-col items-center justify-center shadow-2xl z-20 border-4 border-white/90 backdrop-blur-sm transform hover:scale-105 transition-all duration-500 ring-2 ring-blue-200/50">
+                <div className="text-3xl sm:text-4xl lg:text-5xl mb-2 lg:mb-3">🤝</div>
+                <div className="text-sm sm:text-base lg:text-lg font-bold text-blue-700 mb-2 text-center">CONEXÃO</div>
                 <div className="flex flex-col items-center space-y-2">
-                  <div className="text-xs sm:text-sm text-blue-600 text-center font-medium">Seus clientes</div>
+                  <div className="text-xs sm:text-sm text-blue-600 text-center font-medium">Empresas ↔ Criadores</div>
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
                   </div>
                   <div className="text-xs sm:text-sm text-blue-500 text-center font-medium">na sua cidade</div>
                 </div>
@@ -271,7 +289,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6">
                 Conecte seu negócio aos melhores criadores da sua região e veja seus resultados crescerem.
               </p>
-              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -359,7 +377,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6 font-onest">
                 Junte-se a centenas de empresas que já transformaram seu marketing com influenciadores locais
               </p>
-              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
+              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -383,7 +401,7 @@ export default function Home() {
             com criadores locais que <strong className="text-white">realmente engajam</strong> com seu público-alvo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
+            <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
               <span className="hidden sm:inline">🚀 Começar Agora</span>
               <span className="sm:hidden">🚀 Começar</span>
             </button>
@@ -516,63 +534,56 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             {/* Step 1 */}
             <div className="text-center">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                  <span className="text-white font-bold text-2xl">1</span>
+              <div className="mb-8">
+                <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto shadow-xl">
+                  <span className="text-white font-bold text-3xl">1</span>
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-px h-16 bg-blue-200 hidden lg:block"></div>
               </div>
               <h3 className="text-xl font-onest font-semibold text-gray-900 mb-4">Defina sua Campanha</h3>
-              <p className="text-gray-600">
-                Crie sua campanha com objetivos claros, público-alvo,
-                orçamento e critérios específicos para os criadores.
+              <p className="text-gray-600 leading-relaxed">
+                Crie sua campanha com objetivos claros, público-alvo, orçamento e critérios específicos para os criadores.
               </p>
             </div>
 
             {/* Step 2 */}
             <div className="text-center">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                  <span className="text-white font-bold text-2xl">2</span>
+              <div className="mb-8">
+                <div className="w-24 h-24 bg-purple-600 rounded-full flex items-center justify-center mx-auto shadow-xl">
+                  <span className="text-white font-bold text-3xl">2</span>
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-px h-16 bg-purple-200 hidden lg:block"></div>
               </div>
               <h3 className="text-xl font-onest font-semibold text-gray-900 mb-4">Encontre Criadores</h3>
-              <p className="text-gray-600">
-                Nossa IA analisa milhares de perfis e sugere os criadores
-                que melhor se encaixam com sua marca e objetivos.
+              <p className="text-gray-600 leading-relaxed">
+                Nossa equipe especializada analisa os principais perfis e sugere criadores que melhor se encaixam com sua marca e objetivos.
               </p>
             </div>
 
             {/* Step 3 */}
             <div className="text-center">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                  <span className="text-white font-bold text-2xl">3</span>
+              <div className="mb-8">
+                <div className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto shadow-xl">
+                  <span className="text-white font-bold text-3xl">3</span>
                 </div>
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-px h-16 bg-green-200 hidden lg:block"></div>
               </div>
               <h3 className="text-xl font-onest font-semibold text-gray-900 mb-4">Gerencie Projetos</h3>
-              <p className="text-gray-600">
-                Acompanhe o progresso, aprove conteúdos, gerencie prazos
-                e mantenha comunicação direta com os criadores.
+              <p className="text-gray-600 leading-relaxed">
+                Acompanhe o progresso, aprove conteúdos, gerencie prazos e mantenha comunicação direta com os criadores.
               </p>
             </div>
 
             {/* Step 4 */}
             <div className="text-center">
-              <div className="relative mb-8">
-                <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                  <span className="text-white font-bold text-2xl">4</span>
+              <div className="mb-8">
+                <div className="w-24 h-24 bg-orange-600 rounded-full flex items-center justify-center mx-auto shadow-xl">
+                  <span className="text-white font-bold text-3xl">4</span>
                 </div>
               </div>
               <h3 className="text-xl font-onest font-semibold text-gray-900 mb-4">Analise Resultados</h3>
-              <p className="text-gray-600">
-                Receba relatórios detalhados com métricas de performance,
-                ROI e insights para otimizar futuras campanhas.
+              <p className="text-gray-600 leading-relaxed">
+                Receba relatórios detalhados com métricas de performance e insights para otimizar futuras campanhas.
               </p>
             </div>
           </div>
@@ -607,63 +618,66 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section 2 - Garantia de Resultados */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-8 md:p-12 border border-green-200">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      {/* CTA Section 2 - Garantia de Resultados - Full Width */}
+      <section className="py-0 bg-gradient-to-r from-green-500 to-emerald-600 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full" style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")"}}></div>
+        </div>
 
-              {/* Left Content */}
-              <div>
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 border border-green-300 text-green-700 text-sm font-medium mb-6">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                  Garantia Total
+        <div className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-medium mb-6">
+              <span className="w-2 h-2 bg-yellow-300 rounded-full mr-2 animate-pulse"></span>
+              Garantia Total
+            </div>
+
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+              Trabalhe Apenas com <span className="text-green-100">Criadores Verificados</span>
+            </h2>
+
+            <p className="text-xl text-green-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Nossa IA analisa milhares de perfis e seleciona apenas criadores com
+              <strong className="text-white"> histórico comprovado de engajamento real</strong> na sua região.
+            </p>
+
+            {/* Benefits Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-4xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                  Trabalhe Apenas com <span className="text-green-600">Criadores Verificados</span>
-                </h2>
-                <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-                  Nossa IA analisa milhares de perfis e seleciona apenas criadores com
-                  <strong className="text-green-600"> histórico comprovado de engajamento real</strong> na sua região.
-                </p>
-
-                {/* Benefits */}
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-gray-700 font-medium">Criadores pré-verificados pela nossa IA</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-gray-700 font-medium">Garantia de engajamento real (sem bots)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-gray-700 font-medium">Suporte completo durante toda a campanha</span>
-                  </div>
-                </div>
-
-                <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105">
-                  <span className="hidden sm:inline">🛡️ Garantir Meus Criadores</span>
-                  <span className="sm:hidden">🛡️ Garantir</span>
-                </button>
+                <h3 className="text-white font-semibold mb-2">IA Verificada</h3>
+                <p className="text-green-100 text-sm">Criadores pré-verificados pela nossa IA</p>
               </div>
 
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-white font-semibold mb-2">Engajamento Real</h3>
+                <p className="text-green-100 text-sm">Garantia de engajamento real (sem bots)</p>
+              </div>
 
-
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-white font-semibold mb-2">Suporte Total</h3>
+                <p className="text-green-100 text-sm">Suporte completo durante toda a campanha</p>
+              </div>
             </div>
+
+            <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:bg-gray-100 text-green-600 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105">
+              <span className="hidden sm:inline">🛡️ Garantir Meus Criadores Agora</span>
+              <span className="sm:hidden">🛡️ Garantir</span>
+            </button>
           </div>
         </div>
       </section>
@@ -927,7 +941,7 @@ export default function Home() {
               <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6 max-w-md mx-auto">
                 Junte-se a centenas de empresas que já transformaram seu marketing local
               </p>
-              <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
                 <span className="hidden sm:inline">📈 Ver Mais Cases de Sucesso</span>
                 <span className="sm:hidden">📈 Cases</span>
                 <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -939,29 +953,97 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section 3 - Urgência */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 to-red-600">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-medium mb-6">
-            <span className="w-2 h-2 bg-yellow-300 rounded-full mr-2 animate-pulse"></span>
-            Últimas Vagas Disponíveis
+      {/* Blog Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+              <span className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></span>
+              Conhecimento Compartilhado
+            </div>
+            <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
+              Blog <span className="text-blue-600">crIAdores</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Insights, tendências e estratégias para empresas locais e criadores de conteúdo.
+              Aprenda com cases reais e mantenha-se atualizado com o mercado.
+            </p>
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-            Não Perca Mais <span className="text-yellow-200">Oportunidades de Vendas</span>
-          </h2>
-          <p className="text-xl text-orange-100 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Enquanto você hesita, seus concorrentes já estão trabalhando com os <strong className="text-white">melhores criadores da região</strong>.
-            Garante sua vaga agora e comece a vender mais ainda esta semana.
-          </p>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Blog Preview Cards */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="h-48 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="text-4xl mb-2">🏢</div>
+                  <div className="font-semibold">Para Empresas</div>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Marketing Local</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Estratégias práticas para PMEs aumentarem vendas com marketing digital e automação.
+                </p>
+                <div className="flex items-center text-blue-600 text-sm font-medium">
+                  <span>Ver posts</span>
+                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
+            <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="h-48 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="text-4xl mb-2">🎨</div>
+                  <div className="font-semibold">Para Criadores</div>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Criação & Monetização</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Dicas de crescimento, UGC, parcerias e como transformar conteúdo em renda.
+                </p>
+                <div className="flex items-center text-purple-600 text-sm font-medium">
+                  <span>Ver posts</span>
+                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onClick={() => window.location.href = '/chatbot-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
-              <span className="hidden sm:inline">⚡ Garantir Minha Vaga Agora</span>
-              <span className="sm:hidden">⚡ Garantir Vaga</span>
-            </button>
+            <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="h-48 bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="text-4xl mb-2">📈</div>
+                  <div className="font-semibold">Tendências</div>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Mercado & Insights</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Novidades do mercado, mudanças em algoritmos e oportunidades emergentes.
+                </p>
+                <div className="flex items-center text-green-600 text-sm font-medium">
+                  <span>Ver posts</span>
+                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <div className="text-center">
+            <a
+              href="/blog"
+              className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <span className="hidden sm:inline">📚 Acessar Blog Completo</span>
+              <span className="sm:hidden">📚 Ver Blog</span>
+            </a>
           </div>
         </div>
       </section>
@@ -1201,6 +1283,9 @@ export default function Home() {
                 <button onClick={() => scrollToSection('team')} className="block text-blue-100 hover:text-white transition-colors duration-300 text-lg font-semibold w-full text-left">
                   Nossos Valores
                 </button>
+                <a href="/blog" className="block text-blue-100 hover:text-white transition-colors duration-300 text-lg font-semibold">
+                  Blog
+                </a>
               </div>
 
               {/* Documentos Legais */}
@@ -1220,7 +1305,7 @@ export default function Home() {
 
               {/* CTA Principal */}
               <div className="pt-6">
-                <button onClick={() => window.location.href = '/chatbot-homepage'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                <button onClick={() => window.location.href = '/criavoz-homepage'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                   Começar Agora
                 </button>
               </div>
