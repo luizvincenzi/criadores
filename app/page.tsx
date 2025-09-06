@@ -109,19 +109,19 @@ export default function Home() {
       </header>
 
       {/* Hero Section - Premium Visual */}
-      <section className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-white min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-white min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden pt-20 sm:pt-16 lg:pt-0">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-10 w-32 h-32 bg-blue-600 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl"></div>
           <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
         </div>
 
-        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
-          <div className="text-center lg:text-left order-1 lg:order-1">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-onest font-bold text-gray-900 leading-tight mb-8">
+        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10 mt-8 sm:mt-4 lg:mt-0">
+          <div className="text-center lg:text-left order-1 lg:order-1 px-2 sm:px-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-onest font-bold text-gray-900 leading-tight mb-6">
               Conectamos <span className="text-blue-600">empresas locais</span> com <span className="text-blue-600">criadores locais</span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed mb-10 font-onest font-normal">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8 font-onest font-normal">
               Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade para <strong className="text-blue-600">acelerar resultados e otimizar potencializando o negócio</strong> das empresas que trabalham com a gente.
             </p>
             <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
