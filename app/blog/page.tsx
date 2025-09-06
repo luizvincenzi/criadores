@@ -25,7 +25,7 @@ const BlogPage = () => {
       title: 'Padaria de BH dobra vendas com WhatsApp Business em 90 dias',
       excerpt: 'Automatização simples de pedidos e delivery transformou negócio familiar em referência do bairro. Estratégia pode ser replicada por qualquer PME.',
       category: 'Empresas',
-      categoryColor: 'bg-blue-100 text-blue-800',
+      categoryColor: 'bg-blue-100 text-[#0b3553]',
       date: '15 Jan 2025',
       readTime: '3 min',
       image: '/blog/whatsapp-business-padaria.jpg',
@@ -37,7 +37,7 @@ const BlogPage = () => {
       title: 'IA aumenta vendas de PMEs em 40% no interior paulista',
       excerpt: 'Chatbots simples e automação de redes sociais transformam pequenos negócios em Ribeirão Preto. Tecnologia acessível democratiza marketing digital.',
       category: 'Empresas',
-      categoryColor: 'bg-blue-100 text-blue-800',
+      categoryColor: 'bg-blue-100 text-[#0b3553]',
       date: '12 Jan 2025',
       readTime: '4 min',
       image: '/blog/ia-pmes-interior.jpg',
@@ -70,7 +70,7 @@ const BlogPage = () => {
       title: 'IA aumenta vendas de PMEs em 40% no interior paulista',
       excerpt: 'Estudo com 200 empresas mostra impacto da automação inteligente em negócios locais. Ferramentas gratuitas lideram adoção.',
       category: 'Empresas',
-      categoryColor: 'bg-blue-100 text-blue-800',
+      categoryColor: 'bg-blue-100 text-[#0b3553]',
       date: '22 Jan 2025',
       readTime: '4 min',
       image: '/blog/ia-pmes-interior.jpg',
@@ -91,7 +91,7 @@ const BlogPage = () => {
 
   const categories = [
     { id: 'all', name: 'Todos os Posts', color: 'bg-gray-100 text-gray-800' },
-    { id: 'empresas', name: 'Para Empresas', color: 'bg-blue-100 text-blue-800' },
+    { id: 'empresas', name: 'Para Empresas', color: 'bg-blue-100 text-[#0b3553]' },
     { id: 'criadores', name: 'Para Criadores', color: 'bg-purple-100 text-purple-800' },
     { id: 'tendencias', name: 'Tendências', color: 'bg-green-100 text-green-800' },
     { id: 'ferramentas', name: 'Ferramentas', color: 'bg-gray-100 text-gray-800' }

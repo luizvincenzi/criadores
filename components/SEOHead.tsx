@@ -17,7 +17,7 @@ const SEOHead = ({
 }: SEOHeadProps) => {
   const defaultTitle = 'crIAdores - Conectando Negócios Locais a Criadores de Conteúdo'
   const defaultDescription = 'Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais.'
-  
+
   const pageTitle = title || (page === 'links' ? 'crIAdores - Links' : defaultTitle)
   const pageDescription = description || (page === 'links' ? 'Conecte seu negócio aos melhores criadores de conteúdo da sua região. Campanhas de marketing que geram resultados reais!' : defaultDescription)
   const pageUrl = url || (typeof window !== 'undefined' ? window.location.href : 'https://criadores.app')

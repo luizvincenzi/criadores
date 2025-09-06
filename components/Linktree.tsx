@@ -160,7 +160,7 @@ const Linktree = () => {
         {/* Footer */}
         <div className={`text-center mt-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '1000ms' }}>
           <p className="text-gray-400 text-xs">
-            © 2025 crIAdores. Todos os direitos reservados.
+            © 2025 <span className="inline-block"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span>. Todos os direitos reservados.
           </p>
           <p className="text-gray-400 text-xs mt-1">
             Feito com ❤️ para conectar negócios e criadores

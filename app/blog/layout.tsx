@@ -84,7 +84,7 @@ export default function BlogLayout({
       </main>
 
       {/* Footer - Mesmo da Homepage */}
-      <footer id="contato" className="bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900">
+      <footer id="contato" className="bg-gradient-to-b from-[#0b3553] via-[#0a2f4a] via-[#082940] via-[#061e2f] to-[#041220]">
         <div className="max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-4 gap-12">
             {/* Logo e Descrição */}
@@ -215,7 +215,7 @@ export default function BlogLayout({
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-blue-500/20 bg-gradient-to-b from-blue-900 to-blue-950">
+        <div className="border-t border-blue-500/20 bg-gradient-to-b from-[#061e2f] to-[#041220]">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-center items-center gap-6">
               <div className="text-blue-100 text-center">
@@ -232,7 +232,7 @@ export default function BlogLayout({
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-gradient-to-b from-blue-950 to-slate-900 border-t border-blue-500/20">
+        <div className="bg-gradient-to-b from-[#041220] to-[#020a12] border-t border-blue-500/20">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="text-blue-100 leading-relaxed space-y-4 max-w-4xl mx-auto">
               <p className="text-center">

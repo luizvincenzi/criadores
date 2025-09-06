@@ -119,10 +119,10 @@ export default function Home() {
         <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10 mt-8 sm:mt-4 lg:mt-0">
           <div className="text-center lg:text-left order-1 lg:order-1 px-2 sm:px-0">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-onest font-bold text-gray-900 leading-tight mb-6">
-              Conectamos <span className="text-blue-600">empresas locais</span> com <span className="text-blue-600">criadores locais</span>
+              Conectamos <span className="text-[#0b3553]">empresas locais</span> com <span className="text-[#0b3553]">criadores locais</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8 font-onest font-normal">
-              Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade para <strong className="text-blue-600">acelerar resultados e otimizar potencializando o negócio</strong> das empresas que trabalham com a gente.
+              Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade para <strong className="text-[#0b3553]">acelerar resultados e otimizar potencializando o negócio</strong> das empresas que trabalham com a gente.
             </p>
             <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
               <span className="hidden sm:inline">Conectar Agora</span>
@@ -157,15 +157,15 @@ export default function Home() {
               {/* Center - Conexão (Larger and Central) */}
               <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-white via-blue-50/90 to-blue-100/70 rounded-full flex flex-col items-center justify-center shadow-2xl z-20 border-4 border-white/90 backdrop-blur-sm transform hover:scale-105 transition-all duration-500 ring-2 ring-blue-200/50">
                 <div className="text-3xl sm:text-4xl lg:text-5xl mb-2 lg:mb-3">🤝</div>
-                <div className="text-sm sm:text-base lg:text-lg font-bold text-blue-700 mb-2 text-center">CONEXÃO</div>
+                <div className="text-sm sm:text-base lg:text-lg font-bold text-[#0b3553] mb-2 text-center">CONEXÃO</div>
                 <div className="flex flex-col items-center space-y-2">
-                  <div className="text-xs sm:text-sm text-blue-600 text-center font-medium">Empresas ↔ Criadores</div>
+                  <div className="text-xs sm:text-sm text-[#0b3553] text-center font-medium">Empresas ↔ Criadores</div>
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
                   </div>
-                  <div className="text-xs sm:text-sm text-blue-500 text-center font-medium">na sua cidade</div>
+                  <div className="text-xs sm:text-sm text-[#0b3553] text-center font-medium">na sua cidade</div>
                 </div>
               </div>
 
@@ -229,16 +229,20 @@ export default function Home() {
       <section id="about" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
               Sobre a Plataforma
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-black">
-              O que é a <span className="inline-block bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent font-black text-4xl md:text-5xl">crIAdores</span>?
+              O que é a <span className="inline-block">
+                <span className="text-gray-600 font-light text-4xl md:text-5xl">cr</span>
+                <span className="text-black font-bold text-4xl md:text-5xl">IA</span>
+                <span className="text-gray-600 font-light text-4xl md:text-5xl">dores</span>
+              </span>?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               A <span className="font-bold">
                 <span className="text-gray-600 font-light">cr</span>
-                <span className="text-blue-600 font-bold">IA</span>
+                <span className="text-[#0b3553] font-bold">IA</span>
                 <span className="text-gray-600 font-light">dores</span>
               </span> é uma plataforma revolucionária que conecta empresas locais com criadores de conteúdo autênticos da sua região.<br/><br/>
               Utilizamos <span className="font-semibold text-gray-800">inteligência artificial</span> para criar parcerias perfeitas que geram resultados reais para o seu negócio e oportunidades genuínas para criadores locais.
@@ -248,7 +252,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
@@ -303,7 +307,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
-              Nossos <span className="text-blue-600">Serviços</span>
+              Nossos <span className="text-[#0b3553]">Serviços</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Soluções completas para conectar sua marca com os criadores ideais
@@ -414,7 +418,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
-              Por que <span className="text-blue-600">Micro Influenciadores</span>?
+              Por que <span className="text-[#0b3553]">Micro Influenciadores</span>?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Descubra por que os micro influenciadores são a chave para campanhas mais eficazes e autênticas
@@ -472,7 +476,7 @@ export default function Home() {
 
               <div className="flex items-start space-x-4">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -484,7 +488,7 @@ export default function Home() {
 
               <div className="flex items-start space-x-4">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -496,7 +500,7 @@ export default function Home() {
 
               <div className="flex items-start space-x-4">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -508,7 +512,7 @@ export default function Home() {
 
               <div className="flex items-start space-x-4">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -527,7 +531,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
-              Como Funciona <span className="text-blue-600">na Prática</span>
+              Como Funciona <span className="text-[#0b3553]">na Prática</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Processo simples e eficiente para conectar sua marca com os criadores ideais
@@ -600,7 +604,7 @@ export default function Home() {
                 o sucesso das suas campanhas de marketing de influência.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <span className="px-4 py-2 bg-blue-100 text-[#0b3553] rounded-full text-sm font-medium">
                   Busca Inteligente
                 </span>
                 <span className="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
@@ -686,12 +690,16 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
               Nossos Parceiros
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">Alguns Clientes</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0b3553] mb-6">Alguns Clientes</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Empresas que já confiam na <span className="font-bold text-blue-600">crIAdores</span> para impulsionar seus negócios
+              Empresas que já confiam na <span className="font-bold">
+                <span className="text-gray-600 font-light">cr</span>
+                <span className="text-black font-bold">IA</span>
+                <span className="text-gray-600 font-light">dores</span>
+              </span> para impulsionar seus negócios
             </p>
           </div>
 
@@ -740,8 +748,8 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/30 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16 sm:mb-20">
-            <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200/50 text-blue-700 text-xs sm:text-sm font-medium mb-6 sm:mb-8 shadow-lg">
-              <span className="w-2 h-2 bg-blue-600 rounded-full mr-2 sm:mr-3 animate-pulse"></span>
+            <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200/50 text-[#0b3553] text-xs sm:text-sm font-medium mb-6 sm:mb-8 shadow-lg">
+              <span className="w-2 h-2 bg-[#0b3553] rounded-full mr-2 sm:mr-3 animate-pulse"></span>
               Resultados Comprovados
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 px-4 sm:px-0">
@@ -936,7 +944,7 @@ export default function Home() {
           <div className="text-center px-4 sm:px-0">
             <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-xl border border-white/50">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">
-                Pronto para <span className="text-blue-600">resultados como esses?</span>
+                Pronto para <span className="text-[#0b3553]">resultados como esses?</span>
               </h3>
               <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6 max-w-md mx-auto">
                 Junte-se a centenas de empresas que já transformaram seu marketing local
@@ -957,12 +965,16 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
-              <span className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></span>
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
+              <span className="w-2 h-2 bg-[#0b3553] rounded-full mr-2 animate-pulse"></span>
               Conhecimento Compartilhado
             </div>
             <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
-              Blog <span className="text-blue-600">crIAdores</span>
+              Blog <span className="inline-block">
+                <span className="text-gray-600 font-light">cr</span>
+                <span className="text-black font-bold">IA</span>
+                <span className="text-gray-600 font-light">dores</span>
+              </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Insights, tendências e estratégias para empresas locais e criadores de conteúdo.
@@ -984,7 +996,7 @@ export default function Home() {
                 <p className="text-gray-600 text-sm mb-4">
                   Estratégias práticas para PMEs aumentarem vendas com marketing digital e automação.
                 </p>
-                <div className="flex items-center text-blue-600 text-sm font-medium">
+                <div className="flex items-center text-[#0b3553] text-sm font-medium">
                   <span>Ver posts</span>
                   <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -1054,13 +1066,13 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Mission */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
                 Nossa Missão
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">Nossa Missão</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-[#0b3553] mb-6">Nossa Missão</h2>
               <div className="flex items-start gap-4">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                   </svg>
                 </div>
@@ -1095,17 +1107,17 @@ export default function Home() {
       <section className="py-20" style={{backgroundColor: '#f5f5f5'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
               Nossos Princípios
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-600 mb-6">Nossos Valores</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0b3553] mb-6">Nossos Valores</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Value 1 - Comunidade */}
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
               </div>
@@ -1178,7 +1190,7 @@ export default function Home() {
       </div>
 
       {/* Footer crIAdores */}
-      <footer id="contato" className="bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900">
+      <footer id="contato" className="bg-gradient-to-b from-[#0b3553] via-[#0a2f4a] via-[#082940] via-[#061e2f] to-[#041220]">
         <div className="max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-4 gap-12">
 
@@ -1187,8 +1199,8 @@ export default function Home() {
               <div>
                 <div className="flex items-center space-x-2 mb-6">
                   <span className="text-3xl font-onest tracking-tight">
-                    <span className="text-gray-300 font-light">cr</span>
-                    <span className="text-white font-bold">IA</span>
+                    <span className="text-gray-300 font-light">cri</span>
+                    <span className="text-white font-bold">A</span>
                     <span className="text-gray-300 font-light">dores</span>
                   </span>
                 </div>
@@ -1314,7 +1326,7 @@ export default function Home() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-blue-500/20 bg-gradient-to-b from-blue-900 to-blue-950">
+        <div className="border-t border-blue-500/20 bg-gradient-to-b from-[#061e2f] to-[#041220]">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-center items-center gap-6">
               <div className="text-blue-100 text-center">
@@ -1330,7 +1342,7 @@ export default function Home() {
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-gradient-to-b from-blue-950 to-slate-900 border-t border-blue-500/20">
+        <div className="bg-gradient-to-b from-[#041220] to-[#020a12] border-t border-blue-500/20">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="text-blue-100 leading-relaxed space-y-4 max-w-4xl mx-auto">
               <p className="text-center">

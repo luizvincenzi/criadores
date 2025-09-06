@@ -12,7 +12,7 @@ export default function PoliticaPrivacidadePage() {
             <div className="flex items-center space-x-2">
               <span className="text-2xl font-onest tracking-tight">
                 <span className="text-gray-600 font-light">cr</span>
-                <span className="text-blue-600 font-bold">IA</span>
+                <span className="text-black font-bold">IA</span>
                 <span className="text-gray-600 font-light">dores</span>
               </span>
             </div>

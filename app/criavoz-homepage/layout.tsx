@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'crIAvoz - Conecte-se com crIAdores',
+  title: 'criAvoz - Conecte-se com crIAdores',
   description: 'Conecte seu negócio aos melhores criadores da sua região',
   icons: {
     icon: '/faviconcriadoresA3.png',

@@ -13,7 +13,7 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Aceitação dos Termos</h2>
               <p className="text-gray-700 mb-4">
-                Ao acessar e usar a plataforma Criadores, você concorda com estes Termos de Serviço.
+                Ao acessar e usar a plataforma <span className="inline-block"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span>, você concorda com estes Termos de Serviço.
                 Se você não concorda com qualquer parte destes termos, não deve usar nossos serviços.
               </p>
             </section>
@@ -21,7 +21,7 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Descrição do Serviço</h2>
               <p className="text-gray-700 mb-4">
-                A Criadores é uma plataforma que conecta empresas e criadores de conteúdo, oferecendo:
+                A <span className="inline-block"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span> é uma plataforma que conecta empresas e criadores de conteúdo, oferecendo:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
                 <li>Gestão de campanhas de marketing de influência</li>
@@ -87,7 +87,7 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Propriedade Intelectual</h2>
               <p className="text-gray-700 mb-4">
-                A plataforma Criadores e seu conteúdo são protegidos por direitos autorais e outras leis.
+                A plataforma <span className="inline-block"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span> e seu conteúdo são protegidos por direitos autorais e outras leis.
                 Você mantém os direitos sobre seu conteúdo, mas nos concede licença para usar conforme necessário
                 para fornecer nossos serviços.
               </p>
@@ -108,7 +108,7 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Limitação de Responsabilidade</h2>
               <p className="text-gray-700 mb-4">
-                A Criadores não será responsável por danos indiretos, incidentais ou consequenciais
+                A <span className="inline-block"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span> não será responsável por danos indiretos, incidentais ou consequenciais
                 decorrentes do uso da plataforma, exceto conforme exigido por lei.
               </p>
             </section>
