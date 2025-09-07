@@ -18,7 +18,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
   excerpt, 
   url,
   viewCount = 0,
-  showViewCount = true,
+  showViewCount = viewCount > 0,
   variant = 'full',
   className = '' 
 }) => {

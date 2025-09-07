@@ -26,7 +26,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
         description: customText,
         buttonText: 'Saiba Mais',
         link: customLink,
-        bgColor: 'from-blue-600 to-blue-700'
+        bgColor: 'bg-white'
       };
     }
 
@@ -39,7 +39,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
             description: 'Nossa equipe oferece consultoria gratuita de 30 minutos para empresas que querem crescer no digital.',
             buttonText: 'Agendar Consultoria Gratuita',
             link: '/criavoz-homepage',
-            bgColor: 'from-blue-600 to-blue-700'
+            bgColor: 'bg-white'
           };
         } else if (audience_target === 'CRIADORES') {
           return {
@@ -48,7 +48,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
             description: 'Conecte-se com empresas locais e transforme sua paixão em uma fonte de renda consistente.',
             buttonText: 'Começar Agora',
             link: '/criavoz-homepage',
-            bgColor: 'from-purple-600 to-purple-700'
+            bgColor: 'bg-white'
           };
         } else {
           return {
@@ -57,7 +57,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
             description: 'Nossa plataforma conecta empresas e criadores para parcerias que realmente funcionam.',
             buttonText: 'Conhecer a Plataforma',
             link: '/criavoz-homepage',
-            bgColor: 'from-green-600 to-green-700'
+            bgColor: 'bg-white'
           };
         }
 
@@ -68,7 +68,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
           description: 'Receba insights semanais como este direto no seu e-mail. Sem spam, apenas conteúdo que funciona.',
           buttonText: 'Inscrever na Newsletter',
           link: '#newsletter',
-          bgColor: 'from-yellow-500 to-yellow-600'
+          bgColor: 'bg-white'
         };
 
       case 'contact':
@@ -78,7 +78,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
           description: 'Nossa equipe está pronta para ajudar você a colocar essas estratégias em prática.',
           buttonText: 'Falar com Especialista',
           link: '/criavoz-homepage',
-          bgColor: 'from-gray-700 to-gray-800'
+          bgColor: 'bg-white'
         };
 
       default:
@@ -88,7 +88,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
           description: 'Descubra como nossa plataforma pode ajudar você a alcançar seus objetivos.',
           buttonText: 'Saiba Mais',
           link: '/criavoz-homepage',
-          bgColor: 'from-blue-600 to-blue-700'
+          bgColor: 'bg-white'
         };
     }
   };
@@ -97,41 +97,35 @@ const PostCTA: React.FC<PostCTAProps> = ({
 
   return (
     <div className={`my-12 ${className}`}>
-      <div className={`bg-gradient-to-r ${content.bgColor} rounded-xl p-8 text-center text-white relative overflow-hidden`}>
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-4 w-32 h-32 border border-white rounded-full"></div>
-          <div className="absolute bottom-4 left-4 w-24 h-24 border border-white rounded-full"></div>
-        </div>
-        
+      <div className={`${content.bgColor} rounded-xl p-8 text-center shadow-sm relative overflow-hidden`}>
         <div className="relative z-10 max-w-2xl mx-auto">
           {/* Icon */}
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <div className="text-white">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="text-blue-600">
               {content.icon}
             </div>
           </div>
-          
+
           {/* Content */}
-          <h3 className="text-2xl font-bold mb-4">
+          <h3 className="text-2xl font-bold mb-4 text-gray-900">
             {content.title}
           </h3>
-          
-          <p className="text-lg opacity-90 mb-8 leading-relaxed">
+
+          <p className="text-lg mb-8 leading-relaxed text-gray-600">
             {content.description}
           </p>
-          
+
           {/* Button */}
           <a
             href={content.link}
-            className="inline-flex items-center justify-center bg-white text-gray-900 px-8 py-4 rounded-full font-bold hover:bg-gray-100 transition-colors text-lg shadow-lg"
+            className="inline-flex items-center justify-center bg-blue-600 text-white px-8 py-4 rounded-full font-bold hover:bg-blue-700 transition-colors text-lg shadow-lg"
           >
             {content.buttonText}
             <ArrowRight className="w-5 h-5 ml-2" />
           </a>
-          
+
           {/* Additional Info */}
-          <p className="text-sm opacity-75 mt-4">
+          <p className="text-sm text-gray-500 mt-4">
             {variant === 'consultation' ? 'Consultoria 100% gratuita • Sem compromisso' : 'Gratuito • Sem spam'}
           </p>
         </div>

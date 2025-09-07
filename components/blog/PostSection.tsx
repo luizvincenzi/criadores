@@ -28,28 +28,28 @@ const PostSection: React.FC<PostSectionProps> = ({
     return paragraphs.map((paragraph, index) => {
       // Destacar números importantes (percentuais, valores monetários, etc.)
       let processedParagraph = paragraph
-        .replace(/(\d+%)/g, '<span class="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded font-semibold">$1</span>')
+        .replace(/(\d+%)/g, '<span class="bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-semibold">$1</span>')
         .replace(/(R\$\s*[\d.,]+)/g, '<span class="bg-green-100 text-green-800 px-1 py-0.5 rounded font-semibold">$1</span>')
         .replace(/(\d+x)/g, '<span class="bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-semibold">$1</span>');
-      
+
       // Destacar palavras-chave importantes
       const keywords = [
-        'aumento', 'crescimento', 'resultado', 'sucesso', 'estratégia', 
+        'aumento', 'crescimento', 'resultado', 'sucesso', 'estratégia',
         'implementar', 'automatização', 'otimização', 'conversão'
       ];
-      
+
       keywords.forEach(keyword => {
         const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
         processedParagraph = processedParagraph.replace(
-          regex, 
-          '<span class="bg-yellow-50 text-yellow-900 px-1 rounded font-medium">$1</span>'
+          regex,
+          '<span class="bg-blue-50 text-blue-900 px-1 rounded font-medium">$1</span>'
         );
       });
       
       return (
-        <p 
-          key={index} 
-          className="mb-4 leading-relaxed"
+        <p
+          key={index}
+          className="mb-6 leading-relaxed text-lg"
           dangerouslySetInnerHTML={{ __html: processedParagraph }}
         />
       );
@@ -59,11 +59,11 @@ const PostSection: React.FC<PostSectionProps> = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'highlighted':
-        return 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 pl-6 py-6 rounded-r-xl';
+        return 'bg-white pl-6 py-6';
       case 'conclusion':
-        return 'bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 pl-6 py-6 rounded-r-xl';
+        return 'bg-white pl-6 py-6';
       default:
-        return '';
+        return 'bg-white';
     }
   };
 
@@ -82,12 +82,12 @@ const PostSection: React.FC<PostSectionProps> = ({
           <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-wide mb-2">
             {title}
           </h2>
-          <div className="w-16 h-1 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"></div>
+          <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
         </div>
       </div>
       
       {/* Conteúdo da Seção */}
-      <div className="prose prose-lg max-w-none text-gray-700">
+      <div className="prose prose-xl max-w-none text-gray-800 leading-relaxed">
         {processContent(content)}
       </div>
     </section>

@@ -10,6 +10,7 @@ import { formatDate } from '@/lib/dateUtils';
 import PostSummary from '@/components/blog/PostSummary';
 import PostSection from '@/components/blog/PostSection';
 import SocialShare from '@/components/blog/SocialShare';
+import FixedSocialShare from '@/components/blog/FixedSocialShare';
 import NewsletterSignup from '@/components/blog/NewsletterSignup';
 import PostSidebar from '@/components/blog/PostSidebar';
 import PostCTA from '@/components/blog/PostCTA';
@@ -97,6 +98,12 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Botões de Compartilhamento Fixos */}
+      <FixedSocialShare
+        title={post.title}
+        excerpt={post.excerpt}
+      />
+
       {/* Espaçamento para header fixo */}
       <div className="pt-20">
         {/* Breadcrumb Melhorado */}
@@ -124,9 +131,9 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           <div className="lg:grid lg:grid-cols-12 lg:gap-8">
             {/* Conteúdo Principal */}
             <main className="lg:col-span-8">
-              <article className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <article className="bg-white rounded-xl shadow-sm overflow-hidden">
                 {/* Header do Artigo */}
-                <header className="px-8 py-12 border-b border-gray-200">
+                <header className="px-8 py-12">
                   {/* Meta informações */}
                   <div className="flex flex-wrap items-center gap-4 mb-6">
                     <span className={`px-4 py-2 rounded-full text-sm font-medium ${getCategoryColor(post.audience_target)}`}>
@@ -189,7 +196,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
                   {/* Conteúdo Principal */}
                   <PostSection
-                    title="Conteúdo"
+                    title={post.title}
                     content={post.content}
                     variant="default"
                   />
@@ -233,7 +240,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
           {/* Seção Mobile para Posts Relacionados */}
           <div className="lg:hidden mt-12">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Posts Relacionados</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {relatedPosts.slice(0, 4).map((relatedPost) => (
@@ -263,6 +270,9 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         </div>
 
       </div>
+
+      {/* Espaço extra no final */}
+      <div className="h-32"></div>
     </div>
   );
 }

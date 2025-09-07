@@ -43,7 +43,7 @@ const PostSidebar: React.FC<PostSidebarProps> = ({
   return (
     <aside className={`space-y-8 ${className}`}>
       {/* Informações do Post Atual */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-4">Sobre este post</h3>
         
         <div className="space-y-3">
@@ -65,7 +65,7 @@ const PostSidebar: React.FC<PostSidebarProps> = ({
         
         {/* Tags */}
         {currentPost.tags && currentPost.tags.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-4 pt-4">
             <div className="flex items-center mb-2">
               <Tag className="w-4 h-4 mr-2 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">Tags</span>
@@ -86,7 +86,7 @@ const PostSidebar: React.FC<PostSidebarProps> = ({
 
       {/* Posts Relacionados */}
       {relatedPosts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Posts Relacionados</h3>
           
           <div className="space-y-4">
@@ -126,7 +126,7 @@ const PostSidebar: React.FC<PostSidebarProps> = ({
 
       {/* Últimos Posts */}
       {latestPosts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Últimos Posts</h3>
           
           <div className="space-y-4">
@@ -159,7 +159,7 @@ const PostSidebar: React.FC<PostSidebarProps> = ({
             ))}
           </div>
           
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-4 pt-4">
             <a 
               href="/blog"
               className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
