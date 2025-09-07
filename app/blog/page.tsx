@@ -1,107 +1,89 @@
 'use client';
 
-import { useState } from 'react';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  categoryColor: string;
-  date: string;
-  readTime: string;
-  image: string;
-  slug: string;
-  featured?: boolean;
-}
+import { useState, useEffect } from 'react';
+import { blogService, BlogPost } from '@/lib/supabase';
 
 const BlogPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - em produção viria de CMS ou API
-  const posts: BlogPost[] = [
-    {
-      id: '1',
-      title: 'Padaria de BH dobra vendas com WhatsApp Business em 90 dias',
-      excerpt: 'Automatização simples de pedidos e delivery transformou negócio familiar em referência do bairro. Estratégia pode ser replicada por qualquer PME.',
-      category: 'Empresas',
-      categoryColor: 'bg-blue-100 text-[#0b3553]',
-      date: '15 Jan 2025',
-      readTime: '3 min',
-      image: '/blog/whatsapp-business-padaria.jpg',
-      slug: 'padaria-bh-whatsapp-business',
-      featured: true
-    },
-    {
-      id: '2',
-      title: 'IA aumenta vendas de PMEs em 40% no interior paulista',
-      excerpt: 'Chatbots simples e automação de redes sociais transformam pequenos negócios em Ribeirão Preto. Tecnologia acessível democratiza marketing digital.',
-      category: 'Empresas',
-      categoryColor: 'bg-blue-100 text-[#0b3553]',
-      date: '12 Jan 2025',
-      readTime: '4 min',
-      image: '/blog/ia-pmes-interior.jpg',
-      slug: 'ia-aumenta-vendas-pmes-interior'
-    },
-    {
-      id: '3',
-      title: 'Criadora de TikTok fatura R$ 15k/mês com UGC para empresas locais',
-      excerpt: 'Estudante de Curitiba transforma hobby em profissão criando conteúdo autêntico para PMEs. Estratégia simples pode ser replicada por qualquer criador.',
-      category: 'Criadores',
-      categoryColor: 'bg-purple-100 text-purple-800',
-      date: '10 Jan 2025',
-      readTime: '5 min',
-      image: '/blog/criadora-ugc-curitiba.jpg',
-      slug: 'criador-tiktok-monetiza-ugc'
-    },
-    {
-      id: '4',
-      title: 'Instagram muda algoritmo: prioridade para conteúdo local em 2025',
-      excerpt: 'Atualização favorece negócios e criadores regionais. Mudança pode revolucionar marketing de proximidade no Brasil.',
-      category: 'Tendências',
-      categoryColor: 'bg-green-100 text-green-800',
-      date: '20 Jan 2025',
-      readTime: '3 min',
-      image: '/blog/instagram-algoritmo-local.jpg',
-      slug: 'instagram-algoritmo-conteudo-local'
-    },
-    {
-      id: '6',
-      title: 'IA aumenta vendas de PMEs em 40% no interior paulista',
-      excerpt: 'Estudo com 200 empresas mostra impacto da automação inteligente em negócios locais. Ferramentas gratuitas lideram adoção.',
-      category: 'Empresas',
-      categoryColor: 'bg-blue-100 text-[#0b3553]',
-      date: '22 Jan 2025',
-      readTime: '4 min',
-      image: '/blog/ia-pmes-interior.jpg',
-      slug: 'ia-aumenta-vendas-pmes-interior'
-    },
-    {
-      id: '7',
-      title: '5 ferramentas gratuitas para criadores locais em 2025',
-      excerpt: 'Seleção de apps e plataformas que estão transformando a criação de conteúdo regional. Todas com versão gratuita robusta.',
-      category: 'Ferramentas',
-      categoryColor: 'bg-gray-100 text-gray-800',
-      date: '25 Jan 2025',
-      readTime: '5 min',
-      image: '/blog/ferramentas-criadores-2025.jpg',
-      slug: 'ferramentas-gratuitas-criadores-locais'
-    }
-  ];
+  // Carregar posts do Supabase
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        const data = await blogService.getAllPosts();
+        setPosts(data);
+      } catch (error) {
+        console.error('Erro ao carregar posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, []);
 
   const categories = [
     { id: 'all', name: 'Todos os Posts', color: 'bg-gray-100 text-gray-800' },
     { id: 'empresas', name: 'Para Empresas', color: 'bg-blue-100 text-[#0b3553]' },
     { id: 'criadores', name: 'Para Criadores', color: 'bg-purple-100 text-purple-800' },
-    { id: 'tendencias', name: 'Tendências', color: 'bg-green-100 text-green-800' },
-    { id: 'ferramentas', name: 'Ferramentas', color: 'bg-gray-100 text-gray-800' }
+    { id: 'ambos', name: 'Geral', color: 'bg-green-100 text-green-800' }
   ];
 
-  const filteredPosts = selectedCategory === 'all' 
-    ? posts 
-    : posts.filter(post => post.category.toLowerCase() === selectedCategory);
+  const filteredPosts = selectedCategory === 'all'
+    ? posts
+    : posts.filter(post => {
+        if (selectedCategory === 'empresas') return post.audience_target === 'EMPRESAS' || post.audience_target === 'AMBOS';
+        if (selectedCategory === 'criadores') return post.audience_target === 'CRIADORES' || post.audience_target === 'AMBOS';
+        if (selectedCategory === 'ambos') return post.audience_target === 'AMBOS';
+        return false;
+      });
 
-  const featuredPost = posts.find(post => post.featured);
+  const featuredPost = posts.find(post => post.is_featured);
+
+  // Função para formatar data
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  // Função para obter cor da categoria baseada no audience_target
+  const getCategoryColor = (audience: string) => {
+    const colors: Record<string, string> = {
+      'EMPRESAS': 'bg-blue-100 text-[#0b3553]',
+      'CRIADORES': 'bg-purple-100 text-purple-800',
+      'AMBOS': 'bg-green-100 text-green-800'
+    };
+    return colors[audience] || 'bg-gray-100 text-gray-800';
+  };
+
+  // Função para obter nome da categoria
+  const getCategoryName = (audience: string) => {
+    const names: Record<string, string> = {
+      'EMPRESAS': 'Para Empresas',
+      'CRIADORES': 'Para Criadores',
+      'AMBOS': 'Geral'
+    };
+    return names[audience] || 'Geral';
+  };
+
+  if (loading) {
+    return (
+      <div className="pt-20 min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando posts...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-20 min-h-screen bg-white">
@@ -123,21 +105,21 @@ const BlogPage = () => {
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
             <div className="md:flex">
               <div className="md:w-1/2">
-                <img 
-                  src={featuredPost.image} 
-                  alt={featuredPost.title}
+                <img
+                  src={featuredPost.featured_image_url || '/blog/default-image.jpg'}
+                  alt={featuredPost.featured_image_alt || featuredPost.title}
                   className="w-full h-64 md:h-full object-cover"
                 />
               </div>
               <div className="md:w-1/2 p-8">
                 <div className="flex items-center mb-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${featuredPost.categoryColor}`}>
-                    {featuredPost.category}
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(featuredPost.audience_target)}`}>
+                    {getCategoryName(featuredPost.audience_target)}
                   </span>
                   <span className="mx-2 text-gray-400">•</span>
-                  <span className="text-gray-500 text-sm">{featuredPost.date}</span>
+                  <span className="text-gray-500 text-sm">{formatDate(featuredPost.published_at || '')}</span>
                   <span className="mx-2 text-gray-400">•</span>
-                  <span className="text-gray-500 text-sm">{featuredPost.readTime}</span>
+                  <span className="text-gray-500 text-sm">{featuredPost.read_time_minutes} min</span>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                   {featuredPost.title}
@@ -145,7 +127,7 @@ const BlogPage = () => {
                 <p className="text-gray-600 mb-6 leading-relaxed">
                   {featuredPost.excerpt}
                 </p>
-                <a 
+                <a
                   href={`/blog/${featuredPost.slug}`}
                   className="inline-flex items-center text-[#0b3553] font-semibold hover:text-[#0d4a6b] transition-colors"
                 >
@@ -183,20 +165,20 @@ const BlogPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredPosts.map((post) => (
           <article key={post.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <img 
-              src={post.image} 
-              alt={post.title}
+            <img
+              src={post.featured_image_url || '/blog/default-image.jpg'}
+              alt={post.featured_image_alt || post.title}
               className="w-full h-48 object-cover"
             />
             <div className="p-6">
               <div className="flex items-center mb-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${post.categoryColor}`}>
-                  {post.category}
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.audience_target)}`}>
+                  {getCategoryName(post.audience_target)}
                 </span>
                 <span className="mx-2 text-gray-400">•</span>
-                <span className="text-gray-500 text-xs">{post.date}</span>
+                <span className="text-gray-500 text-xs">{formatDate(post.published_at || '')}</span>
                 <span className="mx-2 text-gray-400">•</span>
-                <span className="text-gray-500 text-xs">{post.readTime}</span>
+                <span className="text-gray-500 text-xs">{post.read_time_minutes} min</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
                 {post.title}
@@ -204,7 +186,7 @@ const BlogPage = () => {
               <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                 {post.excerpt}
               </p>
-              <a 
+              <a
                 href={`/blog/${post.slug}`}
                 className="inline-flex items-center text-[#0b3553] font-medium hover:text-[#0d4a6b] transition-colors text-sm"
               >

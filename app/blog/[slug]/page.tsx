@@ -1,240 +1,93 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
+import { blogService, BlogPost } from '@/lib/supabase';
 
-interface BlogPostData {
-  title: string;
-  excerpt: string;
-  category: string;
-  categoryColor: string;
-  date: string;
-  readTime: string;
-  image: string;
-  content: {
-    context: string;
-    data: string;
-    application: string;
-    conclusion: string;
+  // Funções auxiliares
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
   };
-  cta: {
-    text: string;
-    link: string;
+
+  const getCategoryColor = (audience: string) => {
+    const colors: Record<string, string> = {
+      'EMPRESAS': 'bg-blue-100 text-blue-800',
+      'CRIADORES': 'bg-purple-100 text-purple-800',
+      'AMBOS': 'bg-green-100 text-green-800'
+    };
+    return colors[audience] || 'bg-gray-100 text-gray-800';
   };
-  relatedPosts?: Array<{
-    title: string;
-    slug: string;
-    category: string;
-    image: string;
-  }>;
-}
 
-// Mock data - em produção viria de CMS ou API
-const mockPosts: Record<string, BlogPostData> = {
-  'padaria-bh-whatsapp-business': {
-    title: 'Padaria de BH dobra vendas com WhatsApp Business em 90 dias',
-    excerpt: 'Automatização simples de pedidos e delivery transformou negócio familiar em referência do bairro. Estratégia pode ser replicada por qualquer PME com investimento zero.',
-    category: 'Para Empresas',
-    categoryColor: 'bg-blue-100 text-blue-800',
-    date: '15 Jan 2025',
-    readTime: '3 min',
-    image: '/blog/whatsapp-business-padaria.jpg',
-    content: {
-      context: `
-        <p>A Padaria São José, no bairro Savassi em Belo Horizonte, enfrentava o mesmo problema de milhares de PMEs brasileiras: dificuldade para organizar pedidos por telefone, perda de clientes por demora no atendimento e falta de controle sobre delivery.</p>
-        
-        <p>Com 25 anos de tradição familiar, o negócio precisava se modernizar sem perder a proximidade com os clientes. A solução veio através do WhatsApp Business, ferramenta gratuita que revolucionou a operação em apenas três meses.</p>
-      `,
-      data: `
-        <p>Os resultados da Padaria São José impressionam:</p>
-        <ul>
-          <li><strong>Vendas:</strong> Aumento de 120% no faturamento</li>
-          <li><strong>Pedidos:</strong> De 50 para 180 pedidos diários</li>
-          <li><strong>Tempo de atendimento:</strong> Redução de 8 para 2 minutos</li>
-          <li><strong>Satisfação:</strong> 95% de avaliações positivas no delivery</li>
-        </ul>
-        
-        <p>Segundo pesquisa da Sebrae 2024, 78% das PMEs que implementaram WhatsApp Business relataram crescimento nas vendas. No setor alimentício, o impacto é ainda maior: empresas registram aumento médio de 85% no faturamento.</p>
-        
-        <p>A ferramenta permite criar catálogo digital, automatizar respostas, organizar pedidos e integrar com sistemas de pagamento - tudo gratuitamente.</p>
-      `,
-      application: `
-        <h3>Passo 1: Configure o perfil comercial</h3>
-        <ul>
-          <li>Baixe WhatsApp Business (gratuito)</li>
-          <li>Complete informações: endereço, horário, descrição</li>
-          <li>Adicione foto profissional da empresa</li>
-        </ul>
-        
-        <h3>Passo 2: Crie catálogo digital</h3>
-        <ul>
-          <li>Fotografe produtos com boa iluminação</li>
-          <li>Organize por categorias (pães, doces, salgados)</li>
-          <li>Inclua preços e descrições claras</li>
-        </ul>
-        
-        <h3>Passo 3: Automatize respostas</h3>
-        <ul>
-          <li>Configure mensagem de boas-vindas</li>
-          <li>Crie respostas rápidas para perguntas frequentes</li>
-          <li>Defina mensagem de ausência</li>
-        </ul>
-        
-        <h3>Passo 4: Organize o atendimento</h3>
-        <ul>
-          <li>Use etiquetas para categorizar conversas</li>
-          <li>Defina horários específicos para pedidos</li>
-          <li>Integre com delivery próprio ou apps</li>
-        </ul>
-        
-        <p><strong>Ferramentas complementares gratuitas:</strong></p>
-        <ul>
-          <li>Google Meu Negócio (divulgação)</li>
-          <li>Canva (criação de cardápios)</li>
-          <li>PicPay/Pix (pagamentos)</li>
-        </ul>
-      `,
-      conclusion: `
-        <p>A transformação digital não precisa ser complexa ou cara. O caso da Padaria São José mostra que ferramentas simples, quando bem implementadas, podem revolucionar um negócio local.</p>
-        
-        <p>O WhatsApp Business é apenas o primeiro passo. Empresas que investem em presença digital organizada e atendimento automatizado estão se posicionando para o futuro do comércio local.</p>
-      `
-    },
-    cta: {
-      text: 'Quer implementar WhatsApp Business na sua empresa? Nossa equipe oferece consultoria gratuita de 30 minutos para PMEs.',
-      link: '/criavoz-homepage'
-    },
-    relatedPosts: [
-      {
-        title: 'IA aumenta vendas de PMEs em 40% no interior paulista',
-        slug: 'ia-aumenta-vendas-pmes-interior',
-        category: 'Para Empresas',
-        image: '/blog/ia-pmes-interior.jpg'
-      },
-      {
-        title: 'Google Meu Negócio: 5 dicas que funcionam',
-        slug: 'google-meu-negocio-dicas',
-        category: 'Para Empresas',
-        image: '/blog/google-meu-negocio.jpg'
-      },
-      {
-        title: 'Instagram muda algoritmo: prioridade para conteúdo local',
-        slug: 'instagram-algoritmo-conteudo-local',
-        category: 'Tendências',
-        image: '/blog/instagram-algoritmo-local.jpg'
-      }
-    ]
-  },
-  'ia-aumenta-vendas-pmes-interior': {
-    title: 'IA aumenta vendas de PMEs em 40% no interior paulista',
-    excerpt: 'Chatbots simples e automação de redes sociais transformam pequenos negócios em Ribeirão Preto. Tecnologia acessível democratiza marketing digital.',
-    category: 'Para Empresas',
-    categoryColor: 'bg-blue-100 text-blue-800',
-    date: '12 Jan 2025',
-    readTime: '4 min',
-    image: '/blog/ia-pmes-interior.jpg',
-    content: {
-      context: `
-        <p>No interior de São Paulo, pequenas empresas estão descobrindo que inteligência artificial não é privilégio de grandes corporações. Em Ribeirão Preto, PMEs implementaram soluções simples de IA e registraram crescimento médio de 40% nas vendas.</p>
-
-        <p>O movimento começou com a Associação Comercial local oferecendo workshops gratuitos sobre automação. Hoje, mais de 200 empresas da região usam chatbots, automação de redes sociais e análise de dados para competir em igualdade com grandes players.</p>
-      `,
-      data: `
-        <p>Resultados das PMEs de Ribeirão Preto com IA:</p>
-        <ul>
-          <li><strong>Vendas online:</strong> Crescimento de 40% em 6 meses</li>
-          <li><strong>Atendimento:</strong> 24h automatizado com 85% de satisfação</li>
-          <li><strong>Custos:</strong> Redução de 30% em marketing digital</li>
-          <li><strong>Produtividade:</strong> 3h diárias economizadas por empresa</li>
-        </ul>
-
-        <p>Segundo estudo da FGV, PMEs que adotam IA básica crescem 2,3x mais rápido que concorrentes tradicionais. No interior, onde mão de obra especializada é escassa, a automação se torna ainda mais vantajosa.</p>
-      `,
-      application: `
-        <h3>Ferramentas de IA para PMEs (gratuitas/baratas):</h3>
-        <ul>
-          <li><strong>ChatGPT:</strong> Criação de conteúdo e atendimento</li>
-          <li><strong>Canva Magic:</strong> Design automatizado</li>
-          <li><strong>Google Analytics Intelligence:</strong> Insights automáticos</li>
-          <li><strong>Facebook Creator Studio:</strong> Agendamento inteligente</li>
-        </ul>
-
-        <p>Implementação em 4 passos:</p>
-        <ol>
-          <li>Identifique tarefas repetitivas</li>
-          <li>Teste ferramentas gratuitas</li>
-          <li>Automatize gradualmente</li>
-          <li>Meça resultados constantemente</li>
-        </ol>
-      `,
-      conclusion: `
-        <p>A revolução da IA chegou ao interior brasileiro. PMEs que se adaptarem agora terão vantagem competitiva decisiva nos próximos anos.</p>
-      `
-    },
-    cta: {
-      text: 'Quer implementar IA na sua PME? Consultoria gratuita para empresas do interior.',
-      link: '/criavoz-homepage'
-    }
-  },
-  'criador-tiktok-monetiza-ugc': {
-    title: 'Criadora de TikTok fatura R$ 15k/mês com UGC para empresas locais',
-    excerpt: 'Estudante de Curitiba transforma hobby em profissão criando conteúdo autêntico para PMEs. Estratégia simples pode ser replicada por qualquer criador.',
-    category: 'Para Criadores',
-    categoryColor: 'bg-purple-100 text-purple-800',
-    date: '10 Jan 2025',
-    readTime: '5 min',
-    image: '/blog/criadora-ugc-curitiba.jpg',
-    content: {
-      context: `
-        <p>Júlia Santos, 22 anos, estudante de Marketing em Curitiba, transformou sua paixão por criar conteúdo em uma fonte de renda consistente. Especializada em UGC (User Generated Content) para empresas locais, ela fatura R$ 15 mil mensais trabalhando apenas 20 horas por semana.</p>
-
-        <p>O segredo? Focar em negócios locais que precisam de conteúdo autêntico mas não têm orçamento para agências tradicionais. Júlia criou um modelo escalável que beneficia tanto criadores quanto PMEs.</p>
-      `,
-      data: `
-        <p>Números da Júlia em 8 meses:</p>
-        <ul>
-          <li><strong>Faturamento:</strong> R$ 15.000/mês</li>
-          <li><strong>Clientes ativos:</strong> 12 empresas locais</li>
-          <li><strong>Conteúdos/mês:</strong> 60 vídeos</li>
-          <li><strong>Taxa de retenção:</strong> 95% dos clientes</li>
-        </ul>
-
-        <p>Mercado de UGC no Brasil cresce 180% ao ano. Empresas pagam entre R$ 200-800 por vídeo de UGC, dependendo da complexidade e alcance do criador.</p>
-      `,
-      application: `
-        <h3>Como começar no UGC local:</h3>
-        <ol>
-          <li><strong>Defina seu nicho:</strong> Restaurantes, moda, beleza, fitness</li>
-          <li><strong>Crie portfólio:</strong> 5-10 vídeos demonstrando seu estilo</li>
-          <li><strong>Precifique serviços:</strong> R$ 200-500 por vídeo inicial</li>
-          <li><strong>Prospecte localmente:</strong> Visite empresas do seu bairro</li>
-        </ol>
-
-        <h3>Estrutura de preços sugerida:</h3>
-        <ul>
-          <li>Vídeo simples (produto): R$ 200-300</li>
-          <li>Vídeo elaborado (storytelling): R$ 400-600</li>
-          <li>Pacote mensal (4 vídeos): R$ 1.200-1.800</li>
-        </ul>
-      `,
-      conclusion: `
-        <p>UGC é a ponte perfeita entre criadores e empresas locais. Com autenticidade e consistência, qualquer criador pode construir uma carreira sustentável neste mercado em expansão.</p>
-      `
-    },
-    cta: {
-      text: 'Quer conectar-se com empresas locais? Nossa plataforma facilita essas parcerias.',
-      link: '/criavoz-homepage'
-    }
-  }
-};
+  const getCategoryName = (audience: string) => {
+    const names: Record<string, string> = {
+      'EMPRESAS': 'Para Empresas',
+      'CRIADORES': 'Para Criadores',
+      'AMBOS': 'Geral'
+    };
+    return names[audience] || 'Geral';
+  };
 
 export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const [isSharing, setIsSharing] = useState(false);
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Unwrap params usando React.use()
   const { slug } = React.use(params);
-  const post = mockPosts[slug];
-  
+
+  useEffect(() => {
+    const loadPost = async () => {
+      try {
+        setLoading(true);
+        const postData = await blogService.getPostBySlug(slug);
+
+        if (!postData) {
+          notFound();
+          return;
+        }
+
+        setPost(postData);
+
+        // Incrementar view count
+        await blogService.incrementViewCount(postData.id);
+
+        // Buscar posts relacionados
+        const related = await blogService.getRelatedPosts(
+          postData.id,
+          postData.audience_target,
+          3
+        );
+        setRelatedPosts(related);
+
+      } catch (error) {
+        console.error('Erro ao carregar post:', error);
+        notFound();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando post...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!post) {
     notFound();
   }
@@ -275,8 +128,8 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
               <span>/</span>
               <a href="/blog" className="hover:text-blue-600 transition-colors">Blog</a>
               <span>/</span>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${post.categoryColor}`}>
-                {post.category}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.audience_target)}`}>
+                {getCategoryName(post.audience_target)}
               </span>
             </nav>
           </div>
@@ -287,12 +140,12 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           <header className="py-12 border-b border-gray-200">
             {/* Meta info */}
             <div className="flex items-center space-x-3 mb-6">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${post.categoryColor}`}>
-                {post.category}
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(post.audience_target)}`}>
+                {getCategoryName(post.audience_target)}
               </span>
-              <span className="text-gray-500 text-sm">{post.date}</span>
+              <span className="text-gray-500 text-sm">{formatDate(post.published_at || '')}</span>
               <span className="text-gray-400">•</span>
-              <span className="text-gray-500 text-sm">{post.readTime} de leitura</span>
+              <span className="text-gray-500 text-sm">{post.read_time_minutes} min de leitura</span>
             </div>
             
             {/* Title */}
@@ -368,95 +221,85 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
               </div>
             </div>
 
-            {/* Content Sections */}
+            {/* Featured Image */}
+            {post.featured_image_url && (
+              <div className="mb-12">
+                <img
+                  src={post.featured_image_url}
+                  alt={post.featured_image_alt || post.title}
+                  className="w-full h-96 object-cover rounded-2xl shadow-lg"
+                />
+                {post.featured_image_credit && (
+                  <p className="text-sm text-gray-500 mt-2 text-center">
+                    {post.featured_image_credit}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Content */}
             <div className="prose prose-lg max-w-none">
-              {/* Context Section */}
-              <div className="mb-12">
-                <div className="flex items-center mb-6">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-blue-600 font-bold text-sm">📍</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900 m-0">Contexto</h2>
-                </div>
-                <div
-                  className="text-gray-700 leading-relaxed space-y-4"
-                  dangerouslySetInnerHTML={{ __html: post.content.context }}
-                />
-              </div>
-
-              {/* Data Section */}
-              <div className="mb-12 bg-gray-50 rounded-xl p-8">
-                <div className="flex items-center mb-6">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-green-600 font-bold text-sm">📊</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900 m-0">Dados & Insights</h2>
-                </div>
-                <div
-                  className="text-gray-700 leading-relaxed space-y-4"
-                  dangerouslySetInnerHTML={{ __html: post.content.data }}
-                />
-              </div>
-
-              {/* Application Section */}
-              <div className="mb-12">
-                <div className="flex items-center mb-6">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-purple-600 font-bold text-sm">💡</span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900 m-0">Aplicação Prática</h2>
-                </div>
-                <div
-                  className="text-gray-700 leading-relaxed space-y-4"
-                  dangerouslySetInnerHTML={{ __html: post.content.application }}
-                />
-              </div>
-
-              {/* Conclusion */}
-              <div className="mb-12 border-l-4 border-blue-500 pl-6 bg-blue-50 py-6 rounded-r-xl">
-                <div
-                  className="text-gray-700 leading-relaxed space-y-4"
-                  dangerouslySetInnerHTML={{ __html: post.content.conclusion }}
-                />
+              <div className="text-gray-700 leading-relaxed space-y-6">
+                {/* Renderizar conteúdo simples */}
+                {post.content.split('\n').map((paragraph, index) => {
+                  if (paragraph.trim() === '') return null;
+                  return (
+                    <p key={index} className="mb-4">
+                      {paragraph}
+                    </p>
+                  );
+                })}
               </div>
             </div>
 
             {/* CTA Section */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-8 text-center text-white mb-12">
-              <h3 className="text-2xl font-bold mb-4">Pronto para transformar seu negócio?</h3>
-              <p className="text-blue-100 mb-6 text-lg">
-                {post.cta.text}
-              </p>
-              <a
-                href={post.cta.link}
-                className="inline-flex items-center justify-center bg-white text-blue-600 font-bold px-8 py-4 rounded-full hover:bg-gray-100 transition-colors text-lg"
-              >
-                Falar com Especialista
-                <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
-            </div>
+            {post.cta_text && post.cta_link && (
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-8 text-center text-white mb-12">
+                <h3 className="text-2xl font-bold mb-4">Pronto para transformar seu negócio?</h3>
+                <p className="text-blue-100 mb-6 text-lg">
+                  {post.cta_text}
+                </p>
+                <a
+                  href={post.cta_link}
+                  className="inline-flex items-center justify-center bg-white text-blue-600 font-bold px-8 py-4 rounded-full hover:bg-gray-100 transition-colors text-lg"
+                >
+                  Falar com Especialista
+                  <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+              </div>
+            )}
 
             {/* Related Posts */}
-            {post.relatedPosts && post.relatedPosts.length > 0 && (
+            {relatedPosts && relatedPosts.length > 0 && (
               <div className="border-t border-gray-200 pt-12">
                 <h3 className="text-2xl font-bold text-gray-900 mb-8">Leia também</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {post.relatedPosts.map((relatedPost, index) => (
+                  {relatedPosts.map((relatedPost) => (
                     <a
-                      key={index}
+                      key={relatedPost.id}
                       href={`/blog/${relatedPost.slug}`}
                       className="group block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                     >
                       <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                        <div className="text-gray-500 text-center">
-                          <div className="text-3xl mb-2">📄</div>
-                          <div className="text-sm">{relatedPost.category}</div>
-                        </div>
+                        {relatedPost.featured_image_url ? (
+                          <img
+                            src={relatedPost.featured_image_url}
+                            alt={relatedPost.featured_image_alt || relatedPost.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-gray-500 text-center">
+                            <div className="text-3xl mb-2">📄</div>
+                            <div className="text-sm">{getCategoryName(relatedPost.audience_target)}</div>
+                          </div>
+                        )}
                       </div>
                       <div className="p-6">
-                        <div className="text-sm text-blue-600 font-medium mb-2">{relatedPost.category}</div>
+                        <div className="text-sm text-blue-600 font-medium mb-2">
+                          {getCategoryName(relatedPost.audience_target)}
+                        </div>
                         <h4 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
                           {relatedPost.title}
                         </h4>

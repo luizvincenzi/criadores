@@ -16,31 +16,36 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 
 console.log('✅ [SUPABASE] Cliente configurado com sucesso');
 
-// Tipos para o blog
+// Tipos para o blog (tabela posts)
 export interface BlogPost {
   id: string;
+  organization_id: string;
+  category_id: string;
+  author_id: string;
+  last_edited_by?: string;
   title: string;
   slug: string;
   excerpt: string;
-  content: {
-    context: string;
-    data: string;
-    application: string;
-    conclusion: string;
-  };
-  category: string;
-  category_color: string;
-  date: string;
-  read_time: string;
-  image_url?: string;
-  featured: boolean;
-  published: boolean;
-  author_id?: string;
+  content: string;
+  featured_image_url?: string;
+  featured_image_alt?: string;
+  featured_image_credit?: string;
+  tags: string[];
+  audience_target: 'EMPRESAS' | 'CRIADORES' | 'AMBOS';
+  status: 'RASCUNHO' | 'PUBLICADO' | 'ARQUIVADO';
+  is_featured: boolean;
+  scheduled_for?: string;
+  published_at?: string;
+  status_changed_at?: string;
   meta_title?: string;
   meta_description?: string;
-  tags?: string[];
+  canonical_url?: string;
+  og_image_url?: string;
+  read_time_minutes: number;
+  view_count: number;
   cta_text?: string;
   cta_link?: string;
+  revision: number;
   created_at: string;
   updated_at: string;
 }
@@ -54,15 +59,15 @@ export interface BlogCategory {
   created_at: string;
 }
 
-// Funções para o blog
+// Funções para o blog (tabela posts)
 export const blogService = {
-  // Buscar todos os posts
+  // Buscar todos os posts publicados
   async getAllPosts(): Promise<BlogPost[]> {
     const { data, error } = await supabase
-      .from('blog_posts')
+      .from('posts')
       .select('*')
-      .eq('published', true)
-      .order('created_at', { ascending: false });
+      .eq('status', 'PUBLICADO')
+      .order('published_at', { ascending: false });
 
     if (error) {
       console.error('Erro ao buscar posts:', error);
@@ -75,10 +80,10 @@ export const blogService = {
   // Buscar post por slug
   async getPostBySlug(slug: string): Promise<BlogPost | null> {
     const { data, error } = await supabase
-      .from('blog_posts')
+      .from('posts')
       .select('*')
       .eq('slug', slug)
-      .eq('published', true)
+      .eq('status', 'PUBLICADO')
       .single();
 
     if (error) {
@@ -89,17 +94,17 @@ export const blogService = {
     return data;
   },
 
-  // Buscar posts por categoria
-  async getPostsByCategory(category: string): Promise<BlogPost[]> {
+  // Buscar posts por audience_target
+  async getPostsByAudience(audience: 'EMPRESAS' | 'CRIADORES' | 'AMBOS'): Promise<BlogPost[]> {
     const { data, error } = await supabase
-      .from('blog_posts')
+      .from('posts')
       .select('*')
-      .eq('category', category)
-      .eq('published', true)
-      .order('created_at', { ascending: false });
+      .or(`audience_target.eq.${audience},audience_target.eq.AMBOS`)
+      .eq('status', 'PUBLICADO')
+      .order('published_at', { ascending: false });
 
     if (error) {
-      console.error('Erro ao buscar posts por categoria:', error);
+      console.error('Erro ao buscar posts por audiência:', error);
       return [];
     }
 
@@ -109,11 +114,11 @@ export const blogService = {
   // Buscar posts em destaque
   async getFeaturedPosts(): Promise<BlogPost[]> {
     const { data, error } = await supabase
-      .from('blog_posts')
+      .from('posts')
       .select('*')
-      .eq('featured', true)
-      .eq('published', true)
-      .order('created_at', { ascending: false })
+      .eq('is_featured', true)
+      .eq('status', 'PUBLICADO')
+      .order('published_at', { ascending: false })
       .limit(3);
 
     if (error) {
@@ -124,15 +129,15 @@ export const blogService = {
     return data || [];
   },
 
-  // Buscar posts relacionados
-  async getRelatedPosts(currentPostId: string, category: string, limit: number = 3): Promise<BlogPost[]> {
+  // Buscar posts relacionados por audience_target
+  async getRelatedPosts(currentPostId: string, audience: string, limit: number = 3): Promise<BlogPost[]> {
     const { data, error } = await supabase
-      .from('blog_posts')
+      .from('posts')
       .select('*')
-      .eq('category', category)
-      .eq('published', true)
+      .or(`audience_target.eq.${audience},audience_target.eq.AMBOS`)
+      .eq('status', 'PUBLICADO')
       .neq('id', currentPostId)
-      .order('created_at', { ascending: false })
+      .order('published_at', { ascending: false })
       .limit(limit);
 
     if (error) {
@@ -143,52 +148,36 @@ export const blogService = {
     return data || [];
   },
 
-  // Criar novo post
-  async createPost(post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'>): Promise<BlogPost | null> {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .insert([post])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erro ao criar post:', error);
-      return null;
-    }
-
-    return data;
-  },
-
-  // Atualizar post
-  async updatePost(id: string, updates: Partial<BlogPost>): Promise<BlogPost | null> {
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erro ao atualizar post:', error);
-      return null;
-    }
-
-    return data;
-  },
-
-  // Deletar post
-  async deletePost(id: string): Promise<boolean> {
+  // Incrementar view count
+  async incrementViewCount(id: string): Promise<void> {
     const { error } = await supabase
-      .from('blog_posts')
-      .delete()
+      .from('posts')
+      .update({
+        view_count: supabase.raw('view_count + 1'),
+        updated_at: new Date().toISOString()
+      })
       .eq('id', id);
 
     if (error) {
-      console.error('Erro ao deletar post:', error);
-      return false;
+      console.error('Erro ao incrementar visualizações:', error);
+    }
+  },
+
+  // Buscar posts por tags
+  async getPostsByTag(tag: string): Promise<BlogPost[]> {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .contains('tags', [tag])
+      .eq('status', 'PUBLICADO')
+      .order('published_at', { ascending: false });
+
+    if (error) {
+      console.error('Erro ao buscar posts por tag:', error);
+      return [];
     }
 
-    return true;
+    return data || [];
   },
 
   // Buscar categorias
