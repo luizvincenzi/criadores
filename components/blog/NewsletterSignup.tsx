@@ -174,7 +174,7 @@ const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
 
   // Variant default
   return (
-    <div className={`bg-gray-50 rounded-xl p-8 text-center ${className}`}>
+    <div className={`rounded-xl p-8 text-center ${className}`} style={{ backgroundColor: '#f5f5f5' }}>
       <div className="max-w-lg mx-auto">
         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Mail className="w-6 h-6 text-blue-600" />

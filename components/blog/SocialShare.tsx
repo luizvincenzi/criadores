@@ -94,18 +94,20 @@ const SocialShare: React.FC<SocialShareProps> = ({
       {/* Estatísticas */}
       <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-xl">
         <div className="flex items-center space-x-6">
-          <button
-            onClick={handleLike}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors ${
-              hasLiked 
-                ? 'bg-red-100 text-red-600' 
-                : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500 border border-gray-200'
-            }`}
-          >
-            <Heart className={`w-5 h-5 ${hasLiked ? 'fill-current' : ''}`} />
-            <span className="font-medium">{likes}</span>
-            <span className="text-sm">curtidas</span>
-          </button>
+          {likes > 0 && (
+            <button
+              onClick={handleLike}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors ${
+                hasLiked
+                  ? 'bg-red-100 text-red-600'
+                  : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500 border border-gray-200'
+              }`}
+            >
+              <Heart className={`w-5 h-5 ${hasLiked ? 'fill-current' : ''}`} />
+              <span className="font-medium">{likes}</span>
+              <span className="text-sm">curtidas</span>
+            </button>
+          )}
           
           {showViewCount && (
             <div className="flex items-center space-x-2 text-gray-500">

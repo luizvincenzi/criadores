@@ -20,6 +20,11 @@ const PostCTA: React.FC<PostCTAProps> = ({
 }) => {
   const getContent = () => {
     if (variant === 'custom' && customText && customLink) {
+      // Filtrar textos específicos que não queremos mostrar
+      if (customText.includes('WhatsApp Business')) {
+        return null; // Não mostrar este CTA
+      }
+
       return {
         icon: <Target className="w-6 h-6" />,
         title: 'Pronto para o próximo passo?',
@@ -94,6 +99,11 @@ const PostCTA: React.FC<PostCTAProps> = ({
   };
 
   const content = getContent();
+
+  // Se o conteúdo for null (filtrado), não renderizar nada
+  if (!content) {
+    return null;
+  }
 
   return (
     <div className={`my-12 ${className}`}>

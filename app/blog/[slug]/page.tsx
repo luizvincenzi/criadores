@@ -201,18 +201,17 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
                     variant="default"
                   />
 
-                  {/* CTA entre seções */}
-                  <PostCTA
-                    variant="consultation"
-                    audience_target={post.audience_target}
-                  />
-
-                  {/* CTA Personalizado se existir */}
-                  {post.cta_text && post.cta_link && (
+                  {/* CTA único ao final */}
+                  {post.cta_text && post.cta_link ? (
                     <PostCTA
                       variant="custom"
                       customText={post.cta_text}
                       customLink={post.cta_link}
+                      audience_target={post.audience_target}
+                    />
+                  ) : (
+                    <PostCTA
+                      variant="consultation"
                       audience_target={post.audience_target}
                     />
                   )}

@@ -68,8 +68,8 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
 
   // Função para obter cor baseada na audiência
   const getAudienceColor = () => {
-    // Sempre usar background branco sem bordas
-    return 'bg-white';
+    // Usar background cinza claro
+    return 'bg-gray-50';
   };
 
   const keyPoints = extractKeyPoints(content);
@@ -77,11 +77,11 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
   if (keyPoints.length === 0) return null;
 
   return (
-    <div className={`rounded-xl p-6 mb-8 ${getAudienceColor()}`}>
+    <div className={`-mx-8 px-8 py-6 mb-8 ${getAudienceColor()}`}>
       <div className="flex items-center mb-4">
         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3 shadow-sm">
           <img
-            src="/favicon.svg"
+            src="/faviconcriadoresA3.png"
             alt="crIAdores"
             className="w-5 h-5"
           />
