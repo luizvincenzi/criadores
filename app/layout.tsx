@@ -5,6 +5,8 @@ import "../styles/kanban.css";
 import { ToastContainer } from "@/components/ui/ToastContainer";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleAnalyticsPageTracker from "@/components/GoogleAnalyticsPageTracker";
+import GoogleTagManager from "@/components/GoogleTagManager";
+import GoogleTagManagerNoScript from "@/components/GoogleTagManagerNoScript";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -101,6 +103,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        {/* Google Tag Manager */}
+        {process.env.NEXT_PUBLIC_GTM_ID && (
+          <GoogleTagManager GTM_ID={process.env.NEXT_PUBLIC_GTM_ID} />
+        )}
+
         <link
           href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
           rel="stylesheet"
@@ -113,6 +120,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${onest.variable} font-onest antialiased`}
       >
+        {/* Google Tag Manager (noscript) */}
+        {process.env.NEXT_PUBLIC_GTM_ID && (
+          <GoogleTagManagerNoScript GTM_ID={process.env.NEXT_PUBLIC_GTM_ID} />
+        )}
+
         {/* Google Analytics */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>

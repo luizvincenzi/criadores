@@ -1,30 +1,36 @@
-# Google Analytics 4 - Configuração e Implementação
+# Google Analytics 4 & Google Tag Manager - Configuração e Implementação
 
 ## 📊 Visão Geral
 
-O Google Analytics 4 (GA4) foi implementado no projeto crIAdores seguindo as melhores práticas para Next.js, com tracking automático de páginas e eventos personalizados para análise detalhada do comportamento dos usuários.
+O Google Analytics 4 (GA4) e Google Tag Manager (GTM) foram implementados no projeto crIAdores seguindo as melhores práticas para Next.js, com tracking automático de páginas e eventos personalizados para análise detalhada do comportamento dos usuários.
 
 ## 🔧 Configuração
 
 ### 1. Variáveis de Ambiente
 
-Adicione a seguinte variável no arquivo `.env.local`:
+Adicione as seguintes variáveis no arquivo `.env.local`:
 
 ```bash
 # Google Analytics 4 Measurement ID
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-BNW6Q5PZLV
+
+# Google Tag Manager Container ID
+NEXT_PUBLIC_GTM_ID=GTM-KRV5FLV4
 ```
 
 ### 2. Componentes Implementados
 
-#### GoogleAnalytics.tsx
-- Carrega o script do Google Analytics de forma otimizada
+#### Google Analytics
+- **GoogleAnalytics.tsx**: Carrega o script do Google Analytics de forma otimizada
+- **GoogleAnalyticsPageTracker.tsx**: Hook personalizado para tracking automático de mudanças de página
 - Usa `next/script` com estratégia `afterInteractive`
 - Configuração automática do Measurement ID
 
-#### GoogleAnalyticsPageTracker.tsx
-- Hook personalizado para tracking automático de mudanças de página
-- Integrado com Next.js Router para SPA navigation
+#### Google Tag Manager
+- **GoogleTagManager.tsx**: Carrega o script do GTM no `<head>`
+- **GoogleTagManagerNoScript.tsx**: Fallback para usuários sem JavaScript
+- Implementação seguindo as diretrizes oficiais do Google
+- Container ID: `GTM-KRV5FLV4`
 
 ## 📈 Eventos Trackados
 

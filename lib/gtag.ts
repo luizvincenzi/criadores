@@ -1,6 +1,7 @@
-// Google Analytics tracking utilities
+// Google Analytics and Google Tag Manager tracking utilities
 
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || '';
 
 // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
 export const pageview = (url: string) => {
@@ -111,7 +112,28 @@ export const trackFormSubmission = (formType: string, success: boolean) => {
   });
 };
 
-// Declare gtag function for TypeScript
+// Google Tag Manager specific functions
+export const gtmPush = (data: Record<string, any>) => {
+  try {
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push(data);
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('GTM dataLayer push failed:', error);
+    }
+  }
+};
+
+// Enhanced event tracking for GTM
+export const gtmEvent = (eventName: string, parameters: Record<string, any> = {}) => {
+  gtmPush({
+    event: eventName,
+    ...parameters
+  });
+};
+
+// Declare gtag function and dataLayer for TypeScript
 declare global {
   interface Window {
     gtag: (
@@ -119,5 +141,6 @@ declare global {
       targetId: string | Date,
       config?: any
     ) => void;
+    dataLayer: any[];
   }
 }

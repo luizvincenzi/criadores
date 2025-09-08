@@ -24,11 +24,11 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://criadores.app https://www.criadores.app https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com https://graph.facebook.com https://graph.instagram.com",
+              "connect-src 'self' https://criadores.app https://www.criadores.app https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com https://graph.facebook.com https://graph.instagram.com https://www.google-analytics.com https://www.googletagmanager.com",
               "frame-src 'self' https://www.facebook.com https://www.instagram.com",
               "object-src 'none'",
               "base-uri 'self'",
