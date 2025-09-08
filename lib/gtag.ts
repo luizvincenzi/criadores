@@ -4,10 +4,17 @@ export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || ''
 
 // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
 export const pageview = (url: string) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('config', GA_MEASUREMENT_ID, {
-      page_location: url,
-    });
+  try {
+    if (typeof window !== 'undefined' && window.gtag && GA_MEASUREMENT_ID) {
+      window.gtag('config', GA_MEASUREMENT_ID, {
+        page_location: url,
+      });
+    }
+  } catch (error) {
+    // Silently handle tracking errors
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Google Analytics pageview tracking failed:', error);
+    }
   }
 };
 
@@ -23,12 +30,19 @@ export const event = ({
   label?: string;
   value?: number;
 }) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', action, {
-      event_category: category,
-      event_label: label,
-      value: value,
-    });
+  try {
+    if (typeof window !== 'undefined' && window.gtag && GA_MEASUREMENT_ID) {
+      window.gtag('event', action, {
+        event_category: category,
+        event_label: label,
+        value: value,
+      });
+    }
+  } catch (error) {
+    // Silently handle tracking errors
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Google Analytics event tracking failed:', error);
+    }
   }
 };
 

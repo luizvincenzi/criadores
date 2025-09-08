@@ -98,11 +98,24 @@ trackCTAClick('consultation', 'blog_post');
 
 ## 🔍 Debugging
 
+### ⚠️ **IMPORTANTE: Detecção de Tag do Google Analytics**
+
+**Por que o Google Analytics pode mostrar "A tag do Google não foi detectada":**
+
+- ✅ **Configurado para:** `https://criadores.app`
+- ❌ **Testando em:** `http://localhost:3000`
+- ⏱️ **Tempo:** Pode levar 24-48h para detectar novas implementações
+- 🔒 **Protocolo:** localhost (HTTP) vs produção (HTTPS)
+- 🌐 **Domínio:** O teste só funciona no domínio de produção configurado
+
+**✅ Solução:** O GA está funcionando! Teste no domínio de produção ou use o DebugView.
+
 ### Verificar Implementação
 1. Abra o DevTools (F12)
 2. Vá para a aba Network
 3. Procure por requests para `google-analytics.com`
 4. Verifique se o Measurement ID está correto
+5. **Acesse `/test-analytics` para verificação completa**
 
 ### Google Analytics DebugView
 1. Instale a extensão "Google Analytics Debugger"
