@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, Clock, User, Home, ChevronRight } from 'lucide-react';
 import { blogService, BlogPost } from '@/lib/supabase';
 import { formatDate } from '@/lib/dateUtils';
+import { trackBlogView } from '@/lib/gtag';
 
 // Importar novos componentes
 import PostSummary from '@/components/blog/PostSummary';
@@ -59,6 +60,9 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
         // Incrementar view count
         await blogService.incrementViewCount(postData.id);
+
+        // Track blog view no Google Analytics
+        trackBlogView(postData.title, slug);
 
         // Buscar posts relacionados e últimos posts em paralelo
         const [related, latest] = await Promise.all([

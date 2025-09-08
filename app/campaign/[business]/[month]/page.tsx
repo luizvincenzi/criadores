@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Button from '@/components/ui/Button';
+import { trackWhatsAppClick, trackCampaignView } from '@/lib/gtag';
 
 interface LandingPageData {
   campaign: {
@@ -78,6 +79,9 @@ export default function CampaignLandingPage() {
       if (result.success) {
         setCampaignData(result.data);
         console.log('✅ Dados carregados:', result.data);
+
+        // Track campaign view
+        trackCampaignView(result.data.business.name, result.data.campaign.month);
       } else {
         setError(result.error || 'Campanha não encontrada');
         console.error('❌ Erro da API:', result.error);
@@ -103,6 +107,9 @@ export default function CampaignLandingPage() {
 
   const openWhatsApp = () => {
     if (!campaignData?.business?.whatsappResponsavel) return;
+
+    // Track WhatsApp click
+    trackWhatsAppClick(`campaign_${campaignData.business.name}_${campaignData.campaign.month}`);
 
     const whatsappNumber = formatWhatsAppNumber(campaignData.business.whatsappResponsavel);
     const message = encodeURIComponent(

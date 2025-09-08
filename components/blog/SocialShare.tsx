@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Share2, Twitter, Linkedin, MessageCircle, Copy, Heart, Eye } from 'lucide-react';
+import { trackSocialShare } from '@/lib/gtag';
 
 interface SocialShareProps {
   title: string;
@@ -36,6 +37,9 @@ const SocialShare: React.FC<SocialShareProps> = ({
   };
 
   const handleShare = async (platform: keyof typeof shareUrls | 'copy') => {
+    // Track social share
+    trackSocialShare(platform, 'blog_post', title);
+
     if (platform === 'copy') {
       try {
         await navigator.clipboard.writeText(currentUrl);

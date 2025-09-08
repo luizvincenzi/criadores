@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ArrowRight, MessageCircle, Zap, Target } from 'lucide-react';
+import { trackCTAClick } from '@/lib/gtag';
 
 interface PostCTAProps {
   variant?: 'consultation' | 'newsletter' | 'contact' | 'custom';
@@ -128,6 +129,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
           {/* Button */}
           <a
             href={content.link}
+            onClick={() => trackCTAClick(variant, 'blog_post')}
             className="inline-flex items-center justify-center bg-blue-600 text-white px-8 py-4 rounded-full font-bold hover:bg-blue-700 transition-colors text-lg shadow-lg"
           >
             {content.buttonText}

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { trackCreatorView, trackWhatsAppClick } from '@/lib/gtag';
 
 interface CreatorWork {
   campanha: string;
@@ -56,7 +57,10 @@ export default function CreatorLandingPage() {
         
         if (foundCreator) {
           setCreator(foundCreator);
-          
+
+          // Track creator view
+          trackCreatorView(foundCreator.nome, slug);
+
           // Buscar trabalhos
           const worksResponse = await fetch(`/api/creator-works?name=${encodeURIComponent(foundCreator.nome)}`);
           const worksData = await worksResponse.json();
@@ -85,6 +89,9 @@ export default function CreatorLandingPage() {
 
   const openWhatsApp = () => {
     if (creator?.whatsapp) {
+      // Track WhatsApp click
+      trackWhatsAppClick(`creator_${creator.nome}`);
+
       const cleanPhone = creator.whatsapp.replace(/[^\d]/g, '');
       const message = `Olá ${creator.nome}! Vi seu media kit e gostaria de conversar sobre uma parceria.`;
       window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');

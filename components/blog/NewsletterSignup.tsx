@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Mail, CheckCircle, ArrowRight } from 'lucide-react';
+import { trackNewsletterSignup, trackFormSubmission } from '@/lib/gtag';
 
 interface NewsletterSignupProps {
   variant?: 'default' | 'compact' | 'featured';
@@ -29,9 +30,17 @@ const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
       await new Promise(resolve => setTimeout(resolve, 1000));
       setIsSuccess(true);
       setEmail('');
+
+      // Track successful newsletter signup
+      trackNewsletterSignup(variant || 'default');
+      trackFormSubmission('newsletter', true);
+
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (error) {
       console.error('Erro ao inscrever:', error);
+
+      // Track failed newsletter signup
+      trackFormSubmission('newsletter', false);
     } finally {
       setIsSubmitting(false);
     }

@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/kanban.css";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+import GoogleAnalyticsPageTracker from "@/components/GoogleAnalyticsPageTracker";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -111,6 +113,14 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${onest.variable} font-onest antialiased`}
       >
+        {/* Google Analytics */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <>
+            <GoogleAnalytics GA_MEASUREMENT_ID={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+            <GoogleAnalyticsPageTracker />
+          </>
+        )}
+
         {children}
         <ToastContainer />
       </body>
