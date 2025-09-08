@@ -7,6 +7,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleAnalyticsPageTracker from "@/components/GoogleAnalyticsPageTracker";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleTagManagerNoScript from "@/components/GoogleTagManagerNoScript";
+import AnalyticsDebugInfo from "@/components/AnalyticsDebugInfo";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -135,6 +136,9 @@ export default function RootLayout({
 
         {children}
         <ToastContainer />
+
+        {/* Debug info for analytics - will only show if there are issues */}
+        <AnalyticsDebugInfo />
       </body>
     </html>
   );
