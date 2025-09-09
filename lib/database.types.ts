@@ -49,6 +49,9 @@ export interface Database {
           full_name: string
           avatar_url: string | null
           role: Database['public']['Enums']['user_role']
+          business_id: string | null
+          creator_id: string | null
+          managed_businesses: string[] | null
           permissions: Json
           preferences: Json
           is_active: boolean
@@ -63,6 +66,9 @@ export interface Database {
           full_name: string
           avatar_url?: string | null
           role?: Database['public']['Enums']['user_role']
+          business_id?: string | null
+          creator_id?: string | null
+          managed_businesses?: string[] | null
           permissions?: Json
           preferences?: Json
           is_active?: boolean
@@ -77,6 +83,9 @@ export interface Database {
           full_name?: string
           avatar_url?: string | null
           role?: Database['public']['Enums']['user_role']
+          business_id?: string | null
+          creator_id?: string | null
+          managed_businesses?: string[] | null
           permissions?: Json
           preferences?: Json
           is_active?: boolean
@@ -822,7 +831,7 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      user_role: 'admin' | 'manager' | 'user' | 'viewer'
+      user_role: 'admin' | 'manager' | 'business_owner' | 'creator' | 'marketing_strategist' | 'user' | 'viewer'
       business_status: 'Reunião de briefing' | 'Agendamentos' | 'Entrega final' | 'Finalizado'
       business_stage: 'Leads próprios frios' | 'Leads próprios quentes' | 'Leads indicados' | 'Enviando proposta' | 'Marcado reunião' | 'Reunião realizada' | 'Follow up' | 'Negócio Fechado' | 'Contrato assinado' | 'Não teve interesse' | 'Não responde' | 'Declinado'
       business_priority: 'Baixa' | 'Média' | 'Alta'
