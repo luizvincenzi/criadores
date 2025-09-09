@@ -12,9 +12,96 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100');
     const format = searchParams.get('format') || 'legacy'; // 'legacy' ou 'enhanced'
 
-    console.log('👥 Buscando criadores do Supabase...', { status, category, city, limit, format });
+    // 🔒 VALIDAÇÃO DE SEGURANÇA: Verificar role do usuário
+    const userEmail = request.headers.get('x-user-email');
+    const userRole = request.headers.get('x-user-role');
+    const userBusinessId = request.headers.get('x-user-business-id');
 
-    // Construir query base
+    console.log('👥 [CREATORS] Buscando criadores do Supabase...', {
+      status, category, city, limit, format,
+      userEmail, userRole, userBusinessId
+    });
+
+    // 🔒 PARA BUSINESS_OWNER: Buscar apenas criadores das campanhas da empresa
+    if (userRole === 'business_owner' && userBusinessId) {
+      console.log('🔒 [CREATORS] Aplicando filtro business_owner - buscando via campanhas');
+
+      // Primeiro, buscar campanhas da empresa
+      const { data: campaigns } = await supabase
+        .from('campaigns')
+        .select('id')
+        .eq('organization_id', DEFAULT_ORG_ID)
+        .eq('business_id', userBusinessId);
+
+      if (!campaigns || campaigns.length === 0) {
+        console.log('📭 [CREATORS] Nenhuma campanha encontrada para business:', userBusinessId);
+        return NextResponse.json({
+          success: true,
+          data: [],
+          count: 0,
+          message: 'Nenhuma campanha encontrada para esta empresa'
+        });
+      }
+
+      const campaignIds = campaigns.map(c => c.id);
+
+      // Buscar criadores das campanhas
+      const { data: campaignCreators } = await supabase
+        .from('campaign_creators')
+        .select('creator_id')
+        .in('campaign_id', campaignIds);
+
+      if (!campaignCreators || campaignCreators.length === 0) {
+        console.log('📭 [CREATORS] Nenhum criador encontrado nas campanhas');
+        return NextResponse.json({
+          success: true,
+          data: [],
+          count: 0,
+          message: 'Nenhum criador encontrado nas campanhas desta empresa'
+        });
+      }
+
+      const creatorIds = [...new Set(campaignCreators.map(cc => cc.creator_id))];
+
+      // Buscar dados dos criadores
+      let query = supabase
+        .from('creators')
+        .select('*')
+        .eq('organization_id', DEFAULT_ORG_ID)
+        .in('id', creatorIds)
+        .neq('name', '[SLOT VAZIO]')
+        .limit(limit);
+
+      // Aplicar filtros
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('❌ [CREATORS] Erro ao buscar criadores filtrados:', error);
+        return NextResponse.json({
+          success: false,
+          error: error.message
+        }, { status: 500 });
+      }
+
+      console.log(`✅ [CREATORS] ${data?.length || 0} criadores encontrados para business_owner`);
+
+      return NextResponse.json({
+        success: true,
+        data: data || [],
+        count: data?.length || 0,
+        businessId: userBusinessId,
+        security: {
+          filtered_by: 'business_campaigns',
+          access_level: 'business_isolated'
+        }
+      });
+    }
+
+    // 🔒 PARA OUTROS ROLES: Query normal com filtros de segurança
     let query = supabase
       .from('creators')
       .select('*')

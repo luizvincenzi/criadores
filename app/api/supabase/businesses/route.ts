@@ -8,7 +8,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('id');
 
-    console.log('🏢 Buscando negócios do Supabase...', { businessId });
+    // 🔒 VALIDAÇÃO DE SEGURANÇA: Verificar role do usuário
+    const userEmail = request.headers.get('x-user-email');
+    const userRole = request.headers.get('x-user-role');
+    const userBusinessId = request.headers.get('x-user-business-id');
+
+    console.log('🏢 [BUSINESSES] Buscando negócios do Supabase...', {
+      businessId,
+      userEmail,
+      userRole,
+      userBusinessId
+    });
 
     let query = supabase
       .from('businesses')
@@ -44,10 +54,34 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', DEFAULT_ORG_ID)
       .eq('is_active', true);
 
-    if (businessId) {
-      query = query.eq('id', businessId);
+    // 🔒 APLICAR FILTROS DE SEGURANÇA POR ROLE
+    if (userRole === 'business_owner' && userBusinessId) {
+      // Business owners só veem sua própria empresa
+      console.log('🔒 [BUSINESSES] Aplicando filtro business_owner:', userBusinessId);
+      query = query.eq('id', userBusinessId);
+    } else if (userRole === 'marketing_strategist') {
+      // TODO: Implementar filtro por managed_businesses
+      console.log('⚠️ [BUSINESSES] Marketing strategist - filtro não implementado ainda');
+      if (businessId) {
+        query = query.eq('id', businessId);
+      } else {
+        query = query.order('name');
+      }
+    } else if (['admin', 'manager'].includes(userRole || '')) {
+      // Admins e managers veem todas
+      console.log('👑 [BUSINESSES] Acesso administrativo autorizado');
+      if (businessId) {
+        query = query.eq('id', businessId);
+      } else {
+        query = query.order('name');
+      }
     } else {
-      query = query.order('name');
+      // Outros roles: aplicar filtro se businessId fornecido
+      if (businessId) {
+        query = query.eq('id', businessId);
+      } else {
+        query = query.order('name');
+      }
     }
 
     const { data, error } = await query;

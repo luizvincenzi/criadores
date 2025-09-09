@@ -187,25 +187,36 @@ export async function fetchCampaigns() {
       }
     }
 
-    // Para business_owner, usar API específica com business_id
+    // Determinar qual API usar baseado no role do usuário
     console.log('🔍 [FETCH CAMPAIGNS] Verificando role e business_id:', {
       userRole: userRole,
       businessId: businessId,
       isBusinessOwner: userRole === 'business_owner',
+      isAdmin: ['admin', 'manager'].includes(userRole || ''),
       hasBusinessId: !!businessId,
       shouldUseSpecificAPI: userRole === 'business_owner' && businessId
     });
 
     if (userRole === 'business_owner' && businessId) {
+      // Business owners usam API específica
       apiUrl = `/api/campaigns-by-business?business_id=${businessId}`;
       console.log('🏢 [FETCH CAMPAIGNS] Business owner detectado - usando API específica:', apiUrl);
+    } else if (['admin', 'manager'].includes(userRole || '')) {
+      // Admins e managers usam API com acesso total
+      apiUrl = '/api/client/campaigns';
+      console.log('👑 [FETCH CAMPAIGNS] Admin/Manager detectado - usando API com acesso total:', apiUrl);
+    } else if (userRole === 'marketing_strategist') {
+      // Marketing strategists - TODO: implementar API específica
+      apiUrl = '/api/client/campaigns';
+      console.log('📈 [FETCH CAMPAIGNS] Marketing strategist - usando API padrão (TODO: implementar filtro):', apiUrl);
     } else {
-      console.log('🔄 [FETCH CAMPAIGNS] Usando API padrão:', apiUrl);
-      if (userRole !== 'business_owner') {
-        console.log('⚠️ [FETCH CAMPAIGNS] Role não é business_owner:', userRole);
+      // Outros roles usam API padrão
+      console.log('🔄 [FETCH CAMPAIGNS] Usando API padrão para role:', userRole);
+      if (!userRole) {
+        console.log('⚠️ [FETCH CAMPAIGNS] Role não definido - usuário pode não estar logado');
       }
-      if (!businessId) {
-        console.log('⚠️ [FETCH CAMPAIGNS] Business ID não encontrado');
+      if (!businessId && userRole === 'business_owner') {
+        console.log('⚠️ [FETCH CAMPAIGNS] Business owner sem business_id');
       }
     }
 
