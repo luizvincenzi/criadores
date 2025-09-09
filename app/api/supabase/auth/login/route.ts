@@ -64,7 +64,11 @@ export async function POST(request: NextRequest) {
         email: user.email,
         full_name: user.full_name,
         role: user.role,
+        business_id: user.business_id,
+        creator_id: user.creator_id,
+        managed_businesses: user.managed_businesses,
         permissions: user.permissions,
+        is_active: user.is_active,
         organization: user.organization
       }
     });
