@@ -12,6 +12,7 @@ interface User {
   status: UserStatus;
   business_id?: string;
   creator_id?: string;
+  managed_businesses?: string[];
   permissions: string[];
   avatar_url?: string;
   created_at: string;
@@ -81,6 +82,9 @@ export const useAuthStore = create<AuthStore>()(
               role,
               permissions,
               avatar_url,
+              business_id,
+              creator_id,
+              managed_businesses,
               is_active,
               created_at,
               updated_at,
@@ -108,13 +112,34 @@ export const useAuthStore = create<AuthStore>()(
           // 4. Validar acesso baseado no tipo de usuário
           const clientBusinessId = process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID || '00000000-0000-0000-0000-000000000002';
 
-          // Admins podem acessar tudo
-          if (userData.role === 'admin') {
-            console.log('✅ Acesso de administrador autorizado');
+          // Admins e managers podem acessar tudo
+          if (['admin', 'manager'].includes(userData.role)) {
+            console.log('✅ Acesso de administrador/gerente autorizado');
           }
-          // Usuários business e outros tipos têm acesso à plataforma cliente
-          else if (['manager', 'user', 'viewer'].includes(userData.role)) {
-            console.log('✅ Acesso de usuário autorizado para plataforma cliente');
+          // Business owners têm acesso à sua empresa
+          else if (userData.role === 'business_owner') {
+            console.log('✅ Acesso de business owner autorizado');
+            if (!userData.business_id) {
+              console.warn('⚠️ Business owner sem business_id definido');
+            }
+          }
+          // Marketing strategists têm acesso às empresas gerenciadas
+          else if (userData.role === 'marketing_strategist') {
+            console.log('✅ Acesso de marketing strategist autorizado');
+            if (!userData.managed_businesses || userData.managed_businesses.length === 0) {
+              console.warn('⚠️ Marketing strategist sem empresas gerenciadas');
+            }
+          }
+          // Creators têm acesso aos próprios dados
+          else if (userData.role === 'creator') {
+            console.log('✅ Acesso de creator autorizado');
+            if (!userData.creator_id) {
+              console.warn('⚠️ Creator sem creator_id definido');
+            }
+          }
+          // Outros usuários padrão
+          else if (['user', 'viewer'].includes(userData.role)) {
+            console.log('✅ Acesso de usuário padrão autorizado');
           }
           else {
             console.error('❌ Tipo de usuário não autorizado:', userData.role);

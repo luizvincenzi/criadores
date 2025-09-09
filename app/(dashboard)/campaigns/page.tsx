@@ -62,15 +62,35 @@ export default function CampaignsPage() {
       // Obter business_id do usuário logado
       const businessId = session?.business_id || user?.business_id;
       console.log('🏢 Business ID do usuário:', businessId);
+      console.log('👤 Role do usuário:', user?.role);
 
       // Buscar campanhas do Supabase
       const campaignsData = await fetchCampaigns();
 
-      // Filtrar campanhas pelo business_id do usuário (se não for admin)
+      // Filtrar campanhas baseado no role do usuário
       let filteredCampaigns = campaignsData;
-      if (user?.role !== 'admin' && businessId) {
-        filteredCampaigns = campaignsData.filter(campaign => 
-          campaign.businessId === businessId || 
+
+      if (user?.role === 'admin' || user?.role === 'manager') {
+        // Admin e manager veem todas as campanhas
+        console.log('👑 Usuário admin/manager - mostrando todas as campanhas');
+        filteredCampaigns = campaignsData;
+      } else if (user?.role === 'business_owner' && businessId) {
+        // Business owner vê apenas campanhas da sua empresa
+        filteredCampaigns = campaignsData.filter(campaign =>
+          campaign.businessId === businessId ||
+          campaign.business_id === businessId
+        );
+        console.log(`🏢 Business owner - campanhas filtradas para business ${businessId}:`, filteredCampaigns.length);
+      } else if (user?.role === 'marketing_strategist' && user?.managed_businesses) {
+        // Marketing strategist vê campanhas das empresas que gerencia
+        filteredCampaigns = campaignsData.filter(campaign =>
+          user.managed_businesses?.includes(campaign.businessId || campaign.business_id)
+        );
+        console.log(`📊 Marketing strategist - campanhas das empresas gerenciadas:`, filteredCampaigns.length);
+      } else if (businessId) {
+        // Outros roles com business_id específico
+        filteredCampaigns = campaignsData.filter(campaign =>
+          campaign.businessId === businessId ||
           campaign.business_id === businessId
         );
         console.log(`🔍 Campanhas filtradas para business ${businessId}:`, filteredCampaigns.length);
