@@ -150,6 +150,8 @@ export async function fetchCampaigns() {
     // Obter dados do usuário logado se disponível
     if (typeof window !== 'undefined') {
       const userStr = localStorage.getItem('auth-storage');
+      console.log('🔍 Auth storage raw:', userStr ? 'Existe' : 'Não existe');
+
       if (userStr) {
         try {
           const authData = JSON.parse(userStr);
@@ -157,13 +159,17 @@ export async function fetchCampaigns() {
           businessId = user?.business_id;
           userRole = user?.role;
 
-          console.log('👤 Usuário logado:', {
+          console.log('👤 Dados do usuário no localStorage:', {
+            email: user?.email,
             role: userRole,
-            businessId: businessId
+            businessId: businessId,
+            fullUser: user
           });
         } catch (e) {
           console.warn('⚠️ Erro ao obter dados do usuário:', e);
         }
+      } else {
+        console.log('⚠️ Nenhum dado de autenticação encontrado no localStorage');
       }
     }
 

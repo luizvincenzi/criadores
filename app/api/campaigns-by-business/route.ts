@@ -25,20 +25,35 @@ export async function GET(request: NextRequest) {
     }
 
     // Validar se o business existe
-    const { data: business, error: businessError } = await supabase
+    const { data: businesses, error: businessError } = await supabase
       .from('businesses')
       .select('id, name, is_active')
       .eq('id', businessId)
-      .eq('organization_id', DEFAULT_ORG_ID)
-      .single();
+      .eq('organization_id', DEFAULT_ORG_ID);
 
-    if (businessError || !business) {
+    console.log('🔍 [CAMPAIGNS BY BUSINESS] Businesses encontrados:', businesses?.length);
+
+    if (businessError) {
+      console.error('❌ [CAMPAIGNS BY BUSINESS] Erro na query:', businessError);
+      return NextResponse.json({
+        success: false,
+        error: `Erro na consulta: ${businessError.message}`
+      }, { status: 500 });
+    }
+
+    if (!businesses || businesses.length === 0) {
       console.error('❌ [CAMPAIGNS BY BUSINESS] Business não encontrado:', businessId);
       return NextResponse.json({
         success: false,
         error: 'Empresa não encontrada'
       }, { status: 404 });
     }
+
+    if (businesses.length > 1) {
+      console.warn('⚠️ [CAMPAIGNS BY BUSINESS] Múltiplas empresas encontradas:', businesses.length);
+    }
+
+    const business = businesses[0];
 
     if (!business.is_active) {
       console.error('❌ [CAMPAIGNS BY BUSINESS] Business inativo:', businessId);
