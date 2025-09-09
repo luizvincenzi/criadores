@@ -165,6 +165,17 @@ export async function fetchCampaigns() {
           const session = authData?.session || authData?.state?.session;
           const isAuthenticated = authData?.isAuthenticated || authData?.state?.isAuthenticated;
 
+          // Verificar se o usuário está realmente autenticado
+          if (!isAuthenticated || !user) {
+            console.log('⚠️ [FETCH CAMPAIGNS] Usuário não autenticado - cancelando busca');
+            return {
+              success: true,
+              data: [],
+              count: 0,
+              message: 'Usuário não autenticado'
+            };
+          }
+
           businessId = user?.business_id || session?.business_id;
           userRole = user?.role;
 
@@ -181,9 +192,19 @@ export async function fetchCampaigns() {
           });
         } catch (e) {
           console.warn('⚠️ [FETCH CAMPAIGNS] Erro ao obter dados do usuário:', e);
+          return {
+            success: false,
+            error: 'Erro ao verificar autenticação'
+          };
         }
       } else {
-        console.log('⚠️ [FETCH CAMPAIGNS] Nenhum dado de autenticação encontrado no localStorage');
+        console.log('⚠️ [FETCH CAMPAIGNS] Nenhum dado de autenticação encontrado no localStorage - cancelando busca');
+        return {
+          success: true,
+          data: [],
+          count: 0,
+          message: 'Usuário não logado'
+        };
       }
     }
 
@@ -209,14 +230,24 @@ export async function fetchCampaigns() {
       // Marketing strategists - TODO: implementar API específica
       apiUrl = '/api/client/campaigns';
       console.log('📈 [FETCH CAMPAIGNS] Marketing strategist - usando API padrão (TODO: implementar filtro):', apiUrl);
+    } else if (!userRole) {
+      // Usuário não logado - retornar dados vazios
+      console.log('⚠️ [FETCH CAMPAIGNS] Role não definido - usuário não está logado');
+      return {
+        success: true,
+        data: [],
+        count: 0,
+        message: 'Usuário não está logado'
+      };
     } else {
       // Outros roles usam API padrão
       console.log('🔄 [FETCH CAMPAIGNS] Usando API padrão para role:', userRole);
-      if (!userRole) {
-        console.log('⚠️ [FETCH CAMPAIGNS] Role não definido - usuário pode não estar logado');
-      }
-      if (!businessId && userRole === 'business_owner') {
+      if (userRole === 'business_owner' && !businessId) {
         console.log('⚠️ [FETCH CAMPAIGNS] Business owner sem business_id');
+        return {
+          success: false,
+          error: 'Business owner sem business_id configurado'
+        };
       }
     }
 
