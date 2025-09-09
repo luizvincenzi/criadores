@@ -55,56 +55,34 @@ export const useAuthStore = create<AuthStore>()(
         try {
           console.log('🔐 [crIAdores] Iniciando login para:', email);
 
-          // 1. Autenticar com Supabase
-          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
+          // 1. Usar nossa API customizada de login
+          const response = await fetch('/api/supabase/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
           });
 
-          if (authError) {
-            console.error('❌ Erro de autenticação:', authError);
-            set({ error: authError.message, isLoading: false });
-            return { success: false, error: authError.message };
+          const loginData = await response.json();
+
+          if (!loginData.success) {
+            console.error('❌ Erro de autenticação:', loginData.error);
+            set({ error: loginData.error || 'Email ou senha incorretos', isLoading: false });
+            return { success: false, error: loginData.error };
           }
 
-          if (!authData.user) {
-            set({ error: 'Usuário não encontrado', isLoading: false });
+          const userData = loginData.user;
+
+          if (!userData) {
+            console.error('❌ Usuário não encontrado após autenticação');
+            set({ error: 'Erro na autenticação', isLoading: false });
             return { success: false, error: 'Usuário não encontrado' };
           }
 
-          // 3. Buscar dados do usuário na tabela users
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select(`
-              id,
-              email,
-              full_name,
-              role,
-              permissions,
-              avatar_url,
-              business_id,
-              creator_id,
-              managed_businesses,
-              is_active,
-              created_at,
-              updated_at,
-              last_login
-            `)
-            .eq('email', email)
-            .eq('is_active', true)
-            .single();
-
-          if (userError || !userData) {
-            console.error('❌ Usuário não encontrado na base:', userError);
-            await supabase.auth.signOut();
-            set({ error: 'Usuário não autorizado para esta plataforma', isLoading: false });
-            return { success: false, error: 'Usuário não autorizado' };
-          }
-
-          // 3. Validar se usuário está ativo
+          // 2. Validar se usuário está ativo
           if (!userData.is_active) {
             console.error('❌ Usuário inativo');
-            await supabase.auth.signOut();
             set({ error: 'Conta inativa. Entre em contato com o suporte.', isLoading: false });
             return { success: false, error: 'Conta inativa' };
           }
@@ -143,7 +121,6 @@ export const useAuthStore = create<AuthStore>()(
           }
           else {
             console.error('❌ Tipo de usuário não autorizado:', userData.role);
-            await supabase.auth.signOut();
             set({ error: 'Tipo de conta não autorizado para esta plataforma', isLoading: false });
             return { success: false, error: 'Acesso não autorizado' };
           }
@@ -219,12 +196,6 @@ export const useAuthStore = create<AuthStore>()(
       logout: async () => {
         console.log('🚪 [crIAdores] Fazendo logout...');
 
-        try {
-          await supabase.auth.signOut();
-        } catch (error) {
-          console.error('Erro ao fazer logout:', error);
-        }
-
         set({
           user: null,
           session: null,
@@ -246,9 +217,9 @@ export const useAuthStore = create<AuthStore>()(
 
       // 🔍 VERIFICAR AUTENTICAÇÃO
       checkAuth: async () => {
-        const { session } = get();
-        
-        if (!session) {
+        const { session, user } = get();
+
+        if (!session || !user) {
           set({ isAuthenticated: false });
           return;
         }
@@ -260,20 +231,7 @@ export const useAuthStore = create<AuthStore>()(
           return;
         }
 
-        // Verificar se o usuário ainda está ativo no Supabase
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            console.log('🔍 Usuário não encontrado no Supabase, fazendo logout...');
-            get().logout();
-            return;
-          }
-
-          set({ isAuthenticated: true });
-        } catch (error) {
-          console.error('Erro ao verificar autenticação:', error);
-          get().logout();
-        }
+        set({ isAuthenticated: true });
       },
     }),
     {
