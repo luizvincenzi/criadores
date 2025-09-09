@@ -149,15 +149,21 @@ export async function fetchCampaigns() {
 
     // Obter dados do usuário logado se disponível
     if (typeof window !== 'undefined') {
-      const userStr = localStorage.getItem('auth-storage');
+      // Tentar ambas as chaves do localStorage
+      const userStr = localStorage.getItem('criadores-auth-storage') || localStorage.getItem('auth-storage');
       console.log('🔍 [FETCH CAMPAIGNS] Auth storage raw:', userStr ? 'Existe' : 'Não existe');
+      console.log('🔍 [FETCH CAMPAIGNS] Verificando chaves:', {
+        'criadores-auth-storage': !!localStorage.getItem('criadores-auth-storage'),
+        'auth-storage': !!localStorage.getItem('auth-storage')
+      });
 
       if (userStr) {
         try {
           const authData = JSON.parse(userStr);
-          const user = authData?.state?.user;
-          const session = authData?.state?.session;
-          const isAuthenticated = authData?.state?.isAuthenticated;
+          // Zustand usa estrutura diferente - dados estão direto no root
+          const user = authData?.user || authData?.state?.user;
+          const session = authData?.session || authData?.state?.session;
+          const isAuthenticated = authData?.isAuthenticated || authData?.state?.isAuthenticated;
 
           businessId = user?.business_id || session?.business_id;
           userRole = user?.role;
@@ -170,7 +176,8 @@ export async function fetchCampaigns() {
             userBusinessId: user?.business_id,
             sessionBusinessId: session?.business_id,
             hasUser: !!user,
-            hasSession: !!session
+            hasSession: !!session,
+            authDataStructure: Object.keys(authData)
           });
         } catch (e) {
           console.warn('⚠️ [FETCH CAMPAIGNS] Erro ao obter dados do usuário:', e);

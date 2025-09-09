@@ -186,6 +186,15 @@ export const useAuthStore = create<AuthStore>()(
             final_business_id: finalBusinessId
           });
 
+          // Verificar se foi salvo no localStorage
+          setTimeout(() => {
+            const saved = localStorage.getItem('auth-storage');
+            console.log('🔍 [crIAdores] Verificando localStorage após login:', {
+              exists: !!saved,
+              content: saved ? JSON.parse(saved) : null
+            });
+          }, 100);
+
           set({
             user,
             session,
