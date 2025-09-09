@@ -316,7 +316,6 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // 🔒 ADICIONAR HEADERS DE USUÁRIO PARA AS APIs
-  const userEmail = request.headers.get('x-user-email');
   if (userEmail) {
     response.headers.set('x-user-email', userEmail);
   }
