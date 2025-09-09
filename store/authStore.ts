@@ -149,18 +149,24 @@ export const useAuthStore = create<AuthStore>()(
           }
 
           // 5. Criar sessão
+          // Para business_owner, manter o business_id original do usuário
+          // Para outros tipos, usar o business_id da plataforma cliente
+          const finalBusinessId = userData.role === 'business_owner' && userData.business_id
+            ? userData.business_id
+            : clientBusinessId;
+
           const user: User = {
             ...userData,
             status: 'active' as UserStatus,
-            business_id: clientBusinessId, // Usar o business_id da plataforma cliente
-            creator_id: undefined,
+            business_id: finalBusinessId,
+            creator_id: userData.creator_id || undefined,
             permissions: userData.permissions || []
           };
 
           const session: AuthSession = {
             user,
-            business_id: clientBusinessId,
-            creator_id: undefined,
+            business_id: finalBusinessId,
+            creator_id: userData.creator_id || undefined,
             permissions: userData.permissions || [],
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h
           };
@@ -172,9 +178,12 @@ export const useAuthStore = create<AuthStore>()(
             .eq('id', user.id);
 
           console.log('✅ [crIAdores] Login realizado com sucesso:', {
+            email: user.email,
             role: user.role,
             business_id: session.business_id,
-            creator_id: session.creator_id
+            creator_id: session.creator_id,
+            original_business_id: userData.business_id,
+            final_business_id: finalBusinessId
           });
 
           set({
