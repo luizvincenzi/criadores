@@ -10,7 +10,7 @@ export const DATA_SOURCE = {
     supabase: {
       businesses: '/api/supabase/businesses',
       creators: '/api/supabase/creators',
-      campaigns: '/api/supabase/campaigns',
+      campaigns: '/api/client/campaigns', // 🔒 Usar API com filtro de segurança
       creatorSlots: '/api/supabase/creator-slots',
       addCampaignCreator: '/api/supabase/campaign-creators/add',
       changeCampaignCreator: '/api/supabase/campaign-creators/change',
@@ -140,16 +140,58 @@ export async function fetchCreators() {
   }
 }
 
-// Função para buscar campanhas do Supabase
+// Função para buscar campanhas do Supabase com filtro de segurança
 export async function fetchCampaigns() {
   try {
-    const response = await fetch(getApiUrl('campaigns'));
+    let apiUrl = getApiUrl('campaigns');
+    let businessId: string | null = null;
+    let userRole: string | null = null;
+
+    // Obter dados do usuário logado se disponível
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('auth-storage');
+      if (userStr) {
+        try {
+          const authData = JSON.parse(userStr);
+          const user = authData?.state?.user;
+          businessId = user?.business_id;
+          userRole = user?.role;
+
+          console.log('👤 Usuário logado:', {
+            role: userRole,
+            businessId: businessId
+          });
+        } catch (e) {
+          console.warn('⚠️ Erro ao obter dados do usuário:', e);
+        }
+      }
+    }
+
+    // Para business_owner, usar API específica com business_id
+    if (userRole === 'business_owner' && businessId) {
+      apiUrl = `/api/campaigns-by-business?business_id=${businessId}`;
+      console.log('🏢 Business owner detectado - usando API específica:', apiUrl);
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
     const data = await response.json();
-    
+
     if (!data.success) {
+      console.error('❌ Erro na API de campanhas:', data.error);
       throw new Error(data.error || 'Erro ao buscar campanhas');
     }
-    
+
+    console.log(`✅ ${data.data.length} campanhas carregadas`);
+    if (data.business) {
+      console.log(`🏢 Empresa: ${data.business.name}`);
+    }
+
     return data.data;
   } catch (error) {
     console.error('❌ Erro ao buscar campanhas do Supabase:', error);

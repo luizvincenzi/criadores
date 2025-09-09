@@ -15,39 +15,90 @@ async function validateCampaignAccess(request: NextRequest): Promise<{
   error?: string;
 }> {
   try {
-    // Obter business_id do cliente logado
-    const clientBusinessId = request.headers.get('x-client-business-id') || 
-                            process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
+    // Obter business_id do cliente logado (múltiplas fontes)
+    let clientBusinessId = request.headers.get('x-client-business-id') ||
+                          request.headers.get('x-business-id') ||
+                          process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
+
+    console.log('🔍 [SECURITY] Business ID obtido dos headers:', clientBusinessId);
+
+    // Se não tiver business_id nos headers, tentar obter do cookie de autenticação
+    if (!clientBusinessId) {
+      const authCookie = request.cookies.get('sb-access-token') ||
+                        request.cookies.get('supabase-auth-token');
+
+      if (authCookie) {
+        try {
+          // Tentar obter usuário autenticado e seu business_id
+          const { data: { user }, error: authError } = await supabase.auth.getUser(authCookie.value);
+
+          if (!authError && user) {
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('business_id, role')
+              .eq('email', user.email)
+              .eq('is_active', true)
+              .single();
+
+            if (!userError && userData?.business_id) {
+              clientBusinessId = userData.business_id;
+              console.log('🔍 [SECURITY] Business ID obtido do usuário autenticado:', clientBusinessId);
+            }
+          }
+        } catch (e) {
+          console.warn('⚠️ [SECURITY] Erro ao obter business_id do usuário:', e);
+        }
+      }
+    }
 
     if (!clientBusinessId) {
       return {
         isValid: false,
         businessId: null,
         userRole: null,
-        error: 'Business ID não configurado'
+        error: 'Business ID não configurado - usuário deve estar logado'
       };
     }
 
     // Validar se o business existe e está ativo
     const { data: business, error: businessError } = await supabase
       .from('businesses')
-      .select('id, organization_id, is_active, status')
+      .select('id, organization_id, is_active, status, name')
       .eq('id', clientBusinessId)
       .eq('organization_id', DEFAULT_ORG_ID)
-      .eq('is_active', true)
-      .single();
+      .single(); // Remover filtro is_active para debug
+
+    console.log('🔍 [SECURITY] Dados da empresa encontrada:', business);
 
     if (businessError || !business) {
-      console.error('❌ [SECURITY] Business não encontrado:', clientBusinessId);
+      console.error('❌ [SECURITY] Business não encontrado:', {
+        businessId: clientBusinessId,
+        error: businessError?.message
+      });
       return {
         isValid: false,
         businessId: null,
         userRole: null,
-        error: 'Empresa não encontrada ou inativa'
+        error: `Empresa não encontrada: ${businessError?.message || 'ID inválido'}`
       };
     }
 
-    console.log('🔒 [SECURITY] Acesso validado para business:', clientBusinessId);
+    // Verificar se está ativa
+    if (!business.is_active) {
+      console.error('❌ [SECURITY] Business inativo:', clientBusinessId);
+      return {
+        isValid: false,
+        businessId: null,
+        userRole: null,
+        error: 'Empresa inativa'
+      };
+    }
+
+    console.log('🔒 [SECURITY] Acesso validado para business:', {
+      id: clientBusinessId,
+      name: business.name,
+      status: business.status
+    });
 
     return {
       isValid: true,
