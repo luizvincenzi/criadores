@@ -151,20 +151,23 @@
         function checkAuthStorage() {
             try {
                 const authStorage = localStorage.getItem('auth-storage');
-                
+
                 if (!authStorage) {
                     showResult('⚠️ Nenhum dado de autenticação encontrado no localStorage', 'error');
                     return;
                 }
-                
+
                 const authData = JSON.parse(authStorage);
                 const user = authData?.state?.user;
-                
+                const session = authData?.state?.session;
+
                 showResult(`📋 Dados no localStorage:
 
 🔍 Auth Storage existe: SIM
-📊 Estrutura completa:
-${JSON.stringify(authData, null, 2)}
+📊 Estrutura resumida:
+- User: ${user ? 'Presente' : 'Ausente'}
+- Session: ${session ? 'Presente' : 'Ausente'}
+- IsAuthenticated: ${authData?.state?.isAuthenticated || 'false'}
 
 👤 Dados do usuário:
 - Email: ${user?.email || 'NÃO ENCONTRADO'}
@@ -173,8 +176,16 @@ ${JSON.stringify(authData, null, 2)}
 - Business ID: ${user?.business_id || 'NÃO ENCONTRADO'}
 - Ativo: ${user?.is_active ? 'SIM' : 'NÃO'}
 
-🎯 Business ID para API: ${user?.business_id || 'PROBLEMA - NÃO DEFINIDO'}`, 'info');
-                
+🔐 Dados da sessão:
+- Business ID: ${session?.business_id || 'NÃO ENCONTRADO'}
+- Creator ID: ${session?.creator_id || 'NÃO DEFINIDO'}
+- Expires: ${session?.expires_at || 'NÃO DEFINIDO'}
+
+🎯 Business ID para API: ${user?.business_id || session?.business_id || 'PROBLEMA - NÃO DEFINIDO'}
+
+🔍 Estrutura completa (para debug):
+${JSON.stringify(authData, null, 2)}`, 'info');
+
             } catch (error) {
                 showResult(`❌ Erro ao ler localStorage: ${error.message}`, 'error');
             }

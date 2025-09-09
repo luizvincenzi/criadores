@@ -150,33 +150,56 @@ export async function fetchCampaigns() {
     // Obter dados do usuário logado se disponível
     if (typeof window !== 'undefined') {
       const userStr = localStorage.getItem('auth-storage');
-      console.log('🔍 Auth storage raw:', userStr ? 'Existe' : 'Não existe');
+      console.log('🔍 [FETCH CAMPAIGNS] Auth storage raw:', userStr ? 'Existe' : 'Não existe');
 
       if (userStr) {
         try {
           const authData = JSON.parse(userStr);
           const user = authData?.state?.user;
-          businessId = user?.business_id;
+          const session = authData?.state?.session;
+          const isAuthenticated = authData?.state?.isAuthenticated;
+
+          businessId = user?.business_id || session?.business_id;
           userRole = user?.role;
 
-          console.log('👤 Dados do usuário no localStorage:', {
+          console.log('👤 [FETCH CAMPAIGNS] Dados do usuário no localStorage:', {
             email: user?.email,
             role: userRole,
             businessId: businessId,
-            fullUser: user
+            isAuthenticated: isAuthenticated,
+            userBusinessId: user?.business_id,
+            sessionBusinessId: session?.business_id,
+            hasUser: !!user,
+            hasSession: !!session
           });
         } catch (e) {
-          console.warn('⚠️ Erro ao obter dados do usuário:', e);
+          console.warn('⚠️ [FETCH CAMPAIGNS] Erro ao obter dados do usuário:', e);
         }
       } else {
-        console.log('⚠️ Nenhum dado de autenticação encontrado no localStorage');
+        console.log('⚠️ [FETCH CAMPAIGNS] Nenhum dado de autenticação encontrado no localStorage');
       }
     }
 
     // Para business_owner, usar API específica com business_id
+    console.log('🔍 [FETCH CAMPAIGNS] Verificando role e business_id:', {
+      userRole: userRole,
+      businessId: businessId,
+      isBusinessOwner: userRole === 'business_owner',
+      hasBusinessId: !!businessId,
+      shouldUseSpecificAPI: userRole === 'business_owner' && businessId
+    });
+
     if (userRole === 'business_owner' && businessId) {
       apiUrl = `/api/campaigns-by-business?business_id=${businessId}`;
-      console.log('🏢 Business owner detectado - usando API específica:', apiUrl);
+      console.log('🏢 [FETCH CAMPAIGNS] Business owner detectado - usando API específica:', apiUrl);
+    } else {
+      console.log('🔄 [FETCH CAMPAIGNS] Usando API padrão:', apiUrl);
+      if (userRole !== 'business_owner') {
+        console.log('⚠️ [FETCH CAMPAIGNS] Role não é business_owner:', userRole);
+      }
+      if (!businessId) {
+        console.log('⚠️ [FETCH CAMPAIGNS] Business ID não encontrado');
+      }
     }
 
     const response = await fetch(apiUrl, {
