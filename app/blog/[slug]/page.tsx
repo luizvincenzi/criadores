@@ -52,56 +52,85 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
       try {
         setLoading(true);
 
-        // SEMPRE carregar posts estáticos primeiro, independente do post principal
-        const staticPosts = [
-          {
-            id: 'static-1',
-            title: 'Como sua empresa pode crescer com crIAdores Locais 🌎✨',
-            slug: 'como-crescer-crIAdores-locais',
-            excerpt: 'Como sua empresa pode crescer com crIAdores Locais 🌎✨',
-            featured_image_url: 'https://ecbhcalmulaiszslwhqz.supabase.co/storage/v1/object/public/blog/00000000-0000-0000-0000-000000000002/1757281328042-i5l5a3pstzg.png',
-            featured_image_alt: 'Como sua empresa pode crescer com crIAdores Locais',
-            audience_target: 'EMPRESAS',
-            published_at: '2025-01-15T00:00:00Z',
-            read_time_minutes: 1
-          },
-          {
-            id: 'static-2',
-            title: 'IA aumenta vendas de PMEs do interior em 300%',
-            slug: 'ia-aumenta-vendas-pmes-interior',
-            excerpt: 'Descubra como pequenas empresas estão usando inteligência artificial para triplicar suas vendas.',
-            featured_image_url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&h=400&fit=crop',
-            featured_image_alt: 'IA para PMEs',
-            audience_target: 'EMPRESAS',
-            published_at: '2025-01-10T00:00:00Z',
-            read_time_minutes: 3
-          },
-          {
-            id: 'static-3',
-            title: 'Marketing Local: O Futuro dos Negócios',
-            slug: 'marketing-local-futuro-negocios',
-            excerpt: 'Por que o marketing local está revolucionando a forma como empresas se conectam com clientes.',
-            featured_image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop',
-            featured_image_alt: 'Marketing Local',
-            audience_target: 'AMBOS',
-            published_at: '2025-01-05T00:00:00Z',
-            read_time_minutes: 4
-          }
-        ].filter(staticPost => staticPost.slug !== slug); // Excluir o post atual se for um dos estáticos
-
-        console.log('📊 [BLOG] Posts estáticos carregados:', staticPosts.length, staticPosts.map(p => p.title));
-        setRelatedPosts(staticPosts.slice(0, 3)); // SEMPRE setar posts estáticos
-        console.log('📊 [BLOG] setRelatedPosts chamado com:', staticPosts.slice(0, 3));
-
-        // Tentar carregar o post principal
+        // Tentar carregar o post principal primeiro
+        console.log('🔍 [BLOG] Tentando carregar post:', slug);
         const postData = await blogService.getPostBySlug(slug);
+        console.log('📊 [BLOG] Post encontrado:', postData ? 'SIM' : 'NÃO');
 
         if (!postData) {
+          console.log('❌ [BLOG] Post não encontrado, redirecionando para 404');
           notFound();
           return;
         }
 
         setPost(postData);
+
+        // Carregar posts relacionados do banco de dados
+        console.log('🔍 [BLOG] Carregando posts relacionados...');
+        try {
+          // Buscar posts relacionados baseados na audiência do post atual
+          const relatedPostsData = await blogService.getRelatedPosts(
+            postData.id,
+            postData.audience_target,
+            3
+          );
+
+          console.log('📊 [BLOG] Posts relacionados encontrados:', relatedPostsData.length);
+          setRelatedPosts(relatedPostsData);
+
+          // Se não houver posts relacionados suficientes, buscar posts gerais
+          if (relatedPostsData.length < 3) {
+            console.log('🔍 [BLOG] Buscando posts adicionais...');
+            const allPosts = await blogService.getAllPosts();
+            const additionalPosts = allPosts
+              .filter(p => p.id !== postData.id)
+              .slice(0, 3 - relatedPostsData.length);
+
+            setRelatedPosts([...relatedPostsData, ...additionalPosts]);
+            console.log('📊 [BLOG] Total de posts relacionados:', relatedPostsData.length + additionalPosts.length);
+          }
+        } catch (relatedError) {
+          console.warn('⚠️ [BLOG] Erro ao carregar posts relacionados:', relatedError);
+          // Fallback: usar posts estáticos apenas se houver erro
+          const staticPosts = [
+            {
+              id: 'marketing-local-vendas-2025',
+              title: 'Como aumentar vendas com marketing local em 2025',
+              slug: 'marketing-local-vendas-2025',
+              excerpt: 'Estratégias comprovadas para empresas locais aumentarem suas vendas através de parcerias com criadores de conteúdo da região.',
+              featured_image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop',
+              featured_image_alt: 'Marketing Local para Vendas',
+              audience_target: 'EMPRESAS',
+              published_at: '2025-01-08T00:00:00Z',
+              read_time_minutes: 4
+            },
+            {
+              id: 'monetizar-conteudo-criadores-locais',
+              title: 'Monetize seu conteúdo: Guia completo para criadores locais',
+              slug: 'monetizar-conteudo-criadores-locais',
+              excerpt: 'Transforme sua paixão por criar conteúdo em uma fonte de renda sustentável através de parcerias com empresas locais.',
+              featured_image_url: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&h=400&fit=crop',
+              featured_image_alt: 'Monetização para Criadores',
+              audience_target: 'CRIADORES',
+              published_at: '2025-01-05T00:00:00Z',
+              read_time_minutes: 6
+            },
+            {
+              id: 'futuro-parcerias-empresas-criadores',
+              title: 'O futuro das parcerias entre empresas e criadores',
+              slug: 'futuro-parcerias-empresas-criadores',
+              excerpt: 'Como a colaboração entre empresas locais e criadores de conteúdo está moldando o futuro do marketing digital.',
+              featured_image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop',
+              featured_image_alt: 'Futuro das Parcerias',
+              audience_target: 'AMBOS',
+              published_at: '2025-01-09T00:00:00Z',
+              read_time_minutes: 5
+            }
+          ].filter(staticPost => staticPost.slug !== slug);
+
+          setRelatedPosts(staticPosts.slice(0, 3));
+          console.log('📊 [BLOG] Usando posts estáticos como fallback');
+        }
 
         // Tentar incrementar view count (não crítico se falhar)
         try {
