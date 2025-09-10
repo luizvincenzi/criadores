@@ -74,9 +74,51 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         const filteredLatest = latest.filter(post => post.id !== postData.id);
         console.log('📊 [BLOG] Posts após filtrar atual:', filteredLatest.length);
 
-        // Se não tiver pelo menos 3 posts, pegar todos disponíveis
-        const postsToShow = filteredLatest.length >= 3 ? filteredLatest.slice(0, 3) : filteredLatest;
-        console.log('📊 [BLOG] Posts para mostrar:', postsToShow.length, postsToShow.map(p => p.title));
+        // Se não tiver pelo menos 3 posts, usar posts estáticos conhecidos
+        let postsToShow = filteredLatest.length >= 3 ? filteredLatest.slice(0, 3) : filteredLatest;
+
+        // Fallback para posts estáticos se não houver posts suficientes
+        if (postsToShow.length < 3) {
+          const staticPosts = [
+            {
+              id: 'static-1',
+              title: 'Como sua empresa pode crescer com crIAdores Locais 🌎✨',
+              slug: 'como-crescer-crIAdores-locais',
+              excerpt: 'Como sua empresa pode crescer com crIAdores Locais 🌎✨',
+              featured_image_url: 'https://ecbhcalmulaiszslwhqz.supabase.co/storage/v1/object/public/blog/00000000-0000-0000-0000-000000000002/1757281328042-i5l5a3pstzg.png',
+              featured_image_alt: 'Como sua empresa pode crescer com crIAdores Locais',
+              audience_target: 'EMPRESAS',
+              published_at: '2025-01-15T00:00:00Z',
+              read_time_minutes: 1
+            },
+            {
+              id: 'static-2',
+              title: 'IA aumenta vendas de PMEs do interior em 300%',
+              slug: 'ia-aumenta-vendas-pmes-interior',
+              excerpt: 'Descubra como pequenas empresas estão usando inteligência artificial para triplicar suas vendas.',
+              featured_image_url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&h=400&fit=crop',
+              featured_image_alt: 'IA para PMEs',
+              audience_target: 'EMPRESAS',
+              published_at: '2025-01-10T00:00:00Z',
+              read_time_minutes: 3
+            },
+            {
+              id: 'static-3',
+              title: 'Marketing Local: O Futuro dos Negócios',
+              slug: 'marketing-local-futuro-negocios',
+              excerpt: 'Por que o marketing local está revolucionando a forma como empresas se conectam com clientes.',
+              featured_image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop',
+              featured_image_alt: 'Marketing Local',
+              audience_target: 'AMBOS',
+              published_at: '2025-01-05T00:00:00Z',
+              read_time_minutes: 4
+            }
+          ].filter(staticPost => staticPost.slug !== slug); // Excluir o post atual se for um dos estáticos
+
+          postsToShow = staticPosts.slice(0, 3);
+        }
+
+        console.log('📊 [BLOG] Posts finais para mostrar:', postsToShow.length, postsToShow.map(p => p.title));
 
         setRelatedPosts(postsToShow); // Usar os últimos posts como "relacionados"
         setLatestPosts(latest.slice(0, 6)); // Manter para outras seções se necessário
