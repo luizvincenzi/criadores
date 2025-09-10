@@ -79,11 +79,11 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
   return (
     <div className={`-mx-8 px-8 py-6 mb-8 ${getAudienceColor()}`}>
       <div className="flex items-center mb-4">
-        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3 shadow-sm">
+        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4 shadow-sm">
           <img
             src="/faviconcriadoresA3.png"
             alt="crIAdores"
-            className="w-5 h-5"
+            className="w-8 h-8"
           />
         </div>
         <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wide">

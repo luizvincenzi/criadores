@@ -66,9 +66,9 @@ const ChatbotCTA: React.FC<ChatbotCTAProps> = ({
   const content = getContent();
 
   return (
-    <div 
+    <div
       className={`rounded-xl p-8 text-center mb-8 ${className}`}
-      style={{ backgroundColor: '#f5f5f5' }}
+      style={{ backgroundColor: '#0b3553' }}
     >
       <div className="max-w-2xl mx-auto">
         {/* Ícone Principal */}
@@ -77,26 +77,26 @@ const ChatbotCTA: React.FC<ChatbotCTAProps> = ({
         </div>
 
         {/* Título Principal */}
-        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+        <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
           {content.title}
         </h3>
 
         {/* Subtítulo */}
-        <p className="text-lg text-gray-700 font-medium mb-4">
+        <p className="text-lg text-blue-100 font-medium mb-4">
           {content.subtitle}
         </p>
 
         {/* Descrição */}
-        <p className="text-gray-600 mb-6 leading-relaxed">
+        <p className="text-blue-200 mb-6 leading-relaxed">
           {content.description}
         </p>
 
         {/* Benefícios */}
-        <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6 border border-white/20">
           <div className="space-y-3">
             {content.benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center justify-center text-sm text-gray-700">
-                <span className="text-green-600 mr-2">
+              <div key={index} className="flex items-center justify-center text-sm text-white">
+                <span className="text-green-400 mr-2">
                   {benefit.split(' ')[0]}
                 </span>
                 <span>{benefit.substring(benefit.indexOf(' ') + 1)}</span>
@@ -109,7 +109,7 @@ const ChatbotCTA: React.FC<ChatbotCTAProps> = ({
         <a
           href="/criavoz-homepage"
           onClick={handleCTAClick}
-          className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          className="inline-flex items-center justify-center px-8 py-4 bg-white hover:bg-gray-100 text-blue-900 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
         >
           <MessageCircle className="w-5 h-5 mr-3" />
           {content.buttonText}
@@ -118,14 +118,14 @@ const ChatbotCTA: React.FC<ChatbotCTAProps> = ({
 
         {/* Urgência */}
         <div className="mt-4 flex items-center justify-center">
-          <Zap className="w-4 h-4 text-orange-500 mr-2" />
-          <p className="text-sm text-orange-600 font-medium">
+          <Zap className="w-4 h-4 text-yellow-400 mr-2" />
+          <p className="text-sm text-yellow-300 font-medium">
             {content.urgency}
           </p>
         </div>
 
         {/* Garantia */}
-        <p className="text-xs text-gray-500 mt-4">
+        <p className="text-xs text-blue-300 mt-4">
           💬 Resposta em menos de 2 minutos • Sem compromisso
         </p>
       </div>

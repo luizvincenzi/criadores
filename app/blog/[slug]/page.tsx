@@ -69,10 +69,13 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         // Buscar apenas os últimos posts (não mais posts relacionados por audiência)
         const latest = await blogService.getAllPosts();
 
-        // Filtrar para excluir o post atual e pegar os 3 mais recentes
-        const filteredLatest = latest.filter(post => post.id !== postData.id).slice(0, 3);
+        // Filtrar para excluir o post atual e garantir pelo menos 3 posts
+        const filteredLatest = latest.filter(post => post.id !== postData.id);
 
-        setRelatedPosts(filteredLatest); // Usar os últimos posts como "relacionados"
+        // Se não tiver pelo menos 3 posts, pegar todos disponíveis
+        const postsToShow = filteredLatest.length >= 3 ? filteredLatest.slice(0, 3) : filteredLatest;
+
+        setRelatedPosts(postsToShow); // Usar os últimos posts como "relacionados"
         setLatestPosts(latest.slice(0, 6)); // Manter para outras seções se necessário
 
       } catch (error) {
@@ -111,10 +114,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
       />
 
       {/* Espaçamento para header fixo */}
-      <div className="pt-20">
+      <div className="pt-14">
         {/* Breadcrumb Melhorado */}
         <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <nav className="flex items-center space-x-2 text-sm">
               <a href="/" className="flex items-center text-gray-500 hover:text-blue-600 transition-colors">
                 <Home className="w-4 h-4 mr-1" />

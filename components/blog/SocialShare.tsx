@@ -95,38 +95,15 @@ const SocialShare: React.FC<SocialShareProps> = ({
 
   return (
     <div className={`${className}`}>
-      {/* Estatísticas */}
-      <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-xl">
-        <div className="flex items-center space-x-6">
-          {likes > 0 && (
-            <button
-              onClick={handleLike}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors ${
-                hasLiked
-                  ? 'bg-red-100 text-red-600'
-                  : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500 border border-gray-200'
-              }`}
-            >
-              <Heart className={`w-5 h-5 ${hasLiked ? 'fill-current' : ''}`} />
-              <span className="font-medium">{likes}</span>
-              <span className="text-sm">curtidas</span>
-            </button>
-          )}
-          
-          {showViewCount && (
-            <div className="flex items-center space-x-2 text-gray-500">
-              <Eye className="w-5 h-5" />
-              <span className="font-medium">{viewCount.toLocaleString()}</span>
-              <span className="text-sm">visualizações</span>
-            </div>
-          )}
+      {/* Compartilhamento Reorganizado */}
+      <div className="p-4 bg-gray-50 rounded-xl">
+        {/* Título Compartilhar */}
+        <div className="mb-4">
+          <span className="text-sm text-gray-500 font-medium">Compartilhar:</span>
         </div>
-        
-        <span className="text-sm text-gray-500 font-medium">Compartilhar:</span>
-      </div>
 
-      {/* Botões de Compartilhamento */}
-      <div className="flex items-center space-x-3">
+        {/* Botões de Compartilhamento */}
+        <div className="flex items-center space-x-3 mb-4">
         <button
           onClick={() => handleShare('twitter')}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors"
@@ -168,6 +145,33 @@ const SocialShare: React.FC<SocialShareProps> = ({
             {isSharing ? 'Copiado!' : 'Copiar'}
           </span>
         </button>
+        </div>
+
+        {/* Estatísticas */}
+        <div className="flex items-center space-x-6 pt-4 border-t border-gray-200">
+          {likes > 0 && (
+            <button
+              onClick={handleLike}
+              className={`flex items-center space-x-2 px-3 py-1 rounded-full transition-colors text-sm ${
+                hasLiked
+                  ? 'bg-red-100 text-red-600'
+                  : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500 border border-gray-200'
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${hasLiked ? 'fill-current' : ''}`} />
+              <span className="font-medium">{likes}</span>
+              <span>curtidas</span>
+            </button>
+          )}
+
+          {showViewCount && (
+            <div className="flex items-center space-x-2 text-gray-500 text-sm">
+              <Eye className="w-4 h-4" />
+              <span className="font-medium">{viewCount.toLocaleString()}</span>
+              <span>visualizações</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
