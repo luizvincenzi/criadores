@@ -106,7 +106,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         console.log('📊 [BLOG] Posts estáticos carregados:', staticPosts.length, staticPosts.map(p => p.title));
 
         setRelatedPosts(staticPosts.slice(0, 3)); // Sempre usar posts estáticos
-        setLatestPosts(latest.slice(0, 6)); // Manter para outras seções se necessário
+        console.log('📊 [BLOG] setRelatedPosts chamado com:', staticPosts.slice(0, 3));
 
       } catch (error) {
         console.error('Erro ao carregar post:', error);
@@ -266,7 +266,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">📰 Últimas Publicações</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {relatedPosts && relatedPosts.length > 0 ? (
+                {(() => {
+                  console.log('📊 [BLOG] Renderizando - relatedPosts:', relatedPosts, 'length:', relatedPosts?.length);
+                  return relatedPosts && relatedPosts.length > 0;
+                })() ? (
                   relatedPosts.slice(0, 3).map((relatedPost) => (
                     <a
                       key={relatedPost.id}
