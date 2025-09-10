@@ -68,12 +68,15 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
         // Buscar apenas os últimos posts (não mais posts relacionados por audiência)
         const latest = await blogService.getAllPosts();
+        console.log('📊 [BLOG] Total de posts encontrados:', latest.length);
 
         // Filtrar para excluir o post atual e garantir pelo menos 3 posts
         const filteredLatest = latest.filter(post => post.id !== postData.id);
+        console.log('📊 [BLOG] Posts após filtrar atual:', filteredLatest.length);
 
         // Se não tiver pelo menos 3 posts, pegar todos disponíveis
         const postsToShow = filteredLatest.length >= 3 ? filteredLatest.slice(0, 3) : filteredLatest;
+        console.log('📊 [BLOG] Posts para mostrar:', postsToShow.length, postsToShow.map(p => p.title));
 
         setRelatedPosts(postsToShow); // Usar os últimos posts como "relacionados"
         setLatestPosts(latest.slice(0, 6)); // Manter para outras seções se necessário
@@ -236,32 +239,47 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">📰 Últimas Publicações</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {relatedPosts.slice(0, 3).map((relatedPost) => (
-                  <a
-                    key={relatedPost.id}
-                    href={`/blog/${relatedPost.slug}`}
-                    className="group block bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-200 hover:shadow-md"
-                  >
-                    <img
-                      src={relatedPost.featured_image_url || '/blog/default-image.jpg'}
-                      alt={relatedPost.featured_image_alt || relatedPost.title}
-                      className="w-full h-32 object-cover"
-                    />
-                    <div className="p-4">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getCategoryColor(relatedPost.audience_target)}`}>
-                        {getCategoryName(relatedPost.audience_target)}
-                      </span>
-                      <h4 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2">
-                        {relatedPost.title}
-                      </h4>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <span>{formatDate(relatedPost.published_at || '', 'short')}</span>
-                        <span className="mx-1">•</span>
-                        <span>{relatedPost.read_time_minutes} min</span>
+                {relatedPosts && relatedPosts.length > 0 ? (
+                  relatedPosts.slice(0, 3).map((relatedPost) => (
+                    <a
+                      key={relatedPost.id}
+                      href={`/blog/${relatedPost.slug}`}
+                      className="group block bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-200 hover:shadow-md"
+                    >
+                      <img
+                        src={relatedPost.featured_image_url || '/blog/default-image.jpg'}
+                        alt={relatedPost.featured_image_alt || relatedPost.title}
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="p-4">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getCategoryColor(relatedPost.audience_target)}`}>
+                          {getCategoryName(relatedPost.audience_target)}
+                        </span>
+                        <h4 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2">
+                          {relatedPost.title}
+                        </h4>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <span>{formatDate(relatedPost.published_at || '', 'short')}</span>
+                          <span className="mx-1">•</span>
+                          <span>{relatedPost.read_time_minutes} min</span>
+                        </div>
                       </div>
+                    </a>
+                  ))
+                ) : (
+                  // Fallback quando não há posts relacionados
+                  <div className="col-span-full text-center py-8">
+                    <div className="text-gray-500 mb-4">
+                      <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                      </svg>
+                      <p className="text-sm">Nenhum post adicional encontrado</p>
+                      <a href="/blog" className="inline-block mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        Ver todos os posts →
+                      </a>
                     </div>
-                  </a>
-                ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
