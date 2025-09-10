@@ -30,6 +30,7 @@ export interface BlogPost {
   featured_image_url?: string;
   featured_image_alt?: string;
   featured_image_credit?: string;
+  youtube_video_url?: string;
   tags: string[];
   audience_target: 'EMPRESAS' | 'CRIADORES' | 'AMBOS';
   status: 'RASCUNHO' | 'PUBLICADO' | 'ARQUIVADO';

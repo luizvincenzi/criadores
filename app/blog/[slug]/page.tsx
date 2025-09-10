@@ -15,6 +15,8 @@ import FixedSocialShare from '@/components/blog/FixedSocialShare';
 import NewsletterSignup from '@/components/blog/NewsletterSignup';
 import PostSidebar from '@/components/blog/PostSidebar';
 import PostCTA from '@/components/blog/PostCTA';
+import YouTubeEmbed from '@/components/blog/YouTubeEmbed';
+import ChatbotCTA from '@/components/blog/ChatbotCTA';
 
 // Funções auxiliares
 
@@ -130,11 +132,10 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           </div>
         </div>
 
-        {/* Layout Principal com Sidebar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="lg:grid lg:grid-cols-12 lg:gap-8">
-            {/* Conteúdo Principal */}
-            <main className="lg:col-span-8">
+        {/* Layout Principal Centralizado */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Conteúdo Principal */}
+          <main>
               <article className="bg-white rounded-xl shadow-sm overflow-hidden">
                 {/* Header do Artigo */}
                 <header className="px-8 py-12">
@@ -205,20 +206,18 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
                     variant="default"
                   />
 
-                  {/* CTA único ao final */}
-                  {post.cta_text && post.cta_link ? (
-                    <PostCTA
-                      variant="custom"
-                      customText={post.cta_text}
-                      customLink={post.cta_link}
-                      audience_target={post.audience_target}
-                    />
-                  ) : (
-                    <PostCTA
-                      variant="consultation"
-                      audience_target={post.audience_target}
-                    />
+                  {/* Vídeo do YouTube (se disponível) */}
+                  {post.youtube_video_url && (
+                    <div className="mb-12">
+                      <YouTubeEmbed
+                        url={post.youtube_video_url}
+                        title={`Vídeo: ${post.title}`}
+                      />
+                    </div>
                   )}
+
+                  {/* CTA do Chatbot */}
+                  <ChatbotCTA audience_target={post.audience_target} />
 
                   {/* Newsletter Signup */}
                   <NewsletterSignup
@@ -229,37 +228,30 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
               </article>
             </main>
 
-            {/* Sidebar Desktop */}
-            <aside className="lg:col-span-4">
-              <div className="sticky top-24">
-                <PostSidebar
-                  relatedPosts={relatedPosts}
-                  latestPosts={latestPosts}
-                  currentPost={post}
-                />
-              </div>
-            </aside>
-          </div>
-
-          {/* Seção Mobile para Posts Relacionados */}
-          <div className="lg:hidden mt-12">
+          {/* Seção para Posts Relacionados */}
+          <div className="mt-12">
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Posts Relacionados</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {relatedPosts.slice(0, 4).map((relatedPost) => (
+              <h3 className="text-xl font-bold text-gray-900 mb-6">📚 Posts Relacionados</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedPosts.slice(0, 3).map((relatedPost) => (
                   <a
                     key={relatedPost.id}
                     href={`/blog/${relatedPost.slug}`}
-                    className="group block"
+                    className="group block bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-200 hover:shadow-md"
                   >
-                    <div className="bg-gray-50 rounded-lg p-4 group-hover:bg-gray-100 transition-colors">
+                    <img
+                      src={relatedPost.featured_image_url || '/blog/default-image.jpg'}
+                      alt={relatedPost.featured_image_alt || relatedPost.title}
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="p-4">
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getCategoryColor(relatedPost.audience_target)}`}>
                         {getCategoryName(relatedPost.audience_target)}
                       </span>
-                      <h4 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      <h4 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2">
                         {relatedPost.title}
                       </h4>
-                      <div className="flex items-center mt-2 text-xs text-gray-500">
+                      <div className="flex items-center text-xs text-gray-500">
                         <span>{formatDate(relatedPost.published_at || '', 'short')}</span>
                         <span className="mx-1">•</span>
                         <span>{relatedPost.read_time_minutes} min</span>
