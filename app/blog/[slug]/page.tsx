@@ -51,22 +51,8 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
     const loadPost = async () => {
       try {
         setLoading(true);
-        const postData = await blogService.getPostBySlug(slug);
 
-        if (!postData) {
-          notFound();
-          return;
-        }
-
-        setPost(postData);
-
-        // Incrementar view count
-        await blogService.incrementViewCount(postData.id);
-
-        // Track blog view no Google Analytics
-        trackBlogView(postData.title, slug);
-
-        // Usar posts estáticos sempre para garantir que funcione
+        // SEMPRE carregar posts estáticos primeiro, independente do post principal
         const staticPosts = [
           {
             id: 'static-1',
@@ -104,9 +90,32 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         ].filter(staticPost => staticPost.slug !== slug); // Excluir o post atual se for um dos estáticos
 
         console.log('📊 [BLOG] Posts estáticos carregados:', staticPosts.length, staticPosts.map(p => p.title));
-
-        setRelatedPosts(staticPosts.slice(0, 3)); // Sempre usar posts estáticos
+        setRelatedPosts(staticPosts.slice(0, 3)); // SEMPRE setar posts estáticos
         console.log('📊 [BLOG] setRelatedPosts chamado com:', staticPosts.slice(0, 3));
+
+        // Tentar carregar o post principal
+        const postData = await blogService.getPostBySlug(slug);
+
+        if (!postData) {
+          notFound();
+          return;
+        }
+
+        setPost(postData);
+
+        // Tentar incrementar view count (não crítico se falhar)
+        try {
+          await blogService.incrementViewCount(postData.id);
+        } catch (viewError) {
+          console.warn('Erro ao incrementar view count:', viewError);
+        }
+
+        // Track blog view no Google Analytics
+        try {
+          trackBlogView(postData.title, slug);
+        } catch (trackError) {
+          console.warn('Erro ao fazer track GA:', trackError);
+        }
 
       } catch (error) {
         console.error('Erro ao carregar post:', error);
