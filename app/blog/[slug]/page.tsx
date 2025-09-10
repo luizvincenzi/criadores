@@ -66,14 +66,14 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         // Track blog view no Google Analytics
         trackBlogView(postData.title, slug);
 
-        // Buscar posts relacionados e últimos posts em paralelo
-        const [related, latest] = await Promise.all([
-          blogService.getRelatedPosts(postData.id, postData.audience_target, 3),
-          blogService.getAllPosts()
-        ]);
+        // Buscar apenas os últimos posts (não mais posts relacionados por audiência)
+        const latest = await blogService.getAllPosts();
 
-        setRelatedPosts(related);
-        setLatestPosts(latest.slice(0, 6)); // Últimos 6 posts
+        // Filtrar para excluir o post atual e pegar os 3 mais recentes
+        const filteredLatest = latest.filter(post => post.id !== postData.id).slice(0, 3);
+
+        setRelatedPosts(filteredLatest); // Usar os últimos posts como "relacionados"
+        setLatestPosts(latest.slice(0, 6)); // Manter para outras seções se necessário
 
       } catch (error) {
         console.error('Erro ao carregar post:', error);
@@ -231,7 +231,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
           {/* Seção para Posts Relacionados */}
           <div className="mt-12">
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">📚 Posts Relacionados</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-6">📰 Últimas Publicações</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {relatedPosts.slice(0, 3).map((relatedPost) => (
                   <a
