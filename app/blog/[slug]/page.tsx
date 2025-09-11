@@ -6,6 +6,8 @@ import { Calendar, Clock, User, Home, ChevronRight } from 'lucide-react';
 import { blogService, BlogPost } from '@/lib/supabase';
 import { formatDate } from '@/lib/dateUtils';
 import { trackBlogView } from '@/lib/gtag';
+import { BlogPostSchema, BreadcrumbSchema } from '@/components/seo/StructuredData';
+import { useBreadcrumbs } from '@/hooks/useStructuredData';
 
 // Importar novos componentes
 import PostSummary from '@/components/blog/PostSummary';
@@ -43,6 +45,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [latestPosts, setLatestPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const breadcrumbs = useBreadcrumbs();
 
   // Unwrap params usando React.use()
   const { slug } = React.use(params);
@@ -202,6 +205,27 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
             </nav>
           </div>
         </div>
+
+        {/* Dados Estruturados para SEO/AEO/GEO */}
+        <BlogPostSchema
+          title={post.title}
+          description={post.excerpt}
+          image={post.featured_image_url}
+          datePublished={post.published_at || post.created_at}
+          dateModified={post.updated_at}
+          slug={slug}
+          readTime={post.read_time_minutes}
+          tags={post.tags}
+        />
+
+        {/* Breadcrumbs com título real do post */}
+        <BreadcrumbSchema
+          items={breadcrumbs.map((item, index) =>
+            index === breadcrumbs.length - 1
+              ? { ...item, name: post.title }
+              : item
+          )}
+        />
 
         {/* Layout Principal Centralizado */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
