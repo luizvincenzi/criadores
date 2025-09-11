@@ -114,24 +114,24 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-// Temporariamente removido SSG para debug - usar página dinâmica
-// export async function generateStaticParams() {
-//   try {
-//     const posts = await blogService.getAllPosts();
-//     console.log(`📝 [SSG] Gerando ${posts.length} páginas estáticas do blog`);
-//     return posts.map((post) => ({
-//       slug: post.slug,
-//     }));
-//   } catch (error) {
-//     console.error('❌ [SSG] Erro ao gerar parâmetros estáticos:', error);
-//     return [];
-//   }
-// }
+// Gerar parâmetros estáticos para SSG com ISR
+export async function generateStaticParams() {
+  try {
+    const posts = await blogService.getAllPosts();
+    console.log(`📝 [SSG] Gerando ${posts.length} páginas estáticas do blog`);
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error('❌ [SSG] Erro ao gerar parâmetros estáticos:', error);
+    // Retornar array vazio para permitir ISR dinâmico
+    return [];
+  }
+}
 
-// Configurar como página dinâmica para debug
-export const dynamic = 'force-dynamic'; // Força renderização dinâmica
-// export const revalidate = 3600; // Revalidar a cada 1 hora
-// export const dynamicParams = true; // Permitir geração dinâmica de páginas não pré-renderizadas
+// Configurar ISR (Incremental Static Regeneration)
+export const revalidate = 3600; // Revalidar a cada 1 hora
+export const dynamicParams = true; // Permitir geração dinâmica de páginas não pré-renderizadas
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   // Unwrap params
