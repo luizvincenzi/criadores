@@ -87,8 +87,10 @@ const PostSection: React.FC<PostSectionProps> = ({
       </div>
       
       {/* Conteúdo da Seção */}
-      <div className="prose prose-xl max-w-none text-gray-800 leading-relaxed">
-        {processContent(content)}
+      <div className="blog-content max-w-none">
+        <div
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
       </div>
     </section>
   );

@@ -114,7 +114,7 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
               </div>
             </div>
             <span
-              className="text-gray-700 leading-relaxed text-base"
+              className="text-gray-700 leading-relaxed text-lg font-medium"
               dangerouslySetInnerHTML={{ __html: point }}
             />
           </li>
