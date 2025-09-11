@@ -86,7 +86,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
     "img-src 'self' data: https: https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com", // Permitir tracking pixels
     "font-src 'self' https://fonts.gstatic.com", // Permitir fontes do Google
     "connect-src 'self' https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com https://analytics.google.com", // Permitir conexões para analytics
-    "frame-src 'self' https://www.googletagmanager.com", // Permitir iframe do GTM
+    "frame-src 'self' https://www.googletagmanager.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com", // Permitir iframe do GTM e YouTube
     "frame-ancestors 'none'"
   ].join('; ');
 

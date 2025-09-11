@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https: https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               "connect-src 'self' https://criadores.app https://www.criadores.app https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com https://graph.facebook.com https://graph.instagram.com https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com https://analytics.google.com",
-              "frame-src 'self' https://www.facebook.com https://www.instagram.com https://www.googletagmanager.com",
+              "frame-src 'self' https://www.facebook.com https://www.instagram.com https://www.googletagmanager.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'"

@@ -13,8 +13,22 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
   // Função para extrair pontos principais do conteúdo
   const extractKeyPoints = (content: string): string[] => {
     // Remover aspas duplas se o conteúdo estiver entre aspas
-    const cleanContent = content.replace(/^"|"$/g, '');
-    
+    let cleanContent = content.replace(/^"|"$/g, '');
+
+    // Processar HTML: converter tags HTML em texto formatado
+    cleanContent = cleanContent
+      .replace(/<h[1-6][^>]*>/gi, '') // Remover tags de cabeçalho de abertura
+      .replace(/<\/h[1-6]>/gi, '') // Remover tags de cabeçalho de fechamento
+      .replace(/<strong>/gi, '<strong>') // Manter strong
+      .replace(/<\/strong>/gi, '</strong>') // Manter /strong
+      .replace(/<em>/gi, '<em>') // Manter em
+      .replace(/<\/em>/gi, '</em>') // Manter /em
+      .replace(/<p[^>]*>/gi, '') // Remover tags p de abertura
+      .replace(/<\/p>/gi, '') // Remover tags p de fechamento
+      .replace(/<br\s*\/?>/gi, ' ') // Converter br em espaço
+      .replace(/\s+/g, ' ') // Normalizar espaços múltiplos
+      .trim();
+
     // Dividir por parágrafos e filtrar linhas vazias
     const paragraphs = cleanContent.split('\n').filter(p => p.trim().length > 0);
     
@@ -99,9 +113,10 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
                 {getIconForPoint(point, index)}
               </div>
             </div>
-            <span className="text-gray-700 leading-relaxed text-base">
-              {point}
-            </span>
+            <span
+              className="text-gray-700 leading-relaxed text-base"
+              dangerouslySetInnerHTML={{ __html: point }}
+            />
           </li>
         ))}
       </ul>
