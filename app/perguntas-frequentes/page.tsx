@@ -95,11 +95,11 @@ export default function PerguntasFrequentesPage() {
               </a>
             </div>
             <nav className="hidden md:flex space-x-6">
-              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Sobre</button>
-              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Serviços</button>
-              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Missão</button>
-              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Por que</button>
-              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Processo</button>
+              <a href="/#about" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Sobre</a>
+              <a href="/#services" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Serviços</a>
+              <a href="/#mission" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Missão</a>
+              <a href="/#why" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Por que</a>
+              <a href="/#process" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Processo</a>
               <a href="/blog" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Blog</a>
               <a href="/sou-criador" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Sou crIAdor</a>
             </nav>

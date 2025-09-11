@@ -2,8 +2,56 @@
 
 import { useState } from 'react';
 
+// Componente FAQ com collapse
+function FAQItem({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div className="bg-gray-50 rounded-2xl overflow-hidden hover:bg-gray-100 transition-colors duration-300">
+      <button
+        onClick={onToggle}
+        className="w-full p-8 text-left flex items-center justify-between focus:outline-none"
+      >
+        <h3 className="text-xl font-bold text-[#0b3553] pr-4">{question}</h3>
+        <div className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+          <svg className="w-6 h-6 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+      {isOpen && (
+        <div className="px-8 pb-8">
+          <p className="text-gray-700 leading-relaxed">{answer}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      question: "O que é o crIAdores?",
+      answer: "O crIAdores é uma plataforma que conecta negócios locais a criadores de conteúdo autênticos da região. Facilitamos campanhas de marketing com micro influenciadores que geram resultados reais para pequenas e médias empresas."
+    },
+    {
+      question: "Como funciona o processo de campanha?",
+      answer: "O processo é simples: 1) Você define seus objetivos e orçamento, 2) Selecionamos criadores alinhados com sua marca e região, 3) Os criadores produzem conteúdo autêntico, 4) Acompanhamos os resultados e métricas em tempo real."
+    },
+    {
+      question: "Como vocês selecionam os criadores?",
+      answer: "Selecionamos criadores baseado em: localização geográfica, alinhamento com valores da marca, engajamento autêntico da audiência, qualidade do conteúdo e histórico de parcerias bem-sucedidas."
+    },
+    {
+      question: "Posso escolher os criadores para minha campanha?",
+      answer: "Sim! Apresentamos uma seleção de criadores pré-qualificados e você pode escolher aqueles que mais se alinham com sua marca. Também consideramos suas preferências e feedback."
+    },
+    {
+      question: "Vocês trabalham com que tipos de negócio?",
+      answer: "Trabalhamos com diversos segmentos: restaurantes, lojas, salões de beleza, academias, clínicas, escolas, eventos e qualquer negócio que queira aumentar sua presença local."
+    }
+  ];
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -1225,54 +1273,16 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="space-y-6">
-            {/* FAQ 1 */}
-            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
-              <h3 className="text-xl font-bold text-[#0b3553] mb-4">O que é o crIAdores?</h3>
-              <p className="text-gray-700 leading-relaxed">
-                O crIAdores é uma plataforma que conecta negócios locais a criadores de conteúdo autênticos da região. Facilitamos campanhas de marketing com micro influenciadores que geram resultados reais para pequenas e médias empresas.
-              </p>
-            </div>
-
-            {/* FAQ 2 */}
-            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
-              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Como funciona o processo de campanha?</h3>
-              <p className="text-gray-700 leading-relaxed">
-                O processo é simples: 1) Você define seus objetivos e orçamento, 2) Selecionamos criadores alinhados com sua marca e região, 3) Os criadores produzem conteúdo autêntico, 4) Acompanhamos os resultados e métricas em tempo real.
-              </p>
-            </div>
-
-            {/* FAQ 3 */}
-            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
-              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Como vocês selecionam os criadores?</h3>
-              <p className="text-gray-700 leading-relaxed">
-                Selecionamos criadores baseado em: localização geográfica, alinhamento com valores da marca, engajamento autêntico da audiência, qualidade do conteúdo e histórico de parcerias bem-sucedidas.
-              </p>
-            </div>
-
-            {/* FAQ 4 */}
-            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
-              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Posso escolher os criadores para minha campanha?</h3>
-              <p className="text-gray-700 leading-relaxed">
-                Sim! Apresentamos uma seleção de criadores pré-qualificados e você pode escolher aqueles que mais se alinham com sua marca. Também consideramos suas preferências e feedback.
-              </p>
-            </div>
-
-            {/* FAQ 5 */}
-            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
-              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Vocês trabalham com que tipos de negócio?</h3>
-              <p className="text-gray-700 leading-relaxed">
-                Trabalhamos com diversos segmentos: restaurantes, lojas, salões de beleza, academias, clínicas, escolas, eventos e qualquer negócio que queira aumentar sua presença local.
-              </p>
-            </div>
-          </div>
-
-          {/* CTA para mais perguntas */}
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-6">Tem outras dúvidas?</p>
-            <a href="/perguntas-frequentes" className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
-              Ver Todas as Perguntas
-            </a>
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <FAQItem
+                key={index}
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openFAQ === index}
+                onToggle={() => setOpenFAQ(openFAQ === index ? null : index)}
+              />
+            ))}
           </div>
         </div>
       </section>
