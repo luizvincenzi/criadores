@@ -48,6 +48,47 @@ const nextConfig: NextConfig = {
   // Configuração de export para evitar problemas com APIs
   trailingSlash: false,
   skipTrailingSlashRedirect: true,
+
+  // Redirects para canonicalização de URLs
+  async redirects() {
+    return [
+      // Forçar www.criadores.app como canonical
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'criadores.app',
+          },
+        ],
+        destination: 'https://www.criadores.app/:path*',
+        permanent: true,
+      },
+      // Remover index.html se existir
+      {
+        source: '/index.html',
+        destination: '/',
+        permanent: true,
+      },
+      // Remover .html de URLs se existir
+      {
+        source: '/:path*.html',
+        destination: '/:path*',
+        permanent: true,
+      },
+    ];
+  },
+
+  // Configuração de imagens para performance
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    domains: [
+      'images.unsplash.com',
+      'ecbhcalmulaiszslwhqz.supabase.co',
+      'www.criadores.app',
+      'criadores.app',
+    ],
+  },
 };
 
 export default nextConfig;
