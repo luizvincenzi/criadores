@@ -16,7 +16,7 @@ import PostCTA from '@/components/blog/PostCTA';
 import YouTubeEmbed from '@/components/blog/YouTubeEmbed';
 import ChatbotCTA from '@/components/blog/ChatbotCTA';
 import { BlogPostSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
-import ClientTracker from '@/components/blog/ClientTracker';
+// import ClientTracker from '@/components/blog/ClientTracker';
 
 // Funções auxiliares
 
@@ -192,7 +192,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <BreadcrumbSchema items={breadcrumbs} />
 
       {/* Client-side tracking */}
-      <ClientTracker postTitle={post.title} postSlug={post.slug} />
+      {/* <ClientTracker postTitle={post.title} postSlug={post.slug} /> */}
 
       <div className="min-h-screen bg-gray-50">
         {/* Botões de Compartilhamento Fixos */}
