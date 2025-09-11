@@ -17,6 +17,7 @@ import PostSidebar from '@/components/blog/PostSidebar';
 import PostCTA from '@/components/blog/PostCTA';
 import YouTubeEmbed from '@/components/blog/YouTubeEmbed';
 import ChatbotCTA from '@/components/blog/ChatbotCTA';
+import { BlogPostSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 // Funções auxiliares
 
@@ -173,13 +174,34 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
     notFound();
   }
 
+  // Gerar breadcrumbs para o post
+  const breadcrumbs = [
+    { name: 'Home', url: 'https://www.criadores.app/' },
+    { name: 'Blog', url: 'https://www.criadores.app/blog' },
+    { name: post.title, url: `https://www.criadores.app/blog/${slug}` },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Botões de Compartilhamento Fixos */}
-      <FixedSocialShare
+    <>
+      {/* Dados Estruturados para SEO/AEO/GEO */}
+      <BlogPostSchema
         title={post.title}
-        excerpt={post.excerpt}
+        description={post.excerpt}
+        image={post.featured_image_url}
+        datePublished={post.published_at || post.created_at}
+        dateModified={post.updated_at}
+        slug={slug}
+        readTime={post.read_time_minutes}
+        tags={post.tags}
       />
+      <BreadcrumbSchema items={breadcrumbs} />
+
+      <div className="min-h-screen bg-gray-50">
+        {/* Botões de Compartilhamento Fixos */}
+        <FixedSocialShare
+          title={post.title}
+          excerpt={post.excerpt}
+        />
 
       {/* Espaçamento para header fixo */}
       <div className="pt-14">
@@ -355,8 +377,9 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
 
       </div>
 
-      {/* Espaço extra no final */}
-      <div className="h-32"></div>
-    </div>
+        {/* Espaço extra no final */}
+        <div className="h-32"></div>
+      </div>
+    </>
   );
 }
