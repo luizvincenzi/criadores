@@ -78,17 +78,18 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   
-  // CSP básico (ajustar conforme necessário)
+  // CSP compatível com Google Analytics e Tag Manager
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js precisa de unsafe-eval
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Permitir Google Fonts
-    "img-src 'self' data: https:",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://tagmanager.google.com", // Next.js + Google Analytics/GTM
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://tagmanager.google.com", // Permitir Google Fonts e GTM styles
+    "img-src 'self' data: https: https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com", // Permitir tracking pixels
     "font-src 'self' https://fonts.gstatic.com", // Permitir fontes do Google
-    "connect-src 'self' https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com",
+    "connect-src 'self' https://ecbhcalmulaiszslwhqz.supabase.co https://sheets.googleapis.com https://www.googleapis.com https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com https://analytics.google.com", // Permitir conexões para analytics
+    "frame-src 'self' https://www.googletagmanager.com", // Permitir iframe do GTM
     "frame-ancestors 'none'"
   ].join('; ');
-  
+
   response.headers.set('Content-Security-Policy', csp);
   
   return response;
