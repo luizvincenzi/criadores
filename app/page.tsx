@@ -276,32 +276,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TL;DR Section para GEO */}
-      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-blue-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <span className="mr-3">📋</span>
-              Resumo Rápido (TL;DR)
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Quem somos:</h3>
-                <p className="text-gray-700">Plataforma que conecta negócios locais a criadores de conteúdo autênticos da região usando IA.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">O que fazemos:</h3>
-                <p className="text-gray-700">Criamos campanhas de marketing com micro influenciadores que geram resultados reais e mensuráveis.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Como funciona:</h3>
-                <p className="text-gray-700">Selecionamos criadores alinhados com sua marca, eles produzem conteúdo autêntico e acompanhamos os resultados.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* About Section - Premium */}
       <section id="about" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -486,6 +460,32 @@ export default function Home() {
               <span className="hidden sm:inline">🚀 Começar Agora</span>
               <span className="sm:hidden">🚀 Começar</span>
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* TL;DR Section para GEO */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-blue-100">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+              <span className="mr-3">📋</span>
+              Resumo Rápido
+            </h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Quem somos:</h3>
+                <p className="text-gray-700">Plataforma que conecta negócios locais a criadores de conteúdo autênticos da região usando IA.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">O que fazemos:</h3>
+                <p className="text-gray-700">Criamos campanhas de marketing com micro influenciadores que geram resultados reais e mensuráveis.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Como funciona:</h3>
+                <p className="text-gray-700">Selecionamos criadores alinhados com sua marca, eles produzem conteúdo autêntico e acompanhamos os resultados.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
