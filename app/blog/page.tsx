@@ -97,6 +97,28 @@ const BlogPage = () => {
             Insights, tendências e estratégias para empresas locais e criadores de conteúdo.
             Conectamos negócios aos melhores criadores da região.
           </p>
+
+          {/* TL;DR Section para GEO */}
+          <div className="bg-blue-50 rounded-xl p-8 mt-12 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center justify-center">
+              <span className="mr-3">📋</span>
+              Resumo Rápido (TL;DR)
+            </h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <h3 className="font-semibold text-gray-900 mb-2">Conteúdo:</h3>
+                <p className="text-gray-700">Estratégias práticas de marketing local e criação de conteúdo para empresas e criadores.</p>
+              </div>
+              <div className="text-center">
+                <h3 className="font-semibold text-gray-900 mb-2">Público:</h3>
+                <p className="text-gray-700">Empresários locais, criadores de conteúdo e profissionais de marketing digital.</p>
+              </div>
+              <div className="text-center">
+                <h3 className="font-semibold text-gray-900 mb-2">Objetivo:</h3>
+                <p className="text-gray-700">Ajudar negócios locais a crescer através de parcerias autênticas com criadores.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
       {/* Featured Post */}
