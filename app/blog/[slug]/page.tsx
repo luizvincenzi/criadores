@@ -158,25 +158,97 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     notFound();
   }
 
-  // VERSÃO SIMPLIFICADA PARA DEBUG
+  // Gerar breadcrumbs para o post
+  const breadcrumbs = [
+    { name: 'Home', url: 'https://www.criadores.app/' },
+    { name: 'Blog', url: 'https://www.criadores.app/blog' },
+    { name: post.title, url: `https://www.criadores.app/blog/${slug}` },
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            ✅ PÁGINA FUNCIONANDO!
-          </h1>
-          <div className="bg-gray-100 p-6 rounded-lg text-left max-w-2xl mx-auto">
-            <h2 className="text-xl font-semibold mb-4">Dados do Post:</h2>
-            <p><strong>Slug:</strong> {slug}</p>
-            <p><strong>Título:</strong> {post.title}</p>
-            <p><strong>Status:</strong> {post.status}</p>
-            <p><strong>Excerpt:</strong> {post.excerpt}</p>
-            <p><strong>Audience:</strong> {post.audience_target}</p>
-          </div>
+    <>
+      {/* Dados Estruturados para SEO/AEO/GEO */}
+      <BlogPostSchema
+        title={post.title}
+        description={post.excerpt}
+        image={post.featured_image_url}
+        datePublished={post.published_at || post.created_at}
+        dateModified={post.updated_at}
+        slug={slug}
+        readTime={post.read_time_minutes}
+        tags={post.tags}
+      />
+      <BreadcrumbSchema items={breadcrumbs} />
+
+      <div className="min-h-screen bg-gray-50">
+        {/* Layout Principal Centralizado */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Conteúdo Principal */}
+          <main>
+              <article className="bg-white rounded-xl shadow-sm overflow-hidden">
+                {/* Header do Artigo */}
+                <header className="px-8 py-12">
+                  {/* Meta informações */}
+                  <div className="flex flex-wrap items-center gap-4 mb-6">
+                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${getCategoryColor(post.audience_target)}`}>
+                      {getCategoryName(post.audience_target)}
+                    </span>
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      <span>{formatDate(post.published_at || '', 'full')}</span>
+                    </div>
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Clock className="w-4 h-4 mr-2" />
+                      <span>{post.read_time_minutes} min de leitura</span>
+                    </div>
+                  </div>
+
+                  {/* Título */}
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                    {post.title}
+                  </h1>
+
+                  {/* Excerpt */}
+                  <p className="text-xl text-gray-600 leading-relaxed mb-8">
+                    {post.excerpt}
+                  </p>
+
+                  {/* Autor */}
+                  <div className="flex items-center pt-6 border-t border-gray-100">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">crIAdores</p>
+                      <p className="text-sm text-gray-500">Especialistas em Marketing Local</p>
+                    </div>
+                  </div>
+                </header>
+
+                {/* Imagem Featured */}
+                {post.featured_image_url && (
+                  <div className="px-8 mb-8">
+                    <div className="relative aspect-video rounded-xl overflow-hidden">
+                      <img
+                        src={post.featured_image_url}
+                        alt={post.featured_image_alt || post.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Conteúdo do Post - Versão Simples */}
+                <div className="px-8 pb-12">
+                  <div className="prose prose-lg max-w-none">
+                    <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                  </div>
+                </div>
+              </article>
+          </main>
         </div>
       </div>
-    </div>
+    </>
   );
 
 }
