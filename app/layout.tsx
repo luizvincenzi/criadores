@@ -5,6 +5,7 @@ import "../styles/kanban.css";
 import { ToastContainer } from "@/components/ui/ToastContainer";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleAnalyticsPageTracker from "@/components/GoogleAnalyticsPageTracker";
+import GoogleAnalyticsVerifier from "@/components/GoogleAnalyticsVerifier";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleTagManagerNoScript from "@/components/GoogleTagManagerNoScript";
 
@@ -132,6 +133,9 @@ export default function RootLayout({
             <GoogleAnalyticsPageTracker />
           </>
         )}
+
+        {/* Google Analytics Verifier - Só em desenvolvimento */}
+        <GoogleAnalyticsVerifier />
 
         {children}
         <ToastContainer />
