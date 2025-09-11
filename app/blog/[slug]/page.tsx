@@ -141,6 +141,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   // Carregar dados no servidor
   let post: BlogPost | null = null;
+  let relatedPosts: BlogPost[] = [];
+  let latestPosts: BlogPost[] = [];
 
   try {
     // Carregar post principal
@@ -152,6 +154,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     }
 
     console.log(`✅ [BLOG] Post carregado: ${post.title}`);
+
+    // Carregar posts relacionados e mais recentes em paralelo
+    const [related, latest] = await Promise.all([
+      blogService.getRelatedPosts(post.id, post.audience_target, 3),
+      blogService.getLatestPosts(4)
+    ]);
+
+    relatedPosts = related;
+    latestPosts = latest.filter(p => p.id !== post.id).slice(0, 3);
 
   } catch (error) {
     console.error(`❌ [BLOG] Erro ao carregar post ${slug}:`, error);
@@ -181,6 +192,25 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <BreadcrumbSchema items={breadcrumbs} />
 
       <div className="min-h-screen bg-gray-50">
+        {/* Botões de Compartilhamento Fixos */}
+        <FixedSocialShare
+          title={post.title}
+          excerpt={post.excerpt}
+        />
+
+        {/* Breadcrumb Navigation */}
+        <div className="bg-white border-b border-gray-200 pt-20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <nav className="flex items-center space-x-2 text-sm text-gray-500">
+              <Home className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" />
+              <a href="/blog" className="hover:text-gray-700 transition-colors">Blog</a>
+              <ChevronRight className="w-4 h-4" />
+              <span className="text-gray-900 font-medium truncate">{post.title}</span>
+            </nav>
+          </div>
+        </div>
+
         {/* Layout Principal Centralizado */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Conteúdo Principal */}
@@ -203,50 +233,130 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     </div>
                   </div>
 
-                  {/* Título */}
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                  {/* Título em destaque */}
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-8">
                     {post.title}
                   </h1>
 
                   {/* Excerpt */}
-                  <p className="text-xl text-gray-600 leading-relaxed mb-8">
+                  <p className="text-xl md:text-2xl text-gray-600 leading-relaxed mb-8">
                     {post.excerpt}
                   </p>
 
-                  {/* Autor */}
-                  <div className="flex items-center pt-6 border-t border-gray-100">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-4">
-                      <User className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">crIAdores</p>
-                      <p className="text-sm text-gray-500">Especialistas em Marketing Local</p>
-                    </div>
-                  </div>
+                  {/* Compartilhamento Social */}
+                  <SocialShare
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    viewCount={post.view_count}
+                    variant="full"
+                  />
                 </header>
 
-                {/* Imagem Featured */}
-                {post.featured_image_url && (
-                  <div className="px-8 mb-8">
-                    <div className="relative aspect-video rounded-xl overflow-hidden">
+                {/* Conteúdo do Artigo */}
+                <div className="px-8 py-8">
+                  {/* Sumário Dinâmico */}
+                  <PostSummary
+                    content={post.content}
+                    audience_target={post.audience_target}
+                    tags={post.tags}
+                  />
+
+                  {/* Imagem em Destaque */}
+                  {post.featured_image_url && (
+                    <div className="mb-12">
                       <img
                         src={post.featured_image_url}
                         alt={post.featured_image_alt || post.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-96 object-cover rounded-xl shadow-lg"
                       />
+                      {post.featured_image_credit && (
+                        <p className="text-sm text-gray-500 mt-3 text-center italic">
+                          {post.featured_image_credit}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Conteúdo Principal */}
+                  <PostSection
+                    title={post.title}
+                    content={post.content}
+                    variant="default"
+                  />
+
+                  {/* Vídeo do YouTube (se disponível) */}
+                  {post.youtube_video_url && (
+                    <div className="mb-12">
+                      <YouTubeEmbed
+                        url={post.youtube_video_url}
+                        title={`Vídeo: ${post.title}`}
+                      />
+                    </div>
+                  )}
+
+                  {/* CTA do Chatbot */}
+                  <ChatbotCTA audience_target={post.audience_target} />
+
+                  {/* Newsletter Signup */}
+                  <NewsletterSignup
+                    variant="default"
+                    audience_target={post.audience_target}
+                  />
+                </div>
+              </article>
+            </main>
+
+          {/* Seção para Posts Relacionados */}
+          <div className="mt-12">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">📰 Últimas Publicações</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {relatedPosts && relatedPosts.length > 0 ? (
+                  relatedPosts.slice(0, 3).map((relatedPost) => (
+                    <a
+                      key={relatedPost.id}
+                      href={`/blog/${relatedPost.slug}`}
+                      className="group block bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-200 hover:shadow-md"
+                    >
+                      <img
+                        src={relatedPost.featured_image_url || '/blog/default-image.jpg'}
+                        alt={relatedPost.featured_image_alt || relatedPost.title}
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="p-4">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getCategoryColor(relatedPost.audience_target)}`}>
+                          {getCategoryName(relatedPost.audience_target)}
+                        </span>
+                        <h4 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2">
+                          {relatedPost.title}
+                        </h4>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <span>{formatDate(relatedPost.published_at || '', 'short')}</span>
+                          <span className="mx-1">•</span>
+                          <span>{relatedPost.read_time_minutes} min</span>
+                        </div>
+                      </div>
+                    </a>
+                  ))
+                ) : (
+                  // Fallback quando não há posts relacionados
+                  <div className="col-span-full text-center py-8">
+                    <div className="text-gray-500 mb-4">
+                      <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                      </svg>
+                      <p className="text-sm">Nenhum post adicional encontrado</p>
+                      <a href="/blog" className="inline-block mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        Ver todos os posts →
+                      </a>
                     </div>
                   </div>
                 )}
-
-                {/* Conteúdo do Post - Versão Simples */}
-                <div className="px-8 pb-12">
-                  <div className="prose prose-lg max-w-none">
-                    <div dangerouslySetInnerHTML={{ __html: post.content }} />
-                  </div>
-                </div>
-              </article>
-          </main>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </>
   );
