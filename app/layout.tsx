@@ -8,6 +8,7 @@ import GoogleAnalyticsPageTracker from "@/components/GoogleAnalyticsPageTracker"
 import GoogleAnalyticsVerifier from "@/components/GoogleAnalyticsVerifier";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleTagManagerNoScript from "@/components/GoogleTagManagerNoScript";
+import { OrganizationSchema, WebSiteSchema } from "@/components/seo/JsonLd";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -137,6 +138,10 @@ export default function RootLayout({
 
         {/* Google Analytics Verifier - Só em desenvolvimento */}
         <GoogleAnalyticsVerifier />
+
+        {/* Dados Estruturados JSON-LD para SEO/AEO/GEO */}
+        <OrganizationSchema />
+        <WebSiteSchema />
 
         {children}
         <ToastContainer />
