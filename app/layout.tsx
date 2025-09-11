@@ -8,6 +8,7 @@ import GoogleAnalyticsPageTracker from "@/components/GoogleAnalyticsPageTracker"
 import GoogleAnalyticsVerifier from "@/components/GoogleAnalyticsVerifier";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleTagManagerNoScript from "@/components/GoogleTagManagerNoScript";
+import { WebSiteSchema, OrganizationSchema } from "@/components/seo/StructuredData";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -85,8 +86,9 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"]
   },
   alternates: {
-    canonical: "https://criadores.app"
-  }
+    canonical: "https://www.criadores.app"
+  },
+  metadataBase: new URL("https://www.criadores.app")
 };
 
 export const viewport: Viewport = {
@@ -136,6 +138,10 @@ export default function RootLayout({
 
         {/* Google Analytics Verifier - Só em desenvolvimento */}
         <GoogleAnalyticsVerifier />
+
+        {/* Dados Estruturados JSON-LD para SEO/AEO/GEO */}
+        <WebSiteSchema />
+        <OrganizationSchema />
 
         {children}
         <ToastContainer />
