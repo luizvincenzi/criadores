@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais.",
     type: "website",
     locale: "pt_BR",
-    url: "https://criadores.app",
+    url: "https://www.criadores.app",
     siteName: "crIAdores",
     images: [
       {
@@ -85,8 +85,9 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"]
   },
   alternates: {
-    canonical: "https://criadores.app"
-  }
+    canonical: "https://www.criadores.app"
+  },
+  metadataBase: new URL("https://www.criadores.app")
 };
 
 export const viewport: Viewport = {
