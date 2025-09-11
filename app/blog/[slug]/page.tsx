@@ -114,22 +114,30 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-// Gerar parâmetros estáticos para SSG
+// Gerar parâmetros estáticos para SSG com ISR
 export async function generateStaticParams() {
   try {
     const posts = await blogService.getAllPosts();
+    console.log(`📝 [SSG] Gerando ${posts.length} páginas estáticas do blog`);
     return posts.map((post) => ({
       slug: post.slug,
     }));
   } catch (error) {
-    console.error('Erro ao gerar parâmetros estáticos:', error);
+    console.error('❌ [SSG] Erro ao gerar parâmetros estáticos:', error);
+    // Retornar array vazio para permitir ISR dinâmico
     return [];
   }
 }
 
+// Configurar ISR (Incremental Static Regeneration)
+export const revalidate = 3600; // Revalidar a cada 1 hora
+export const dynamicParams = true; // Permitir geração dinâmica de páginas não pré-renderizadas
+
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   // Unwrap params
   const { slug } = await params;
+
+  console.log(`📖 [BLOG] Carregando post: ${slug}`);
 
   // Carregar dados no servidor
   let post: BlogPost | null = null;
@@ -141,8 +149,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     post = await blogService.getPostBySlug(slug);
 
     if (!post) {
+      console.warn(`⚠️ [BLOG] Post não encontrado: ${slug}`);
       notFound();
     }
+
+    console.log(`✅ [BLOG] Post carregado: ${post.title}`);
 
     // Carregar posts relacionados e mais recentes em paralelo
     const [related, latest] = await Promise.all([
@@ -154,7 +165,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     latestPosts = latest.filter(p => p.id !== post.id).slice(0, 3);
 
   } catch (error) {
-    console.error('Erro ao carregar post:', error);
+    console.error(`❌ [BLOG] Erro ao carregar post ${slug}:`, error);
     notFound();
   }
 
