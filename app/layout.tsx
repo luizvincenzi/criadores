@@ -9,6 +9,7 @@ import GoogleAnalyticsVerifier from "@/components/GoogleAnalyticsVerifier";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleTagManagerNoScript from "@/components/GoogleTagManagerNoScript";
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo/JsonLd";
+import WebVitalsReporter from "@/components/WebVitalsReporter";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -142,6 +143,9 @@ export default function RootLayout({
         {/* Dados Estruturados JSON-LD para SEO/AEO/GEO */}
         <OrganizationSchema />
         <WebSiteSchema />
+
+        {/* Core Web Vitals Reporting */}
+        <WebVitalsReporter />
 
         {children}
         <ToastContainer />
