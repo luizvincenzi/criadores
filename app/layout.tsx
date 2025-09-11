@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "TikTok",
     "Brasil"
   ],
-  authors: [{ name: "crIAdores", url: "https://criadores.app" }],
+  authors: [{ name: "crIAdores", url: "https://www.criadores.app" }],
   creator: "crIAdores",
   publisher: "crIAdores",
   robots: {
@@ -62,6 +62,14 @@ export const metadata: Metadata = {
     ],
     shortcut: "/faviconcriadoresA3.png",
     apple: "/faviconcriadoresA3.png"
+  },
+  alternates: {
+    canonical: "https://www.criadores.app",
+    types: {
+      'application/rss+xml': [
+        { url: 'https://www.criadores.app/feed.xml', title: 'Blog crIAdores RSS Feed' }
+      ]
+    }
   },
   manifest: "/manifest.json",
   openGraph: {

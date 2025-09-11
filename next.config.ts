@@ -73,6 +73,24 @@ const nextConfig: NextConfig = {
         destination: 'https://www.criadores.app/:path*',
         permanent: true,
       },
+      // Remover trailing slashes desnecessários
+      {
+        source: '/:path+/',
+        destination: '/:path+',
+        permanent: true,
+      },
+      // Remover extensões .html
+      {
+        source: '/:path*.html',
+        destination: '/:path*',
+        permanent: true,
+      },
+      // Remover index.html
+      {
+        source: '/index.html',
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
 
