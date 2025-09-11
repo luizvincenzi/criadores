@@ -1,10 +1,18 @@
-import type { Metric } from 'web-vitals';
+// Tipo compatível com web-vitals v5.x
+interface WebVitalsMetric {
+  name: string;
+  value: number;
+  rating: 'good' | 'needs-improvement' | 'poor';
+  id: string;
+  navigationType?: string;
+}
 
 /**
  * Reporta Core Web Vitals para Google Analytics 4
- * Métricas: LCP, FID, CLS, FCP, TTFB
+ * Métricas: LCP, INP/FID, CLS, FCP, TTFB
+ * Compatível com web-vitals v5.x
  */
-export function reportWebVitals(metric: Metric) {
+export function reportWebVitals(metric: WebVitalsMetric) {
   // Só reportar em produção para evitar dados de desenvolvimento
   if (process.env.NODE_ENV !== 'production') {
     console.log('📊 [WEB VITALS DEV]', metric.name, metric.value, metric.rating);
@@ -39,6 +47,7 @@ export function reportWebVitals(metric: Metric) {
 
 /**
  * Thresholds para Core Web Vitals (valores em ms, exceto CLS)
+ * Atualizado para web-vitals v5.x com INP
  */
 export const WEB_VITALS_THRESHOLDS = {
   LCP: {
@@ -48,6 +57,10 @@ export const WEB_VITALS_THRESHOLDS = {
   FID: {
     good: 100,
     needsImprovement: 300,
+  },
+  INP: {
+    good: 200,
+    needsImprovement: 500,
   },
   CLS: {
     good: 0.1,
