@@ -16,6 +16,7 @@ import PostCTA from '@/components/blog/PostCTA';
 import YouTubeEmbed from '@/components/blog/YouTubeEmbed';
 import ChatbotCTA from '@/components/blog/ChatbotCTA';
 import { BlogPostSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
+import { trackBlogView } from '@/lib/gtag';
 // import ClientTracker from '@/components/blog/ClientTracker';
 
 // Funções auxiliares
@@ -156,13 +157,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     console.log(`✅ [BLOG] Post carregado: ${post.title}`);
 
     // Carregar posts relacionados e mais recentes em paralelo
-    const [related, latest] = await Promise.all([
+    const [related, allPosts] = await Promise.all([
       blogService.getRelatedPosts(post.id, post.audience_target, 3),
-      blogService.getLatestPosts(4)
+      blogService.getAllPosts()
     ]);
 
     relatedPosts = related;
-    latestPosts = latest.filter(p => p.id !== post.id).slice(0, 3);
+    latestPosts = allPosts.filter(p => p.id !== post.id).slice(0, 3);
 
   } catch (error) {
     console.error(`❌ [BLOG] Erro ao carregar post ${slug}:`, error);
@@ -190,6 +191,22 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         tags={post.tags}
       />
       <BreadcrumbSchema items={breadcrumbs} />
+
+      {/* Client-side tracking */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            if (typeof window !== 'undefined' && window.gtag) {
+              window.gtag('event', 'view_blog_post', {
+                event_category: 'Blog',
+                event_label: '${post.title} (${slug})',
+                page_title: '${post.title}',
+                page_location: window.location.href
+              });
+            }
+          `
+        }}
+      />
 
       <div className="min-h-screen bg-gray-50">
         {/* Botões de Compartilhamento Fixos */}

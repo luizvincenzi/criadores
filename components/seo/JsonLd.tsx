@@ -1,4 +1,4 @@
-import Script from 'next/script';
+
 
 /**
  * Componente para inserir dados estruturados JSON-LD
@@ -11,12 +11,11 @@ interface JsonLdProps {
 
 export function JsonLd({ data, id }: JsonLdProps) {
   const scriptId = id || `ld-${Math.random().toString(36).slice(2)}`;
-  
+
   return (
-    <Script
+    <script
       id={scriptId}
       type="application/ld+json"
-      strategy="afterInteractive"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
     />
   );
