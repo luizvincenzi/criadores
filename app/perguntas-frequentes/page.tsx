@@ -83,6 +83,44 @@ export default function PerguntasFrequentesPage() {
       <FAQPageSchema faqs={faqs} />
       <BreadcrumbSchema items={breadcrumbs} />
 
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md fixed w-full top-0 z-50 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center">
+              <a href="/" className="text-2xl font-onest tracking-tight">
+                <span className="text-gray-600 font-light">cr</span>
+                <span className="text-black font-bold">IA</span>
+                <span className="text-gray-600 font-light">dores</span>
+              </a>
+            </div>
+            <nav className="hidden md:flex space-x-6">
+              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Sobre</button>
+              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Serviços</button>
+              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Missão</button>
+              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Por que</button>
+              <button className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Processo</button>
+              <a href="/blog" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Blog</a>
+              <a href="/sou-criador" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">Sou crIAdor</a>
+            </nav>
+            <div className="hidden md:flex items-center space-x-4">
+              <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors duration-200 border border-gray-300 rounded-full hover:border-gray-400">Entrar</button>
+              <button className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+                <span className="hidden sm:inline">Começar Agora</span>
+                <span className="sm:hidden">Começar</span>
+              </button>
+            </div>
+            <div className="md:hidden">
+              <button className="text-gray-600 hover:text-black focus:outline-none">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
       <div className="pt-20 min-h-screen bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Header */}

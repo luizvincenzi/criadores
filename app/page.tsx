@@ -46,6 +46,9 @@ export default function Home() {
               <a href="/blog" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Blog
               </a>
+              <a href="/sou-criador" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
+                Sou crIAdor
+              </a>
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
@@ -1205,6 +1208,71 @@ export default function Home() {
               <h3 className="text-xl font-bold text-black mb-4">IA First</h3>
               <p className="text-gray-600">Antes de agir, pense: <span className="font-bold">como a IA e os dados</span> podem te ajudar?</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
+              Perguntas Frequentes
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0b3553] mb-6">Dúvidas Comuns</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Respostas para as principais dúvidas sobre nossa plataforma e serviços.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {/* FAQ 1 */}
+            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
+              <h3 className="text-xl font-bold text-[#0b3553] mb-4">O que é o crIAdores?</h3>
+              <p className="text-gray-700 leading-relaxed">
+                O crIAdores é uma plataforma que conecta negócios locais a criadores de conteúdo autênticos da região. Facilitamos campanhas de marketing com micro influenciadores que geram resultados reais para pequenas e médias empresas.
+              </p>
+            </div>
+
+            {/* FAQ 2 */}
+            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
+              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Como funciona o processo de campanha?</h3>
+              <p className="text-gray-700 leading-relaxed">
+                O processo é simples: 1) Você define seus objetivos e orçamento, 2) Selecionamos criadores alinhados com sua marca e região, 3) Os criadores produzem conteúdo autêntico, 4) Acompanhamos os resultados e métricas em tempo real.
+              </p>
+            </div>
+
+            {/* FAQ 3 */}
+            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
+              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Como vocês selecionam os criadores?</h3>
+              <p className="text-gray-700 leading-relaxed">
+                Selecionamos criadores baseado em: localização geográfica, alinhamento com valores da marca, engajamento autêntico da audiência, qualidade do conteúdo e histórico de parcerias bem-sucedidas.
+              </p>
+            </div>
+
+            {/* FAQ 4 */}
+            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
+              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Posso escolher os criadores para minha campanha?</h3>
+              <p className="text-gray-700 leading-relaxed">
+                Sim! Apresentamos uma seleção de criadores pré-qualificados e você pode escolher aqueles que mais se alinham com sua marca. Também consideramos suas preferências e feedback.
+              </p>
+            </div>
+
+            {/* FAQ 5 */}
+            <div className="bg-gray-50 rounded-2xl p-8 hover:bg-gray-100 transition-colors duration-300">
+              <h3 className="text-xl font-bold text-[#0b3553] mb-4">Vocês trabalham com que tipos de negócio?</h3>
+              <p className="text-gray-700 leading-relaxed">
+                Trabalhamos com diversos segmentos: restaurantes, lojas, salões de beleza, academias, clínicas, escolas, eventos e qualquer negócio que queira aumentar sua presença local.
+              </p>
+            </div>
+          </div>
+
+          {/* CTA para mais perguntas */}
+          <div className="text-center mt-12">
+            <p className="text-gray-600 mb-6">Tem outras dúvidas?</p>
+            <a href="/perguntas-frequentes" className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              Ver Todas as Perguntas
+            </a>
           </div>
         </div>
       </section>
