@@ -42,7 +42,9 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
       // Filtrar conteúdos específicos que devem ser removidos
       if (trimmed.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais') ||
           trimmed.includes('Bem-vindo ao Blog Criadores') ||
-          trimmed.includes('primeiro post oficial do Blog Criadores')) {
+          trimmed.includes('primeiro post oficial do Blog Criadores') ||
+          trimmed.includes('IntroduçãoO comportamento do consumidor mudou') ||
+          trimmed.includes('O comportamento do consumidor mudou. O que antes era decidido')) {
         return; // Pular este parágrafo
       }
 
@@ -62,7 +64,9 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
       const filteredParagraphs = paragraphs.filter(p =>
         !p.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais') &&
         !p.includes('Bem-vindo ao Blog Criadores') &&
-        !p.includes('primeiro post oficial do Blog Criadores')
+        !p.includes('primeiro post oficial do Blog Criadores') &&
+        !p.includes('IntroduçãoO comportamento do consumidor mudou') &&
+        !p.includes('O comportamento do consumidor mudou. O que antes era decidido')
       );
       keyPoints.push(...filteredParagraphs.slice(0, 4));
     }
@@ -101,7 +105,7 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
 
   const keyPoints = extractKeyPoints(content);
 
-  if (keyPoints.length === 0) return null;
+  // Sempre mostrar "Na Edição de Hoje", mesmo se não houver pontos específicos
 
   return (
     <div className={`-mx-8 px-8 py-6 mb-8 ${getAudienceColor()}`}>
@@ -127,21 +131,24 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
         </div>
       )}
 
-      <ul className="space-y-3">
-        {keyPoints.map((point, index) => (
-          <li key={index} className="flex items-start space-x-3">
-            <div className="flex-shrink-0 w-6 h-6 bg-white rounded-full flex items-center justify-center mt-0.5">
-              <div className="text-blue-600">
-                {getIconForPoint(point, index)}
+      {/* Mostrar pontos apenas se existirem e forem relevantes */}
+      {keyPoints.length > 0 && (
+        <ul className="space-y-3">
+          {keyPoints.map((point, index) => (
+            <li key={index} className="flex items-start space-x-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-white rounded-full flex items-center justify-center mt-0.5">
+                <div className="text-blue-600">
+                  {getIconForPoint(point, index)}
+                </div>
               </div>
-            </div>
-            <span
-              className="text-gray-700 leading-relaxed text-base font-medium"
-              dangerouslySetInnerHTML={{ __html: point }}
-            />
-          </li>
-        ))}
-      </ul>
+              <span
+                className="text-gray-700 leading-relaxed text-base font-medium"
+                dangerouslySetInnerHTML={{ __html: point }}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
       
       {tags && tags.length > 0 && (
         <div className="mt-4 pt-4">

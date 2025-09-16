@@ -26,9 +26,9 @@ const FixedSocialShare: React.FC<FixedSocialShareProps> = ({
   postSlug = '',
   postId = ''
 }) => {
-  const [isSharing, setIsSharing] = useState(false);
-  const [likes, setLikes] = useState(0);
-  const [hasLiked, setHasLiked] = useState(false);
+  // Componente removido para não interferir no mobile
+  // Os botões de compartilhamento estão disponíveis no componente SocialShare
+  return null;
 
   // Verificar se usuário já curtiu o post
   useEffect(() => {
