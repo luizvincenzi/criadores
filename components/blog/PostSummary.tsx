@@ -39,8 +39,10 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
     paragraphs.forEach(paragraph => {
       const trimmed = paragraph.trim();
 
-      // Filtrar o span específico sobre restaurante que deve ser removido
-      if (trimmed.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais')) {
+      // Filtrar conteúdos específicos que devem ser removidos
+      if (trimmed.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais') ||
+          trimmed.includes('Bem-vindo ao Blog Criadores') ||
+          trimmed.includes('primeiro post oficial do Blog Criadores')) {
         return; // Pular este parágrafo
       }
 
@@ -58,7 +60,9 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
     // Se não encontrou pontos específicos, pegar os primeiros parágrafos
     if (keyPoints.length === 0) {
       const filteredParagraphs = paragraphs.filter(p =>
-        !p.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais')
+        !p.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais') &&
+        !p.includes('Bem-vindo ao Blog Criadores') &&
+        !p.includes('primeiro post oficial do Blog Criadores')
       );
       keyPoints.push(...filteredParagraphs.slice(0, 4));
     }

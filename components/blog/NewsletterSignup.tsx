@@ -24,20 +24,44 @@ const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
     if (!email || isSubmitting) return;
 
     setIsSubmitting(true);
-    
-    // Simular envio (aqui você integraria com seu serviço de newsletter)
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsSuccess(true);
-      setEmail('');
+      // Chamar API real de newsletter
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          audience_target,
+          source: 'blog',
+          variant: variant || 'default',
+          referrer: window.location.href
+        })
+      });
 
-      // Track successful newsletter signup
-      trackNewsletterSignup(variant || 'default');
-      trackFormSubmission('newsletter', true);
+      const data = await response.json();
 
-      setTimeout(() => setIsSuccess(false), 3000);
+      if (data.success) {
+        setIsSuccess(true);
+        setEmail('');
+
+        // Track successful newsletter signup
+        trackNewsletterSignup(variant || 'default');
+        trackFormSubmission('newsletter', true);
+
+        setTimeout(() => setIsSuccess(false), 3000);
+      } else {
+        console.error('Erro ao inscrever:', data.error);
+        alert(data.error || 'Erro ao processar inscrição. Tente novamente.');
+
+        // Track failed newsletter signup
+        trackFormSubmission('newsletter', false);
+      }
     } catch (error) {
       console.error('Erro ao inscrever:', error);
+      alert('Erro de conexão. Verifique sua internet e tente novamente.');
 
       // Track failed newsletter signup
       trackFormSubmission('newsletter', false);
