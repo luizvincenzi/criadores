@@ -1,24 +1,46 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Twitter, Linkedin, MessageCircle, Copy, Heart } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Twitter, Linkedin, MessageCircle, Copy, Heart, Instagram } from 'lucide-react';
+import {
+  trackBlogShare,
+  trackBlogLike,
+  trackBlogCopyLink,
+  hasUserLikedPost
+} from '@/lib/blogTracking';
 
 interface FixedSocialShareProps {
   title: string;
   excerpt: string;
   url?: string;
   className?: string;
+  postSlug?: string;
+  postId?: string;
 }
 
-const FixedSocialShare: React.FC<FixedSocialShareProps> = ({ 
-  title, 
-  excerpt, 
+const FixedSocialShare: React.FC<FixedSocialShareProps> = ({
+  title,
+  excerpt,
   url,
-  className = '' 
+  className = '',
+  postSlug = '',
+  postId = ''
 }) => {
   const [isSharing, setIsSharing] = useState(false);
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
+
+  // Verificar se usuário já curtiu o post
+  useEffect(() => {
+    const checkUserLike = async () => {
+      if (postSlug) {
+        const userLiked = await hasUserLikedPost(postSlug);
+        setHasLiked(userLiked);
+      }
+    };
+
+    checkUserLike();
+  }, [postSlug]);
 
   const currentUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
   const shareText = `${title} - ${excerpt}`;
@@ -27,9 +49,19 @@ const FixedSocialShare: React.FC<FixedSocialShareProps> = ({
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`,
     whatsapp: `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`,
+    instagram: `https://www.instagram.com/`, // Instagram não permite compartilhamento direto via URL
   };
 
   const handleShare = async (platform: keyof typeof shareUrls | 'copy') => {
+    // Track no banco de dados
+    if (postSlug) {
+      if (platform === 'copy') {
+        await trackBlogCopyLink(postSlug, title, postId);
+      } else {
+        await trackBlogShare(postSlug, title, platform as any, postId);
+      }
+    }
+
     if (platform === 'copy') {
       try {
         await navigator.clipboard.writeText(currentUrl);
@@ -38,15 +70,38 @@ const FixedSocialShare: React.FC<FixedSocialShareProps> = ({
       } catch (err) {
         console.error('Erro ao copiar link:', err);
       }
+    } else if (platform === 'instagram') {
+      // Para Instagram, mostrar instruções ou abrir o app
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: title,
+            text: shareText,
+            url: currentUrl,
+          });
+        } catch (err) {
+          // Fallback: copiar link e mostrar instruções
+          await navigator.clipboard.writeText(currentUrl);
+          alert('Link copiado! Cole no Instagram Stories ou em uma publicação.');
+        }
+      } else {
+        // Fallback para browsers sem Web Share API
+        await navigator.clipboard.writeText(currentUrl);
+        alert('Link copiado! Cole no Instagram Stories ou em uma publicação.');
+      }
     } else {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
   };
 
-  const handleLike = () => {
-    if (!hasLiked) {
+  const handleLike = async () => {
+    if (!hasLiked && postSlug) {
+      // Atualizar estado local imediatamente
       setLikes(prev => prev + 1);
       setHasLiked(true);
+
+      // Registrar no banco de dados
+      await trackBlogLike(postSlug, title, postId);
     }
   };
 
@@ -102,12 +157,21 @@ const FixedSocialShare: React.FC<FixedSocialShareProps> = ({
           <MessageCircle className="w-5 h-5" />
         </button>
 
+        {/* Instagram */}
+        <button
+          onClick={() => handleShare('instagram')}
+          className="w-12 h-12 bg-gray-100 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 text-gray-600 hover:text-purple-600 rounded-full flex items-center justify-center transition-all duration-200"
+          title="Compartilhar no Instagram"
+        >
+          <Instagram className="w-5 h-5" />
+        </button>
+
         {/* Copy Link */}
         <button
           onClick={() => handleShare('copy')}
           className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isSharing 
-              ? 'bg-green-100 text-green-600' 
+            isSharing
+              ? 'bg-green-100 text-green-600'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
           }`}
           title="Copiar link"

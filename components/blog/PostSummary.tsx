@@ -7,9 +7,10 @@ interface PostSummaryProps {
   content: string;
   audience_target: 'EMPRESAS' | 'CRIADORES' | 'AMBOS';
   tags?: string[];
+  excerpt?: string; // Resumo/Excerpt do CRM
 }
 
-const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tags = [] }) => {
+const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tags = [], excerpt }) => {
   // Função para extrair pontos principais do conteúdo
   const extractKeyPoints = (content: string): string[] => {
     // Remover aspas duplas se o conteúdo estiver entre aspas
@@ -105,6 +106,23 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
         </h3>
       </div>
       
+      {/* Mostrar excerpt do CRM se disponível */}
+      {excerpt && (
+        <div className="mb-4 p-4 bg-white rounded-lg border-l-4 border-blue-500">
+          <div className="flex items-center mb-2">
+            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+              <span className="text-white text-xs font-bold">!</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+              Resumo Executivo
+            </span>
+          </div>
+          <p className="text-gray-700 leading-relaxed text-base font-medium">
+            {excerpt}
+          </p>
+        </div>
+      )}
+
       <ul className="space-y-3">
         {keyPoints.map((point, index) => (
           <li key={index} className="flex items-start space-x-3">

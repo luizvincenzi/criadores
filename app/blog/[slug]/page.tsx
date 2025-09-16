@@ -17,6 +17,7 @@ import YouTubeEmbed from '@/components/blog/YouTubeEmbed';
 import ChatbotCTA from '@/components/blog/ChatbotCTA';
 import { BlogPostSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 import { trackBlogView } from '@/lib/gtag';
+import BlogViewTracker from '@/components/blog/BlogViewTracker';
 // import ClientTracker from '@/components/blog/ClientTracker';
 
 // Funções auxiliares
@@ -209,10 +210,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       />
 
       <div className="min-h-screen bg-gray-50">
+        {/* Tracking de visualização */}
+        <BlogViewTracker
+          postSlug={post.slug}
+          postTitle={post.title}
+          postId={post.id}
+        />
+
         {/* Botões de Compartilhamento Fixos */}
         <FixedSocialShare
           title={post.title}
           excerpt={post.excerpt}
+          postSlug={post.slug}
+          postId={post.id}
         />
 
         {/* Breadcrumb Navigation */}
@@ -266,6 +276,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     excerpt={post.excerpt}
                     viewCount={post.view_count}
                     variant="full"
+                    postSlug={post.slug}
+                    postId={post.id}
                   />
                 </header>
 
@@ -276,6 +288,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     content={post.content}
                     audience_target={post.audience_target}
                     tags={post.tags}
+                    excerpt={post.excerpt}
                   />
 
                   {/* Imagem em Destaque */}
