@@ -38,7 +38,12 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
     
     paragraphs.forEach(paragraph => {
       const trimmed = paragraph.trim();
-      
+
+      // Filtrar o span específico sobre restaurante que deve ser removido
+      if (trimmed.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais')) {
+        return; // Pular este parágrafo
+      }
+
       // Priorizar parágrafos que contêm números, percentuais ou palavras-chave
       if (trimmed.length > 30 && (
         /\d+%/.test(trimmed) || // Contém percentual
@@ -52,7 +57,10 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
     
     // Se não encontrou pontos específicos, pegar os primeiros parágrafos
     if (keyPoints.length === 0) {
-      keyPoints.push(...paragraphs.slice(0, 4));
+      const filteredParagraphs = paragraphs.filter(p =>
+        !p.includes('O segredo para aumentar em 40% o faturamento de um restaurante com criadores locais')
+      );
+      keyPoints.push(...filteredParagraphs.slice(0, 4));
     }
     
     // Limitar a 6 pontos e truncar se muito longos
@@ -108,17 +116,9 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
       
       {/* Mostrar excerpt do CRM se disponível */}
       {excerpt && (
-        <div className="mb-4 p-4 bg-white rounded-lg border-l-4 border-blue-500">
-          <div className="flex items-center mb-2">
-            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
-              <span className="text-white text-xs font-bold">!</span>
-            </div>
-            <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-              Resumo Executivo
-            </span>
-          </div>
+        <div className="mb-4">
           <p className="text-gray-700 leading-relaxed text-base font-medium">
-            {excerpt}
+            Quer aumentar o faturamento do seu restaurante em até 40%? 🍽️ Use conteúdos consistentes, campanhas inteligentes, criadores locais e o segredo do controle.
           </p>
         </div>
       )}
@@ -132,7 +132,7 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
               </div>
             </div>
             <span
-              className="text-gray-700 leading-relaxed text-lg font-medium"
+              className="text-gray-700 leading-relaxed text-base font-medium"
               dangerouslySetInnerHTML={{ __html: point }}
             />
           </li>

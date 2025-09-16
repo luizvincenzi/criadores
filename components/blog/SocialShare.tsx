@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Share2, Twitter, Linkedin, MessageCircle, Copy, Heart, Eye, Instagram } from 'lucide-react';
+import { Share2, Twitter, Linkedin, MessageCircle, Copy, Heart, Eye } from 'lucide-react';
 import { trackSocialShare } from '@/lib/gtag';
 import {
   trackBlogShare,
@@ -48,7 +48,6 @@ const SocialShare: React.FC<SocialShareProps> = ({
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(currentUrl)}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`,
     whatsapp: `https://wa.me/?text=${encodeURIComponent(`${shareText} ${currentUrl}`)}`,
-    instagram: `https://www.instagram.com/`, // Instagram não permite compartilhamento direto via URL
   };
 
   // Carregar estatísticas do post e verificar se usuário já curtiu
@@ -100,25 +99,6 @@ const SocialShare: React.FC<SocialShareProps> = ({
         setTimeout(() => setIsSharing(false), 2000);
       } catch (err) {
         console.error('Erro ao copiar link:', err);
-      }
-    } else if (platform === 'instagram') {
-      // Para Instagram, mostrar instruções ou abrir o app
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: title,
-            text: shareText,
-            url: currentUrl,
-          });
-        } catch (err) {
-          // Fallback: copiar link e mostrar instruções
-          await navigator.clipboard.writeText(currentUrl);
-          alert('Link copiado! Cole no Instagram Stories ou em uma publicação.');
-        }
-      } else {
-        // Fallback para browsers sem Web Share API
-        await navigator.clipboard.writeText(currentUrl);
-        alert('Link copiado! Cole no Instagram Stories ou em uma publicação.');
       }
     } else {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
@@ -178,47 +158,38 @@ const SocialShare: React.FC<SocialShareProps> = ({
           <span className="text-sm text-gray-500 font-medium">Compartilhar:</span>
         </div>
 
-        {/* Botões de Compartilhamento */}
-        <div className="flex items-center flex-wrap gap-3 mb-4">
+        {/* Botões de Compartilhamento - Mobile Friendly */}
+        <div className="grid grid-cols-2 sm:flex sm:items-center sm:flex-wrap gap-2 sm:gap-3 mb-4">
         <button
           onClick={() => handleShare('twitter')}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors"
+          className="flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors text-sm"
           title="Compartilhar no Twitter"
         >
           <Twitter className="w-4 h-4" />
-          <span className="text-sm font-medium">Twitter</span>
+          <span className="hidden sm:inline font-medium">Twitter</span>
         </button>
 
         <button
           onClick={() => handleShare('linkedin')}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-full transition-colors"
+          className="flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-full transition-colors text-sm"
           title="Compartilhar no LinkedIn"
         >
           <Linkedin className="w-4 h-4" />
-          <span className="text-sm font-medium">LinkedIn</span>
+          <span className="hidden sm:inline font-medium">LinkedIn</span>
         </button>
 
         <button
           onClick={() => handleShare('whatsapp')}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors"
+          className="flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full transition-colors text-sm"
           title="Compartilhar no WhatsApp"
         >
           <MessageCircle className="w-4 h-4" />
-          <span className="text-sm font-medium">WhatsApp</span>
-        </button>
-
-        <button
-          onClick={() => handleShare('instagram')}
-          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-colors"
-          title="Compartilhar no Instagram"
-        >
-          <Instagram className="w-4 h-4" />
-          <span className="text-sm font-medium">Instagram</span>
+          <span className="hidden sm:inline font-medium">WhatsApp</span>
         </button>
 
         <button
           onClick={() => handleShare('copy')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors ${
+          className={`flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2 rounded-full transition-colors text-sm ${
             isSharing
               ? 'bg-green-100 text-green-700'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -226,7 +197,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
           title="Copiar link"
         >
           <Copy className="w-4 h-4" />
-          <span className="text-sm font-medium">
+          <span className="hidden sm:inline font-medium">
             {isSharing ? 'Copiado!' : 'Copiar'}
           </span>
         </button>

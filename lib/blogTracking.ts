@@ -87,13 +87,13 @@ export class BlogTrackingService {
         });
 
       if (error) {
-        console.error('Erro ao registrar interação:', error);
+        console.error('Erro ao registrar interação:', error.message || error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Erro ao trackear interação:', error);
+      console.error('Erro ao trackear interação:', error instanceof Error ? error.message : error);
       return false;
     }
   }
@@ -155,13 +155,13 @@ export class BlogTrackingService {
         .single();
 
       if (error) {
-        console.error('Erro ao buscar estatísticas:', error);
+        console.error('Erro ao buscar estatísticas:', error.message || error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Erro ao obter estatísticas:', error);
+      console.error('Erro ao obter estatísticas:', error instanceof Error ? error.message : error);
       return null;
     }
   }
@@ -180,13 +180,13 @@ export class BlogTrackingService {
         .limit(1);
 
       if (error) {
-        console.error('Erro ao verificar like:', error);
+        console.error('Erro ao verificar like:', error.message || error);
         return false;
       }
 
       return data && data.length > 0;
     } catch (error) {
-      console.error('Erro ao verificar like do usuário:', error);
+      console.error('Erro ao verificar like do usuário:', error instanceof Error ? error.message : error);
       return false;
     }
   }
