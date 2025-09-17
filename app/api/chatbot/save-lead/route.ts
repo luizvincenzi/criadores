@@ -13,11 +13,25 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 export async function POST(request: NextRequest) {
+  const leadId = generateLeadId();
+
   try {
     const userData = await request.json();
-    
-    console.log('Dados recebidos do chatbot:', userData);
-    
+
+    // 🔍 LOG DETALHADO - Dados recebidos
+    console.log('🔍 [CHATBOT API] Dados recebidos:', JSON.stringify(userData, null, 2));
+    console.log('🔍 [CHATBOT API] Lead ID gerado:', leadId);
+    console.log('🔍 [CHATBOT API] Timestamp:', new Date().toISOString());
+
+    // Validar dados obrigatórios
+    if (!userData.name || !userData.email) {
+      console.error('❌ [CHATBOT API] Dados obrigatórios faltando:', { name: userData.name, email: userData.email });
+      return NextResponse.json(
+        { success: false, error: 'Nome e email são obrigatórios' },
+        { status: 400 }
+      );
+    }
+
     // Preparar dados para a tabela businesses do Supabase
     const businessData = {
       organization_id: "00000000-0000-0000-0000-000000000001",
@@ -47,14 +61,16 @@ export async function POST(request: NextRequest) {
       status: "Reunião de briefing",
       tags: [],
       custom_fields: JSON.stringify({
-        notes: `Lead gerado via chatbot - ${userData.userType === 'empresa' ? 'Empresa' : 'Criador'}`,
+        notes: `Lead gerado via chatbot - ${userData.userType === 'empresa' ? 'Empresa' : 'Criador'} - Protocolo: ${leadId}`,
         categoria: getCategoryFromData(userData),
         comercial: "",
         planoAtual: "",
         responsavel: "Chatbot",
         grupoWhatsappCriado: "Não",
         tipoUsuario: userData.userType,
-        dadosCompletos: userData
+        dadosCompletos: userData,
+        protocoloChatbot: leadId,
+        timestampChatbot: new Date().toISOString()
       }),
       metrics: JSON.stringify({
         roi: 0,
@@ -76,34 +92,116 @@ export async function POST(request: NextRequest) {
       apresentacao_empresa: ""
     };
 
+    // 🔍 LOG DETALHADO - Dados preparados
+    console.log('🔍 [CHATBOT API] Dados preparados para Supabase:', JSON.stringify(businessData, null, 2));
+
     // Salvar no Supabase
+    console.log('🔍 [CHATBOT API] Iniciando inserção no Supabase...');
     const { data, error } = await supabase
       .from('businesses')
       .insert([businessData])
       .select();
 
     if (error) {
-      console.error('Erro ao salvar no Supabase:', error);
+      console.error('❌ [CHATBOT API] Erro ao salvar no Supabase:', error);
+      console.error('❌ [CHATBOT API] Detalhes do erro:', JSON.stringify(error, null, 2));
+      console.error('❌ [CHATBOT API] Dados que causaram erro:', JSON.stringify(businessData, null, 2));
+
+      // Tentar salvar em uma tabela de backup/logs
+      try {
+        await logFailedLead(userData, leadId, error);
+      } catch (logError) {
+        console.error('❌ [CHATBOT API] Erro ao salvar log de falha:', logError);
+      }
+
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: error.message, leadId, userData },
         { status: 500 }
       );
     }
 
-    console.log('Lead salvo com sucesso:', data);
-    
+    console.log('✅ [CHATBOT API] Lead salvo com sucesso:', JSON.stringify(data, null, 2));
+    console.log('✅ [CHATBOT API] ID do registro criado:', data[0]?.id);
+
+    // Verificar se realmente foi salvo
+    const { data: verification, error: verifyError } = await supabase
+      .from('businesses')
+      .select('id, name, contact_info, custom_fields')
+      .eq('id', data[0]?.id)
+      .single();
+
+    if (verifyError) {
+      console.error('⚠️ [CHATBOT API] Erro ao verificar salvamento:', verifyError);
+    } else {
+      console.log('✅ [CHATBOT API] Verificação de salvamento:', JSON.stringify(verification, null, 2));
+    }
+
     return NextResponse.json({
       success: true,
       data: data[0],
-      leadId: generateLeadId()
+      leadId,
+      verification: verification || null
     });
 
   } catch (error) {
-    console.error('Erro na API do chatbot:', error);
+    console.error('❌ [CHATBOT API] Erro geral na API:', error);
+    console.error('❌ [CHATBOT API] Stack trace:', error instanceof Error ? error.stack : 'N/A');
+
+    // Tentar salvar em uma tabela de backup/logs
+    try {
+      await logFailedLead(null, leadId, error);
+    } catch (logError) {
+      console.error('❌ [CHATBOT API] Erro ao salvar log de falha geral:', logError);
+    }
+
     return NextResponse.json(
-      { success: false, error: 'Erro interno do servidor' },
+      { success: false, error: 'Erro interno do servidor', leadId },
       { status: 500 }
     );
+  }
+}
+
+// Função para salvar leads que falharam
+async function logFailedLead(userData: any, leadId: string, error: any): Promise<void> {
+  try {
+    console.log('🔍 [BACKUP LOG] Salvando lead que falhou...');
+
+    // Tentar salvar em uma tabela de logs ou como arquivo
+    const failedLeadData = {
+      leadId,
+      userData,
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString(),
+      userAgent: userData?.userAgent || 'N/A',
+      source: 'chatbot'
+    };
+
+    // Salvar em console para debug
+    console.log('🔍 [BACKUP LOG] Dados do lead que falhou:', JSON.stringify(failedLeadData, null, 2));
+
+    // Tentar salvar em uma tabela de backup se existir
+    try {
+      const { error: backupError } = await supabase
+        .from('failed_leads')
+        .insert([{
+          lead_id: leadId,
+          user_data: userData,
+          error_message: error instanceof Error ? error.message : String(error),
+          error_details: JSON.stringify(error),
+          created_at: new Date().toISOString()
+        }]);
+
+      if (backupError) {
+        console.log('⚠️ [BACKUP LOG] Tabela failed_leads não existe, usando apenas console log');
+      } else {
+        console.log('✅ [BACKUP LOG] Lead salvo na tabela de backup');
+      }
+    } catch (backupError) {
+      console.log('⚠️ [BACKUP LOG] Erro ao salvar em tabela de backup:', backupError);
+    }
+
+  } catch (logError) {
+    console.error('❌ [BACKUP LOG] Erro ao criar log de falha:', logError);
   }
 }
 
@@ -114,7 +212,7 @@ function generateSlug(name: string): string {
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    .trim() + '-' + Math.random().toString(36).substr(2, 8);
+    .trim() + '-' + Math.random().toString(36).substring(2, 10);
 }
 
 function generateLeadId(): string {
