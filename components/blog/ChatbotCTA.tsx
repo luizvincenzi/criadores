@@ -14,7 +14,7 @@ const ChatbotCTA: React.FC<ChatbotCTAProps> = ({
   className = '' 
 }) => {
   const handleCTAClick = () => {
-    trackCTAClick('chatbot_cta', 'criavoz-homepage', audience_target);
+    trackCTAClick('chatbot_cta', 'chatcriadores-home', audience_target);
   };
 
   const getContent = () => {
@@ -107,7 +107,7 @@ const ChatbotCTA: React.FC<ChatbotCTAProps> = ({
 
         {/* Botão CTA */}
         <a
-          href="/criavoz-homepage"
+          href="/chatcriadores-home"
           onClick={handleCTAClick}
           className="inline-flex items-center justify-center px-8 py-4 bg-white hover:bg-gray-100 text-blue-900 rounded-lg font-bold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
         >

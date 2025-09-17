@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     description: 'Conecte seu negócio aos melhores criadores de conteúdo da sua região. Campanhas de marketing que geram resultados reais!',
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://criadores.app/crialink',
+    url: 'https://criadores.app/linkcriadores',
     siteName: 'crIAdores',
     images: [
       {
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     images: ['/faviconcriadoresA3.png']
   },
   alternates: {
-    canonical: 'https://criadores.app/crialink'
+    canonical: 'https://criadores.app/linkcriadores'
   }
 };
 

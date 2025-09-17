@@ -13,14 +13,21 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 export async function POST(request: NextRequest) {
-  const leadId = generateLeadId();
+  let leadId: string = '';
 
   try {
+    leadId = generateLeadId();
     const userData = await request.json();
+
+    // Determinar a fonte baseada nos dados
+    const source = userData.source === 'criavoz-novo' ? 'criavoz-novo' :
+                   userData.source === 'criavoz-instagram' ? 'criavoz-instagram' :
+                   'criavoz-chatbot';
 
     // 🔍 LOG DETALHADO - Dados recebidos
     console.log('🔍 [CHATBOT API] Dados recebidos:', JSON.stringify(userData, null, 2));
     console.log('🔍 [CHATBOT API] Lead ID gerado:', leadId);
+    console.log('🔍 [CHATBOT API] Fonte identificada:', source);
     console.log('🔍 [CHATBOT API] Timestamp:', new Date().toISOString());
 
     // Validar dados obrigatórios
@@ -61,7 +68,7 @@ export async function POST(request: NextRequest) {
       status: "Reunião de briefing",
       tags: [],
       custom_fields: JSON.stringify({
-        notes: `Lead gerado via chatbot - ${userData.userType === 'empresa' ? 'Empresa' : 'Criador'} - Protocolo: ${leadId}`,
+        notes: `Lead gerado via ${source} - ${userData.userType === 'empresa' ? 'Empresa' : 'Criador'} - Protocolo: ${leadId}`,
         categoria: getCategoryFromData(userData),
         comercial: "",
         planoAtual: "",
@@ -70,7 +77,21 @@ export async function POST(request: NextRequest) {
         tipoUsuario: userData.userType,
         dadosCompletos: userData,
         protocoloChatbot: leadId,
-        timestampChatbot: new Date().toISOString()
+        timestampChatbot: new Date().toISOString(),
+        fonte: source,
+        // Dados específicos do chatbot para facilitar acesso
+        nomeResponsavel: userData.name,
+        whatsappResponsavel: userData.whatsapp,
+        emailResponsavel: userData.email,
+        instagramResponsavel: userData.instagram,
+        segmento: userData.userType === 'empresa' ? userData.businessSegment : userData.creatorNiche,
+        objetivo: userData.userType === 'empresa' ? userData.businessGoal : 'criacao_conteudo',
+        experienciaAnterior: userData.userType === 'empresa' ? userData.hasWorkedWithInfluencers : userData.hasWorkedWithBrands,
+        quantidadeSeguidores: userData.userType === 'criador' ? userData.followersCount : null,
+        // Dados específicos do Instagram (se aplicável)
+        instagramHandle: userData.instagramHandle || null,
+        instagramFollowers: userData.instagramFollowers || null,
+        monthlyBudget: userData.monthlyBudget || null
       }),
       metrics: JSON.stringify({
         roi: 0,
@@ -79,7 +100,7 @@ export async function POST(request: NextRequest) {
         active_campaigns: 0
       }),
       is_active: true,
-      business_stage: "Leads próprios quentes",
+      business_stage: "1 prospect",
       estimated_value: "0.00",
       contract_creators_count: 0,
       priority: "Média",
@@ -120,14 +141,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ [CHATBOT API] Lead salvo com sucesso:', JSON.stringify(data, null, 2));
-    console.log('✅ [CHATBOT API] ID do registro criado:', data[0]?.id);
+    console.log('✅ [CHATBOT API] Business salvo com sucesso:', JSON.stringify(data, null, 2));
+    console.log('✅ [CHATBOT API] ID do business criado:', data[0]?.id);
 
-    // Verificar se realmente foi salvo
+    const businessId = data[0]?.id;
+
+    // 2. CRIAR LEAD NA TABELA LEADS
+    console.log('🔍 [CHATBOT API] Criando lead na tabela leads...');
+
+    const leadData = {
+      organization_id: "00000000-0000-0000-0000-000000000001",
+      name: userData.name,
+      email: userData.email,
+      phone: userData.whatsapp,
+      company: userData.userType === 'empresa' ? userData.businessName : null,
+      source: source,
+      lead_source: '1 prospect', // SEMPRE 1 prospect para leads dos chatbots
+      status: 'new',
+      score: userData.userType === 'empresa' ? 80 : 60, // Empresas têm score maior
+      contact_info: JSON.stringify({
+        tipo: userData.userType,
+        origem: 'CriaVoz Chatbot',
+        protocolo: leadId,
+        dados_originais: userData,
+        business_id: businessId
+      }),
+      notes: `Lead gerado via chatbot - ${userData.userType === 'empresa' ? 'Empresa' : 'Criador'} - Protocolo: ${leadId}`,
+      converted_to_business_id: businessId
+    };
+
+    const { data: leadResult, error: leadError } = await supabase
+      .from('leads')
+      .insert([leadData])
+      .select();
+
+    if (leadError) {
+      console.error('❌ [CHATBOT API] Erro ao criar lead:', leadError);
+      // Não falhar a operação por causa do lead, mas logar
+    } else {
+      console.log('✅ [CHATBOT API] Lead criado com sucesso:', leadResult[0]?.id);
+    }
+
+    // 3. ENVIAR NOTIFICAÇÕES
+    console.log('🔍 [CHATBOT API] Enviando notificações...');
+
+    try {
+      await sendNotifications(userData, leadId, businessId);
+    } catch (notificationError) {
+      console.error('❌ [CHATBOT API] Erro ao enviar notificações:', notificationError);
+      // Não falhar a operação por causa das notificações
+    }
+
+    // 4. Verificar se realmente foi salvo
     const { data: verification, error: verifyError } = await supabase
       .from('businesses')
       .select('id, name, contact_info, custom_fields')
-      .eq('id', data[0]?.id)
+      .eq('id', businessId)
       .single();
 
     if (verifyError) {
@@ -140,6 +209,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: data[0],
       leadId,
+      leadData: leadResult?.[0] || null,
       verification: verification || null
     });
 
@@ -160,6 +230,54 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Função para enviar notificações sobre novo lead
+async function sendNotifications(userData: any, leadId: string, businessId: string): Promise<void> {
+  try {
+    console.log('📧 [NOTIFICATIONS] Enviando notificações para novo lead...');
+
+    // 1. LOG DETALHADO PARA MONITORAMENTO
+    console.log('🔔 [NOTIFICATIONS] NOVO LEAD RECEBIDO!');
+    console.log('📋 Dados do Lead:');
+    console.log(`   👤 Nome: ${userData.name}`);
+    console.log(`   🏢 Tipo: ${userData.userType === 'empresa' ? 'Empresa' : 'Criador'}`);
+    console.log(`   🏢 Empresa: ${userData.userType === 'empresa' ? userData.businessName : 'N/A'}`);
+    console.log(`   📧 Email: ${userData.email}`);
+    console.log(`   📱 WhatsApp: ${userData.whatsapp}`);
+    console.log(`   📸 Instagram: ${userData.instagram}`);
+    console.log(`   🎫 Protocolo: ${leadId}`);
+    console.log(`   🆔 Business ID: ${businessId}`);
+    console.log(`   📅 Timestamp: ${new Date().toISOString()}`);
+
+    // 2. CHAMAR API DE NOTIFICAÇÕES
+    try {
+      const notificationResponse = await fetch('http://localhost:3000/api/notifications/new-lead', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          leadData: userData,
+          businessId,
+          leadId,
+          source: 'chatbot'
+        })
+      });
+
+      if (notificationResponse.ok) {
+        console.log('✅ [NOTIFICATIONS] Notificações enviadas com sucesso');
+      } else {
+        console.log('⚠️ [NOTIFICATIONS] Falha no envio de notificações (não crítico)');
+      }
+    } catch (notificationError) {
+      console.log('⚠️ [NOTIFICATIONS] Erro no envio de notificações:', notificationError);
+    }
+
+  } catch (error) {
+    console.error('❌ [NOTIFICATIONS] Erro geral nas notificações:', error);
+  }
+}
+
 
 // Função para salvar leads que falharam
 async function logFailedLead(userData: any, leadId: string, error: any): Promise<void> {
@@ -251,3 +369,5 @@ function getNicheText(niche: string): string {
   };
   return niches[niche] || niche;
 }
+
+

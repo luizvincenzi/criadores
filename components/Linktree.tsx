@@ -24,11 +24,12 @@ const Linktree = () => {
       id: 'chatbot',
       title: 'Comece agora!',
       description: 'Descubra como podemos potencializar seu negócio',
-      url: '/criavoz-homepage',
+      url: '/chatcriadores-home',
       icon: 'check',
       color: 'primary',
       isExternal: false
     },
+
     {
       id: 'website',
       title: 'Nosso Site',
@@ -42,7 +43,7 @@ const Linktree = () => {
       id: 'whatsapp',
       title: 'Nos chame no WhatsApp',
       description: '',
-      url: 'https://wa.me/5543991049779?text=Olá! Vim através do crialink e gostaria de saber mais sobre a crIAdores.',
+      url: 'https://wa.me/5543991049779?text=Olá! Vim através do linkcriadores e gostaria de saber mais sobre a crIAdores.',
       icon: 'whatsapp',
       color: 'secondary',
       isExternal: true

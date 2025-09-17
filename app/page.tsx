@@ -103,7 +103,7 @@ export default function Home() {
               <button onClick={() => window.location.href = '/login'} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors duration-200 border border-gray-300 rounded-full hover:border-gray-400">
                 Entrar
               </button>
-              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -148,7 +148,7 @@ export default function Home() {
                   <button onClick={() => window.location.href = '/login'} className="w-full px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-full">
                     Entrar
                   </button>
-                  <button onClick={() => window.location.href = '/criavoz-homepage'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+                  <button onClick={() => window.location.href = '/chatcriadores-home'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                     <span className="hidden sm:inline">Começar Agora</span>
                     <span className="sm:hidden">Começar</span>
                   </button>
@@ -175,7 +175,7 @@ export default function Home() {
             <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8 font-onest font-normal">
               Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade para <strong className="text-[#0b3553]">acelerar resultados e otimizar potencializando o negócio</strong> das empresas que trabalham com a gente.
             </p>
-            <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+            <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
               <span className="hidden sm:inline">Conectar Agora</span>
               <span className="sm:hidden">Conectar</span>
             </button>
@@ -344,7 +344,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6">
                 Conecte seu negócio aos melhores criadores da sua região e veja seus resultados crescerem.
               </p>
-              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -432,7 +432,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6 font-onest">
                 Junte-se a centenas de empresas que já transformaram seu marketing com influenciadores locais
               </p>
-              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -456,7 +456,7 @@ export default function Home() {
             com criadores locais que <strong className="text-white">realmente engajam</strong> com seu público-alvo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
+            <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
               <span className="hidden sm:inline">🚀 Começar Agora</span>
               <span className="sm:hidden">🚀 Começar</span>
             </button>
@@ -755,7 +755,7 @@ export default function Home() {
               </div>
             </div>
 
-            <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:bg-gray-100 text-green-600 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:bg-gray-100 text-green-600 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105">
               <span className="hidden sm:inline">🛡️ Garantir Meus Criadores Agora</span>
               <span className="sm:hidden">🛡️ Garantir</span>
             </button>
@@ -1026,7 +1026,7 @@ export default function Home() {
               <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6 max-w-md mx-auto">
                 Junte-se a centenas de empresas que já transformaram seu marketing local
               </p>
-              <button onClick={() => window.location.href = '/criavoz-homepage'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
                 <span className="hidden sm:inline">📈 Ver Mais Cases de Sucesso</span>
                 <span className="sm:hidden">📈 Cases</span>
                 <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1421,7 +1421,7 @@ export default function Home() {
 
               {/* CTA Principal */}
               <div className="pt-6">
-                <button onClick={() => window.location.href = '/criavoz-homepage'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                <button onClick={() => window.location.href = '/chatcriadores-home'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                   Começar Agora
                 </button>
               </div>

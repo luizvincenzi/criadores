@@ -42,13 +42,15 @@ interface ChatbotHomepageProps {
   welcomeMessage?: string;
   steps?: ChatStep[];
   onComplete?: (userData: UserData) => void;
+  source?: string;
 }
 
-export default function ChatbotHomepage({ 
+export default function ChatbotHomepage({
   title = "crIAdores",
   welcomeMessage = "Olá! 👋 Seja bem-vindo(a) à crIAdores! Sou a IA da crIAdores e estou aqui para te ajudar a descobrir como podemos potencializar seu negócio.",
   steps: customSteps,
-  onComplete
+  onComplete,
+  source = "criavoz-homepage"
 }: ChatbotHomepageProps) {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -405,7 +407,10 @@ export default function ChatbotHomepage({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          ...userData,
+          source: source
+        }),
       });
 
       const result = await response.json();
