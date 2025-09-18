@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
         active_campaigns: 0
       }),
       is_active: true,
-      business_stage: "01_PROSPECT",
+      business_stage: "Leads próprios quentes",
       lead_source: mapSourceToLeadSource(source), // Mapear source para valores aceitos
       estimated_value: "0.00",
       contract_creators_count: 0,

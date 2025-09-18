@@ -30,7 +30,7 @@ INSERT INTO businesses (
 ) VALUES (
   '00000000-0000-0000-0000-000000000001',
   'Teste Lead Source',
-  '01_PROSPECT',
+  'Leads próprios quentes',
   'Reunião de briefing',
   true,
   'chatcriadores-home'
