@@ -24,21 +24,21 @@ ALTER TABLE businesses
 ADD COLUMN business_stage_new business_stage_new DEFAULT '1 prospect';
 
 -- 3. Migrar dados existentes para as novas etapas
-UPDATE businesses SET business_stage_new = 
-  CASE 
-    WHEN business_stage = 'Leads próprios frios' THEN '1 prospect'
-    WHEN business_stage = 'Leads próprios quentes' THEN '1 prospect'
-    WHEN business_stage = 'Leads indicados' THEN '1 prospect'
-    WHEN business_stage = 'Enviando proposta' THEN '5 proposta enviada'
-    WHEN business_stage = 'Marcado reunião' THEN '2 1contato'
-    WHEN business_stage = 'Reunião realizada' THEN '3 2contato'
-    WHEN business_stage = 'Follow up' THEN '4 3contato'
-    WHEN business_stage = 'Contrato assinado' THEN '8 contrato assinado'
-    WHEN business_stage = 'Negócio Fechado' THEN '14 negocio fechado'
-    WHEN business_stage = 'Não teve interesse' THEN '1 prospect'
-    WHEN business_stage = 'Não responde' THEN '1 prospect'
-    WHEN business_stage = 'Declinado' THEN '1 prospect'
-    ELSE '1 prospect'
+UPDATE businesses SET business_stage_new =
+  CASE
+    WHEN business_stage = 'Leads próprios frios' THEN '1 prospect'::business_stage_new
+    WHEN business_stage = 'Leads próprios quentes' THEN '1 prospect'::business_stage_new
+    WHEN business_stage = 'Leads indicados' THEN '1 prospect'::business_stage_new
+    WHEN business_stage = 'Enviando proposta' THEN '5 proposta enviada'::business_stage_new
+    WHEN business_stage = 'Marcado reunião' THEN '2 1contato'::business_stage_new
+    WHEN business_stage = 'Reunião realizada' THEN '3 2contato'::business_stage_new
+    WHEN business_stage = 'Follow up' THEN '4 3contato'::business_stage_new
+    WHEN business_stage = 'Contrato assinado' THEN '8 contrato assinado'::business_stage_new
+    WHEN business_stage = 'Negócio Fechado' THEN '14 negocio fechado'::business_stage_new
+    WHEN business_stage = 'Não teve interesse' THEN '1 prospect'::business_stage_new
+    WHEN business_stage = 'Não responde' THEN '1 prospect'::business_stage_new
+    WHEN business_stage = 'Declinado' THEN '1 prospect'::business_stage_new
+    ELSE '1 prospect'::business_stage_new
   END;
 
 -- 4. Remover coluna antiga
