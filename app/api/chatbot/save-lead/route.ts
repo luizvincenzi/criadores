@@ -3,23 +3,20 @@ import { createClient } from '@supabase/supabase-js';
 
 // Função para mapear source para lead_source aceito pelo banco
 function mapSourceToLeadSource(source: string): string {
-  // TEMPORÁRIO: Apenas "proprio" é aceito atualmente
-  // Após executar ADICIONAR_LEAD_SOURCES_SUPABASE.sql, poderemos usar sources específicos
-
-  // Verificar se novos valores foram adicionados (teste rápido)
-  // Por enquanto, mapear tudo para "proprio" até migração ser executada
+  // Mapeamento direto de sources para lead_source
+  // Após executar SOLUÇÃO_SIMPLES_LEAD_SOURCE.sql, todos os valores serão aceitos
   const sourceMapping: { [key: string]: string } = {
-    'chatcriadores-home': 'proprio', // Temporário - será 'chatcriadores-home' após migração
-    'chatcriadores-novo': 'proprio', // Temporário - será 'chatcriadores-novo' após migração
+    'chatcriadores-home': 'chatcriadores-home',
+    'chatcriadores-novo': 'chatcriadores-novo',
     'criavoz-chatbot': 'proprio',
     'criavoz-homepage': 'proprio',
     'criavoz-novo': 'proprio',
     'proprio': 'proprio',
-    'indicacao': 'proprio', // Temporário - será 'indicacao' após migração
-    'socio': 'proprio', // Temporário - será 'socio' após migração
-    'parceiro': 'proprio', // Temporário - será 'parceiro' após migração
-    'organico': 'proprio', // Temporário - será 'organico' após migração
-    'pago': 'proprio' // Temporário - será 'pago' após migração
+    'indicacao': 'indicacao',
+    'socio': 'socio',
+    'parceiro': 'parceiro',
+    'organico': 'organico',
+    'pago': 'pago'
   };
 
   return sourceMapping[source] || 'proprio';
