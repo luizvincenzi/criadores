@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Função para mapear source para lead_source aceito pelo banco
+function mapSourceToLeadSource(source: string): string {
+  // TEMPORÁRIO: Apenas "proprio" é aceito atualmente
+  // Após executar ADICIONAR_LEAD_SOURCES_SUPABASE.sql, poderemos usar sources específicos
+
+  // Verificar se novos valores foram adicionados (teste rápido)
+  // Por enquanto, mapear tudo para "proprio" até migração ser executada
+  const sourceMapping: { [key: string]: string } = {
+    'chatcriadores-home': 'proprio', // Temporário - será 'chatcriadores-home' após migração
+    'chatcriadores-novo': 'proprio', // Temporário - será 'chatcriadores-novo' após migração
+    'criavoz-chatbot': 'proprio',
+    'criavoz-homepage': 'proprio',
+    'criavoz-novo': 'proprio',
+    'proprio': 'proprio',
+    'indicacao': 'proprio', // Temporário - será 'indicacao' após migração
+    'socio': 'proprio', // Temporário - será 'socio' após migração
+    'parceiro': 'proprio', // Temporário - será 'parceiro' após migração
+    'organico': 'proprio', // Temporário - será 'organico' após migração
+    'pago': 'proprio' // Temporário - será 'pago' após migração
+  };
+
+  return sourceMapping[source] || 'proprio';
+}
+
 // Configuração do Supabase com service role para operações sem autenticação
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -101,7 +125,7 @@ export async function POST(request: NextRequest) {
       }),
       is_active: true,
       business_stage: "01_PROSPECT",
-      lead_source: "proprio",
+      lead_source: mapSourceToLeadSource(source), // Mapear source para valores aceitos
       estimated_value: "0.00",
       contract_creators_count: 0,
       priority: "Média",
