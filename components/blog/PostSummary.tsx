@@ -126,7 +126,7 @@ const PostSummary: React.FC<PostSummaryProps> = ({ content, audience_target, tag
       {excerpt && (
         <div className="mb-4">
           <p className="text-gray-700 leading-relaxed text-base font-medium">
-            Quer aumentar o faturamento do seu restaurante em até 40%? 🍽️ Use conteúdos consistentes, campanhas inteligentes, criadores locais e o segredo do controle.
+            {excerpt}
           </p>
         </div>
       )}
