@@ -2,11 +2,11 @@
 // ================================================
 
 export enum UserRole {
-  ADMIN = 'admin',                    // Administradores da crIAdores
-  MANAGER = 'manager',                // Gerentes da crIAdores
-  BUSINESS_OWNER = 'business_owner',  // Donos de empresas clientes
-  CREATOR = 'creator',                // Influenciadores/Criadores
-  MARKETING_STRATEGIST = 'marketing_strategist', // Estrategistas de marketing
+  ADMIN = 'admin',                    // Administradores da crIAdores (CRM interno)
+  MANAGER = 'manager',                // Gerentes da crIAdores (CRM interno)
+  BUSINESS_OWNER = 'business_owner',  // Empresas clientes da plataforma
+  CREATOR_STRATEGIST = 'creator_strategist', // Criadores estrategistas (nível premium)
+  CREATOR = 'creator',                // Criadores/Influenciadores (nível básico)
   USER = 'user',                      // Usuários padrão
   VIEWER = 'viewer'                   // Visualizadores
 }
@@ -18,6 +18,24 @@ export enum UserStatus {
   SUSPENDED = 'suspended'
 }
 
+export enum CreatorType {
+  CREATOR = 'creator',                // Criador básico
+  CREATOR_STRATEGIST = 'creator_strategist' // Criador estrategista (premium)
+}
+
+export enum SubscriptionPlan {
+  // Planos para Empresas
+  BUSINESS_BASIC = 'Empresa Básico',
+  BUSINESS_PREMIUM = 'Empresa Premium',
+
+  // Planos para Criadores
+  CREATOR_FREE = 'Criador Gratuito',
+  CREATOR_PRO = 'Criador Pro',
+
+  // Planos para Estrategistas
+  STRATEGIST = 'Estrategista'
+}
+
 export interface User {
   id: string;
   email: string;
@@ -26,6 +44,10 @@ export interface User {
   status: UserStatus;
   business_id?: string;           // ID da empresa (obrigatório para BUSINESS_OWNER)
   creator_id?: string;            // ID do criador (obrigatório para CREATOR)
+  creator_type?: CreatorType;     // Tipo de criador (creator ou creator_strategist)
+  subscription_plan?: SubscriptionPlan; // Plano de assinatura ativo
+  subscription_expires_at?: string; // Data de expiração da assinatura
+  features_enabled?: Record<string, any>; // Recursos específicos habilitados
   managed_businesses?: string[];  // IDs das empresas gerenciadas (para MARKETING_STRATEGIST)
   permissions: string[];
   avatar_url?: string;
@@ -44,7 +66,7 @@ export interface AuthSession {
 
 // Permissões específicas por tipo de usuário
 export const PERMISSIONS = {
-  // Administradores - Acesso total
+  // Administradores - Acesso total (CRM interno)
   ADMIN: [
     'admin:all',
     'business:read',
@@ -62,10 +84,12 @@ export const PERMISSIONS = {
     'analytics:read',
     'users:read',
     'users:write',
-    'users:delete'
+    'users:delete',
+    'billing:read',
+    'billing:write'
   ],
 
-  // Gerentes - Acesso amplo mas sem deletar
+  // Gerentes - Acesso amplo mas sem deletar (CRM interno)
   MANAGER: [
     'business:read',
     'business:write',
@@ -79,38 +103,48 @@ export const PERMISSIONS = {
     'users:read'
   ],
 
-  // Donos de empresas - Acesso apenas aos próprios dados
+  // Empresas - Clientes da plataforma
   BUSINESS_OWNER: [
+    'dashboard:read',
     'business:read_own',
+    'business:write_own',
     'campaign:read_own',
     'campaign:write_own',
+    'campaign:delete_own',
     'creator:read_assigned',
     'task:read_own',
     'task:write_own',
-    'analytics:read_own'
+    'analytics:read_own',
+    'reports:read_own'
   ],
 
-  // Criadores - Acesso apenas às campanhas onde estão envolvidos
-  CREATOR: [
+  // Criadores Estrategistas - Nível premium com recursos avançados
+  CREATOR_STRATEGIST: [
+    'dashboard:read',
+    'dashboard:write',
+    'profile:read_own',
+    'profile:write_own',
     'campaign:read_assigned',
-    'task:read_assigned',
-    'task:write_assigned',
-    'creator:read_own',
-    'creator:write_own',
-    'analytics:read_own'
+    'campaign:write_assigned',
+    'campaign:create',
+    'team:read_own',
+    'team:write_own',
+    'business_tools:read',
+    'business_tools:write',
+    'analytics:read_own',
+    'api:access',
+    'white_label:access'
   ],
 
-  // Estrategistas de marketing - Acesso às empresas gerenciadas
-  MARKETING_STRATEGIST: [
-    'business:read_managed',
-    'business:write_managed',
-    'campaign:read_managed',
-    'campaign:write_managed',
-    'creator:read_managed',
-    'creator:write_managed',
-    'task:read_managed',
-    'task:write_managed',
-    'analytics:read_managed'
+  // Criadores - Nível básico
+  CREATOR: [
+    'dashboard:read',
+    'profile:read_own',
+    'profile:write_own',
+    'campaign:read_assigned',
+    'portfolio:read_own',
+    'portfolio:write_own',
+    'analytics:read_own'
   ],
 
   // Usuários padrão - Acesso limitado
@@ -161,10 +195,12 @@ export function canAccessBusiness(user: User, businessId: string): boolean {
     case UserRole.MANAGER:
       return true; // Admins e managers podem acessar qualquer business
     case UserRole.BUSINESS_OWNER:
+      return user.business_id === businessId; // Empresas só acessam próprio business
+    case UserRole.CREATOR_STRATEGIST:
+      return true; // Estrategistas têm acesso amplo para descoberta
     case UserRole.CREATOR:
-      return user.business_id === businessId;
-    case UserRole.MARKETING_STRATEGIST:
-      return user.managed_businesses?.includes(businessId) === true;
+      // Criadores podem ver businesses das campanhas que participam
+      return true; // Acesso limitado para descoberta
     case UserRole.USER:
     case UserRole.VIEWER:
       return true; // Acesso limitado mas podem visualizar
@@ -178,17 +214,18 @@ export function canAccessCampaign(user: User, campaignBusinessId: string, creato
   switch (user.role) {
     case UserRole.ADMIN:
     case UserRole.MANAGER:
-      return true;
+      return true; // Acesso total
     case UserRole.BUSINESS_OWNER:
-      return user.business_id === campaignBusinessId;
+      return user.business_id === campaignBusinessId; // Só suas próprias campanhas
+    case UserRole.CREATOR_STRATEGIST:
+      // Estrategistas podem acessar campanhas que criaram ou participam
+      return creatorIds?.includes(user.creator_id || '') === true;
     case UserRole.CREATOR:
-      return user.business_id === campaignBusinessId &&
-             creatorIds?.includes(user.creator_id || '') === true;
-    case UserRole.MARKETING_STRATEGIST:
-      return user.managed_businesses?.includes(campaignBusinessId) === true;
+      // Criadores só acessam campanhas onde estão participando
+      return creatorIds?.includes(user.creator_id || '') === true;
     case UserRole.USER:
     case UserRole.VIEWER:
-      return true; // Acesso de leitura
+      return true; // Acesso de leitura limitado
     default:
       return false;
   }
