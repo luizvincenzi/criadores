@@ -182,7 +182,7 @@ export default function PerguntasFrequentesPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="https://wa.me/5511999999999?text=Olá! Tenho dúvidas sobre as campanhas do crIAdores"
+                href="https://wa.me/554391936400?text=Olá! Tenho dúvidas sobre as campanhas do crIAdores"
                 className="bg-white text-[#0b3553] px-8 py-4 rounded-lg font-bold hover:bg-gray-100 transition-colors text-lg"
                 target="_blank"
                 rel="noopener noreferrer"

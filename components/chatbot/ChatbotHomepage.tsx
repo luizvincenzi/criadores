@@ -195,7 +195,7 @@ export default function ChatbotHomepage({
     },
     {
       id: 'whatsapp',
-      message: 'Qual é o seu WhatsApp? (formato: 11999999999)',
+      message: 'Qual é o seu WhatsApp? (formato: 43999999999)',
       type: 'input',
       field: 'whatsapp',
       validation: (value) => /^\d{10,11}$/.test(value.replace(/\D/g, '')),
@@ -372,7 +372,7 @@ export default function ChatbotHomepage({
     if (step.final) {
       if (value === 'whatsapp') {
         const whatsappMessage = generateWhatsAppMessage(userData);
-        window.open(`https://wa.me/5543991049779?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+        window.open(`https://wa.me/554391936400?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
       } else if (value === 'home') {
         router.push('/');
       }

@@ -186,7 +186,7 @@ export async function GET() {
       leadData: {
         name: 'João Silva',
         email: 'joao@exemplo.com',
-        whatsapp: '11999999999',
+        whatsapp: '4391936400',
         userType: 'empresa',
         businessName: 'Empresa Exemplo'
       },

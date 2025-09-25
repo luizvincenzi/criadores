@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
             ...social_media
           },
           contact_info: {
-            whatsapp: contact_info.whatsapp || '5511999999999',
+            whatsapp: contact_info.whatsapp || '554391936400',
             email: contact_info.email || `${creator.name.toLowerCase().replace(/\s+/g, '')}@email.com`,
             ...contact_info
           },

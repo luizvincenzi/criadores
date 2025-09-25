@@ -1351,7 +1351,7 @@ export default function Home() {
             <div className="space-y-8">
               <h3 className="text-2xl font-bold text-white">Contato</h3>
               <div className="space-y-6">
-                <a href="https://wa.me/5543991049779" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
+                <a href="https://wa.me/554391936400" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-blue-100 hover:text-white transition-colors duration-300 group w-full">
                   <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                       <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>
@@ -1359,7 +1359,7 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="font-bold text-lg">WhatsApp</div>
-                    <div className="text-sm font-medium text-blue-100/80">(43) 99104-9779</div>
+                    <div className="text-sm font-medium text-blue-100/80">(43) 9193-6400</div>
                   </div>
                 </a>
               </div>

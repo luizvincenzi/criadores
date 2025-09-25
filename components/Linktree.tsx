@@ -43,7 +43,7 @@ const Linktree = () => {
       id: 'whatsapp',
       title: 'Nos chame no WhatsApp',
       description: '',
-      url: 'https://wa.me/5543991049779?text=Olá! Vim através do linkcriadores e gostaria de saber mais sobre a crIAdores.',
+      url: 'https://wa.me/554391936400?text=Olá! Vim através do linkcriadores e gostaria de saber mais sobre a crIAdores.',
       icon: 'whatsapp',
       color: 'secondary',
       isExternal: true

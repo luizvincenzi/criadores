@@ -1378,7 +1378,7 @@ export default function Home() {
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">WhatsApp</h3>
                   <p className="text-gray-600">
-                    <a href="https://wa.me/5543991049779" target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">
+                    <a href="https://wa.me/554391936400" target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">
                       43 99104-9779
                     </a>
                   </p>
@@ -1468,7 +1468,7 @@ export default function Home() {
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <span className="block font-medium text-white mb-1">WhatsApp</span>
-                  <a href="https://wa.me/5543991049779" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">43 99104-9779</a>
+                  <a href="https://wa.me/554391936400" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">(43) 9193-6400</a>
                 </li>
                 <li>
                   <span className="block font-medium text-white mb-1 mt-4">Instagram</span>

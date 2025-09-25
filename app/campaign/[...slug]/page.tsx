@@ -228,7 +228,7 @@ export default function CampaignLandingPage() {
             {/* Botão Aplicar-se Mobile */}
             <div className="px-4">
               <a
-                href={`https://wa.me/5543991049779?text=${encodeURIComponent(`Olá! Me interessei pela campanha "${campaignData.campaign.title}" de ${formatMonthYear(campaignData.campaign.month)} do ${campaignData.business.name}. Gostaria de saber mais sobre como participar!`)}`}
+                href={`https://wa.me/554391936400?text=${encodeURIComponent(`Olá! Me interessei pela campanha "${campaignData.campaign.title}" de ${formatMonthYear(campaignData.campaign.month)} do ${campaignData.business.name}. Gostaria de saber mais sobre como participar!`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center w-full px-6 py-4 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-all duration-200 active:scale-95"
@@ -278,7 +278,7 @@ export default function CampaignLandingPage() {
             {/* Botão Aplicar-se */}
             <div>
               <a
-                href={`https://wa.me/5543991049779?text=${encodeURIComponent(`Olá! Me interessei pela campanha "${campaignData.campaign.title}" de ${formatMonthYear(campaignData.campaign.month)} do ${campaignData.business.name}. Gostaria de saber mais sobre como participar!`)}`}
+                href={`https://wa.me/554391936400?text=${encodeURIComponent(`Olá! Me interessei pela campanha "${campaignData.campaign.title}" de ${formatMonthYear(campaignData.campaign.month)} do ${campaignData.business.name}. Gostaria de saber mais sobre como participar!`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg transition-all duration-200 hover:scale-105"

@@ -55,7 +55,7 @@ class ChatBot {
             },
             {
                 id: 'whatsapp',
-                message: 'Qual é o seu WhatsApp? (formato: 11999999999)',
+                message: 'Qual é o seu WhatsApp? (formato: 43999999999)',
                 type: 'input',
                 field: 'whatsapp',
                 validation: (value) => /^\d{10,11}$/.test(value.replace(/\D/g, '')),

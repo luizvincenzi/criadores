@@ -149,7 +149,7 @@ export default function CampaignSharePanel({
       // Simular envio (em produção, isso seria uma API real)
       const sendPromises = selectedCreators.map(async (creator) => {
         const personalizedMessage = template.replace('{nome}', creator.name);
-        const whatsappNumber = creator.contact_info?.whatsapp?.replace(/\D/g, '') || '5511999999999';
+        const whatsappNumber = creator.contact_info?.whatsapp?.replace(/\D/g, '') || '554391936400';
         const encodedMessage = encodeURIComponent(personalizedMessage);
 
         // Abrir WhatsApp em nova aba (em produção, seria um envio automático)

@@ -1210,7 +1210,7 @@ export default function CampaignGroupModal({ campaignGroup, isOpen, onClose }: C
                             }
                           },
                           contact_info: {
-                            whatsapp: '5511999999999', // Mock data
+                            whatsapp: '554391936400', // Mock data
                             email: `${creatorSlot.influenciador.toLowerCase().replace(/\s+/g, '')}@email.com`
                           },
                           profile_info: {
