@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
-import { 
-  BarChart4, LineChart, Target, Star, Users, Users2, Globe2, 
+import {
+  BarChart4, LineChart, Target, Star, Users, Users2, Globe2,
   MapPin, Building, History, CheckCircle, AlertTriangle, XCircle,
   Package, CircleDollarSign, Megaphone, Tag, Briefcase, Gem,
-  TrendingUp, Calendar, Shield, Sparkles, Clapperboard, ClipboardCheck
+  TrendingUp, Calendar, Shield, Sparkles, Clapperboard, ClipboardCheck,
+  Truck, Zap
 } from 'lucide-react';
 
 // Types
@@ -383,13 +384,415 @@ export default function DashboardEmpresa() {
           </div>
         </Section>
 
-        {/* Continuar implementação... */}
-        <div className="text-center py-8">
-          <p className="text-gray-500">Dashboard em desenvolvimento...</p>
-          <p className="text-sm text-gray-400 mt-2">
-            Mais seções serão adicionadas em breve
+        {/* Executive Summary */}
+        <Section title="Sumário Executivo" icon={BarChart4}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className={`border rounded-lg p-4 ${statusColor('green')}`}>
+              <div className="flex items-center text-green-700 font-semibold mb-2">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Verde
+              </div>
+              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                {selectedSnapshot.executive_summary.green.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className={`border rounded-lg p-4 ${statusColor('yellow')}`}>
+              <div className="flex items-center text-amber-700 font-semibold mb-2">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Amarelo
+              </div>
+              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                {selectedSnapshot.executive_summary.yellow.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className={`border rounded-lg p-4 ${statusColor('red')}`}>
+              <div className="flex items-center text-red-700 font-semibold mb-2">
+                <XCircle className="h-4 w-4 mr-2" />
+                Vermelho
+              </div>
+              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                {selectedSnapshot.executive_summary.red.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className="text-[11px] text-gray-500 mt-3">
+            Revisão trimestral — use o seletor de período no topo para comparar evoluções.
           </p>
-        </div>
+        </Section>
+
+        {/* KPIs Críticos */}
+        <Section title="KPIs Críticos" icon={Target}>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Object.entries(selectedSnapshot.kpis).map(([key, value]) => {
+              const prevValue = previousSnapshot?.kpis[key as keyof typeof previousSnapshot.kpis] ?? null;
+              const delta = deltaNumber(value, prevValue);
+
+              // Status automático baseado no KPI
+              const getKPIStatus = (kpiKey: string, val: number) => {
+                if (val == null) return 'gray';
+                switch (kpiKey) {
+                  case 'ruido': return val <= 0 ? 'green' : val <= 1 ? 'yellow' : 'red';
+                  case 'nps': return val >= 75 ? 'green' : val >= 60 ? 'yellow' : 'red';
+                  case 'margemPorcoes': return val >= 65 ? 'green' : val >= 55 ? 'yellow' : 'red';
+                  case 'ticket': return val >= 68 ? 'green' : val >= 60 ? 'yellow' : 'red';
+                  case 'ocupacao': return val >= 75 ? 'green' : val >= 60 ? 'yellow' : 'red';
+                  default: return 'gray';
+                }
+              };
+
+              const getKPILabel = (kpiKey: string) => {
+                switch (kpiKey) {
+                  case 'ocupacao': return 'Ocupação Sex/Sáb';
+                  case 'ticket': return 'Ticket Médio';
+                  case 'margemPorcoes': return 'Margem Porções';
+                  case 'nps': return 'NPS Mensal';
+                  case 'ruido': return 'Reclamações Ruído';
+                  default: return kpiKey;
+                }
+              };
+
+              const getKPITarget = (kpiKey: string) => {
+                switch (kpiKey) {
+                  case 'ocupacao': return '≥ 75%';
+                  case 'ticket': return 'R$ 68';
+                  case 'margemPorcoes': return '≥ 65%';
+                  case 'nps': return '≥ 75';
+                  case 'ruido': return '0/mês';
+                  default: return '—';
+                }
+              };
+
+              const getKPIFormat = (kpiKey: string, val: number) => {
+                switch (kpiKey) {
+                  case 'ocupacao': return `${val}%`;
+                  case 'ticket': return `R$ ${val}`;
+                  case 'margemPorcoes': return `${val}%`;
+                  case 'nps': return `${val}`;
+                  case 'ruido': return `${val}/mês`;
+                  default: return `${val}`;
+                }
+              };
+
+              const status = getKPIStatus(key, value);
+
+              return (
+                <div key={key} className={`rounded-xl border p-4 ${statusColor(status)}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-sm text-gray-800">
+                      {getKPILabel(key)}
+                    </h4>
+                    {status === 'green' ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : status === 'yellow' ? (
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-600" />
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-600 mb-1">
+                    Meta: <b>{getKPITarget(key)}</b>
+                  </div>
+                  <div className="flex items-end justify-between">
+                    <div className="text-xs text-gray-600">
+                      Atual: <b>{getKPIFormat(key, value)}</b>
+                    </div>
+                    <DeltaBadge value={delta} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* 4 Ps do Marketing */}
+        <Section title="4 Ps do Marketing" icon={Tag}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Object.entries(selectedSnapshot.four_ps_status).map(([key, status]) => {
+              const prevStatus = previousSnapshot?.four_ps_status[key as keyof typeof previousSnapshot.four_ps_status] || null;
+              const changed = prevStatus && prevStatus !== status;
+
+              const getPLabel = (pKey: string) => {
+                switch (pKey) {
+                  case 'produto': return 'Produto';
+                  case 'preco': return 'Preço';
+                  case 'praca': return 'Praça';
+                  case 'promocao': return 'Promoção';
+                  default: return pKey;
+                }
+              };
+
+              const getPIcon = (pKey: string) => {
+                switch (pKey) {
+                  case 'produto': return Package;
+                  case 'preco': return CircleDollarSign;
+                  case 'praca': return MapPin;
+                  case 'promocao': return Megaphone;
+                  default: return Tag;
+                }
+              };
+
+              const Icon = getPIcon(key);
+
+              return (
+                <div key={key} className={`border rounded-lg p-4 ${statusColor(status)}`}>
+                  <div className="flex items-center mb-2">
+                    {statusDot(status)}
+                    <Icon className="h-4 w-4 mr-2 text-gray-600" />
+                    <h4 className="font-semibold text-gray-800">{getPLabel(key)}</h4>
+                    {changed && (
+                      <span className="ml-auto text-[11px] text-gray-600">
+                        {prevStatus} → <b>{status}</b>
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    <p className="font-semibold mb-1">Status atual</p>
+                    <p className="capitalize">{status === 'green' ? 'Excelente' : status === 'yellow' ? 'Atenção' : 'Crítico'}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* 5 Forças de Porter */}
+        <Section title="5 Forças de Porter" icon={Briefcase}>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {Object.entries(selectedSnapshot.porter_forces).map(([key, force]) => {
+              const prevForce = previousSnapshot?.porter_forces[key] || null;
+              const delta = prevForce ? deltaNumber(force.score, prevForce.score) : null;
+
+              const getForceLabel = (forceKey: string) => {
+                switch (forceKey) {
+                  case 'rivalidade': return 'Rivalidade';
+                  case 'entrantes': return 'Novos Entrantes';
+                  case 'fornecedores': return 'Fornecedores';
+                  case 'clientes': return 'Clientes';
+                  case 'substitutos': return 'Substitutos';
+                  default: return forceKey;
+                }
+              };
+
+              return (
+                <div key={key} className={`border rounded-lg p-4 ${statusColor(force.status)}`}>
+                  <div className="flex items-center mb-1">
+                    {statusDot(force.status)}
+                    <h4 className="font-semibold text-sm text-gray-800">
+                      {getForceLabel(key)}
+                    </h4>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-600">
+                    <div>Nota: <b>{force.score}/10</b></div>
+                    <DeltaBadge value={delta} />
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1 capitalize">
+                    {force.status === 'green' ? 'Favorável' : force.status === 'yellow' ? 'Moderado' : 'Desfavorável'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* Frentes Táticas */}
+        <Section title="3 Frentes Táticas de Crescimento" icon={TrendingUp}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                </div>
+                <h4 className="font-semibold text-blue-800">Consolidar o Pico (Sex/Sáb)</h4>
+              </div>
+              <p className="text-sm text-blue-700">
+                Agenda pública + cover simbólico (R$3–R$7).
+              </p>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                  <Calendar className="h-4 w-4 text-green-600" />
+                </div>
+                <h4 className="font-semibold text-green-800">Rituais de Semana</h4>
+              </div>
+              <p className="text-sm text-green-700">
+                Terça da Família / Quarta do Baguete / Quinta do Playground.
+              </p>
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                  <Truck className="h-4 w-4 text-purple-600" />
+                </div>
+                <h4 className="font-semibold text-purple-800">Delivery Inteligente</h4>
+              </div>
+              <p className="text-sm text-purple-700">
+                Campanhas hiperlocais focadas em campeões de venda.
+              </p>
+            </div>
+          </div>
+        </Section>
+
+        {/* OKRs Trimestrais */}
+        <Section title="OKRs Trimestrais" icon={Target}>
+          <div className="space-y-6">
+            {/* Indicadores de Validação */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-800 mb-3">📊 Indicadores de Validação</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="text-center p-3 bg-white rounded border">
+                  <div className="text-xs text-gray-500 mb-1">NPS por turno/dia</div>
+                  <div className="font-semibold text-gray-800">Monitorar</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded border">
+                  <div className="text-xs text-gray-500 mb-1">Ocupação em sex/sáb</div>
+                  <div className="font-semibold text-gray-800">≥ 75%</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded border">
+                  <div className="text-xs text-gray-500 mb-1">Ticket médio por mesa</div>
+                  <div className="font-semibold text-gray-800">R$ 68</div>
+                </div>
+                <div className="text-center p-3 bg-white rounded border">
+                  <div className="text-xs text-gray-500 mb-1">Itens mais vendidos</div>
+                  <div className="font-semibold text-gray-800">Por categoria</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Objetivos */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3">🎯 Objetivos Principais</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white border rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Target className="h-5 w-5 text-blue-600 mr-2" />
+                    <h5 className="font-semibold text-gray-800">Foco</h5>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    1 posicionamento claro + 3 rituais semanais.
+                  </p>
+                </div>
+
+                <div className="bg-white border rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <Shield className="h-5 w-5 text-green-600 mr-2" />
+                    <h5 className="font-semibold text-gray-800">Vizinhança</h5>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    0 ocorrências mensais de ruído.
+                  </p>
+                </div>
+
+                <div className="bg-white border rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <BarChart4 className="h-5 w-5 text-purple-600 mr-2" />
+                    <h5 className="font-semibold text-gray-800">Música Sustentável</h5>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Ponto de equilíbrio (≥0 no P&L) via cover + margem.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* Estratégia de Produto */}
+        <Section title="Cardápio & Heróis de Produto" icon={Package}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <div className="flex items-center mb-2">
+                <Users className="h-5 w-5 text-orange-600 mr-2" />
+                <h4 className="font-semibold text-orange-800">Família & Porções</h4>
+              </div>
+              <p className="text-sm text-orange-700">
+                Dar visibilidade à seção com maior margem.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center mb-2">
+                <Star className="h-5 w-5 text-yellow-600 mr-2" />
+                <h4 className="font-semibold text-yellow-800">Heróis por Ritual</h4>
+              </div>
+              <p className="text-sm text-yellow-700">
+                Baguete na quarta, pratos executivos na semana.
+              </p>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center mb-2">
+                <Zap className="h-5 w-5 text-green-600 mr-2" />
+                <h4 className="font-semibold text-green-800">Combos Estratégicos</h4>
+              </div>
+              <p className="text-sm text-green-700">
+                Foco em ticket médio e frequência de retorno.
+              </p>
+            </div>
+          </div>
+        </Section>
+
+        {/* Histórico Resumido */}
+        <Section title="Histórico Trimestral" icon={History}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="text-xs text-gray-500 mb-1">Ocupação Sex/Sáb</div>
+              <div className="text-xl font-semibold text-gray-800">
+                {selectedSnapshot.kpis.ocupacao}%
+                <span className="text-xs text-gray-500 ml-2">
+                  ({previousSnapshot ?
+                    `${deltaNumber(selectedSnapshot.kpis.ocupacao, previousSnapshot.kpis.ocupacao) >= 0 ? '+' : ''}${deltaNumber(selectedSnapshot.kpis.ocupacao, previousSnapshot.kpis.ocupacao)}`
+                    : '—'})
+                </span>
+              </div>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="text-xs text-gray-500 mb-1">Ticket Médio</div>
+              <div className="text-xl font-semibold text-gray-800">
+                R$ {selectedSnapshot.kpis.ticket}
+                <span className="text-xs text-gray-500 ml-2">
+                  ({previousSnapshot ?
+                    `${deltaNumber(selectedSnapshot.kpis.ticket, previousSnapshot.kpis.ticket) >= 0 ? '+' : ''}${deltaNumber(selectedSnapshot.kpis.ticket, previousSnapshot.kpis.ticket)}`
+                    : '—'})
+                </span>
+              </div>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+              <div className="text-xs text-gray-500 mb-1">NPS</div>
+              <div className="text-xl font-semibold text-gray-800">
+                {selectedSnapshot.kpis.nps}
+                <span className="text-xs text-gray-500 ml-2">
+                  ({previousSnapshot ?
+                    `${deltaNumber(selectedSnapshot.kpis.nps, previousSnapshot.kpis.nps) >= 0 ? '+' : ''}${deltaNumber(selectedSnapshot.kpis.nps, previousSnapshot.kpis.nps)}`
+                    : '—'})
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 mt-3 flex items-center gap-2">
+            <span>Período:</span>
+            <select
+              value={selectedQuarter}
+              onChange={(e) => setSelectedQuarter(e.target.value)}
+              className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700"
+            >
+              {snapshots.map(s => (
+                <option key={s.id} value={s.quarter}>
+                  {s.quarter.replace('-Q', ' - ')}º Trimestre
+                </option>
+              ))}
+            </select>
+            <span className="ml-2">Notas: {selectedSnapshot.notes}</span>
+          </div>
+        </Section>
       </main>
     </div>
   );
