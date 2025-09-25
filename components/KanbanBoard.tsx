@@ -47,7 +47,7 @@ interface KanbanBoardProps {
   className?: string;
 }
 
-export default function KanbanBoard({ className }: KanbanBoardProps) {
+export function KanbanBoard({ className }: KanbanBoardProps) {
   const { businesses, moveBusinessStage, getBusinessesByStage } = useBusinessStore();
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [draggedBusiness, setDraggedBusiness] = React.useState<Business | null>(null);
@@ -207,3 +207,5 @@ export default function KanbanBoard({ className }: KanbanBoardProps) {
     </div>
   );
 }
+
+export default KanbanBoard;

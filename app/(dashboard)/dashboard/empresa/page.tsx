@@ -740,6 +740,171 @@ export default function DashboardEmpresa() {
           </div>
         </Section>
 
+        {/* Matriz de Ações - 90 Dias */}
+        <Section title="Matriz de Ações — 90 Dias" icon={ClipboardCheck}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Agora (0-30d) */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-red-600 font-bold text-sm">30d</span>
+                </div>
+                <h4 className="font-semibold text-red-800">Agora (0–30d)</h4>
+              </div>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-4 w-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-red-700">Calendário musical mensal</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-4 w-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-red-700">3 combos família (porção + bebida + kids)</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-4 w-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-red-700">NPS por QR em cada mesa</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Próximas (30-60d) */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-yellow-600 font-bold text-sm">60d</span>
+                </div>
+                <h4 className="font-semibold text-yellow-800">Próximas (30–60d)</h4>
+              </div>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-yellow-700">A/B de preço-âncora</span>
+                </li>
+                <li className="flex items-start">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-yellow-700">5 microinfluenciadores Zona Sul</span>
+                </li>
+                <li className="flex items-start">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-yellow-700">Mapear custo/margem por prato</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Explorar (60-90d) */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-blue-600 font-bold text-sm">90d</span>
+                </div>
+                <h4 className="font-semibold text-blue-800">Explorar (60–90d)</h4>
+              </div>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <Sparkles className="h-4 w-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-blue-700">Clube da família (piloto)</span>
+                </li>
+                <li className="flex items-start">
+                  <Sparkles className="h-4 w-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-blue-700">Parcerias escolares kids</span>
+                </li>
+                <li className="flex items-start">
+                  <Sparkles className="h-4 w-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-blue-700">Soluções acústicas adicionais</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </Section>
+
+        {/* Calendário Promocional */}
+        <Section title="Calendário Promocional (8 Semanas)" icon={Calendar}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { week: 'Semana 1', theme: 'Abertura do mês + Agenda', cta: 'Salve o calendário', color: 'blue' },
+              { week: 'Semana 2', theme: 'Terça da Família', cta: 'Combo família — leve 3, pague 2', color: 'green' },
+              { week: 'Semana 3', theme: 'Quarta do Baguete', cta: 'Baguete herói + refri', color: 'yellow' },
+              { week: 'Semana 4', theme: 'Quinta do Playground', cta: 'Criança por R$ 1', color: 'purple' },
+              { week: 'Semana 5', theme: 'Festival de Porções', cta: '2 porções + 1 kids', color: 'red' },
+              { week: 'Semana 6', theme: 'Noite do Dono-Host', cta: 'Foto + sorteio', color: 'indigo' },
+              { week: 'Semana 7', theme: 'Vizinhança Amiga', cta: 'Desconto raio 2 km', color: 'pink' },
+              { week: 'Semana 8', theme: 'Família no Domingo', cta: 'Almoço + sobremesa cortesia', color: 'teal' }
+            ].map((item, index) => {
+              const colorClasses = {
+                blue: 'bg-blue-50 border-blue-200 text-blue-800',
+                green: 'bg-green-50 border-green-200 text-green-800',
+                yellow: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                purple: 'bg-purple-50 border-purple-200 text-purple-800',
+                red: 'bg-red-50 border-red-200 text-red-800',
+                indigo: 'bg-indigo-50 border-indigo-200 text-indigo-800',
+                pink: 'bg-pink-50 border-pink-200 text-pink-800',
+                teal: 'bg-teal-50 border-teal-200 text-teal-800'
+              };
+
+              return (
+                <div key={index} className={`border rounded-lg p-4 ${colorClasses[item.color as keyof typeof colorClasses]}`}>
+                  <div className="flex items-center mb-2">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <h4 className="font-semibold text-sm">{item.week}</h4>
+                  </div>
+                  <h5 className="font-medium text-sm mb-2">{item.theme}</h5>
+                  <p className="text-xs opacity-80">{item.cta}</p>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* Gestão de Risco */}
+        <Section title="Gestão de Risco (Vizinhança & Som)" icon={Shield}>
+          <div className="space-y-6">
+            {/* Meta Principal */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <h4 className="font-semibold text-gray-800 mb-2">🎯 Meta Principal</h4>
+              <p className="text-lg font-bold text-gray-900">0 chamados/reclamações por mês</p>
+            </div>
+
+            {/* Planos de Ação */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                    <Zap className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <h4 className="font-semibold text-blue-800">Plano Técnico</h4>
+                </div>
+                <p className="text-sm text-blue-700">
+                  Posição das caixas, medição de dB, limite 22h, 'som ambiente'.
+                </p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <Users className="h-4 w-4 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-green-800">Plano Relacional</h4>
+                </div>
+                <p className="text-sm text-green-700">
+                  Visitar vizinhos, criar 'telefone de paz' em noites de show.
+                </p>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                    <Gem className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <h4 className="font-semibold text-purple-800">Plano de Receita</h4>
+                </div>
+                <p className="text-sm text-purple-700">
+                  Cover simbólico + precificação de porções para zerar custo.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Section>
+
         {/* Histórico Resumido */}
         <Section title="Histórico Trimestral" icon={History}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
