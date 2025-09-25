@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
+import EditSnapshotModal from '@/components/EditSnapshotModal';
 import {
   BarChart4, LineChart, Target, Star, Users, Users2, Globe2,
   MapPin, Building, History, CheckCircle, AlertTriangle, XCircle,
@@ -122,6 +123,8 @@ export default function DashboardEmpresa() {
   const [selectedQuarter, setSelectedQuarter] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSnapshot, setEditingSnapshot] = useState<QuarterlySnapshot | null>(null);
 
   // Verificar acesso
   useEffect(() => {
@@ -231,6 +234,39 @@ export default function DashboardEmpresa() {
     },
   ];
 
+  // Funções para edição de snapshots
+  const handleEditSnapshot = (snapshot: QuarterlySnapshot) => {
+    setEditingSnapshot(snapshot);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveSnapshot = async (updatedSnapshot: QuarterlySnapshot) => {
+    try {
+      const response = await fetch(`/api/dashboard/empresa/snapshots`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedSnapshot),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar snapshot');
+      }
+
+      // Atualizar lista local
+      setSnapshots(prev => prev.map(s =>
+        s.id === updatedSnapshot.id ? updatedSnapshot : s
+      ));
+
+      setIsEditModalOpen(false);
+      setEditingSnapshot(null);
+    } catch (error) {
+      console.error('Erro ao salvar snapshot:', error);
+      throw error;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
@@ -285,8 +321,8 @@ export default function DashboardEmpresa() {
           {/* Seletor de Período */}
           <div className="flex items-center gap-2">
             <label className="text-xs text-gray-500">Período:</label>
-            <select 
-              value={selectedQuarter} 
+            <select
+              value={selectedQuarter}
               onChange={(e) => setSelectedQuarter(e.target.value)}
               className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700"
             >
@@ -296,6 +332,19 @@ export default function DashboardEmpresa() {
                 </option>
               ))}
             </select>
+
+            {/* Botão de Edição */}
+            {selectedSnapshot && (
+              <button
+                onClick={() => handleEditSnapshot(selectedSnapshot)}
+                className="text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1"
+              >
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editar
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -959,6 +1008,17 @@ export default function DashboardEmpresa() {
           </div>
         </Section>
       </main>
+
+      {/* Modal de Edição */}
+      <EditSnapshotModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingSnapshot(null);
+        }}
+        snapshot={editingSnapshot}
+        onSave={handleSaveSnapshot}
+      />
     </div>
   );
 }
