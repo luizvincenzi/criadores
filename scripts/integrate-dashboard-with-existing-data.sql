@@ -4,11 +4,11 @@
 -- Este script integra o dashboard com dados já existentes nas tabelas
 
 -- 1. VERIFICAR DADOS EXISTENTES
-SELECT 
+SELECT
   'BUSINESSES' as tabela,
   COUNT(*) as total,
   COUNT(CASE WHEN is_active = true THEN 1 END) as ativos,
-  STRING_AGG(DISTINCT business_stage, ', ') as stages
+  STRING_AGG(DISTINCT business_stage::text, ', ') as stages
 FROM businesses
 UNION ALL
 SELECT 
@@ -55,10 +55,10 @@ BEGIN
   END IF;
   
   -- Contar campanhas ativas
-  SELECT COUNT(*) INTO campaign_count 
-  FROM campaigns 
-  WHERE business_id = p_business_id 
-    AND status IN ('active', 'completed');
+  SELECT COUNT(*) INTO campaign_count
+  FROM campaigns
+  WHERE business_id = p_business_id
+    AND status IN ('Agendamentos', 'Finalizado');
   
   -- Contar tarefas
   SELECT COUNT(*) INTO task_count 
@@ -72,13 +72,14 @@ BEGIN
   
   -- Calcular performance média das campanhas (simulado)
   SELECT COALESCE(AVG(
-    CASE 
-      WHEN status = 'completed' THEN 85
-      WHEN status = 'active' THEN 70
+    CASE
+      WHEN status = 'Finalizado' THEN 85
+      WHEN status = 'Agendamentos' THEN 70
+      WHEN status = 'Entrega final' THEN 80
       ELSE 50
     END
   ), 60) INTO avg_campaign_performance
-  FROM campaigns 
+  FROM campaigns
   WHERE business_id = p_business_id;
   
   -- Criar snapshot baseado nos dados existentes
@@ -122,9 +123,9 @@ BEGIN
     ),
     -- 4 Ps baseado no estágio do business
     jsonb_build_object(
-      'produto', CASE 
-        WHEN business_data.business_stage IN ('Cliente ativo', 'Negócio fechado') THEN 'green'
-        WHEN business_data.business_stage IN ('Proposta enviada', 'Negociação') THEN 'yellow'
+      'produto', CASE
+        WHEN business_data.business_stage IN ('Contrato assinado', 'Negócio Fechado') THEN 'green'
+        WHEN business_data.business_stage IN ('Enviando proposta', 'Follow up') THEN 'yellow'
         ELSE 'gray'
       END,
       'preco', CASE 
