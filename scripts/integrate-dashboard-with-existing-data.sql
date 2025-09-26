@@ -25,11 +25,11 @@ SELECT
   STRING_AGG(DISTINCT status, ', ') as stages
 FROM business_tasks
 UNION ALL
-SELECT 
+SELECT
   'CAMPAIGNS' as tabela,
   COUNT(*) as total,
   COUNT(DISTINCT business_id) as businesses_com_campanhas,
-  STRING_AGG(DISTINCT status, ', ') as stages
+  STRING_AGG(DISTINCT status::text, ', ') as stages
 FROM campaigns;
 
 -- 2. CRIAR FUNÇÃO PARA GERAR SNAPSHOT BASEADO EM DADOS EXISTENTES
