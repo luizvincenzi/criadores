@@ -215,18 +215,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const snapshotId = searchParams.get('id');
-    
-    if (!snapshotId) {
-      return NextResponse.json(
-        { error: 'ID do snapshot é obrigatório' },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
     const {
+      id,
       digital_presence,
       kpis,
       four_ps_status,
@@ -239,6 +230,13 @@ export async function PUT(request: NextRequest) {
       executive_summary,
       notes
     } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID do snapshot é obrigatório' },
+        { status: 400 }
+      );
+    }
 
     const supabase = createClient();
 
@@ -259,7 +257,7 @@ export async function PUT(request: NextRequest) {
         notes: notes || '',
         updated_at: new Date().toISOString()
       })
-      .eq('id', snapshotId)
+      .eq('id', id)
       .select()
       .single();
 

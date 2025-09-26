@@ -152,28 +152,45 @@ export default function DashboardEmpresa() {
   // Carregar dados
   useEffect(() => {
     const loadDashboardData = async () => {
-      if (!user?.business_id) return;
+      // Obter business_id com fallback
+      const businessId = user?.business_id || process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
+
+      if (!businessId) {
+        console.error('❌ Nenhum business_id encontrado para o usuário');
+        setError('Usuário não está associado a nenhuma empresa');
+        setLoading(false);
+        return;
+      }
+
+      console.log('🏢 Carregando dados para business_id:', businessId);
 
       try {
         setLoading(true);
-        
+        setError(null);
+
         // Carregar snapshots trimestrais
-        const snapshotsResponse = await fetch(`/api/dashboard/empresa/snapshots?businessId=${user.business_id}`);
+        const snapshotsResponse = await fetch(`/api/dashboard/empresa/snapshots?businessId=${businessId}`);
         if (snapshotsResponse.ok) {
           const snapshotsData = await snapshotsResponse.json();
           setSnapshots(snapshotsData);
-          
+
           // Selecionar o trimestre mais recente por padrão
           if (snapshotsData.length > 0) {
             setSelectedQuarter(snapshotsData[snapshotsData.length - 1].quarter);
           }
+        } else {
+          const errorData = await snapshotsResponse.json();
+          console.error('❌ Erro ao carregar snapshots:', errorData);
+          setError(`Erro ao carregar dados trimestrais: ${errorData.error}`);
         }
 
         // Carregar informações do negócio
-        const businessResponse = await fetch(`/api/businesses/${user.business_id}`);
+        const businessResponse = await fetch(`/api/businesses/${businessId}`);
         if (businessResponse.ok) {
           const businessData = await businessResponse.json();
           setBusinessInfo(businessData);
+        } else {
+          console.warn('⚠️ Não foi possível carregar informações da empresa');
         }
 
       } catch (err) {
@@ -185,7 +202,7 @@ export default function DashboardEmpresa() {
     };
 
     loadDashboardData();
-  }, [user?.business_id]);
+  }, [user?.business_id, user]);
 
   // Dados calculados
   const selectedSnapshot = useMemo(() => 

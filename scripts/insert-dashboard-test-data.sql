@@ -4,36 +4,53 @@
 -- Execute este SQL após criar a tabela business_quarterly_snapshots
 
 -- Primeiro, vamos verificar se temos empresas na tabela businesses
--- Se não houver, vamos criar uma empresa de teste
-
--- Inserir empresa de teste se não existir
--- Usando a estrutura correta da tabela businesses existente
-INSERT INTO businesses (
-  id,
-  organization_id,
-  name,
-  slug,
-  contact_info,
-  address,
-  status,
-  business_stage,
-  is_active,
-  created_at,
-  updated_at
-)
 SELECT
-  gen_random_uuid(),
-  '00000000-0000-0000-0000-000000000001'::uuid,
-  'Restaurante Família & Música',
-  'restaurante-familia-musica-' || extract(epoch from now())::bigint,
-  '{"email": "contato@familiamusica.com.br", "phone": "+55 43 9193-6400", "whatsapp": "+55 43 9193-6400"}'::jsonb,
-  '{"street": "Rua das Palmeiras, 123", "city": "Londrina", "state": "PR", "zipcode": "86000-000"}'::jsonb,
-  'Ativo',
-  'Cliente ativo',
-  true,
-  NOW(),
-  NOW()
-WHERE NOT EXISTS (SELECT 1 FROM businesses WHERE name = 'Restaurante Família & Música');
+  COUNT(*) as total_businesses,
+  STRING_AGG(name, ', ') as business_names
+FROM businesses;
+
+-- Vamos usar uma empresa existente ou criar uma se necessário
+-- Verificar se já existe uma empresa ativa
+DO $$
+DECLARE
+  existing_business_id UUID;
+  business_count INTEGER;
+BEGIN
+  -- Contar empresas existentes
+  SELECT COUNT(*) INTO business_count FROM businesses WHERE is_active = true;
+
+  IF business_count = 0 THEN
+    -- Criar empresa de teste se não existir nenhuma
+    INSERT INTO businesses (
+      id,
+      organization_id,
+      name,
+      slug,
+      contact_info,
+      address,
+      status,
+      business_stage,
+      is_active,
+      created_at,
+      updated_at
+    ) VALUES (
+      gen_random_uuid(),
+      '00000000-0000-0000-0000-000000000001'::uuid,
+      'Restaurante Família & Música',
+      'restaurante-familia-musica-' || extract(epoch from now())::bigint,
+      '{"email": "contato@familiamusica.com.br", "phone": "+55 43 9193-6400", "whatsapp": "+55 43 9193-6400"}'::jsonb,
+      '{"street": "Rua das Palmeiras, 123", "city": "Londrina", "state": "PR", "zipcode": "86000-000"}'::jsonb,
+      'Ativo',
+      'Cliente ativo',
+      true,
+      NOW(),
+      NOW()
+    );
+    RAISE NOTICE 'Empresa de teste criada: Restaurante Família & Música';
+  ELSE
+    RAISE NOTICE 'Usando empresas existentes (% encontradas)', business_count;
+  END IF;
+END $$;
 
 -- Agora vamos inserir snapshots trimestrais para teste
 -- Snapshot Q3 2024 (trimestre anterior)
@@ -98,7 +115,8 @@ SELECT
     ]
   }'::jsonb as executive_summary,
   'Snapshot do Q3 2024 - Base para comparação' as notes
-FROM businesses b 
+FROM businesses b
+WHERE b.is_active = true
 LIMIT 1
 ON CONFLICT (business_id, quarter) DO NOTHING;
 
@@ -164,7 +182,8 @@ SELECT
     ]
   }'::jsonb as executive_summary,
   'Snapshot do Q4 2024 - Melhorias implementadas' as notes
-FROM businesses b 
+FROM businesses b
+WHERE b.is_active = true
 LIMIT 1
 ON CONFLICT (business_id, quarter) DO NOTHING;
 
@@ -227,7 +246,8 @@ SELECT
     "red": []
   }'::jsonb as executive_summary,
   'Snapshot Q1 2025 - Metas alcançadas' as notes
-FROM businesses b 
+FROM businesses b
+WHERE b.is_active = true
 LIMIT 1
 ON CONFLICT (business_id, quarter) DO NOTHING;
 
