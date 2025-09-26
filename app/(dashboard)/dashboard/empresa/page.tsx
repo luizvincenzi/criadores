@@ -7,6 +7,8 @@ import EditSnapshotModal from '@/components/EditSnapshotModal';
 import EditKPIsModal from '@/components/dashboard/EditKPIsModal';
 import EditDigitalPresenceModal from '@/components/dashboard/EditDigitalPresenceModal';
 import Edit4PsModal from '@/components/dashboard/Edit4PsModal';
+import EditButton from '@/components/ui/EditButton';
+import InlineEditCard from '@/components/dashboard/InlineEditCard';
 import {
   BarChart4, LineChart, Target, Star, Users, Users2, Globe2,
   MapPin, Building, History, CheckCircle, AlertTriangle, XCircle,
@@ -321,6 +323,41 @@ export default function DashboardEmpresa() {
     }
   };
 
+  // Funções para edição inline de campos específicos
+  const handleSaveKPIField = async (kpiKey: string, value: number) => {
+    if (!selectedSnapshot) return;
+
+    const updatedKPIs = { ...selectedSnapshot.kpis, [kpiKey]: value };
+    const updatedSnapshot = { ...selectedSnapshot, kpis: updatedKPIs };
+    await updateSnapshotSection(updatedSnapshot);
+  };
+
+  const handleSaveDigitalPresenceField = async (platform: string, field: string, value: number) => {
+    if (!selectedSnapshot) return;
+
+    let updatedPresence = { ...selectedSnapshot.digital_presence };
+
+    if (platform === 'google' || platform === 'tripadvisor') {
+      updatedPresence = {
+        ...updatedPresence,
+        [platform]: { ...updatedPresence[platform as keyof typeof updatedPresence], [field]: value }
+      };
+    } else {
+      updatedPresence = { ...updatedPresence, [platform]: value };
+    }
+
+    const updatedSnapshot = { ...selectedSnapshot, digital_presence: updatedPresence };
+    await updateSnapshotSection(updatedSnapshot);
+  };
+
+  const handleSave4PField = async (pKey: string, status: string) => {
+    if (!selectedSnapshot) return;
+
+    const updated4Ps = { ...selectedSnapshot.four_ps_status, [pKey]: status };
+    const updatedSnapshot = { ...selectedSnapshot, four_ps_status: updated4Ps };
+    await updateSnapshotSection(updatedSnapshot);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
@@ -389,15 +426,13 @@ export default function DashboardEmpresa() {
 
             {/* Botão de Edição */}
             {selectedSnapshot && (
-              <button
+              <EditButton
                 onClick={() => handleEditSnapshot(selectedSnapshot)}
-                className="text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1"
+                variant="primary"
+                size="sm"
               >
-                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Editar
-              </button>
+                Editar Tudo
+              </EditButton>
             )}
           </div>
         </div>
@@ -452,15 +487,11 @@ export default function DashboardEmpresa() {
           title="Presença Digital"
           icon={LineChart}
           actions={
-            <button
+            <EditButton
               onClick={() => setIsDigitalPresenceModalOpen(true)}
-              className="text-xs bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-700 transition-colors flex items-center gap-1"
-            >
-              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Editar
-            </button>
+              variant="secondary"
+              size="sm"
+            />
           }
         >
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -548,15 +579,11 @@ export default function DashboardEmpresa() {
           title="KPIs Críticos"
           icon={Target}
           actions={
-            <button
+            <EditButton
               onClick={() => setIsKPIsModalOpen(true)}
-              className="text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1"
-            >
-              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Editar
-            </button>
+              variant="primary"
+              size="sm"
+            />
           }
         >
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -641,20 +668,52 @@ export default function DashboardEmpresa() {
           </div>
         </Section>
 
+        {/* Edição Rápida de KPIs */}
+        <Section title="Edição Rápida de KPIs" icon={Target}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <InlineEditCard
+              title="Ocupação Sex/Sáb"
+              value={selectedSnapshot.kpis.ocupacao}
+              unit="%"
+              type="number"
+              min={0}
+              max={100}
+              onSave={(value) => handleSaveKPIField('ocupacao', Number(value))}
+              formatDisplay={(value) => `${value}%`}
+            />
+
+            <InlineEditCard
+              title="Ticket Médio"
+              value={selectedSnapshot.kpis.ticket}
+              unit="R$"
+              type="number"
+              min={0}
+              max={500}
+              onSave={(value) => handleSaveKPIField('ticket', Number(value))}
+              formatDisplay={(value) => `R$ ${value}`}
+            />
+
+            <InlineEditCard
+              title="NPS Mensal"
+              value={selectedSnapshot.kpis.nps}
+              type="number"
+              min={-100}
+              max={100}
+              onSave={(value) => handleSaveKPIField('nps', Number(value))}
+            />
+          </div>
+        </Section>
+
         {/* 4 Ps do Marketing */}
         <Section
           title="4 Ps do Marketing"
           icon={Tag}
           actions={
-            <button
+            <EditButton
               onClick={() => setIs4PsModalOpen(true)}
-              className="text-xs bg-orange-600 text-white px-3 py-1 rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1"
-            >
-              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Editar
-            </button>
+              variant="warning"
+              size="sm"
+            />
           }
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
