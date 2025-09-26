@@ -429,7 +429,7 @@ export default function DashboardEmpresa() {
               <EditButton
                 onClick={() => handleEditSnapshot(selectedSnapshot)}
                 variant="primary"
-                size="sm"
+                size="md"
               >
                 Editar Tudo
               </EditButton>
@@ -490,7 +490,7 @@ export default function DashboardEmpresa() {
             <EditButton
               onClick={() => setIsDigitalPresenceModalOpen(true)}
               variant="secondary"
-              size="sm"
+              size="md"
             />
           }
         >
@@ -582,7 +582,7 @@ export default function DashboardEmpresa() {
             <EditButton
               onClick={() => setIsKPIsModalOpen(true)}
               variant="primary"
-              size="sm"
+              size="md"
             />
           }
         >
@@ -712,7 +712,7 @@ export default function DashboardEmpresa() {
             <EditButton
               onClick={() => setIs4PsModalOpen(true)}
               variant="warning"
-              size="sm"
+              size="md"
             />
           }
         >

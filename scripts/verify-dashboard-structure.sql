@@ -51,9 +51,10 @@ FROM pg_policies
 WHERE tablename = 'business_quarterly_snapshots';
 
 -- 6. VERIFICAR SE TEMOS EMPRESAS NA TABELA BUSINESSES
-SELECT 
+SELECT
   COUNT(*) as total_businesses,
-  COUNT(CASE WHEN created_at >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as recent_businesses
+  COUNT(CASE WHEN created_at >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as recent_businesses,
+  STRING_AGG(name, ', ') as business_names
 FROM businesses;
 
 -- 7. VERIFICAR SNAPSHOTS EXISTENTES

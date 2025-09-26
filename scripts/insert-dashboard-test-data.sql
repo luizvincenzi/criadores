@@ -7,28 +7,33 @@
 -- Se não houver, vamos criar uma empresa de teste
 
 -- Inserir empresa de teste se não existir
+-- Usando a estrutura correta da tabela businesses existente
 INSERT INTO businesses (
   id,
+  organization_id,
   name,
-  email,
-  phone,
+  slug,
+  contact_info,
   address,
-  city,
-  state,
-  business_type,
-  created_at
-) 
-SELECT 
+  status,
+  business_stage,
+  is_active,
+  created_at,
+  updated_at
+)
+SELECT
   gen_random_uuid(),
+  '00000000-0000-0000-0000-000000000001'::uuid,
   'Restaurante Família & Música',
-  'contato@familiamusica.com.br',
-  '+55 43 9193-6400',
-  'Rua das Palmeiras, 123',
-  'Londrina',
-  'PR',
-  'Restaurante',
+  'restaurante-familia-musica-' || extract(epoch from now())::bigint,
+  '{"email": "contato@familiamusica.com.br", "phone": "+55 43 9193-6400", "whatsapp": "+55 43 9193-6400"}'::jsonb,
+  '{"street": "Rua das Palmeiras, 123", "city": "Londrina", "state": "PR", "zipcode": "86000-000"}'::jsonb,
+  'Ativo',
+  'Cliente ativo',
+  true,
+  NOW(),
   NOW()
-WHERE NOT EXISTS (SELECT 1 FROM businesses LIMIT 1);
+WHERE NOT EXISTS (SELECT 1 FROM businesses WHERE name = 'Restaurante Família & Música');
 
 -- Agora vamos inserir snapshots trimestrais para teste
 -- Snapshot Q3 2024 (trimestre anterior)
