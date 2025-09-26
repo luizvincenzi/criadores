@@ -4,6 +4,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import EditSnapshotModal from '@/components/EditSnapshotModal';
+import EditKPIsModal from '@/components/dashboard/EditKPIsModal';
+import EditDigitalPresenceModal from '@/components/dashboard/EditDigitalPresenceModal';
+import Edit4PsModal from '@/components/dashboard/Edit4PsModal';
 import {
   BarChart4, LineChart, Target, Star, Users, Users2, Globe2,
   MapPin, Building, History, CheckCircle, AlertTriangle, XCircle,
@@ -125,6 +128,11 @@ export default function DashboardEmpresa() {
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSnapshot, setEditingSnapshot] = useState<QuarterlySnapshot | null>(null);
+
+  // Estados para modais específicos
+  const [isKPIsModalOpen, setIsKPIsModalOpen] = useState(false);
+  const [isDigitalPresenceModalOpen, setIsDigitalPresenceModalOpen] = useState(false);
+  const [is4PsModalOpen, setIs4PsModalOpen] = useState(false);
 
   // Verificar acesso
   useEffect(() => {
@@ -267,6 +275,52 @@ export default function DashboardEmpresa() {
     }
   };
 
+  // Funções para salvar seções específicas
+  const handleSaveKPIs = async (kpis: any) => {
+    if (!selectedSnapshot) return;
+
+    const updatedSnapshot = { ...selectedSnapshot, kpis };
+    await updateSnapshotSection(updatedSnapshot);
+  };
+
+  const handleSaveDigitalPresence = async (digitalPresence: any) => {
+    if (!selectedSnapshot) return;
+
+    const updatedSnapshot = { ...selectedSnapshot, digital_presence: digitalPresence };
+    await updateSnapshotSection(updatedSnapshot);
+  };
+
+  const handleSave4Ps = async (fourPsStatus: any) => {
+    if (!selectedSnapshot) return;
+
+    const updatedSnapshot = { ...selectedSnapshot, four_ps_status: fourPsStatus };
+    await updateSnapshotSection(updatedSnapshot);
+  };
+
+  const updateSnapshotSection = async (updatedSnapshot: QuarterlySnapshot) => {
+    try {
+      const response = await fetch(`/api/dashboard/empresa/snapshots`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedSnapshot),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar dados');
+      }
+
+      // Atualizar lista local
+      setSnapshots(prev => prev.map(s =>
+        s.id === updatedSnapshot.id ? updatedSnapshot : s
+      ));
+    } catch (error) {
+      console.error('Erro ao salvar seção:', error);
+      throw error;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center">
@@ -394,7 +448,21 @@ export default function DashboardEmpresa() {
         </Card>
 
         {/* Presença Digital */}
-        <Section title="Presença Digital" icon={LineChart}>
+        <Section
+          title="Presença Digital"
+          icon={LineChart}
+          actions={
+            <button
+              onClick={() => setIsDigitalPresenceModalOpen(true)}
+              className="text-xs bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-700 transition-colors flex items-center gap-1"
+            >
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </button>
+          }
+        >
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {digitalPresenceMetrics.map((metric, i) => {
               const Icon = metric.icon;
@@ -476,7 +544,21 @@ export default function DashboardEmpresa() {
         </Section>
 
         {/* KPIs Críticos */}
-        <Section title="KPIs Críticos" icon={Target}>
+        <Section
+          title="KPIs Críticos"
+          icon={Target}
+          actions={
+            <button
+              onClick={() => setIsKPIsModalOpen(true)}
+              className="text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1"
+            >
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </button>
+          }
+        >
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {Object.entries(selectedSnapshot.kpis).map(([key, value]) => {
               const prevValue = previousSnapshot?.kpis[key as keyof typeof previousSnapshot.kpis] ?? null;
@@ -560,7 +642,21 @@ export default function DashboardEmpresa() {
         </Section>
 
         {/* 4 Ps do Marketing */}
-        <Section title="4 Ps do Marketing" icon={Tag}>
+        <Section
+          title="4 Ps do Marketing"
+          icon={Tag}
+          actions={
+            <button
+              onClick={() => setIs4PsModalOpen(true)}
+              className="text-xs bg-orange-600 text-white px-3 py-1 rounded-md hover:bg-orange-700 transition-colors flex items-center gap-1"
+            >
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </button>
+          }
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {Object.entries(selectedSnapshot.four_ps_status).map(([key, status]) => {
               const prevStatus = previousSnapshot?.four_ps_status[key as keyof typeof previousSnapshot.four_ps_status] || null;
@@ -1009,7 +1105,7 @@ export default function DashboardEmpresa() {
         </Section>
       </main>
 
-      {/* Modal de Edição */}
+      {/* Modal de Edição Geral */}
       <EditSnapshotModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -1019,6 +1115,32 @@ export default function DashboardEmpresa() {
         snapshot={editingSnapshot}
         onSave={handleSaveSnapshot}
       />
+
+      {/* Modais de Edição Específicos */}
+      {selectedSnapshot && (
+        <>
+          <EditKPIsModal
+            isOpen={isKPIsModalOpen}
+            onClose={() => setIsKPIsModalOpen(false)}
+            kpis={selectedSnapshot.kpis}
+            onSave={handleSaveKPIs}
+          />
+
+          <EditDigitalPresenceModal
+            isOpen={isDigitalPresenceModalOpen}
+            onClose={() => setIsDigitalPresenceModalOpen(false)}
+            digitalPresence={selectedSnapshot.digital_presence}
+            onSave={handleSaveDigitalPresence}
+          />
+
+          <Edit4PsModal
+            isOpen={is4PsModalOpen}
+            onClose={() => setIs4PsModalOpen(false)}
+            fourPsStatus={selectedSnapshot.four_ps_status}
+            onSave={handleSave4Ps}
+          />
+        </>
+      )}
     </div>
   );
 }
