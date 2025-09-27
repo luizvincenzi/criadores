@@ -162,6 +162,7 @@ export function middleware(request: NextRequest) {
 
   // 👑 USUÁRIOS ADMINISTRADORES: Acesso total ao sistema
   const userEmail = request.headers.get('x-user-email');
+  const userRole = request.headers.get('x-user-role');
   const isAdmin = ['luizvincenzi@gmail.com'].includes(userEmail || '');
 
   if (isClientMode && clientBusinessId) {
@@ -196,7 +197,27 @@ export function middleware(request: NextRequest) {
         path: pathname,
         businessId: businessIdFromRequest || 'ALL_ACCESS'
       });
-    } else if (!businessIdFromRequest && !clientBusinessId) {
+    }
+    // 🎯 ESTRATEGISTAS: Verificar acesso específico à empresa
+    else if (userRole === 'creator_strategist' || userRole === 'marketing_strategist') {
+      if (!businessIdFromRequest) {
+        console.error('❌ [STRATEGIST] Business ID obrigatório para estrategistas:', pathname);
+        return NextResponse.json({
+          success: false,
+          error: 'Business ID obrigatório para estrategistas'
+        }, { status: 403 });
+      }
+
+      // TODO: Implementar verificação de acesso do estrategista à empresa específica
+      // Por enquanto, permitir acesso (será implementado na próxima iteração)
+      console.log('🎯 [STRATEGIST] Acesso de estrategista autorizado temporariamente:', {
+        email: userEmail,
+        role: userRole,
+        businessId: businessIdFromRequest,
+        path: pathname
+      });
+    }
+    else if (!businessIdFromRequest && !clientBusinessId) {
       console.error('❌ [SECURITY] API chamada sem business_id:', pathname);
       return NextResponse.json({
         success: false,

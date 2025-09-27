@@ -197,7 +197,8 @@ export function canAccessBusiness(user: User, businessId: string): boolean {
     case UserRole.BUSINESS_OWNER:
       return user.business_id === businessId; // Empresas só acessam próprio business
     case UserRole.CREATOR_STRATEGIST:
-      return true; // Estrategistas têm acesso amplo para descoberta
+      // Estrategistas podem acessar businesses que gerenciam
+      return user.managed_businesses?.includes(businessId) || false;
     case UserRole.CREATOR:
       // Criadores podem ver businesses das campanhas que participam
       return true; // Acesso limitado para descoberta
