@@ -1405,7 +1405,7 @@ export default function Home() {
               </div>
 
               {/* Documentos Legais */}
-              <div className="space-y-4 pt-6 border-t border-blue-500/30">
+              <div className="space-y-4 pt-6">
                 <h4 className="text-white font-bold text-lg">Documentos Legais</h4>
                 <a href="/politica-privacidade" className="flex items-center gap-3 text-blue-100 hover:text-white transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1430,7 +1430,7 @@ export default function Home() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-blue-500/20 bg-gradient-to-b from-[#061e2f] to-[#041220]">
+        <div className="bg-gradient-to-b from-[#061e2f] to-[#041220]">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-center items-center gap-6">
               <div className="text-blue-100 text-center">
@@ -1446,7 +1446,7 @@ export default function Home() {
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-gradient-to-b from-[#041220] to-[#020a12] border-t border-blue-500/20">
+        <div className="bg-gradient-to-b from-[#041220] to-[#020a12]">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="text-blue-100 leading-relaxed space-y-4 max-w-4xl mx-auto">
               <p className="text-center">

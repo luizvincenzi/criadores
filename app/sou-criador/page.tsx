@@ -57,7 +57,10 @@ export default function SouCriador() {
                 <span className="sm:hidden">Começar</span>
               </button>
             </div>
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center space-x-2">
+              <a href="https://wa.me/554391936400" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-3 py-2 text-xs rounded-full">
+                Entrar
+              </a>
               <button className="text-gray-600 hover:text-black focus:outline-none">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -69,27 +72,27 @@ export default function SouCriador() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-20 pb-16 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <section className="pt-32 md:pt-40 pb-20 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8">
+          <div className="text-center mb-20">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-12 leading-tight">
               Conecte-se com <span className="text-[#0b3553]">Empresas Locais</span><br/>
               e <span className="text-[#0b3553]">Acelere</span> seus Resultados
             </h1>
-            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-12">
-              Estar conectado com empresas locais é fundamental para garantir bons resultados no seu trabalho como criador. 
+            <p className="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-12 px-4">
+              Estar conectado com empresas locais é fundamental para garantir bons resultados no seu trabalho como criador.
               Junte-se à maior comunidade local para crIAdores e transforme sua paixão em uma fonte de renda sustentável.
             </p>
-            
-            <div className="flex justify-center">
-              <a href="https://wa.me/554391936400" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-lg rounded-full">
+
+            <div className="flex justify-center px-4">
+              <a href="https://wa.me/554391936400" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-full w-full sm:w-auto max-w-sm">
                 Entrar na Comunidade
               </a>
             </div>
           </div>
 
           {/* Benefícios */}
-          <div className="grid md:grid-cols-2 gap-8 mt-20 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16 sm:mt-20 max-w-4xl mx-auto px-4">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <svg className="w-8 h-8 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,7 +416,7 @@ export default function SouCriador() {
               </div>
 
               {/* Documentos Legais */}
-              <div className="space-y-4 pt-6 border-t border-blue-500/30">
+              <div className="space-y-4 pt-6">
                 <h4 className="text-white font-bold text-lg">Documentos Legais</h4>
                 <a href="/politica-privacidade" className="flex items-center gap-3 text-blue-100 hover:text-white transition-colors duration-300">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -437,7 +440,7 @@ export default function SouCriador() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-blue-500/20 bg-gradient-to-b from-[#061e2f] to-[#041220]">
+        <div className="bg-gradient-to-b from-[#061e2f] to-[#041220]">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-center items-center gap-6">
               <div className="text-blue-100 text-center">
@@ -454,7 +457,7 @@ export default function SouCriador() {
         </div>
 
         {/* Disclaimer */}
-        <div className="bg-gradient-to-b from-[#041220] to-[#020a12] border-t border-blue-500/20">
+        <div className="bg-gradient-to-b from-[#041220] to-[#020a12]">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             <div className="text-blue-100 leading-relaxed space-y-4 max-w-4xl mx-auto">
               <p className="text-center">
