@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { fetchCampaigns } from '@/lib/dataSource';
 import { useAuthStore } from '@/store/authStore';
 import Button from '@/components/ui/Button';
+import BriefingCard from '@/components/briefing/BriefingCard';
+import BriefingModal from '@/components/briefing/BriefingModal';
 
 // Interfaces para dados de campanhas
 interface Campaign {
@@ -40,17 +42,38 @@ interface MonthlyData {
   averageROI: number;
 }
 
+interface Briefing {
+  id: string;
+  refCode: string;
+  businessName: string;
+  businessId: string;
+  referenceMonth: string;
+  meetingDate: string;
+  status: string;
+  nextStep: string;
+  campaigns: string[];
+  performanceScore: number;
+  totalTasks: number;
+  pendingTasks: number;
+  completedTasks: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function CampaignsPage() {
   const { user, session } = useAuthStore();
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
+  const [briefings, setBriefings] = useState<Briefing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('all');
   const [viewMode, setViewMode] = useState<'timeline' | 'grid'>('timeline');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [selectedBriefing, setSelectedBriefing] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       loadCampaigns();
+      loadBriefings();
     }
   }, [user]);
 
@@ -103,6 +126,33 @@ export default function CampaignsPage() {
       console.error('Erro ao carregar campanhas:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadBriefings = async () => {
+    try {
+      console.log('🔍 Carregando briefings...');
+
+      // Buscar business_id do usuário
+      const businessId = user?.business_id || process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID;
+
+      let url = '/api/briefings-optimized';
+      if (businessId) {
+        url += `?businessId=${businessId}`;
+      }
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Erro ao carregar briefings');
+      }
+
+      const data = await response.json();
+      console.log('✅ Briefings carregados:', data.briefings?.length || 0);
+
+      setBriefings(data.briefings || []);
+    } catch (error) {
+      console.error('Erro ao carregar briefings:', error);
+      setBriefings([]);
     }
   };
 
@@ -333,6 +383,55 @@ export default function CampaignsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Briefings do mês */}
+            {briefings.filter(briefing => {
+              const briefingMonth = briefing.referenceMonth.toLowerCase();
+              const currentMonth = monthData.monthDisplay.toLowerCase();
+              return briefingMonth.includes(currentMonth.split(' ')[0]) ||
+                     briefingMonth.includes(monthData.month.split('-')[1]);
+            }).length > 0 && (
+              <div className="ml-16 mb-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Briefings Mensais
+                </h4>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {briefings
+                    .filter(briefing => {
+                      const briefingMonth = briefing.referenceMonth.toLowerCase();
+                      const currentMonth = monthData.monthDisplay.toLowerCase();
+                      return briefingMonth.includes(currentMonth.split(' ')[0]) ||
+                             briefingMonth.includes(monthData.month.split('-')[1]);
+                    })
+                    .map((briefing) => (
+                      <BriefingCard
+                        key={briefing.id}
+                        briefing={{
+                          id: briefing.id,
+                          refCode: briefing.refCode,
+                          businessName: briefing.businessName,
+                          referenceMonth: briefing.referenceMonth,
+                          meetingDate: briefing.meetingDate,
+                          status: briefing.status,
+                          nextStep: briefing.nextStep,
+                          monthCampaigns: briefing.campaigns,
+                          performanceScore: briefing.performanceScore,
+                          totalTasks: briefing.totalTasks,
+                          pendingTasks: briefing.pendingTasks,
+                          participants: {
+                            criadores: [],
+                            client: []
+                          }
+                        }}
+                        onClick={() => setSelectedBriefing(briefing.id)}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
 
             {/* Cards das campanhas do mês */}
             <div className="ml-16 grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -602,6 +701,14 @@ export default function CampaignsPage() {
 
         {/* Modal de detalhes */}
         <CampaignDetailModal />
+
+        {/* Modal de briefing */}
+        {selectedBriefing && (
+          <BriefingModal
+            briefingId={selectedBriefing}
+            onClose={() => setSelectedBriefing(null)}
+          />
+        )}
       </div>
     </div>
   );

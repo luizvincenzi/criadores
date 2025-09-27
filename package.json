@@ -21,7 +21,8 @@
     "test-seo": "node scripts/test-seo-endpoints.js",
     "supabase:types": "supabase gen types typescript --local > lib/database.types.ts",
     "verify-ga": "node scripts/verify-ga-coverage.js",
-    "test-ga": "node test-ga-all-pages.js"
+    "test-ga": "node test-ga-all-pages.js",
+    "implement-briefing": "tsx scripts/implement-briefing-optimized.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
