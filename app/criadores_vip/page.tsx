@@ -9,15 +9,25 @@ export default function CriadoresVIPPage() {
   const [filteredCreators, setFilteredCreators] = useState<Creator[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadCreators() {
       try {
+        console.log('🔵 [CLIENT] Iniciando carregamento de criadores...');
+        console.log('🔵 [CLIENT] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configurado' : 'NÃO CONFIGURADO');
         const data = await getLondrinaCreators();
+        console.log('🔵 [CLIENT] Criadores carregados:', data.length);
+
+        if (data.length === 0) {
+          setError('Nenhum criador de Londrina encontrado no banco de dados');
+        }
+
         setCreators(data);
         setFilteredCreators(data);
       } catch (error) {
-        console.error('Erro ao carregar criadores:', error);
+        console.error('🔴 [CLIENT] Erro ao carregar criadores:', error);
+        setError(error instanceof Error ? error.message : 'Erro desconhecido');
       } finally {
         setLoading(false);
       }
@@ -126,6 +136,11 @@ export default function CriadoresVIPPage() {
                 </>
               )}
             </p>
+            {error && (
+              <p className="text-red-500 text-sm mt-2 bg-red-50 border border-red-200 rounded-lg px-4 py-2 inline-block">
+                ⚠️ {error}
+              </p>
+            )}
           </div>
 
           {/* Grid de Criadores */}
