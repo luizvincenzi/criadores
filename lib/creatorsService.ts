@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 
+// Interface dos criadores (Supabase já retorna JSONB como objetos)
 export interface Creator {
   id: string;
   name: string;
@@ -28,49 +29,65 @@ export interface Creator {
   created_at: string;
 }
 
-const DEFAULT_ORG_ID = 'org_default_migration';
+const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 // Buscar todos os criadores de Londrina
 export async function getLondrinaCreators(): Promise<Creator[]> {
-  console.log('👥 Buscando criadores de Londrina...');
+  console.log('👥 [SERVICE] Buscando criadores de Londrina...');
 
   const { data, error } = await supabase
     .from('creators')
     .select('*')
     .eq('organization_id', DEFAULT_ORG_ID)
     .eq('is_active', true)
-    .or('profile_info->>city.eq.Londrina,profile_info->>city.eq.Londrina - PR')
     .order('name');
 
   if (error) {
-    console.error('❌ Erro ao buscar criadores:', error);
-    // Retorna array vazio em caso de erro
+    console.error('❌ [SERVICE] Erro ao buscar criadores:', error);
     return [];
   }
 
-  console.log(`✅ ${data?.length || 0} criadores de Londrina encontrados`);
-  return data || [];
+  if (!data || data.length === 0) {
+    console.log('⚠️ [SERVICE] Nenhum criador encontrado no banco de dados');
+    return [];
+  }
+
+  console.log(`✅ [SERVICE] ${data.length} criadores encontrados no total`);
+
+  // Filtrar criadores de Londrina
+  const londrinaCreators = (data as Creator[]).filter(creator => {
+    const city = creator.profile_info?.location?.city || '';
+    const isLondrina = city.toLowerCase().includes('londrina');
+    return isLondrina;
+  });
+
+  console.log(`✅ [SERVICE] ${londrinaCreators.length} criadores de Londrina filtrados`);
+  return londrinaCreators;
 }
 
 // Buscar criador por slug
 export async function getCreatorBySlug(slug: string): Promise<Creator | null> {
-  console.log(`👤 Buscando criador com slug: ${slug}`);
+  console.log(`👤 [SERVICE] Buscando criador com slug: ${slug}`);
 
   const { data, error } = await supabase
     .from('creators')
     .select('*')
     .eq('slug', slug)
-    .eq('organization_id', DEFAULT_ORG_ID)
     .eq('is_active', true)
     .single();
 
   if (error) {
-    console.error('❌ Erro ao buscar criador:', error);
+    console.error('❌ [SERVICE] Erro ao buscar criador:', error);
     return null;
   }
 
-  console.log(`✅ Criador encontrado: ${data?.name}`);
-  return data;
+  if (!data) {
+    console.log('⚠️ [SERVICE] Criador não encontrado');
+    return null;
+  }
+
+  console.log(`✅ [SERVICE] Criador encontrado: ${data.name}`);
+  return data as Creator;
 }
 
 // Buscar todos os slugs de criadores (para generateStaticParams)
