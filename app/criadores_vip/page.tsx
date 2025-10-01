@@ -148,7 +148,7 @@ export default function CriadoresVIPPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                 <div key={n} className="bg-white rounded-2xl overflow-hidden border border-gray-200 animate-pulse shadow-md">
-                  <div className="aspect-square bg-gray-200"></div>
+                  <div className="aspect-[4/3] bg-gray-200"></div>
                   <div className="p-6 space-y-3">
                     <div className="h-6 bg-gray-200 rounded"></div>
                     <div className="h-4 bg-gray-200 rounded w-2/3"></div>
@@ -171,7 +171,7 @@ export default function CriadoresVIPPage() {
                   className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-[#0b3553] transition-all duration-300 hover:shadow-2xl hover:shadow-[#0b3553]/20 hover:transform hover:scale-105"
                 >
                   {/* Foto do Criador */}
-                  <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+                  <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
                     {creator.profile_info?.photo_url ? (
                       <img
                         src={creator.profile_info.photo_url}
@@ -180,14 +180,14 @@ export default function CriadoresVIPPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                        <svg className="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
                       </div>
                     )}
 
                     {/* Badge VIP */}
-                    <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                    <div className="absolute top-3 right-3 bg-black/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-lg">
                       VIP
                     </div>
                   </div>
@@ -198,7 +198,9 @@ export default function CriadoresVIPPage() {
                       {creator.name}
                     </h3>
 
-                    {creator.profile_info?.category && (
+                    {creator.profile_info?.category &&
+                     creator.profile_info.category !== 'Micro' &&
+                     creator.profile_info.category !== 'Nano' && (
                       <p className="text-sm text-gray-600 mb-3 line-clamp-1">
                         {creator.profile_info.category}
                       </p>

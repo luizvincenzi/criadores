@@ -26,20 +26,22 @@ export interface Creator {
   };
   status: string;
   is_active: boolean;
+  is_vip?: boolean;
   created_at: string;
 }
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
-// Buscar todos os criadores de Londrina
+// Buscar todos os criadores VIP de Londrina
 export async function getLondrinaCreators(): Promise<Creator[]> {
-  console.log('👥 [SERVICE] Buscando criadores de Londrina...');
+  console.log('👥 [SERVICE] Buscando criadores VIP de Londrina...');
 
   const { data, error } = await supabase
     .from('creators')
     .select('*')
     .eq('organization_id', DEFAULT_ORG_ID)
     .eq('is_active', true)
+    .eq('is_vip', true)
     .order('name');
 
   if (error) {
@@ -48,11 +50,11 @@ export async function getLondrinaCreators(): Promise<Creator[]> {
   }
 
   if (!data || data.length === 0) {
-    console.log('⚠️ [SERVICE] Nenhum criador encontrado no banco de dados');
+    console.log('⚠️ [SERVICE] Nenhum criador VIP encontrado no banco de dados');
     return [];
   }
 
-  console.log(`✅ [SERVICE] ${data.length} criadores encontrados no total`);
+  console.log(`✅ [SERVICE] ${data.length} criadores VIP encontrados no total`);
 
   // Filtrar criadores de Londrina
   const londrinaCreators = (data as Creator[]).filter(creator => {
@@ -61,7 +63,7 @@ export async function getLondrinaCreators(): Promise<Creator[]> {
     return isLondrina;
   });
 
-  console.log(`✅ [SERVICE] ${londrinaCreators.length} criadores de Londrina filtrados`);
+  console.log(`✅ [SERVICE] ${londrinaCreators.length} criadores VIP de Londrina filtrados`);
   return londrinaCreators;
 }
 

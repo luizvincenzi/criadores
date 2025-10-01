@@ -43,35 +43,51 @@ export default function CriadoresVIPCard() {
   const parceiros = [
     {
       id: 1,
-      nome: 'Boussolé Rooftop',
-      categoria: 'Bares & Lounges',
-      beneficio: 'Entrada Free + 10% desconto',
-      descricao: 'Válido em toda a consumação',
-      logo: '🍸',
-    },
-    {
-      id: 2,
-      nome: 'Folks Pub Londrina',
+      nome: 'Folks Pub',
       categoria: 'Pub',
-      beneficio: 'Entrada Free + 10% desconto',
-      descricao: 'Válido em toda a consumação',
+      beneficio: 'Entrada sua e de um acompanhante grátis',
+      descricao: 'Fila VIP',
       logo: '🍺',
     },
     {
-      id: 3,
-      nome: 'Agrobar',
+      id: 2,
+      nome: 'Cartagena Bar',
       categoria: 'Bar',
-      beneficio: 'Entrada Free + 10% desconto',
-      descricao: 'Válido em toda a consumação',
-      logo: '🎵',
+      beneficio: 'Entrada sua e de um acompanhante grátis',
+      descricao: 'Fila preferencial',
+      logo: '🌴',
+    },
+    {
+      id: 3,
+      nome: 'Boussolé Rooftop',
+      categoria: 'Rooftop',
+      beneficio: 'Compre um prato individual e ganhe outro',
+      descricao: 'Não cumulativo com outras promoções',
+      logo: '🍸',
     },
     {
       id: 4,
-      nome: 'Cartagena',
-      categoria: 'Lounge',
-      beneficio: 'Entrada Free + 10% desconto',
-      descricao: 'Válido em toda a consumação',
-      logo: '🌴',
+      nome: 'AgroBar',
+      categoria: 'Bar',
+      beneficio: 'Entrada sua e de um acompanhante grátis + 20% desconto',
+      descricao: 'Não cumulativo com outras promoções',
+      logo: '🎵',
+    },
+    {
+      id: 5,
+      nome: 'Pet Shop Paraíso',
+      categoria: 'Pet Shop',
+      beneficio: 'Na compra de um banho, ganha o segundo',
+      descricao: 'Para a próxima vez',
+      logo: '🐾',
+    },
+    {
+      id: 6,
+      nome: 'Clínica de Estética Beautitá',
+      categoria: 'Estética',
+      beneficio: 'Na compra de 1 pacote de massagem',
+      descricao: 'Ganhe uma Relax Biuti',
+      logo: '💆',
     },
   ];
 
@@ -144,6 +160,63 @@ export default function CriadoresVIPCard() {
                 nesse estabelecimento
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Estabelecimentos Parceiros */}
+      <section className="py-20 bg-gradient-to-b from-black via-gray-900 to-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm font-medium mb-6">
+              🤝 Empresas Parceiras
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+              Onde usar seu VIP Card
+            </h2>
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8">
+              Estabelecimentos parceiros com benefícios exclusivos para crIAdores VIP
+            </p>
+          </div>
+
+          {/* Grid de Parceiros */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {parceiros.map((parceiro) => (
+              <div
+                key={parceiro.id}
+                className="group bg-[#f5f5f5] border border-gray-300 rounded-2xl p-6 hover:border-[#0b3553] transition-all duration-300 hover:shadow-2xl hover:shadow-[#0b3553]/20 hover:transform hover:scale-105"
+              >
+                {/* Logo/Ícone */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="text-5xl">{parceiro.logo}</div>
+                  <div className="px-3 py-1 bg-white border border-gray-300 rounded-full">
+                    <span className="text-xs font-semibold text-gray-600">{parceiro.categoria}</span>
+                  </div>
+                </div>
+
+                {/* Nome */}
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{parceiro.nome}</h3>
+
+                {/* Benefício - Destaque */}
+                <div className="bg-[#0b3553]/10 border border-[#0b3553]/30 rounded-xl p-4 mb-4">
+                  <div className="flex items-start gap-2 mb-2">
+                    <svg className="w-5 h-5 text-[#0b3553] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                    </svg>
+                    <span className="text-sm font-bold text-gray-900 leading-tight">{parceiro.beneficio}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">{parceiro.descricao}</p>
+                </div>
+
+                {/* Badge de Validação */}
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Parceiro Verificado</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -293,76 +366,6 @@ export default function CriadoresVIPCard() {
               <h3 className="text-xl font-bold text-white mb-3">Aproveite</h3>
               <p className="text-gray-400">Garanta seus descontos e benefícios exclusivos</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Estabelecimentos Parceiros */}
-      <section className="py-20 bg-gradient-to-b from-black via-gray-900 to-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm font-medium mb-6">
-              🤝 Empresas Parceiras
-            </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-              Onde usar seu VIP Card
-            </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8">
-              Estabelecimentos parceiros com benefícios exclusivos para crIAdores VIP
-            </p>
-          </div>
-
-          {/* Grid de Parceiros */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {parceiros.map((parceiro) => (
-              <div
-                key={parceiro.id}
-                className="group bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-2xl p-6 hover:border-[#0b3553] transition-all duration-300 hover:shadow-2xl hover:shadow-[#0b3553]/20 hover:transform hover:scale-105"
-              >
-                {/* Logo/Ícone */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="text-5xl">{parceiro.logo}</div>
-                  <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                    <span className="text-xs font-semibold text-gray-400">{parceiro.categoria}</span>
-                  </div>
-                </div>
-
-                {/* Nome */}
-                <h3 className="text-xl font-bold text-white mb-4">{parceiro.nome}</h3>
-
-                {/* Benefício - Destaque */}
-                <div className="bg-[#0b3553]/20 border border-[#0b3553]/30 rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="w-5 h-5 text-[#0b3553]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-                    </svg>
-                    <span className="text-sm font-bold text-white">{parceiro.beneficio}</span>
-                  </div>
-                  <p className="text-xs text-gray-400">{parceiro.descricao}</p>
-                </div>
-
-                {/* Badge de Validação */}
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span>Parceiro Verificado</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA para ver mais parceiros */}
-          <div className="text-center mt-12">
-            <p className="text-gray-400 mb-6">E muitos outros estabelecimentos parceiros!</p>
-            <a
-              href="https://wa.me/554391936400"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center font-medium transition-all duration-200 bg-[#0b3553] hover:bg-[#0a2f4a] text-white px-8 py-4 text-lg rounded-full shadow-lg shadow-[#0b3553]/30 hover:shadow-[#0b3553]/50"
-            >
-              Ver Todos os Parceiros
-            </a>
           </div>
         </div>
       </section>
