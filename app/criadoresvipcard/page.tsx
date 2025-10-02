@@ -45,16 +45,16 @@ export default function CriadoresVIPCard() {
       id: 1,
       nome: 'Folks Pub',
       categoria: 'Pub',
-      beneficio: 'Entrada sua e de um acompanhante grátis',
-      descricao: 'Fila VIP',
+      beneficio: 'Entrada sua e de um acompanhante grátis e na fila vip',
+      descricao: '',
       logo: '🍺',
     },
     {
       id: 2,
       nome: 'Cartagena Bar',
       categoria: 'Bar',
-      beneficio: 'Entrada sua e de um acompanhante grátis',
-      descricao: 'Fila preferencial',
+      beneficio: 'Entrada sua e de um acompanhante grátis e na fila preferencial',
+      descricao: '',
       logo: '🌴',
     },
     {
@@ -69,25 +69,65 @@ export default function CriadoresVIPCard() {
       id: 4,
       nome: 'AgroBar',
       categoria: 'Bar',
-      beneficio: 'Entrada sua e de um acompanhante grátis + 20% desconto',
+      beneficio: 'Entrada sua e de um acompanhante grátis + 20% de desconto na comanda',
       descricao: 'Não cumulativo com outras promoções',
       logo: '🎵',
     },
     {
       id: 5,
-      nome: 'Pet Shop Paraíso',
-      categoria: 'Pet Shop',
-      beneficio: 'Na compra de um banho, ganha o segundo',
-      descricao: 'Para a próxima vez',
-      logo: '🐾',
+      nome: 'Vó Nena',
+      categoria: 'Restaurante',
+      beneficio: 'Cupom de 15% de desconto: CRIADORES',
+      descricao: '',
+      logo: '🍽️',
     },
     {
       id: 6,
-      nome: 'Clínica de Estética Beautitá',
+      nome: 'Pantanos',
+      categoria: 'Bar',
+      beneficio: 'Compre uma torre de chopp e ganhe uma isca de frango média',
+      descricao: '',
+      logo: '🍻',
+    },
+    {
+      id: 7,
+      nome: 'John o Groats',
+      categoria: 'Pub',
+      beneficio: 'Entrada liberada para o crIAdor + 1 acompanhante',
+      descricao: 'Não é válido para as quartas!',
+      logo: '🎸',
+    },
+    {
+      id: 8,
+      nome: 'Brah Poke',
+      categoria: 'Restaurante',
+      beneficio: 'Compre um Poke e ganhe um suco de laranja',
+      descricao: 'Válido para consumo ou retirada no local',
+      logo: '🥗',
+    },
+    {
+      id: 9,
+      nome: 'Pet Shop Paraíso',
+      categoria: 'Pet Shop',
+      beneficio: 'Na compra de um banho pro seu pet, ganhe o outro na próxima vez',
+      descricao: '',
+      logo: '🐾',
+    },
+    {
+      id: 10,
+      nome: 'Clínica de Estética Biutitá',
       categoria: 'Estética',
-      beneficio: 'Na compra de 1 pacote de massagem',
-      descricao: 'Ganhe uma Relax Biuti',
+      beneficio: 'Na compra de um pacote de massagem ganhe uma Relax Biuti',
+      descricao: '',
       logo: '💆',
+    },
+    {
+      id: 11,
+      nome: 'Cafeteria Odebrecht',
+      categoria: 'Cafeteria',
+      beneficio: 'Na compra de um salgado ou um lanche, ganhe um café expresso',
+      descricao: '',
+      logo: '☕',
     },
   ];
 
@@ -199,13 +239,15 @@ export default function CriadoresVIPCard() {
 
                 {/* Benefício - Destaque */}
                 <div className="bg-[#0b3553]/10 border border-[#0b3553]/30 rounded-xl p-4 mb-4">
-                  <div className="flex items-start gap-2 mb-2">
+                  <div className={`flex items-start gap-2 ${parceiro.descricao ? 'mb-2' : ''}`}>
                     <svg className="w-5 h-5 text-[#0b3553] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
                     </svg>
                     <span className="text-sm font-bold text-gray-900 leading-tight">{parceiro.beneficio}</span>
                   </div>
-                  <p className="text-xs text-gray-600 leading-relaxed">{parceiro.descricao}</p>
+                  {parceiro.descricao && (
+                    <p className="text-xs text-gray-600 leading-relaxed">{parceiro.descricao}</p>
+                  )}
                 </div>
 
                 {/* Badge de Validação */}
