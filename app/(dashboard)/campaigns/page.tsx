@@ -703,12 +703,11 @@ export default function CampaignsPage() {
         <CampaignDetailModal />
 
         {/* Modal de briefing */}
-        {selectedBriefing && (
-          <BriefingModal
-            briefingId={selectedBriefing}
-            onClose={() => setSelectedBriefing(null)}
-          />
-        )}
+        <BriefingModal
+          briefingId={selectedBriefing}
+          isOpen={!!selectedBriefing}
+          onClose={() => setSelectedBriefing(null)}
+        />
       </div>
     </div>
   );

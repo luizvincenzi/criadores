@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório de Briefing — Criadores</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --brand: #0ea5e9; }
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    @media print {
+      @page { margin: 10mm; }
+      html, body { background: #fff !important; }
+      .no-print { display: none !important; }
+      .card-document { box-shadow: none !important; border: none !important; }
+      .chart-container { page-break-inside: avoid; }
+    }
+    .report-section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status svg { width: 14px; height: 14px; }
+    .status.todo { background-color: #fda4af; color: #881337; }
+    .status.doing { background-color: #fcd34d; color: #78350f; }
+    .status.done { background-color: #86efac; color: #14532d; }
+    .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 280px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 280px;
+    }
+  </style>
+</head>
+<body class="text-slate-800">
+
+  <!-- Toolbar -->
+  <div class="no-print max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-slate-900 text-white grid place-items-center font-bold text-sm">C</div>
+        <span class="text-sm text-slate-500 hidden sm:inline">Relatórios • Briefing de Campanha</span>
+      </div>
+      <div class="flex gap-2">
+        <button id="copyWhatsapp" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 text-sm font-medium">Copiar Resumo</button>
+        <button onclick="window.print()" class="px-3 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium">Imprimir / PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="pb-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Document -->
+      <div class="bg-white rounded-lg shadow-md border border-slate-200 card-document">
+        
+        <header class="py-8 text-center border-b border-slate-200 px-6">
+            <h1 class="text-3xl font-extrabold text-slate-900" id="reportTitle">Relatório crIAdores Briefing</h1>
+            <p class="mt-2 text-slate-600">Resumo executivo do briefing de campanhas estruturadas.</p>
+        </header>
+
+        <div class="p-6 sm:p-8 space-y-12">
+
+          <!-- 1. Resumo Executivo -->
+          <section>
+            <h2 class="report-section-title"><span class="text-slate-400 mr-2">1.</span>Resumo Executivo</h2>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold text-slate-700">Data da Reunião</h3>
+                        <p id="meetingDate" class="text-sm"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-slate-700">Campanhas do Mês (John)</h3>
+                        <ul id="monthCampaigns" class="list-disc list-inside text-slate-700 text-sm space-y-1 mt-1"></ul>
+                    </div>
+                </div>
+                 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold text-slate-700">Participantes (crIAdores)</h3>
+                        <ul id="participantsCriadores" class="list-disc list-inside text-slate-700 text-sm space-y-1 mt-1"></ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-slate-700">Participantes (Cliente)</h3>
+                        <ul id="participantsCliente" class="list-disc list-inside text-slate-700 text-sm space-y-1 mt-1"></ul>
+                    </div>
+                </div>
+                <hr class="my-6 border-slate-200">
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-4 rounded-md border text-center">
+                        <h4 class="text-sm font-semibold text-slate-600 mb-2">Próximo Passo Imediato</h4>
+                        <p id="nextStepSummary" class="text-lg font-bold text-sky-600"></p>
+                    </div>
+                    <div class="mt-0">
+                         <h4 class="text-sm font-semibold text-slate-600 mb-3 text-center">Principais Necessidades Identificadas</h4>
+                         <div id="needsList" class="flex flex-wrap justify-center gap-2"></div>
+                    </div>
+                </div>
+                <div class="mt-6 bg-white p-4 rounded-md border">
+                  <h3 class="font-semibold text-slate-700">Feedback do Mês Anterior (Setembro)</h3>
+                  <p id="previousFeedback" class="text-slate-600 text-sm mt-1"></p>
+                </div>
+            </div>
+          </section>
+
+          <!-- 2. Produto & Proposta de Valor -->
+          <section>
+            <h2 class="report-section-title"><span class="text-slate-400 mr-2">2.</span>Produto & Proposta de Valor</h2>
+            <div class="grid grid-cols-1 gap-4 text-sm" id="productInfoGrid">
+                <!-- Conteúdo gerado via JS -->
+            </div>
+          </section>
+
+          <!-- 3. Contexto da Campanha -->
+          <section>
+            <h2 class="report-section-title" id="campaignContextTitle"><span class="text-slate-400 mr-2">3.</span>Contexto da Campanha</h2>
+            <div class="space-y-6 text-sm">
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+                    <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        <span>Objetivo Principal do Mês</span>
+                    </h4>
+                    <p id="campaignObjective" class="text-slate-600 leading-relaxed pl-9"></p>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+                    <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <span>Estratégia Central</span>
+                    </h4>
+                    <p id="campaignStrategy" class="text-slate-600 leading-relaxed pl-9"></p>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+                    <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        <span>Pilares de Conteúdo</span>
+                    </h4>
+                    <p id="campaignPillars" class="text-slate-600 leading-relaxed pl-9"></p>
+                </div>
+            </div>
+          </section>
+
+          <!-- 4. Do's & Don'ts -->
+          <section>
+            <h2 class="report-section-title"><span class="text-slate-400 mr-2">4.</span>Do's & Don'ts</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <div class="bg-green-50 border-l-4 border-green-500 rounded-r-lg p-5">
+                <h3 class="font-bold text-green-800 mb-2 text-base">✅ DO'S (FAZER)</h3>
+                <ul id="dosList" class="list-disc list-inside text-slate-700 space-y-1 pl-1"></ul>
+              </div>
+              <div class="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-5">
+                <h3 class="font-bold text-red-800 mb-2 text-base">❌ DON'TS (NÃO FAZER)</h3>
+                <ul id="dontsList" class="list-disc list-inside text-slate-700 space-y-1 pl-1"></ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. Dicas de Conversão -->
+          <section>
+            <h2 class="report-section-title"><span class="text-slate-400 mr-2">5.</span>Dicas de Conversão</h2>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-5 text-sm text-slate-700">
+                <ul id="conversionTips" class="list-disc list-inside space-y-1"></ul>
+            </div>
+          </section>
+
+          <!-- 6. Plano de Ação -->
+          <section>
+            <h2 class="report-section-title"><span class="text-slate-400 mr-2">6.</span>Plano de Ação</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <div class="bg-slate-50 border rounded-lg p-5">
+                <h3 class="font-semibold text-slate-700 mb-4 text-base">Ações Internas (crIAdores)</h3>
+                <ul id="internalActions" class="space-y-3"></ul>
+              </div>
+              <div class="bg-slate-50 border rounded-lg p-5">
+                <h3 class="font-semibold text-slate-700 mb-4 text-base">Próximos Passos (Cliente)</h3>
+                <ul id="clientActions" class="space-y-3"></ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. Análise de Performance da Call -->
+          <section>
+            <h2 class="report-section-title"><span class="text-slate-400 mr-2">7.</span>Análise de Performance da Call</h2>
+            <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                        <div id="checklistScore" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span class="text-4xl font-extrabold text-slate-800"></span>
+                            <span class="text-sm text-slate-500 mt-1">Checklist</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-base mb-4 text-center md:text-left">Checklist de Itens Discutidos</h4>
+                        <ul id="briefingChecklist" class="text-slate-700 text-sm space-y-4"></ul>
+                    </div>
+                </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer class="bg-slate-800 text-slate-400 mt-12">
+    <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-xs">
+        <p class="font-semibold text-slate-200">crIAdores</p>
+        <p class="mt-1">Documento de referência de briefing de campanhas. Ref: <span id="refCode"></span></p>
+        <p class="mt-2">© <span id="year"></span> <a href="mailto:contato@criadores.app" class="underline hover:text-white">contato@criadores.app</a></p>
+    </div>
+  </footer>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // --- DADOS DO RELATÓRIO (EXTRAÍDOS DA TRANSCRIÇÃO) ---
+      const reportData = {
+        refCode: 'BRF-202510-002',
+        referenceMonth: 'Outubro/2025',
+        meetingDate: '26 de Setembro de 2025',
+        participants: {
+            criadores: ['Luiz Vincenzi', 'Rafa (criadores ops)', 'Gabriel'],
+            client: ['Diogo Torresan (John Beer & Pork)']
+        },
+        executiveSummary: {
+          monthCampaigns: [
+            'Evento: Oktoberfest (início do mês)',
+            'Evento: Halloween (fim do mês)',
+            'Dia da semana: Quarta-feira (Open Chopp)',
+            'Dia da semana: Quinta-feira (Ladies Night)'
+          ],
+          nextStep: 'Aguardando briefing detalhado do cliente (foco em Oktoberfest).',
+          identifiedNeeds: [
+            'Melhorar energia/pegada dos vídeos',
+            'Criar capas de Reels mais atrativas',
+            'Explorar cenários que reflitam o bar',
+            'Obter insights de audiência dos posts'
+          ],
+          previousMonthFeedback: 'No geral positivo. Para o "John", alguns vídeos tiveram uma energia "morna", e as capas dos reels podem ser mais bem pensadas para valorizar o feed. Para o "Bra (Pokk)", as entregas foram boas, com destaque para o vídeo da Pietra.'
+        },
+        productInfo: {
+          description: 'Bar em Londrina com foco em cervejas artesanais, porções e ambiente descontraído para entretenimento e happy hour.',
+          price: 'Variado (chopp, drinks, porções)',
+          place: 'Loja física em Londrina, PR.',
+          promotion: 'Open Chopp às quartas, Ladies\' Night às quintas.',
+          idealAudience: 'Jovens e adultos (25-45 anos) em Londrina, interessados em happy hour, música, eventos e cerveja artesanal.',
+          mainPainPoint: 'Busca por um lugar com ambiente legal, bons produtos e entretenimento para ir com amigos durante da semana e fins de semana.',
+          benefits: [
+            'Eventos temáticos e dias com promoções fixas.',
+            'Ambiente ideal para socialização e diversão.',
+            'Cardápio variado de comidas e bebidas.'
+          ],
+          commonObjections: '"O bar é muito cheio." Resposta: "Temos dias mais tranquilos como a quarta-feira, ideal para quem busca uma experiência com mais calma."',
+          urgency: 'Eventos únicos como Oktoberfest e Halloween acontecem apenas uma vez ao ano, com atrações especiais.'
+        },
+        campaignContext: {
+          objective: 'Aumentar o fluxo de clientes e o reconhecimento da marca ao concentrar esforços de divulgação em eventos e dias da semana específicos, gerando picos de movimento e fortalecendo a percepção do John como um destino de entretenimento.',
+          strategy: 'Adotar uma abordagem de "pulso", focando a verba e a comunicação em campanhas de curta duração e alto impacto, em vez de uma divulgação genérica. A ideia é criar um senso de urgência e oportunidade para cada pilar de conteúdo.',
+          pillars: 'A comunicação será dividida em 4 pilares: 2 eventos principais (Oktoberfest e Halloween) para atrair grande público e 2 campanhas de sustentação (Quarta do Open Chopp e Quinta Ladies Night) para garantir o fluxo contínuo durante a semana.'
+        },
+        dosAndDonts: {
+          dos: [
+            'Gravar vídeos com energia alta, transmitindo alegria e diversão.',
+            'Criar capas de Reels atrativas, que valorizem o feed e mostrem o ambiente.',
+            'Explorar cenários que mostrem a identidade visual e a atmosfera do bar.',
+            'Para o "Bra", usar roupas que combinem com a identidade da marca (ex: verde).'
+          ],
+          donts: [
+            'Produzir conteúdo com "pegada morna" ou baixa energia.',
+            'Usar capas de vídeo genéricas ou que não contextualizem o local.',
+            'Gravar em cenários que não valorizam o espaço (ex: fundo com TV).',
+            'Focar excessivamente no criador sem mostrar a experiência do ambiente.'
+          ]
+        },
+        conversionTips: [
+          'Promover os eventos (Oktoberfest, Halloween) com contagem regressiva nos Stories.',
+          'Criar enquetes interativas sobre as atrações dos eventos para gerar engajamento.',
+          'Incentivar o compartilhamento de conteúdo gerado pelo usuário (UGC) durante os eventos.',
+          'Utilizar os vídeos para campanhas de remarketing focadas no público local.'
+        ],
+        actionPlan: {
+          internal: [
+            { task: 'Apresentar perfis de influenciadores para as 4 campanhas', status: 'todo' },
+            { task: 'Coletar e enviar dados de audiência dos perfis', status: 'todo' },
+            { task: 'Briefing dos criadores com foco em energia, capas e cenários', status: 'todo' },
+            { task: 'Garantir entrega do vídeo do Oktoberfest até 06/10', status: 'todo' },
+            { task: 'Garantir entrega do vídeo do Halloween até 27/10', status: 'todo' },
+          ],
+          client: [
+            { task: 'Enviar briefing detalhado das campanhas de Outubro', status: 'doing' },
+            { task: 'Avaliar e aprovar os perfis de influenciadores', status: 'todo' },
+            { task: 'Sugerir possível recontratação de criadores anteriores', status: 'todo' },
+          ]
+        },
+        callPerformance: {
+          checklist: [
+            { item: 'Coletou feedback do mês anterior?', checked: true, evidence: 'Diogo detalhou a percepção sobre a "energia morna" de alguns vídeos do John e elogiou o padrão das entregas do Bra.' },
+            { item: 'Entendeu a estratégia para o próximo mês?', checked: true, evidence: 'Foi definida a estratégia de focar em dias específicos (quarta/quinta) e nos eventos (Oktoberfest/Halloween) para concentrar o impacto.' },
+            { item: 'Definiu as campanhas/temas a serem trabalhados?', checked: true, evidence: 'As 4 campanhas de Outubro foram claramente estabelecidas: 2 para eventos e 2 para fortalecer dias da semana.' },
+            { item: 'Alinhou o perfil de criador desejado?', checked: true, evidence: 'Para o Bra, foi solicitado inverter a proporção para mais criadores de lifestyle. Para o John, foi discutida a possibilidade de recontratar perfis de sucesso.' },
+            { item: 'Discutiu Do\'s & Don\'ts para o conteúdo?', checked: true, evidence: 'O feedback sobre capas, cenários e a "pegada" dos vídeos serviu como base para os Do\'s & Don\'ts, que serão formalizados no briefing.' },
+            { item: 'Estabeleceu prazos de entrega e postagem?', checked: true, evidence: 'Prazos definidos: vídeo do Oktoberfest até 06/10 e Halloween até 27/10. Para o Bra, foi definida uma postagem por semana, às sextas.' },
+            { item: 'Identificou a necessidade de métricas?', checked: true, evidence: 'Diogo solicitou expressamente os insights de audiência (público, faixa etária) dos posts feitos no perfil dos criadores.' },
+            { item: 'Definiu claramente os próximos passos?', checked: true, evidence: 'Ao final, foram definidos os próximos passos: cliente envia briefing detalhado e a equipe interna apresenta os perfis e coleta os dados de audiência.' },
+          ]
+        }
+      };
+
+      // --- FUNÇÕES AUXILIARES ---
+      const populateText = (id, text) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = text || '—';
+      };
+      
+      const populateList = (id, items) => {
+        const list = document.getElementById(id);
+        if (list) {
+          list.innerHTML = '';
+          if (items && items.length > 0) {
+            items.forEach(itemText => {
+              const li = document.createElement('li');
+              li.textContent = itemText;
+              list.appendChild(li);
+            });
+          } else {
+            list.innerHTML = '<li>Nenhum item informado.</li>';
+          }
+        }
+      };
+
+      const populateTagList = (id, items) => {
+        const container = document.getElementById(id);
+        if (container) {
+          container.innerHTML = '';
+          if (items && items.length > 0) {
+            items.forEach(itemText => {
+              const span = document.createElement('span');
+              span.className = 'bg-sky-100 text-sky-800 text-xs font-medium px-3 py-1 rounded-full';
+              span.textContent = itemText;
+              container.appendChild(span);
+            });
+          } else {
+            container.innerHTML = '<span class="text-xs text-slate-500">Nenhuma necessidade identificada.</span>';
+          }
+        }
+      };
+      
+      const createStatusBadge = (status) => {
+          const statusMap = {
+            todo: { text: 'A Fazer', class: 'todo', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>' },
+            doing: { text: 'Em Progresso', class: 'doing', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691V5.25a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75" /></svg>' },
+            done: { text: 'Concluído', class: 'done', icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>' },
+          };
+          const config = statusMap[status] || { text: 'Indefinido', class: '', icon: '' };
+          return `<span class="status ${config.class}">${config.icon} ${config.text}</span>`;
+      }
+      
+      const populateActionList = (id, items) => {
+          const list = document.getElementById(id);
+          if(list) {
+              list.innerHTML = '';
+              if (items && items.length > 0) {
+                items.forEach(item => {
+                  const li = document.createElement('li');
+                  li.className = 'flex items-center justify-between gap-4';
+                  li.innerHTML = `<span class="flex-1">${item.task}</span> ${createStatusBadge(item.status)}`;
+                  list.appendChild(li);
+                });
+              } else {
+                 list.innerHTML = '<li>Nenhuma ação definida.</li>';
+              }
+          }
+      }
+
+      // --- POPULANDO O DOCUMENTO ---
+      document.getElementById('reportTitle').textContent += ` — ${reportData.referenceMonth}`;
+      document.getElementById('campaignContextTitle').textContent += ` — ${reportData.referenceMonth}`;
+      populateText('refCode', reportData.refCode);
+      populateText('year', new Date().getFullYear());
+
+      // 1. Resumo Executivo
+      populateList('monthCampaigns', reportData.executiveSummary.monthCampaigns);
+      populateText('nextStepSummary', reportData.executiveSummary.nextStep);
+      populateText('meetingDate', reportData.meetingDate);
+      populateList('participantsCriadores', reportData.participants.criadores);
+      populateList('participantsCliente', reportData.participants.client);
+      populateTagList('needsList', reportData.executiveSummary.identifiedNeeds);
+      populateText('previousFeedback', reportData.executiveSummary.previousMonthFeedback);
+
+      // 2. Produto e Proposta de Valor
+      const productGrid = document.getElementById('productInfoGrid');
+      productGrid.innerHTML = `
+        <div class="p-4 border rounded-lg col-span-1 bg-slate-50 flex items-start gap-4">
+            <svg class="w-6 h-6 text-slate-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0l-.07.004-.018.002-.006.001-.004.001z" /></svg>
+            <div><strong>Descrição:</strong> ${reportData.productInfo.description}</div>
+        </div>
+         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="p-4 border rounded-lg flex items-start gap-4"><svg class="w-6 h-6 text-slate-500 mt-1 flex-shrink-0"  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div><strong>Preço:</strong> ${reportData.productInfo.price}</div></div>
+              <div class="p-4 border rounded-lg flex items-start gap-4"><svg class="w-6 h-6 text-slate-500 mt-1 flex-shrink-0"  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg><div><strong>Praça:</strong> ${reportData.productInfo.place}</div></div>
+              <div class="p-4 border rounded-lg flex items-start gap-4"><svg class="w-6 h-6 text-slate-500 mt-1 flex-shrink-0"  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg><div><strong>Promoção:</strong> ${reportData.productInfo.promotion}</div></div>
+          </div>
+        <div class="p-4 border rounded-lg flex items-start gap-4"><svg class="w-6 h-6 text-slate-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962c.51.056 1.02.083 1.53.083h.018a5.25 5.25 0 005.25-5.25v-.013m-5.25 5.25v-.013m0 0a5.25 5.25 0 01-5.25-5.25v-.013m5.25 5.25v.013m-5.25-5.25A5.25 5.25 0 0112 6h.018a5.25 5.25 0 015.25 5.25v.013m-5.25-5.25h-.018a5.25 5.25 0 00-5.25 5.25v.013m0-5.25c-.51.056-1.02.083-1.53.083a5.25 5.25 0 00-5.25 5.25v.013m10.5-5.25h.018a5.25 5.25 0 015.25 5.25v.013m0-5.25c.51.056 1.02.083 1.53.083a5.25 5.25 0 015.25 5.25v.013" /></svg><div><strong>Público ideal:</strong> ${reportData.productInfo.idealAudience}</div></div>
+        <div class="p-4 border rounded-lg flex items-start gap-4"><svg class="w-6 h-6 text-slate-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.362-3.797A8.333 8.333 0 0112 5.25c1.615 0 3.135-.57 4.362-1.538z" /></svg><div><strong>Dor ou desejo principal:</strong> ${reportData.productInfo.mainPainPoint}</div></div>
+        <div class="p-4 border rounded-lg flex items-start gap-4"><svg class="w-6 h-6 text-slate-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div><strong>3 principais benefícios:</strong> <ul class="list-disc list-inside mt-1 pl-1">${reportData.productInfo.benefits.map(b => `<li>${b}</li>`).join('')}</ul></div></div>
+        <div class="p-4 border rounded-lg bg-yellow-50 border-yellow-200 flex items-start gap-4"><svg class="w-6 h-6 text-yellow-600 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div><strong>Por que agir agora? (Urgência):</strong> ${reportData.productInfo.urgency}</div></div>
+      `;
+      
+      // 3. Contexto da Campanha
+      populateText('campaignObjective', reportData.campaignContext.objective);
+      populateText('campaignStrategy', reportData.campaignContext.strategy);
+      populateText('campaignPillars', reportData.campaignContext.pillars);
+
+
+      // 4. Do's & Don'ts
+      populateList('dosList', reportData.dosAndDonts.dos);
+      populateList('dontsList', reportData.dosAndDonts.donts);
+
+      // 5. Dicas de Conversão
+      populateList('conversionTips', reportData.conversionTips);
+      
+      // 6. Plano de Ação
+      populateActionList('internalActions', reportData.actionPlan.internal);
+      populateActionList('clientActions', reportData.actionPlan.client);
+
+      // 7. Análise de Performance
+      const checklist = reportData.callPerformance.checklist;
+      const checkedItems = checklist.filter(item => item.checked).length;
+      const totalItems = checklist.length;
+      document.querySelector('#checklistScore span:first-child').textContent = `${((checkedItems/totalItems)*100).toFixed(0)}%`;
+      
+      const checklistElement = document.getElementById('briefingChecklist');
+      if (checklistElement) {
+        checklistElement.innerHTML = '';
+        checklist.forEach(item => {
+            const li = document.createElement('li');
+            const icon = item.checked ? '✅' : '❌';
+            const evidenceHTML = item.checked ? `<em class="block mt-1 pl-7 text-xs text-slate-500">Evidência: ${item.evidence}</em>` : '';
+            li.innerHTML = `<div class="flex items-start"><span class="mr-3 pt-1">${icon}</span> <span>${item.item}</span></div>${evidenceHTML}`;
+            checklistElement.appendChild(li);
+        });
+      }
+
+      // --- GRÁFICO DE PERFORMANCE ---
+      const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+      new Chart(performanceCtx, {
+          type: 'doughnut',
+          data: {
+              labels: ['Concluído', 'Pendente'],
+              datasets: [{
+                  data: [checkedItems, totalItems - checkedItems],
+                  backgroundColor: ['#22c55e', '#e2e8f0'],
+                  hoverOffset: 4,
+                  borderColor: '#f1f5f9',
+                  borderWidth: 4,
+                  borderRadius: 2,
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '80%',
+              plugins: { legend: { display: false } },
+              animation: { animateScale: true, animateRotate: true }
+          }
+      });
+
+
+      // --- FUNCIONALIDADE DOS BOTÕES ---
+      const copyButton = document.getElementById('copyWhatsapp');
+      copyButton.addEventListener('click', () => {
+        let whatsappSummary = `*Resumo do Briefing - ${reportData.referenceMonth}*\n\n`;
+        whatsappSummary += `*Campanhas do Mês (John):*\n`;
+        reportData.executiveSummary.monthCampaigns.forEach(c => whatsappSummary += ` • ${c}\n`);
+        whatsappSummary += `\n`;
+
+        const clientActions = reportData.actionPlan.client.filter(a => a.status !== 'done');
+        if (clientActions.length > 0) {
+            whatsappSummary += `*Ações Pendentes (Cliente):*\n`;
+            clientActions.forEach(a => whatsappSummary += ` • ${a.task}\n`);
+            whatsappSummary += `\n`;
+        }
+
+        const internalActions = reportData.actionPlan.internal.filter(a => a.status !== 'done');
+        if (internalActions.length > 0) {
+            whatsappSummary += `*Ações Pendentes (crIAdores):*\n`;
+            internalActions.forEach(a => whatsappSummary += ` • ${a.task}\n`);
+        }
+        
+        const textarea = document.createElement('textarea');
+        textarea.value = whatsappSummary.trim();
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        copyButton.textContent = 'Copiado!';
+        setTimeout(() => {
+          copyButton.textContent = 'Copiar Resumo';
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
+
+
