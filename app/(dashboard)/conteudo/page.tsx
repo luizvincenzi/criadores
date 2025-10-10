@@ -1,7 +1,6 @@
 'use client';
 
 import React, { Suspense, useState } from 'react';
-import { PageGuard } from '@/components/PermissionGuard';
 import ContentPlanningView from '@/components/ContentPlanningView';
 import PageSidebar, { SidebarItem } from '@/components/PageSidebar';
 import MobileNavDrawer, { MobileNavItem } from '@/components/MobileNavDrawer';
@@ -62,33 +61,31 @@ function ConteudoPageContent() {
   ];
 
   return (
-    <PageGuard resource="blog">
-      <div className="bg-[#f5f5f5] min-h-screen pt-[4px]">
-        {/* Sidebar Desktop - Fixo à esquerda */}
-        <div className="hidden md:block">
-          <PageSidebar items={sidebarItems} />
-        </div>
+    <div className="bg-[#f5f5f5] min-h-screen pt-[4px]">
+      {/* Sidebar Desktop - Fixo à esquerda */}
+      <div className="hidden md:block">
+        <PageSidebar items={sidebarItems} />
+      </div>
 
-        {/* Mobile Navigation */}
-        <MobileNavDrawer
-          items={mobileNavItems}
-          isOpen={isMobileDrawerOpen}
-          onClose={() => setIsMobileDrawerOpen(false)}
-          title="Navegação"
-        />
-        <MobileNavButton
-          onClick={() => setIsMobileDrawerOpen(true)}
-          activeLabel="Conteúdo"
-        />
+      {/* Mobile Navigation */}
+      <MobileNavDrawer
+        items={mobileNavItems}
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        title="Navegação"
+      />
+      <MobileNavButton
+        onClick={() => setIsMobileDrawerOpen(true)}
+        activeLabel="Conteúdo"
+      />
 
-        {/* Conteúdo Principal - Com margem para o sidebar */}
-        <div className="md:ml-[68px] px-6">
-          <div className="max-w-[1400px] mx-auto">
-            <ContentPlanningView />
-          </div>
+      {/* Conteúdo Principal - Com margem para o sidebar */}
+      <div className="md:ml-[68px] px-6">
+        <div className="max-w-[1400px] mx-auto">
+          <ContentPlanningView />
         </div>
       </div>
-    </PageGuard>
+    </div>
   );
 }
 
