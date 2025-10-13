@@ -194,25 +194,89 @@ export class LandingPagesService {
   private supabase = createClient();
 
   /**
-   * Buscar LP por slug
+   * Buscar LP por slug (SEMPRE da última versão em lp_versions)
    */
   async getLandingPageBySlug(slug: string): Promise<LandingPageWithProducts | null> {
     try {
-      // Buscar LP
-      const { data: lp, error: lpError } = await this.supabase
+      // PASSO 1: Buscar LP básica para pegar o ID
+      const { data: lpBasic, error: lpBasicError } = await this.supabase
         .from('landing_pages')
-        .select('*')
+        .select('id, slug, name, category, template_id, status, is_active')
         .eq('slug', slug)
         .eq('status', 'active')
         .eq('is_active', true)
         .single();
 
-      if (lpError || !lp) {
-        console.error('Error fetching landing page:', lpError);
+      if (lpBasicError || !lpBasic) {
+        console.error('Error fetching landing page:', lpBasicError);
         return null;
       }
 
-      // Buscar produtos relacionados
+      // PASSO 2: Buscar ÚLTIMA VERSÃO da LP (snapshot mais recente)
+      const { data: latestVersion, error: versionError } = await this.supabase
+        .from('lp_versions')
+        .select('snapshot, version_number, created_at')
+        .eq('lp_id', lpBasic.id)
+        .order('version_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (versionError || !latestVersion) {
+        console.error('Error fetching latest version:', versionError);
+        console.warn('⚠️ Nenhuma versão encontrada, usando dados da tabela principal');
+
+        // Fallback: usar dados da tabela principal se não houver versões
+        const { data: lpFallback } = await this.supabase
+          .from('landing_pages')
+          .select('*')
+          .eq('id', lpBasic.id)
+          .single();
+
+        if (!lpFallback) return null;
+
+        // Buscar produtos
+        const { data: lpProducts } = await this.supabase
+          .from('lp_products')
+          .select(`
+            order_index,
+            products (
+              id,
+              name,
+              slug,
+              default_price
+            )
+          `)
+          .eq('lp_id', lpBasic.id)
+          .order('order_index');
+
+        const products = lpProducts?.map((lpp: any) => ({
+          ...lpp.products,
+          order_index: lpp.order_index,
+        })) || [];
+
+        return {
+          ...lpFallback,
+          products,
+        } as LandingPageWithProducts;
+      }
+
+      console.log(`✅ Usando versão ${latestVersion.version_number} da LP ${slug}`);
+
+      // PASSO 3: Montar LP com dados da última versão
+      const lp = {
+        id: lpBasic.id,
+        slug: lpBasic.slug,
+        name: lpBasic.name,
+        category: lpBasic.category,
+        template_id: lpBasic.template_id,
+        status: lpBasic.status,
+        is_active: lpBasic.is_active,
+        ...latestVersion.snapshot, // ← DADOS DA ÚLTIMA VERSÃO
+        version_number: latestVersion.version_number,
+        version_created_at: latestVersion.created_at,
+      };
+
+      // PASSO 4: Buscar produtos relacionados
       const { data: lpProducts, error: productsError } = await this.supabase
         .from('lp_products')
         .select(`
@@ -224,7 +288,7 @@ export class LandingPagesService {
             default_price
           )
         `)
-        .eq('lp_id', lp.id)
+        .eq('lp_id', lpBasic.id)
         .order('order_index');
 
       if (productsError) {
@@ -272,22 +336,86 @@ export class LandingPagesService {
   }
 
   /**
-   * Buscar LP por ID
+   * Buscar LP por ID (SEMPRE da última versão em lp_versions)
    */
   async getLandingPageById(id: string): Promise<LandingPageWithProducts | null> {
     try {
-      const { data: lp, error: lpError } = await this.supabase
+      // PASSO 1: Buscar LP básica
+      const { data: lpBasic, error: lpBasicError } = await this.supabase
         .from('landing_pages')
-        .select('*')
+        .select('id, slug, name, category, template_id, status, is_active')
         .eq('id', id)
         .single();
 
-      if (lpError || !lp) {
-        console.error('Error fetching landing page:', lpError);
+      if (lpBasicError || !lpBasic) {
+        console.error('Error fetching landing page:', lpBasicError);
         return null;
       }
 
-      // Buscar produtos relacionados
+      // PASSO 2: Buscar ÚLTIMA VERSÃO
+      const { data: latestVersion, error: versionError } = await this.supabase
+        .from('lp_versions')
+        .select('snapshot, version_number, created_at')
+        .eq('lp_id', id)
+        .order('version_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (versionError || !latestVersion) {
+        console.error('Error fetching latest version:', versionError);
+        console.warn('⚠️ Nenhuma versão encontrada, usando dados da tabela principal');
+
+        // Fallback
+        const { data: lpFallback } = await this.supabase
+          .from('landing_pages')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (!lpFallback) return null;
+
+        const { data: lpProducts } = await this.supabase
+          .from('lp_products')
+          .select(`
+            order_index,
+            products (
+              id,
+              name,
+              slug,
+              default_price
+            )
+          `)
+          .eq('lp_id', id)
+          .order('order_index');
+
+        const products = lpProducts?.map((lpp: any) => ({
+          ...lpp.products,
+          order_index: lpp.order_index,
+        })) || [];
+
+        return {
+          ...lpFallback,
+          products,
+        } as LandingPageWithProducts;
+      }
+
+      console.log(`✅ Usando versão ${latestVersion.version_number} da LP ID ${id}`);
+
+      // PASSO 3: Montar LP com dados da última versão
+      const lp = {
+        id: lpBasic.id,
+        slug: lpBasic.slug,
+        name: lpBasic.name,
+        category: lpBasic.category,
+        template_id: lpBasic.template_id,
+        status: lpBasic.status,
+        is_active: lpBasic.is_active,
+        ...latestVersion.snapshot,
+        version_number: latestVersion.version_number,
+        version_created_at: latestVersion.created_at,
+      };
+
+      // PASSO 4: Buscar produtos
       const { data: lpProducts, error: productsError } = await this.supabase
         .from('lp_products')
         .select(`
@@ -299,7 +427,7 @@ export class LandingPagesService {
             default_price
           )
         `)
-        .eq('lp_id', lp.id)
+        .eq('lp_id', id)
         .order('order_index');
 
       if (productsError) {
@@ -319,6 +447,142 @@ export class LandingPagesService {
       console.error('Error in getLandingPageById:', error);
       return null;
     }
+  }
+
+  /**
+   * Criar nova versão de uma LP
+   */
+  async createVersion(
+    lpId: string,
+    data: {
+      variables?: any;
+      config?: any;
+      seo?: any;
+      products?: any[];
+      change_description?: string;
+      created_by?: string;
+    }
+  ): Promise<any> {
+    try {
+      // PASSO 1: Buscar última versão
+      const { data: lastVersion } = await this.supabase
+        .from('lp_versions')
+        .select('version_number, snapshot')
+        .eq('lp_id', lpId)
+        .order('version_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      const newVersionNumber = lastVersion ? lastVersion.version_number + 1 : 1;
+
+      // PASSO 2: Criar snapshot (merge com dados anteriores se existirem)
+      const snapshot = {
+        variables: data.variables || lastVersion?.snapshot?.variables || {},
+        config: data.config || lastVersion?.snapshot?.config || {},
+        seo: data.seo || lastVersion?.snapshot?.seo || {},
+        products: data.products || lastVersion?.snapshot?.products || []
+      };
+
+      // PASSO 3: Inserir nova versão
+      const { data: newVersion, error } = await this.supabase
+        .from('lp_versions')
+        .insert({
+          lp_id: lpId,
+          version_number: newVersionNumber,
+          snapshot: snapshot,
+          change_description: data.change_description || `Versão ${newVersionNumber}`,
+          created_by: data.created_by || null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating version:', error);
+        throw error;
+      }
+
+      console.log(`✅ Versão ${newVersionNumber} criada para LP ${lpId}`);
+
+      // PASSO 4: Atualizar tabela principal (fallback)
+      await this.supabase
+        .from('landing_pages')
+        .update({
+          variables: snapshot.variables,
+          config: snapshot.config,
+          seo: snapshot.seo,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', lpId);
+
+      return newVersion;
+    } catch (error) {
+      console.error('Error in createVersion:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Buscar histórico de versões
+   */
+  async getVersionHistory(lpId: string): Promise<any[]> {
+    try {
+      const { data: versions, error } = await this.supabase
+        .from('lp_versions')
+        .select('id, version_number, created_at, created_by, change_description')
+        .eq('lp_id', lpId)
+        .order('version_number', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching version history:', error);
+        return [];
+      }
+
+      return versions || [];
+    } catch (error) {
+      console.error('Error in getVersionHistory:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Buscar versão específica
+   */
+  async getVersion(lpId: string, versionNumber: number): Promise<any | null> {
+    try {
+      const { data: version, error } = await this.supabase
+        .from('lp_versions')
+        .select('*')
+        .eq('lp_id', lpId)
+        .eq('version_number', versionNumber)
+        .single();
+
+      if (error) {
+        console.error('Error fetching version:', error);
+        return null;
+      }
+
+      return version;
+    } catch (error) {
+      console.error('Error in getVersion:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Atualizar LP (cria nova versão automaticamente)
+   */
+  async updateLandingPage(
+    lpId: string,
+    updates: {
+      variables?: any;
+      config?: any;
+      seo?: any;
+      products?: any[];
+      change_description?: string;
+      created_by?: string;
+    }
+  ): Promise<any> {
+    return this.createVersion(lpId, updates);
   }
 }
 

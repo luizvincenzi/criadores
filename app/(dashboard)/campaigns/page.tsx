@@ -6,6 +6,9 @@ import { useAuthStore } from '@/store/authStore';
 import Button from '@/components/ui/Button';
 import BriefingCard from '@/components/briefing/BriefingCard';
 import BriefingModal from '@/components/briefing/BriefingModal';
+import PageSidebar, { SidebarItem } from '@/components/PageSidebar';
+import MobileNavDrawer, { MobileNavItem } from '@/components/MobileNavDrawer';
+import MobileNavButton from '@/components/MobileNavButton';
 
 // Interfaces para dados de campanhas
 interface Campaign {
@@ -69,6 +72,59 @@ export default function CampaignsPage() {
   const [viewMode, setViewMode] = useState<'timeline' | 'grid'>('timeline');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [selectedBriefing, setSelectedBriefing] = useState<string | null>(null);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
+  // Sidebar items
+  const sidebarItems: SidebarItem[] = [
+    {
+      id: 'campanhas',
+      label: 'Campanhas',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 11l18-5v12L3 14v-3z"/>
+          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+        </svg>
+      ),
+      active: true,
+      href: '/campaigns'
+    },
+    {
+      id: 'briefings',
+      label: 'Briefings',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      ),
+      active: false,
+      href: '/briefing_mensal'
+    },
+    {
+      id: 'jornada',
+      label: 'Jornada',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
+        </svg>
+      ),
+      active: false,
+      href: '/jornada'
+    }
+  ];
+
+  // Mobile nav items
+  const mobileNavItems: MobileNavItem[] = sidebarItems.map(item => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+    active: item.active,
+    href: item.href
+  }));
 
   useEffect(() => {
     if (user) {
@@ -649,65 +705,85 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Campanhas</h1>
-              <p className="text-gray-600 mt-1">Acompanhe o desempenho das suas campanhas de influenciadores</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('timeline')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'timeline' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Timeline
-                </button>
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Grade
-                </button>
+    <div className="bg-[#f5f5f5] min-h-screen pt-[4px]">
+      {/* Sidebar Desktop - Fixo à esquerda */}
+      <div className="hidden md:block">
+        <PageSidebar items={sidebarItems} />
+      </div>
+
+      {/* Mobile Navigation */}
+      <MobileNavDrawer
+        items={mobileNavItems}
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        title="Navegação"
+      />
+      <MobileNavButton
+        onClick={() => setIsMobileDrawerOpen(true)}
+        activeLabel="Campanhas"
+      />
+
+      {/* Conteúdo Principal - Com margem para o sidebar */}
+      <div className="md:ml-[68px] px-6">
+        <div className="max-w-[1400px] mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Campanhas</h1>
+                <p className="text-gray-600 mt-1">Acompanhe o desempenho das suas campanhas de influenciadores</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('timeline')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === 'timeline' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Timeline
+                  </button>
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Grade
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Estatísticas */}
+            <StatsOverview />
           </div>
 
-          {/* Estatísticas */}
-          <StatsOverview />
-        </div>
-
-        {/* Conteúdo principal */}
-        {monthlyData.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+          {/* Conteúdo principal */}
+          {monthlyData.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma campanha encontrada</h3>
+              <p className="text-gray-600">Suas campanhas aparecerão aqui quando estiverem disponíveis.</p>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma campanha encontrada</h3>
-            <p className="text-gray-600">Suas campanhas aparecerão aqui quando estiverem disponíveis.</p>
-          </div>
-        ) : (
-          <TimelineView />
-        )}
+          ) : (
+            <TimelineView />
+          )}
 
-        {/* Modal de detalhes */}
-        <CampaignDetailModal />
+          {/* Modal de detalhes */}
+          <CampaignDetailModal />
 
-        {/* Modal de briefing */}
-        <BriefingModal
-          briefingId={selectedBriefing}
-          isOpen={!!selectedBriefing}
-          onClose={() => setSelectedBriefing(null)}
-        />
+          {/* Modal de briefing */}
+          <BriefingModal
+            briefingId={selectedBriefing}
+            isOpen={!!selectedBriefing}
+            onClose={() => setSelectedBriefing(null)}
+          />
+        </div>
       </div>
     </div>
   );
