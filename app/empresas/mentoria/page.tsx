@@ -1,43 +1,62 @@
 import { Metadata } from 'next';
-import PMEsMentoriaLP from './PMEsMentoriaLP';
+import { landingPagesService } from '@/lib/services/landingPagesService';
+import DynamicLP from '../components/DynamicLP';
+import { notFound } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'Mentoria Estratégica de Marketing | crIAdores',
-  description: 'Domine o marketing do seu negócio com mentoria estratégica. Encontros semanais, +35 mentorias gravadas, comunidade exclusiva e aplicação prática com Gabriel D\'Ávila.',
-  keywords: 'mentoria marketing, mentoria empresas, gabriel d\'ávila, estratégia marketing, marketing digital',
-  authors: [{ name: 'crIAdores' }],
-  openGraph: {
-    title: 'Mentoria Estratégica de Marketing | crIAdores',
-    description: 'Aprenda marketing com quem faz acontecer. Mentoria com Gabriel D\'Ávila, fundador de 4 empresas de sucesso e mentor de +40 empresários.',
-    url: 'https://criadores.app/empresas/mentoria',
-    siteName: 'crIAdores',
-    images: [
-      {
-        url: '/assets/og-empresas-mentoria.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Mentoria Estratégica crIAdores',
-      },
-    ],
-    locale: 'pt_BR',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Mentoria Estratégica de Marketing | crIAdores',
-    description: 'Domine o marketing do seu negócio com mentoria estratégica. Últimas 8 vagas para dezembro.',
-    images: ['/assets/og-empresas-mentoria.jpg'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  alternates: {
-    canonical: 'https://criadores.app/empresas/mentoria',
-  },
-};
+// Gerar metadata dinâmico do banco
+export async function generateMetadata(): Promise<Metadata> {
+  const lp = await landingPagesService.getLandingPageBySlug('empresas/mentoria');
 
-export default function MentoriaPage() {
-  return <PMEsMentoriaLP />;
+  if (!lp) {
+    return {
+      title: 'Página não encontrada | crIAdores',
+    };
+  }
+
+  return {
+    title: lp.seo.title,
+    description: lp.seo.description,
+    keywords: lp.seo.keywords?.join(', '),
+    authors: [{ name: 'crIAdores' }],
+    openGraph: {
+      title: lp.seo.title,
+      description: lp.seo.description,
+      url: `https://criadores.app/${lp.slug}`,
+      siteName: 'crIAdores',
+      images: lp.seo.og_image ? [
+        {
+          url: lp.seo.og_image,
+          width: 1200,
+          height: 630,
+          alt: lp.name,
+        },
+      ] : [],
+      locale: 'pt_BR',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: lp.seo.title,
+      description: lp.seo.description,
+      images: lp.seo.og_image ? [lp.seo.og_image] : [],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: `https://criadores.app/${lp.slug}`,
+    },
+  };
+}
+
+export default async function MentoriaPage() {
+  const lp = await landingPagesService.getLandingPageBySlug('empresas/mentoria');
+
+  if (!lp) {
+    notFound();
+  }
+
+  return <DynamicLP lp={lp} />;
 }
 

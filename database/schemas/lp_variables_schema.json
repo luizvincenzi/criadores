@@ -1,0 +1,460 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Landing Page Variables Schema",
+  "description": "Schema completo das variáveis editáveis de uma Landing Page seguindo metodologias de Érico Rocha, Ladeira e Jeff Walker",
+  "type": "object",
+  "properties": {
+    "hero": {
+      "type": "object",
+      "description": "Seção Hero - Érico: Isca | Ladeira: Headline | Jeff: Oportunidade",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Promessa principal (use transformação específica - Érico Rocha)",
+          "example": "Transforme Sua Empresa Numa Referência Regional"
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Como você vai conseguir (explique o 'como' - Ladeira)",
+          "example": "Escolha a solução ideal para seu negócio crescer no digital"
+        },
+        "cta_text": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Texto do botão (ação clara - Ladeira)",
+          "example": "Falar Com Especialista Agora"
+        },
+        "cta_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL do chatbot ou formulário",
+          "example": "/chatcriadores-empresas"
+        },
+        "urgency_badge": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Badge de urgência (escassez real - Jeff Walker)",
+          "example": "Últimas 3 vagas de 2025"
+        },
+        "social_proof": {
+          "type": "object",
+          "description": "Prova social com números (Érico Rocha)",
+          "properties": {
+            "empresas": {
+              "type": "integer",
+              "description": "Número de empresas atendidas",
+              "example": 40
+            },
+            "locais": {
+              "type": "integer",
+              "description": "Número de locais/cidades",
+              "example": 20
+            },
+            "conteudos": {
+              "type": "integer",
+              "description": "Número de conteúdos criados",
+              "example": 1000
+            }
+          }
+        },
+        "trust_badges": {
+          "type": "array",
+          "description": "Badges de confiança",
+          "items": {
+            "type": "string"
+          },
+          "example": ["Sem taxa de adesão", "Sem fidelidade", "Resultados mensuráveis"]
+        }
+      },
+      "required": ["title", "subtitle", "cta_text", "cta_url"]
+    },
+    "problema": {
+      "type": "object",
+      "description": "Seção Problema - Érico: Dor + Agitação",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 200,
+          "example": "Por Que a crIAdores Nasceu?"
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 500,
+          "example": "A crIAdores nasceu para resolver um desafio que toda empresa local enfrenta"
+        },
+        "problems": {
+          "type": "array",
+          "description": "Lista de problemas (dor + agitação - Érico Rocha)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": "string",
+                "description": "Emoji ou ícone",
+                "example": "📱"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 100,
+                "example": "Publicações Improvisadas"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 300,
+                "example": "Sem planejamento, sem consistência, sem resultado"
+              }
+            },
+            "required": ["title", "description"]
+          },
+          "minItems": 3,
+          "maxItems": 5
+        }
+      },
+      "required": ["title", "problems"]
+    },
+    "dados_mercado": {
+      "type": "object",
+      "description": "Dados do mercado - Prova social com números (Ladeira)",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "O Mercado de Criadores Está Explodindo"
+        },
+        "stats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "string",
+                "example": "R$ 21 bi"
+              },
+              "label": {
+                "type": "string",
+                "example": "Mercado de criadores no Brasil em 2024"
+              },
+              "source": {
+                "type": "string",
+                "example": "Fonte: Influencer Marketing Hub"
+              }
+            }
+          }
+        }
+      }
+    },
+    "solucoes": {
+      "type": "array",
+      "description": "Soluções/Produtos individuais - Érico: Solução | Ladeira: Bullets | Jeff: Transformação",
+      "items": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "integer",
+            "description": "Ordem de exibição",
+            "example": 1
+          },
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do produto na tabela products"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Título da transformação (Érico Rocha)",
+            "example": "De Empresário Sobrecarregado a Estrategista do Próprio Negócio"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Descrição persuasiva (Ladeira)",
+            "example": "Imagine acordar sabendo EXATAMENTE o que fazer no marketing..."
+          },
+          "benefits": {
+            "type": "array",
+            "description": "Bullets de benefícios (Ladeira)",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Encontros semanais ao vivo", "+35 mentorias gravadas", "Aplicação prática"]
+          },
+          "price_monthly": {
+            "type": "number",
+            "description": "Preço mensal (buscar do banco se não customizado)"
+          },
+          "price_semestral": {
+            "type": "number",
+            "description": "Preço semestral"
+          },
+          "urgency": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Mensagem de urgência (Jeff Walker - escassez)",
+            "example": "Últimas 8 vagas para dezembro"
+          },
+          "cta_text": {
+            "type": "string",
+            "example": "Falar Com Especialista"
+          },
+          "cta_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "/chatcriadores-mentoria"
+          }
+        },
+        "required": ["product_id", "title", "description", "benefits"]
+      }
+    },
+    "combo": {
+      "type": "object",
+      "description": "Oferta Combo - Érico: Oferta Irresistível | Jeff: Posse (por que agora)",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Use 'E se você pudesse ter TUDO?' (Érico Rocha)",
+          "example": "Mas E Se Você Pudesse Ter TUDO Isso?"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000,
+          "example": "Imagine ter mentoria estratégica, social media profissional e criadores locais trabalhando juntos"
+        },
+        "price_monthly": {
+          "type": "number",
+          "description": "Preço mensal do combo",
+          "example": 5900
+        },
+        "price_semestral": {
+          "type": "number",
+          "description": "Preço semestral do combo",
+          "example": 3900
+        },
+        "discount_amount": {
+          "type": "number",
+          "description": "Valor do desconto em reais",
+          "example": 1700
+        },
+        "discount_percentage": {
+          "type": "number",
+          "description": "Percentual de desconto",
+          "example": 22
+        },
+        "urgency": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Escassez real (Érico Rocha + Jeff Walker)",
+          "example": "Apenas 3 vagas disponíveis para o combo completo em dezembro"
+        },
+        "exclusive_benefits": {
+          "type": "array",
+          "description": "Benefícios exclusivos do combo (Ladeira - valor agregado)",
+          "items": {
+            "type": "string"
+          },
+          "example": ["Estratégia integrada", "Reunião semanal unificada", "Relatório consolidado"]
+        },
+        "bonus": {
+          "type": "array",
+          "description": "Bônus exclusivos (Érico Rocha - oferta irresistível)",
+          "items": {
+            "type": "string"
+          },
+          "example": ["Bônus 1: Acesso vitalício à comunidade", "Bônus 2: 10 templates de conteúdo"]
+        },
+        "guarantee": {
+          "type": "string",
+          "description": "Garantia forte (Ladeira - redução de risco)",
+          "example": "30 dias de garantia incondicional"
+        }
+      },
+      "required": ["title", "description", "price_monthly"]
+    },
+    "processo": {
+      "type": "object",
+      "description": "Como funciona - Jeff Walker: Transformação (COMO)",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Como Funciona?"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "integer",
+                "example": 1
+              },
+              "title": {
+                "type": "string",
+                "example": "Diagnóstico Gratuito"
+              },
+              "description": {
+                "type": "string",
+                "example": "Conversamos sobre seu negócio e objetivos"
+              }
+            }
+          }
+        }
+      }
+    },
+    "depoimentos": {
+      "type": "array",
+      "description": "Depoimentos - Érico: Prova | Ladeira: Prova Social com nome + foto + resultado",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome completo (Ladeira - credibilidade)",
+            "example": "João Silva"
+          },
+          "company": {
+            "type": "string",
+            "example": "Brah! Poke"
+          },
+          "role": {
+            "type": "string",
+            "example": "Fundador"
+          },
+          "photo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL da foto (Ladeira - prova visual)",
+            "example": "/assets/depoimentos/joao.jpg"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Depoimento completo",
+            "example": "Aumentamos 40% o faturamento em 3 meses..."
+          },
+          "result": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Resultado específico (Ladeira - número concreto)",
+            "example": "De 80 para 160 clientes/mês"
+          },
+          "video_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL do vídeo depoimento (opcional)"
+          }
+        },
+        "required": ["name", "company", "text", "result"]
+      }
+    },
+    "urgencia": {
+      "type": "object",
+      "description": "Seção de Urgência - Érico: Escassez | Jeff: Post-Launch",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Últimas Vagas de 2025"
+        },
+        "message": {
+          "type": "string",
+          "description": "Mensagem de escassez real (não fake - Ladeira)",
+          "example": "Estamos fechando as últimas 3 vagas para garantir qualidade no atendimento"
+        },
+        "countdown": {
+          "type": "object",
+          "description": "Countdown timer (opcional)",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "example": false
+            },
+            "end_date": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2025-12-31T23:59:59Z"
+            }
+          }
+        },
+        "scarcity_type": {
+          "type": "string",
+          "enum": ["vagas", "tempo", "bonus"],
+          "description": "Tipo de escassez",
+          "example": "vagas"
+        }
+      }
+    },
+    "faq": {
+      "type": "array",
+      "description": "FAQ - Ladeira: Redução de Objeções",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Pergunta (objeção comum - Ladeira)",
+            "example": "Como funciona a garantia?"
+          },
+          "answer": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Resposta completa",
+            "example": "Você tem 30 dias para testar sem compromisso..."
+          }
+        },
+        "required": ["question", "answer"]
+      }
+    },
+    "cta_final": {
+      "type": "object",
+      "description": "CTA Final - Ladeira: Ação clara",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Pronto Para Transformar Sua Empresa?"
+        },
+        "subtitle": {
+          "type": "string",
+          "example": "Fale com um especialista agora e descubra qual solução é ideal para você"
+        },
+        "cta_text": {
+          "type": "string",
+          "example": "Falar Com Especialista Agora"
+        },
+        "cta_url": {
+          "type": "string",
+          "format": "uri",
+          "example": "/chatcriadores-empresas"
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "description": "Tema visual da LP",
+      "properties": {
+        "primary_color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "example": "#0b3553"
+        },
+        "secondary_color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "example": "#137333"
+        },
+        "font_family": {
+          "type": "string",
+          "enum": ["Onest", "Inter", "Poppins", "Montserrat"],
+          "example": "Onest"
+        },
+        "border_radius": {
+          "type": "string",
+          "example": "12px"
+        }
+      }
+    }
+  },
+  "required": ["hero", "problema", "solucoes", "theme"]
+}
+
