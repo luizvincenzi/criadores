@@ -9,7 +9,8 @@ export const revalidate = 0;
 
 // Gerar metadata dinâmico do banco
 export async function generateMetadata(): Promise<Metadata> {
-  const lp = await landingPagesService.getLandingPageBySlug('empresas/social-media-advogados');
+  // ✅ CORRIGIDO: Buscar por slug correto (sem "empresas/")
+  const lp = await landingPagesService.getLandingPageBySlug('social-media-advogados');
 
   if (!lp) {
     return {
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: lp.seo.title,
       description: lp.seo.description,
-      url: `https://criadores.app/${lp.slug}`,
+      url: `https://criadores.app/empresas/${lp.slug}`,
       siteName: 'crIAdores',
       images: lp.seo.og_image ? [
         {
@@ -56,13 +57,14 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     },
     alternates: {
-      canonical: `https://criadores.app/${lp.slug}`,
+      canonical: `https://criadores.app/empresas/${lp.slug}`,
     },
   };
 }
 
 export default async function SocialMediaAdvogadosPage() {
-  const lp = await landingPagesService.getLandingPageBySlug('empresas/social-media-advogados');
+  // ✅ CORRIGIDO: Buscar por slug correto (sem "empresas/")
+  const lp = await landingPagesService.getLandingPageBySlug('social-media-advogados');
 
   if (!lp) {
     notFound();
@@ -76,4 +78,3 @@ export default async function SocialMediaAdvogadosPage() {
 
   return <DynamicLPv2 lp={lp} />;
 }
-

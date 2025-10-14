@@ -9,7 +9,7 @@ export const revalidate = 0;
 
 // Gerar metadata dinâmico do banco
 export async function generateMetadata(): Promise<Metadata> {
-  const lp = await landingPagesService.getLandingPageBySlug('empresas/social-media-medicos');
+  const lp = await landingPagesService.getLandingPageBySlug('social-media-medicos');
 
   if (!lp) {
     return {
@@ -62,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SocialMediaMedicosPage() {
-  const lp = await landingPagesService.getLandingPageBySlug('empresas/social-media-medicos');
+  const lp = await landingPagesService.getLandingPageBySlug('social-media-medicos');
 
   if (!lp) {
     notFound();

@@ -199,13 +199,34 @@ export class LandingPagesService {
   async getLandingPageBySlug(slug: string): Promise<LandingPageWithProducts | null> {
     try {
       // PASSO 1: Buscar LP básica para pegar o ID
-      const { data: lpBasic, error: lpBasicError } = await this.supabase
+      let { data: lpBasic, error: lpBasicError } = await this.supabase
         .from('landing_pages')
         .select('id, slug, name, category, template_id, status, is_active')
         .eq('slug', slug)
         .eq('status', 'active')
         .eq('is_active', true)
         .single();
+
+      // FALLBACK: Se não encontrou, tentar sem o prefixo 'empresas/'
+      // Isso resolve o problema de slug inconsistente no banco
+      if (lpBasicError && slug.startsWith('empresas/')) {
+        const slugWithoutPrefix = slug.replace('empresas/', '');
+        console.log(`⚠️  LP não encontrada com slug '${slug}', tentando '${slugWithoutPrefix}'...`);
+
+        const { data, error } = await this.supabase
+          .from('landing_pages')
+          .select('id, slug, name, category, template_id, status, is_active')
+          .eq('slug', slugWithoutPrefix)
+          .eq('status', 'active')
+          .eq('is_active', true)
+          .single();
+
+        if (!error && data) {
+          lpBasic = data;
+          lpBasicError = null;
+          console.log(`✅ LP encontrada com slug alternativo: ${slugWithoutPrefix}`);
+        }
+      }
 
       if (lpBasicError || !lpBasic) {
         console.error('Error fetching landing page:', lpBasicError);

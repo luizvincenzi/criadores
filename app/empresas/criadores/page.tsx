@@ -9,7 +9,7 @@ export const revalidate = 0;
 
 // Gerar metadata dinâmico do banco
 export async function generateMetadata(): Promise<Metadata> {
-  const lp = await landingPagesService.getLandingPageBySlug('empresas/criadores');
+  const lp = await landingPagesService.getLandingPageBySlug('criadores');
 
   if (!lp) {
     return {
@@ -55,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CriadoresPage() {
-  const lp = await landingPagesService.getLandingPageBySlug('empresas/criadores');
+  const lp = await landingPagesService.getLandingPageBySlug('criadores');
 
   if (!lp) {
     notFound();
