@@ -4,7 +4,7 @@
 // Serviço para buscar Landing Pages do Supabase
 // ============================================================================
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 
 // ============================================================================
 // TYPES
