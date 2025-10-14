@@ -3,6 +3,10 @@ import { landingPagesService } from '@/lib/services/landingPagesService';
 import DynamicLP from '../components/DynamicLP';
 import { notFound } from 'next/navigation';
 
+// ⚡ IMPORTANTE: Desabilitar cache para sempre buscar dados frescos do banco
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Gerar metadata dinâmico do banco
 export async function generateMetadata(): Promise<Metadata> {
   const lp = await landingPagesService.getLandingPageBySlug('empresas/social-media');
