@@ -213,6 +213,8 @@ export class LandingPagesService {
       }
 
       // PASSO 2: Buscar ÚLTIMA VERSÃO da LP (snapshot mais recente)
+      console.log(`🔍 Buscando última versão para LP ID: ${lpBasic.id}, slug: ${slug}`);
+
       const { data: latestVersion, error: versionError } = await this.supabase
         .from('lp_versions')
         .select('snapshot, version_number, created_at')
@@ -222,7 +224,7 @@ export class LandingPagesService {
         .single();
 
       if (versionError || !latestVersion) {
-        console.error('Error fetching latest version:', versionError);
+        console.error('❌ Error fetching latest version:', versionError);
         console.warn('⚠️ Nenhuma versão encontrada, usando dados da tabela principal');
 
         // Fallback: usar dados da tabela principal se não houver versões
@@ -261,6 +263,8 @@ export class LandingPagesService {
       }
 
       console.log(`✅ Usando versão ${latestVersion.version_number} da LP ${slug}`);
+      console.log(`📝 Hero title: ${latestVersion.snapshot?.variables?.hero?.title?.substring(0, 50)}...`);
+      console.log(`📝 Created at: ${latestVersion.created_at}`);
 
       // PASSO 3: Montar LP com dados da última versão
       const lp = {
