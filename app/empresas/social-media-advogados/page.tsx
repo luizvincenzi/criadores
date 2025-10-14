@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { landingPagesService } from '@/lib/services/landingPagesService';
-import DynamicLP from '../components/DynamicLP';
+import DynamicLPv2 from '../components/DynamicLPv2';
 import { notFound } from 'next/navigation';
 
 // ⚡ IMPORTANTE: Desabilitar cache para sempre buscar dados frescos do banco
@@ -68,6 +68,12 @@ export default async function SocialMediaAdvogadosPage() {
     notFound();
   }
 
-  return <DynamicLP lp={lp} />;
+  console.log('📄 Página Advogados - LP carregada:', {
+    slug: lp.slug,
+    version: lp.version_number,
+    hero_title: lp.variables?.hero?.title?.substring(0, 50),
+  });
+
+  return <DynamicLPv2 lp={lp} />;
 }
 
