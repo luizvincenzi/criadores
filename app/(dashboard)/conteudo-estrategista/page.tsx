@@ -3,20 +3,15 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import StrategistContentView from '@/components/StrategistContentView';
-import PageSidebar, { SidebarItem } from '@/components/PageSidebar';
-import MobileNavDrawer, { MobileNavItem } from '@/components/MobileNavDrawer';
-import MobileNavButton from '@/components/MobileNavButton';
+import BusinessContentPlanningView from '@/components/business-content/BusinessContentPlanningView';
+import { Business } from '@/components/business-content/BusinessSelector';
 
 function ConteudoEstrategistaPageContent() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [businessId, setBusinessId] = useState<string | null>(null);
-  const [businessName, setBusinessName] = useState<string>('');
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [strategistId, setStrategistId] = useState<string | null>(null);
 
   // 🔒 VERIFICAR ACESSO - Apenas marketing strategists relacionados a um business
@@ -45,31 +40,23 @@ function ConteudoEstrategistaPageContent() {
         return;
       }
 
-      // Buscar business relacionado ao strategist
-      const { data: business, error } = await supabase
-        .from('businesses')
-        .select('id, name, has_strategist')
-        .eq('strategist_id', user.creator_id)
-        .eq('has_strategist', true)
-        .maybeSingle();
+      // Buscar businesses gerenciados pelo strategist
+      console.log('🔍 Buscando businesses para strategist:', user.creator_id);
+      const response = await fetch(`/api/strategist/businesses?strategist_id=${user.creator_id}`);
+      const data = await response.json();
 
-      if (error) {
-        console.error('❌ Erro ao buscar business:', error);
-        setHasAccess(false);
-        setIsLoading(false);
-        return;
-      }
+      console.log('📦 Resposta da API:', data);
 
-      if (!business) {
+      if (!data.success || !data.businesses || data.businesses.length === 0) {
         console.log('❌ Strategist não está relacionado a nenhum business');
+        console.log('❌ Dados recebidos:', data);
         setHasAccess(false);
         setIsLoading(false);
         return;
       }
 
-      console.log('✅ Acesso concedido ao business:', business.name);
-      setBusinessId(business.id);
-      setBusinessName(business.name);
+      console.log(`✅ Acesso concedido a ${data.businesses.length} business(es):`, data.businesses);
+      setBusinesses(data.businesses);
       setStrategistId(user.creator_id);
       setHasAccess(true);
       setIsLoading(false);
@@ -77,57 +64,6 @@ function ConteudoEstrategistaPageContent() {
 
     checkStrategistAccess();
   }, [user, router]);
-
-  // Definir itens da sidebar
-  const sidebarItems: SidebarItem[] = [
-    {
-      id: 'conteudo',
-      label: 'Conteúdo',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      ),
-      active: true,
-      href: '/conteudo-estrategista'
-    },
-    {
-      id: 'blog',
-      label: 'Blog',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-          <polyline points="10 9 9 9 8 9"/>
-        </svg>
-      ),
-      active: false,
-      href: '/blog'
-    }
-  ];
-
-  // Definir itens do mobile drawer
-  const mobileNavItems: MobileNavItem[] = [
-    {
-      id: 'conteudo',
-      label: 'Conteúdo',
-      icon: '',
-      active: true,
-      href: '/conteudo-estrategista'
-    },
-    {
-      id: 'blog',
-      label: 'Blog',
-      icon: '',
-      active: false,
-      href: '/blog'
-    }
-  ];
 
   // Loading state
   if (isLoading) {
@@ -169,36 +105,11 @@ function ConteudoEstrategistaPageContent() {
   }
 
   return (
-    <div className="bg-[#f5f5f5] min-h-screen pt-[4px]">
-      {/* Sidebar Desktop - Fixo à esquerda */}
-      <div className="hidden md:block">
-        <PageSidebar items={sidebarItems} />
-      </div>
-
-      {/* Mobile Navigation */}
-      <MobileNavDrawer
-        items={mobileNavItems}
-        isOpen={isMobileDrawerOpen}
-        onClose={() => setIsMobileDrawerOpen(false)}
-        title="Navegação"
+    <div className="bg-[#f5f5f5] min-h-screen">
+      <BusinessContentPlanningView
+        businesses={businesses}
+        strategistId={strategistId || undefined}
       />
-      <MobileNavButton
-        onClick={() => setIsMobileDrawerOpen(true)}
-        activeLabel="Conteúdo"
-      />
-
-      {/* Conteúdo Principal - Com margem para o sidebar */}
-      <div className="md:ml-[68px] px-6">
-        <div className="max-w-[1400px] mx-auto">
-          {businessId && (
-            <StrategistContentView
-              businessId={businessId}
-              businessName={businessName}
-              strategistId={strategistId || undefined}
-            />
-          )}
-        </div>
-      </div>
     </div>
   );
 }
