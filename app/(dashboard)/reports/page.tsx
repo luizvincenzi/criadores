@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { useRouter } from 'next/navigation';
 import { fetchCampaigns } from '@/lib/dataSource';
 
 interface PostReport {
@@ -25,10 +26,24 @@ interface PostReport {
 
 export default function ReportsPage() {
   const { user, session } = useAuthStore();
+  const router = useRouter();
   const [posts, setPosts] = useState<PostReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState<'all' | 'instagram' | 'tiktok' | 'youtube'>('all');
   const [selectedPeriod, setSelectedPeriod] = useState('last30days');
+
+  // 🚫 BLOQUEAR ACESSO DE CREATORS - Redirecionar para /campanhas-criador
+  useEffect(() => {
+    if (!user) return;
+
+    const isCreator = user.role === 'creator' || (user.roles && user.roles.includes('creator'));
+    const isOnlyCreator = user.role === 'creator' && (!user.roles || user.roles.length === 1 || (user.roles.length === 1 && user.roles[0] === 'creator'));
+
+    if (isOnlyCreator) {
+      console.log('🚫 Creator tentando acessar /reports - redirecionando para /campanhas-criador');
+      router.push('/campanhas-criador');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     loadPostReports();

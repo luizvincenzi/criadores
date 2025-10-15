@@ -51,25 +51,76 @@ export default function CampaignsCreatorPage() {
     setIsLoading(true);
     try {
       console.log('📊 Carregando campanhas do creator:', user.creator_id);
+      console.log('👤 Creator:', user.full_name);
 
-      // Buscar campanhas onde o creator participou
-      // Assumindo que existe uma tabela campaign_creators ou similar
-      const { data: campaignData, error } = await supabase
-        .from('campaigns')
+      // IMPORTANTE: Buscar APENAS campanhas onde este creator participou
+      // Usar tabela campaign_creators para relacionamento
+      const { data: campaignCreators, error: ccError } = await supabase
+        .from('campaign_creators')
         .select(`
-          *,
-          business:businesses(name, slug)
+          campaign_id,
+          role,
+          status,
+          campaigns:campaign_id (
+            id,
+            title,
+            description,
+            start_date,
+            end_date,
+            status,
+            business_id,
+            created_at,
+            businesses:business_id (
+              name,
+              slug
+            )
+          )
         `)
-        .order('start_date', { ascending: false });
+        .eq('creator_id', user.creator_id) // FILTRO CRÍTICO: apenas campanhas deste creator
+        .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ Erro ao buscar campanhas:', error);
+      if (ccError) {
+        console.error('❌ Erro ao buscar campanhas do creator:', ccError);
         setCampaigns([]);
         return;
       }
 
-      console.log('✅ Campanhas carregadas:', campaignData?.length || 0);
-      setCampaigns(campaignData || []);
+      // Transformar dados para o formato esperado
+      const transformedCampaigns = (campaignCreators || [])
+        .filter(cc => cc.campaigns) // Filtrar apenas registros com campanha válida
+        .map(cc => {
+          const campaign = cc.campaigns as any;
+          return {
+            id: campaign.id,
+            name: campaign.title,
+            description: campaign.description,
+            start_date: campaign.start_date,
+            end_date: campaign.end_date,
+            status: campaign.status,
+            business_id: campaign.business_id,
+            business: campaign.businesses,
+            created_at: campaign.created_at,
+            creator_role: cc.role, // Role do creator nesta campanha
+            creator_status: cc.status // Status do creator nesta campanha
+          };
+        });
+
+      console.log('✅ Campanhas do creator carregadas:', transformedCampaigns.length);
+
+      // Log de segurança
+      if (transformedCampaigns.length > 0) {
+        console.log('📋 Campanhas:', transformedCampaigns.map(c => ({
+          id: c.id,
+          name: c.name,
+          business: c.business?.name,
+          role: c.creator_role,
+          status: c.creator_status
+        })));
+      } else {
+        console.log('ℹ️ Nenhuma campanha encontrada para este creator');
+      }
+
+      setCampaigns(transformedCampaigns);
 
     } catch (error) {
       console.error('❌ Erro ao carregar campanhas:', error);

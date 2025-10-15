@@ -114,9 +114,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       roles: ['admin', 'manager', 'business_owner', 'marketing_strategist'] // Creators não veem dashboard
     },
     {
-      id: 'campaigns_creator',
+      id: 'campanhas_criador',
       label: 'Campanhas',
-      href: '/campaigns_creator',
+      href: '/campanhas-criador',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M3 11l18-5v12L3 14v-3z"/>

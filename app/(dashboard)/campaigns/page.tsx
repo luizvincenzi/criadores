@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCampaigns } from '@/lib/dataSource';
 import { useAuthStore } from '@/store/authStore';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import BriefingCard from '@/components/briefing/BriefingCard';
 import BriefingModal from '@/components/briefing/BriefingModal';
@@ -73,6 +74,20 @@ export default function CampaignsPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [selectedBriefing, setSelectedBriefing] = useState<string | null>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const router = useRouter();
+
+  // 🚫 BLOQUEAR ACESSO DE CREATORS - Redirecionar para /campanhas-criador
+  useEffect(() => {
+    if (!user) return;
+
+    const isCreator = user.role === 'creator' || (user.roles && user.roles.includes('creator'));
+    const isOnlyCreator = user.role === 'creator' && (!user.roles || user.roles.length === 1 || (user.roles.length === 1 && user.roles[0] === 'creator'));
+
+    if (isOnlyCreator) {
+      console.log('🚫 Creator tentando acessar /campaigns - redirecionando para /campanhas-criador');
+      router.push('/campanhas-criador');
+    }
+  }, [user, router]);
 
   // Verificar se usuário é creator
   const isCreator = user?.role === 'creator' || (user?.roles && user.roles.includes('creator'));
