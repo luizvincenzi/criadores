@@ -17,6 +17,7 @@ function ConteudoEstrategistaPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState<string>('');
+  const [strategistId, setStrategistId] = useState<string | null>(null);
 
   // 🔒 VERIFICAR ACESSO - Apenas marketing strategists relacionados a um business
   useEffect(() => {
@@ -69,6 +70,7 @@ function ConteudoEstrategistaPageContent() {
       console.log('✅ Acesso concedido ao business:', business.name);
       setBusinessId(business.id);
       setBusinessName(business.name);
+      setStrategistId(user.creator_id);
       setHasAccess(true);
       setIsLoading(false);
     }
@@ -192,6 +194,7 @@ function ConteudoEstrategistaPageContent() {
             <StrategistContentView
               businessId={businessId}
               businessName={businessName}
+              strategistId={strategistId || undefined}
             />
           )}
         </div>

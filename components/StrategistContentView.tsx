@@ -5,42 +5,21 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks, isToday, startOfMonth
 import { ptBR } from 'date-fns/locale';
 import ContentWeekView from './ContentWeekView';
 import ContentMonthView from './ContentMonthView';
-import ContentModal from './ContentModal';
+import BusinessContentModal, { BusinessSocialContent } from './BusinessContentModal';
 import ContentStatsWidget from './ContentStatsWidget';
 import WeeklyPlanningModal from './WeeklyPlanningModal';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 
-export interface SocialContent {
-  id: string;
-  title: string;
-  description?: string;
-  briefing?: string;
-  content_type: 'post' | 'reels' | 'story';
-  platforms: string[];
-  scheduled_date: string;
-  scheduled_time?: string;
-  assigned_to?: string;
-  assigned_user?: {
-    id: string;
-    full_name: string;
-    avatar_url?: string;
-  };
-  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
-  is_executed: boolean;
-  executed_at?: string;
-  notes?: string;
-  tags?: string[];
-  created_at: string;
-  updated_at: string;
-  business_id?: string;
-}
+// Usar interface do BusinessContentModal
+type SocialContent = BusinessSocialContent;
 
 interface StrategistContentViewProps {
   businessId: string;
   businessName: string;
+  strategistId?: string;
 }
 
-export default function StrategistContentView({ businessId, businessName }: StrategistContentViewProps) {
+export default function StrategistContentView({ businessId, businessName, strategistId }: StrategistContentViewProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
     startOfWeek(new Date(), { weekStartsOn: 1 }) // Segunda-feira
   );
@@ -85,9 +64,9 @@ export default function StrategistContentView({ businessId, businessName }: Stra
         end: format(endDate, 'yyyy-MM-dd')
       });
 
-      // 🔒 FILTRAR POR BUSINESS_ID DO STRATEGIST
+      // 🔒 USAR NOVA API: /api/business-content
       const response = await fetch(
-        `/api/content-calendar?start=${format(startDate, 'yyyy-MM-dd')}&end=${format(endDate, 'yyyy-MM-dd')}&business_id=${businessId}`
+        `/api/business-content?start=${format(startDate, 'yyyy-MM-dd')}&end=${format(endDate, 'yyyy-MM-dd')}&business_id=${businessId}`
       );
 
       const data = await response.json();
@@ -155,9 +134,9 @@ export default function StrategistContentView({ businessId, businessName }: Stra
 
   const handleSaveWeeklyPlanning = async (plans: any[]) => {
     try {
-      // Criar conteúdos em batch
-      const promises = plans.map(plan => 
-        fetch('/api/content-calendar', {
+      // Criar conteúdos em batch usando NOVA API
+      const promises = plans.map(plan =>
+        fetch('/api/business-content', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -185,7 +164,7 @@ export default function StrategistContentView({ businessId, businessName }: Stra
 
   const handleMoveContent = async (contentId: string, newDate: string) => {
     try {
-      const response = await fetch(`/api/content-calendar/${contentId}`, {
+      const response = await fetch(`/api/business-content/${contentId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -209,7 +188,7 @@ export default function StrategistContentView({ businessId, businessName }: Stra
 
   const handleStatusChange = async (contentId: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/content-calendar/${contentId}`, {
+      const response = await fetch(`/api/business-content/${contentId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -387,13 +366,14 @@ export default function StrategistContentView({ businessId, businessName }: Stra
       )}
 
       {/* Modals */}
-      <ContentModal
+      <BusinessContentModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         content={selectedContent}
         selectedDate={selectedDate}
         onSave={handleSaveContent}
         businessId={businessId}
+        strategistId={strategistId}
       />
 
       <WeeklyPlanningModal
