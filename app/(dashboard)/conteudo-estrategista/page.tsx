@@ -4,7 +4,7 @@ import React, { Suspense, useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import ContentPlanningView from '@/components/ContentPlanningView';
+import StrategistContentView from '@/components/StrategistContentView';
 import PageSidebar, { SidebarItem } from '@/components/PageSidebar';
 import MobileNavDrawer, { MobileNavItem } from '@/components/MobileNavDrawer';
 import MobileNavButton from '@/components/MobileNavButton';
@@ -16,6 +16,7 @@ function ConteudoEstrategistaPageContent() {
   const [hasAccess, setHasAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [businessId, setBusinessId] = useState<string | null>(null);
+  const [businessName, setBusinessName] = useState<string>('');
 
   // 🔒 VERIFICAR ACESSO - Apenas marketing strategists relacionados a um business
   useEffect(() => {
@@ -67,6 +68,7 @@ function ConteudoEstrategistaPageContent() {
 
       console.log('✅ Acesso concedido ao business:', business.name);
       setBusinessId(business.id);
+      setBusinessName(business.name);
       setHasAccess(true);
       setIsLoading(false);
     }
@@ -186,8 +188,12 @@ function ConteudoEstrategistaPageContent() {
       {/* Conteúdo Principal - Com margem para o sidebar */}
       <div className="md:ml-[68px] px-6">
         <div className="max-w-[1400px] mx-auto">
-          {/* TODO: Passar businessId para ContentPlanningView para filtrar conteúdo */}
-          <ContentPlanningView />
+          {businessId && (
+            <StrategistContentView
+              businessId={businessId}
+              businessName={businessName}
+            />
+          )}
         </div>
       </div>
     </div>

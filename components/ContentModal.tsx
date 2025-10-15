@@ -13,6 +13,7 @@ interface ContentModalProps {
   onSave: () => void;
   content?: SocialContent | null;
   initialDate?: Date | null;
+  businessId?: string;
 }
 
 interface User {
@@ -25,7 +26,8 @@ export default function ContentModal({
   onClose,
   onSave,
   content,
-  initialDate
+  initialDate,
+  businessId
 }: ContentModalProps) {
   const { user: currentUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
@@ -129,10 +131,17 @@ export default function ContentModal({
       console.log(`📤 Enviando ${method} para ${url}`);
       console.log('📤 Dados:', formData);
 
+      // 🔒 Adicionar business_id se fornecido (para strategists)
+      const payload = businessId
+        ? { ...formData, business_id: businessId }
+        : formData;
+
+      console.log('📤 Payload final:', payload);
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();

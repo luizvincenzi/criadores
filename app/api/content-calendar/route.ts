@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const start = searchParams.get('start');
     const end = searchParams.get('end');
+    const businessId = searchParams.get('business_id');
 
     let query = supabase
       .from('social_content_calendar')
@@ -19,6 +20,12 @@ export async function GET(request: NextRequest) {
 
     if (end) {
       query = query.lte('scheduled_date', end);
+    }
+
+    // 🔒 FILTRAR POR BUSINESS_ID (para strategists)
+    if (businessId) {
+      query = query.eq('business_id', businessId);
+      console.log('🔒 Filtrando conteúdo por business_id:', businessId);
     }
 
     const { data, error } = await query;
