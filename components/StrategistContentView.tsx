@@ -261,155 +261,266 @@ export default function StrategistContentView({ businessId, businessName, strate
     return stats;
   };
 
+  const weekLabel = `${format(currentWeekStart, 'd MMM', { locale: ptBR })} - ${format(addDays(currentWeekStart, 6), 'd MMM yyyy', { locale: ptBR })}`;
+  const monthLabel = format(currentMonthStart, 'MMMM yyyy', { locale: ptBR });
+
   return (
-    <div className="space-y-6">
-      {/* Header com informação do business */}
-      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Conteúdo - {businessName}</h1>
-            <p className="text-sm text-gray-500 mt-1">Gerencie o conteúdo do seu business</p>
+    <div className="flex flex-col md:flex-row bg-[#f5f5f5] min-h-screen">
+      {/* Sidebar Esquerda - Ferramentas de Planejamento */}
+      <div className="w-full md:w-56 bg-[#f5f5f5] flex flex-col flex-shrink-0">
+        {/* Header da Sidebar */}
+        <div className="p-4">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 leading-tight" style={{ fontFamily: 'Onest, sans-serif' }}>Programação de conteúdo</h2>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-              Estrategista
-            </span>
+
+          {/* Botão de Planejamento Semanal */}
+          <button
+            onClick={() => setIsWeeklyPlanningOpen(true)}
+            className="w-full px-3 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg flex items-center justify-between hover:bg-gray-800 transition-colors"
+          >
+            <span>Planejado semanal</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="1"/>
+              <circle cx="12" cy="5" r="1"/>
+              <circle cx="12" cy="19" r="1"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Lista de Conteúdos Planejados */}
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase">Planejado semanal</h3>
+            <button
+              onClick={() => setIsWeeklyPlanningOpen(true)}
+              className="text-blue-600 hover:text-blue-700 transition-colors"
+              title="Editar planejamento semanal"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+          </div>
+
+          {/* Conteúdos agrupados por tipo */}
+          <div className="space-y-3">
+            {['reels', 'story', 'post'].map((type) => {
+              const typeContents = contents.filter(c => c.content_type === type);
+              if (typeContents.length === 0) return null;
+
+              const typeConfig = {
+                reels: { label: 'Reels', color: 'text-green-600' },
+                story: { label: 'Story', color: 'text-yellow-600' },
+                post: { label: 'Post', color: 'text-blue-600' }
+              }[type];
+
+              // Agrupar por dia da semana com ordem correta
+              const dayGroups: { [key: string]: { count: number; order: number } } = {};
+              typeContents.forEach(content => {
+                const dateStr = content.scheduled_date.includes('T')
+                  ? content.scheduled_date.split('T')[0]
+                  : content.scheduled_date;
+
+                const [year, month, day] = dateStr.split('-').map(Number);
+                const contentDate = new Date(year, month - 1, day);
+
+                const dayName = format(contentDate, 'EEEE', { locale: ptBR });
+                const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1).toLowerCase();
+                const dayOfWeek = contentDate.getDay();
+                const order = dayOfWeek === 0 ? 7 : dayOfWeek;
+
+                if (!dayGroups[capitalizedDay]) {
+                  dayGroups[capitalizedDay] = { count: 0, order };
+                }
+                dayGroups[capitalizedDay].count++;
+              });
+
+              // Ordenar dias da semana
+              const sortedDays = Object.entries(dayGroups)
+                .sort(([, a], [, b]) => a.order - b.order);
+
+              return (
+                <div key={type} className="border-l-2 border-gray-200 pl-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ContentTypeIcon type={type as any} size={16} />
+                    <span className={`text-sm font-semibold ${typeConfig?.color}`}>
+                      {typeConfig?.label}
+                    </span>
+                    <span className="text-xs text-gray-500 ml-auto">{typeContents.length}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {sortedDays.map(([day, { count }]) => (
+                      <div key={day} className="text-xs text-gray-600 flex justify-between">
+                        <span>{day}</span>
+                        <span className="text-gray-400">({count})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Estatísticas de Conteúdo */}
+        <div className="px-4 pb-4 mt-auto">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Estatística de conteúdo</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Total</span>
+              <span className="font-semibold text-gray-900">{contents.length}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Executados</span>
+              <span className="font-semibold text-green-600">{contents.filter(c => c.is_executed).length}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Pendentes</span>
+              <span className="font-semibold text-orange-600">{contents.filter(c => !c.is_executed).length}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Widget */}
-      <ContentStatsWidget stats={calculateStats()} />
-
-      {/* Toolbar */}
-      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Navigation */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={viewMode === 'week' ? handlePreviousWeek : handlePreviousMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Anterior"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-            </button>
-
-            <button
-              onClick={handleToday}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
-            >
-              Hoje
-            </button>
-
-            <button
-              onClick={viewMode === 'week' ? handleNextWeek : handleNextMonth}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Próximo"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </button>
-
-            <div className="ml-4 text-lg font-semibold text-gray-900">
-              {viewMode === 'week' 
-                ? `${format(currentWeekStart, 'd', { locale: ptBR })} - ${format(addDays(currentWeekStart, 6), "d 'de' MMMM yyyy", { locale: ptBR })}`
-                : format(currentMonthStart, "MMMM 'de' yyyy", { locale: ptBR })
-              }
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            {/* View Mode Selector */}
-            <div className="relative">
+      {/* Área Principal - Calendário */}
+      <div className="flex-1 bg-white">
+        {/* Header com navegação */}
+        <div className="border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Navegação de Data */}
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                onClick={viewMode === 'week' ? handlePreviousWeek : handlePreviousMonth}
+                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                title={viewMode === 'week' ? 'Semana anterior' : 'Mês anterior'}
               >
-                {viewMode === 'week' ? 'Semana' : 'Mês'}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="6 9 12 15 18 9"/>
+                  <polyline points="15 18 9 12 15 6"/>
                 </svg>
               </button>
 
-              {isViewDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                  <button
-                    onClick={() => {
-                      setViewMode('week');
-                      setIsViewDropdownOpen(false);
-                    }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${viewMode === 'week' ? 'bg-gray-50 font-medium' : ''}`}
-                  >
-                    Semana
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('month');
-                      setIsViewDropdownOpen(false);
-                    }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${viewMode === 'month' ? 'bg-gray-50 font-medium' : ''}`}
-                  >
-                    Mês
-                  </button>
-                </div>
-              )}
+              <button
+                onClick={handleToday}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              >
+                Hoje
+              </button>
+
+              <button
+                onClick={viewMode === 'week' ? handleNextWeek : handleNextMonth}
+                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                title={viewMode === 'week' ? 'Próxima semana' : 'Próximo mês'}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
             </div>
 
-            <button
-              onClick={() => setIsWeeklyPlanningOpen(true)}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm font-medium"
-            >
-              Planejamento semanal
-            </button>
+            <div className="text-base font-semibold text-gray-900">
+              {viewMode === 'week' ? weekLabel : monthLabel}
+            </div>
           </div>
+
+          {/* Dropdown de Visualização */}
+          <div className="relative">
+            <button
+              onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
+              className="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors border-2 border-gray-300 flex items-center gap-2 min-w-[140px] justify-between"
+            >
+              <span>{viewMode === 'week' ? 'Semana' : 'Mês'}</span>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className={`transition-transform ${isViewDropdownOpen ? 'rotate-180' : ''}`}
+              >
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {isViewDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                <button
+                  onClick={() => {
+                    setViewMode('week');
+                    setIsViewDropdownOpen(false);
+                  }}
+                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
+                    viewMode === 'week' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                  }`}
+                >
+                  Semana
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode('month');
+                    setIsViewDropdownOpen(false);
+                  }}
+                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
+                    viewMode === 'month' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                  }`}
+                >
+                  Mês
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Week/Month View */}
+        <div className="flex-1">
+          {viewMode === 'week' ? (
+            <ContentWeekView
+              weekStart={currentWeekStart}
+              contents={contents}
+              loading={loading}
+              onAddContent={handleAddContent}
+              onEditContent={handleEditContent}
+              onMoveContent={handleMoveContent}
+              onToggleExecuted={handleToggleExecuted}
+            />
+          ) : (
+            <ContentMonthView
+              monthStart={currentMonthStart}
+              contents={contents}
+              loading={loading}
+              onAddContent={handleAddContent}
+              onEditContent={handleEditContent}
+            />
+          )}
         </div>
       </div>
 
-      {/* Calendar View */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-        </div>
-      ) : viewMode === 'week' ? (
-        <ContentWeekView
-          weekStart={currentWeekStart}
-          contents={contents}
-          loading={loading}
-          onAddContent={handleAddContent}
-          onEditContent={handleEditContent}
-          onMoveContent={handleMoveContent}
-          onToggleExecuted={handleToggleExecuted}
-        />
-      ) : (
-        <ContentMonthView
-          monthStart={currentMonthStart}
-          contents={contents}
-          onDateClick={handleAddContent}
-          onContentClick={handleEditContent}
+      {/* Modal de Conteúdo Individual */}
+      {isModalOpen && (
+        <BusinessContentModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          content={selectedContent}
+          selectedDate={selectedDate}
+          onSave={handleSaveContent}
+          businessId={businessId}
+          strategistId={strategistId}
         />
       )}
 
-      {/* Modals */}
-      <BusinessContentModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        content={selectedContent}
-        selectedDate={selectedDate}
-        onSave={handleSaveContent}
-        businessId={businessId}
-        strategistId={strategistId}
-      />
-
-      <WeeklyPlanningModal
-        isOpen={isWeeklyPlanningOpen}
-        onClose={() => setIsWeeklyPlanningOpen(false)}
-        weekStart={currentWeekStart}
-        onSave={handleSaveWeeklyPlanning}
-      />
+      {/* Modal de Planejamento Semanal */}
+      {isWeeklyPlanningOpen && (
+        <WeeklyPlanningModal
+          isOpen={isWeeklyPlanningOpen}
+          onClose={() => setIsWeeklyPlanningOpen(false)}
+          weekStart={currentWeekStart}
+          onSave={handleSaveWeeklyPlanning}
+          existingContents={contents}
+        />
+      )}
     </div>
   );
 }
