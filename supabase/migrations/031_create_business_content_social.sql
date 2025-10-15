@@ -130,21 +130,7 @@ CREATE TRIGGER set_business_content_date_fields_trigger
 ALTER TABLE business_content_social ENABLE ROW LEVEL SECURITY;
 
 -- =====================================================
--- POLICY 1: SELECT - Admins e Managers veem TUDO
--- =====================================================
-CREATE POLICY "Admins e Managers veem todo conteúdo business"
-ON business_content_social
-FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM platform_users
-    WHERE id = auth.uid()
-    AND role IN ('admin', 'manager')
-  )
-);
-
--- =====================================================
--- POLICY 2: SELECT - Business Owners veem apenas SEU business
+-- POLICY 1: SELECT - Business Owners veem apenas SEU business
 -- =====================================================
 CREATE POLICY "Business Owners veem apenas seu conteúdo"
 ON business_content_social
@@ -159,7 +145,7 @@ USING (
 );
 
 -- =====================================================
--- POLICY 3: SELECT - Strategists veem apenas businesses que GERENCIAM
+-- POLICY 2: SELECT - Strategists veem apenas businesses que GERENCIAM
 -- =====================================================
 CREATE POLICY "Strategists veem apenas conteúdo dos seus businesses"
 ON business_content_social
@@ -175,7 +161,7 @@ USING (
 );
 
 -- =====================================================
--- POLICY 4: SELECT - Creators veem apenas conteúdo ATRIBUÍDO a eles
+-- POLICY 3: SELECT - Creators veem apenas conteúdo ATRIBUÍDO a eles
 -- =====================================================
 CREATE POLICY "Creators veem apenas conteúdo atribuído"
 ON business_content_social
@@ -190,9 +176,9 @@ USING (
 );
 
 -- =====================================================
--- POLICY 5: INSERT - Apenas admins, managers, business_owners e strategists
+-- POLICY 4: INSERT - Apenas business_owners e strategists podem criar
 -- =====================================================
-CREATE POLICY "Apenas admins, managers, business_owners e strategists podem criar"
+CREATE POLICY "Apenas business_owners e strategists podem criar"
 ON business_content_social
 FOR INSERT
 WITH CHECK (
@@ -200,16 +186,16 @@ WITH CHECK (
     SELECT 1 FROM platform_users
     WHERE id = auth.uid()
     AND (
-      role IN ('admin', 'manager', 'business_owner')
+      role = 'business_owner'
       OR 'marketing_strategist' = ANY(roles)
     )
   )
 );
 
 -- =====================================================
--- POLICY 6: UPDATE - Apenas admins, managers, business_owners e strategists
+-- POLICY 5: UPDATE - Apenas business_owners e strategists podem atualizar
 -- =====================================================
-CREATE POLICY "Apenas admins, managers, business_owners e strategists podem atualizar"
+CREATE POLICY "Apenas business_owners e strategists podem atualizar"
 ON business_content_social
 FOR UPDATE
 USING (
@@ -217,23 +203,26 @@ USING (
     SELECT 1 FROM platform_users
     WHERE id = auth.uid()
     AND (
-      role IN ('admin', 'manager', 'business_owner')
+      role = 'business_owner'
       OR 'marketing_strategist' = ANY(roles)
     )
   )
 );
 
 -- =====================================================
--- POLICY 7: DELETE - Apenas admins e managers (soft delete)
+-- POLICY 6: DELETE - Apenas business_owners e strategists (soft delete)
 -- =====================================================
-CREATE POLICY "Apenas admins e managers podem deletar"
+CREATE POLICY "Apenas business_owners e strategists podem deletar"
 ON business_content_social
 FOR UPDATE
 USING (
   EXISTS (
     SELECT 1 FROM platform_users
     WHERE id = auth.uid()
-    AND role IN ('admin', 'manager')
+    AND (
+      role = 'business_owner'
+      OR 'marketing_strategist' = ANY(roles)
+    )
   )
 )
 WITH CHECK (deleted_at IS NOT NULL);
@@ -266,8 +255,9 @@ DO $$
 BEGIN
   RAISE NOTICE '✅ Migration 031: business_content_social criada com sucesso!';
   RAISE NOTICE '📊 Tabela: business_content_social';
-  RAISE NOTICE '🔒 RLS: Habilitado com 7 policies';
+  RAISE NOTICE '🔒 RLS: Habilitado com 6 policies';
   RAISE NOTICE '📈 Índices: 7 índices criados';
   RAISE NOTICE '⚡ Triggers: 2 triggers criados';
+  RAISE NOTICE '👥 Roles permitidos: business_owner, marketing_strategist, creator';
 END $$;
 
