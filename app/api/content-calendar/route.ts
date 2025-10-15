@@ -25,14 +25,14 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Erro ao buscar conteúdos:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ contents: data || [] });
+    return NextResponse.json({ success: true, contents: data || [] });
   } catch (error) {
     console.error('Erro no GET /api/content-calendar:', error);
     return NextResponse.json(
-      { error: 'Erro ao buscar conteúdos' },
+      { success: false, error: 'Erro ao buscar conteúdos' },
       { status: 500 }
     );
   }
@@ -51,14 +51,14 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Erro ao criar conteúdo:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ content: data });
+    return NextResponse.json({ success: true, content: data });
   } catch (error) {
     console.error('Erro no POST /api/content-calendar:', error);
     return NextResponse.json(
-      { error: 'Erro ao criar conteúdo' },
+      { success: false, error: 'Erro ao criar conteúdo' },
       { status: 500 }
     );
   }
