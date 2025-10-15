@@ -55,8 +55,8 @@ export const useAuthStore = create<AuthStore>()(
         try {
           console.log('🔐 [crIAdores] Iniciando login para:', email);
 
-          // 1. Usar nossa API customizada de login
-          const response = await fetch('/api/supabase/auth/login', {
+          // 1. Tentar login em platform_users primeiro
+          let response = await fetch('/api/platform/auth/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -64,7 +64,20 @@ export const useAuthStore = create<AuthStore>()(
             body: JSON.stringify({ email, password }),
           });
 
-          const loginData = await response.json();
+          let loginData = await response.json();
+
+          // Se falhar em platform_users, tentar em users (fallback)
+          if (!loginData.success) {
+            console.log('⚠️ [crIAdores] Não encontrado em platform_users, tentando users...');
+            response = await fetch('/api/supabase/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email, password }),
+            });
+            loginData = await response.json();
+          }
 
           if (!loginData.success) {
             console.error('❌ Erro de autenticação:', loginData.error);
@@ -148,11 +161,8 @@ export const useAuthStore = create<AuthStore>()(
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h
           };
 
-          // 6. Atualizar último login
-          await supabase
-            .from('users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('id', user.id);
+          // 6. Atualizar último login (já feito na API de login)
+          // Não precisa fazer aqui pois a API já atualiza
 
           console.log('✅ [crIAdores] Login realizado com sucesso:', {
             email: user.email,
