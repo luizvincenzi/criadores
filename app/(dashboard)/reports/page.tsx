@@ -32,16 +32,25 @@ export default function ReportsPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<'all' | 'instagram' | 'tiktok' | 'youtube'>('all');
   const [selectedPeriod, setSelectedPeriod] = useState('last30days');
 
-  // 🚫 BLOQUEAR ACESSO DE CREATORS - Redirecionar para /campanhas-criador
+  // 🚫 BLOQUEAR ACESSO DE CREATORS E MARKETING STRATEGISTS
   useEffect(() => {
     if (!user) return;
 
     const isCreator = user.role === 'creator' || (user.roles && user.roles.includes('creator'));
+    const isMarketingStrategist = user.role === 'marketing_strategist' || (user.roles && user.roles.includes('marketing_strategist'));
     const isOnlyCreator = user.role === 'creator' && (!user.roles || user.roles.length === 1 || (user.roles.length === 1 && user.roles[0] === 'creator'));
+    const isOnlyStrategist = user.role === 'marketing_strategist' && (!user.roles || user.roles.length === 1 || (user.roles.length === 1 && user.roles[0] === 'marketing_strategist'));
 
     if (isOnlyCreator) {
       console.log('🚫 Creator tentando acessar /reports - redirecionando para /campanhas-criador');
       router.push('/campanhas-criador');
+      return;
+    }
+
+    if (isOnlyStrategist) {
+      console.log('🚫 Marketing Strategist tentando acessar /reports - redirecionando para /conteudo-estrategista');
+      router.push('/conteudo-estrategista');
+      return;
     }
   }, [user, router]);
 
