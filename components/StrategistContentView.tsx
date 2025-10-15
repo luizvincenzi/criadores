@@ -109,16 +109,41 @@ export default function StrategistContentView({ businessId, businessName, strate
     setCurrentMonthStart(addMonths(currentMonthStart, 1));
   };
 
-  const handleDateClick = (date: Date) => {
+  const handleAddContent = (date: Date) => {
     setSelectedDate(date);
     setSelectedContent(null);
     setIsModalOpen(true);
   };
 
-  const handleContentClick = (content: SocialContent) => {
+  const handleEditContent = (content: SocialContent) => {
     setSelectedContent(content);
     setSelectedDate(null);
     setIsModalOpen(true);
+  };
+
+  const handleToggleExecuted = async (contentId: string, isExecuted: boolean) => {
+    try {
+      const response = await fetch(`/api/business-content/${contentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          is_executed: isExecuted,
+          executed_at: isExecuted ? new Date().toISOString() : null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await loadContents();
+      } else {
+        console.error('Erro ao atualizar execução:', data.error);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar execução:', error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -162,15 +187,17 @@ export default function StrategistContentView({ businessId, businessName, strate
     }
   };
 
-  const handleMoveContent = async (contentId: string, newDate: string) => {
+  const handleMoveContent = async (contentId: string, newDate: Date) => {
     try {
+      const dateString = format(newDate, 'yyyy-MM-dd');
+
       const response = await fetch(`/api/business-content/${contentId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          scheduled_date: newDate,
+          scheduled_date: dateString,
         }),
       });
 
@@ -351,17 +378,18 @@ export default function StrategistContentView({ businessId, businessName, strate
         <ContentWeekView
           weekStart={currentWeekStart}
           contents={contents}
-          onDateClick={handleDateClick}
-          onContentClick={handleContentClick}
+          loading={loading}
+          onAddContent={handleAddContent}
+          onEditContent={handleEditContent}
           onMoveContent={handleMoveContent}
-          onStatusChange={handleStatusChange}
+          onToggleExecuted={handleToggleExecuted}
         />
       ) : (
         <ContentMonthView
           monthStart={currentMonthStart}
           contents={contents}
-          onDateClick={handleDateClick}
-          onContentClick={handleContentClick}
+          onDateClick={handleAddContent}
+          onContentClick={handleEditContent}
         />
       )}
 
