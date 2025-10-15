@@ -74,8 +74,11 @@ export default function CampaignsPage() {
   const [selectedBriefing, setSelectedBriefing] = useState<string | null>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
-  // Sidebar items
-  const sidebarItems: SidebarItem[] = [
+  // Verificar se usuário é creator
+  const isCreator = user?.role === 'creator' || (user?.roles && user.roles.includes('creator'));
+
+  // Sidebar items - Creators não veem Briefings e Jornada
+  const allSidebarItems: SidebarItem[] = [
     {
       id: 'campanhas',
       label: 'Campanhas',
@@ -116,6 +119,11 @@ export default function CampaignsPage() {
       href: '/jornada'
     }
   ];
+
+  // Filtrar sidebar items - Creators só veem Campanhas
+  const sidebarItems = isCreator
+    ? allSidebarItems.filter(item => item.id === 'campanhas')
+    : allSidebarItems;
 
   // Mobile nav items
   const mobileNavItems: MobileNavItem[] = sidebarItems.map(item => ({

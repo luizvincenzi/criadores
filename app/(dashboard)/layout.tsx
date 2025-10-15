@@ -93,7 +93,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     refreshCount(); // Atualizar contador
   };
 
-  const navigationItems = [
+  // Verificar se usuário é creator
+  const isCreator = user?.role === 'creator' || (user?.roles && user.roles.includes('creator'));
+  const isOnlyCreator = user?.role === 'creator' && (!user?.roles || user.roles.length === 1);
+
+  // Itens de navegação baseados no role
+  const allNavigationItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
@@ -105,7 +110,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <rect x="14" y="12" width="7" height="9"></rect>
           <rect x="3" y="16" width="7" height="5"></rect>
         </svg>
-      )
+      ),
+      roles: ['admin', 'manager', 'business_owner', 'marketing_strategist'] // Creators não veem dashboard
+    },
+    {
+      id: 'campaigns_creator',
+      label: 'Campanhas',
+      href: '/campaigns_creator',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
+          <path d="M3 11l18-5v12L3 14v-3z"/>
+          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+        </svg>
+      ),
+      roles: ['creator'] // Apenas creators
     },
     {
       id: 'campaigns',
@@ -116,7 +134,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <path d="M3 11l18-5v12L3 14v-3z"/>
           <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
         </svg>
-      )
+      ),
+      roles: ['admin', 'manager', 'business_owner', 'marketing_strategist'] // Todos exceto creators
     },
     {
       id: 'conteudo',
@@ -130,7 +149,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <line x1="16" y1="17" x2="8" y2="17"/>
           <polyline points="10 9 9 9 8 9"/>
         </svg>
-      )
+      ),
+      roles: ['admin', 'manager', 'business_owner', 'marketing_strategist'] // Creators não veem conteúdo
     },
     {
       id: 'reports',
@@ -140,9 +160,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
           <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
-      )
+      ),
+      roles: ['admin', 'manager', 'business_owner', 'marketing_strategist'] // Creators não veem relatórios
     }
   ];
+
+  // Filtrar itens baseado no role do usuário
+  const navigationItems = allNavigationItems.filter(item => {
+    if (!item.roles) return true; // Se não tem restrição, mostra para todos
+
+    // Verificar se o role principal do usuário está na lista
+    if (user?.role && item.roles.includes(user.role)) return true;
+
+    // Verificar se algum dos roles do usuário está na lista
+    if (user?.roles && user.roles.some(role => item.roles?.includes(role))) return true;
+
+    return false;
+  });
 
   return (
     <NotificationProvider>

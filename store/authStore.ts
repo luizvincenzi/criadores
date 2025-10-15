@@ -9,6 +9,7 @@ interface User {
   email: string;
   full_name: string;
   role: UserRole;
+  roles?: string[]; // Array de roles para suportar múltiplas roles
   status: UserStatus;
   business_id?: string;
   creator_id?: string;
@@ -150,6 +151,7 @@ export const useAuthStore = create<AuthStore>()(
             status: 'active' as UserStatus,
             business_id: finalBusinessId,
             creator_id: userData.creator_id || undefined,
+            roles: userData.roles || [userData.role], // Incluir array de roles
             permissions: userData.permissions || []
           };
 
