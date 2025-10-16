@@ -5,7 +5,7 @@ import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import BottomSheet from '../BottomSheet';
 
-interface MobileWeeklyPlanningSheetProps {
+interface MobileStrategistWeeklyPlanningSheetProps {
   isOpen: boolean;
   onClose: () => void;
   weekStart: Date;
@@ -19,13 +19,13 @@ interface WeeklyPlan {
   days: number[];
 }
 
-export default function MobileWeeklyPlanningSheet({
+export default function MobileStrategistWeeklyPlanningSheet({
   isOpen,
   onClose,
   weekStart,
   onSave,
   existingContents = []
-}: MobileWeeklyPlanningSheetProps) {
+}: MobileStrategistWeeklyPlanningSheetProps) {
   const [plans, setPlans] = useState<WeeklyPlan[]>([
     { content_type: 'reels', quantity: 2, days: [] },
     { content_type: 'story', quantity: 2, days: [] },

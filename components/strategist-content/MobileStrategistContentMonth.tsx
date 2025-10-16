@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { SocialContent } from './ContentPlanningView';
+import { SocialContent } from './StrategistContentPlanningView';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
-interface MobileContentMonthProps {
+interface MobileStrategistContentMonthProps {
   monthStart: Date;
   contents: SocialContent[];
   loading: boolean;
@@ -15,13 +15,13 @@ interface MobileContentMonthProps {
   onEditContent: (content: SocialContent) => void;
 }
 
-export default function MobileContentMonth({
+export default function MobileStrategistContentMonth({
   monthStart,
   contents,
   loading,
   onAddContent,
   onEditContent
-}: MobileContentMonthProps) {
+}: MobileStrategistContentMonthProps) {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   // Gerar todos os dias do mês

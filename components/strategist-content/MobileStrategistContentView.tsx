@@ -124,7 +124,7 @@ export default function MobileStrategistContentView({
   const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
 
   return (
-    <div className="md:hidden flex flex-col min-h-screen bg-gray-50">
+    <div className="md:hidden flex flex-col min-h-screen">
       {/* Header Sticky - OTIMIZADO */}
       <div className="sticky top-0 left-0 right-0 z-30 bg-white shadow-sm">
         {/* Business Selector */}

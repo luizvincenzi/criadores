@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { format, addDays, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { SocialContent } from './ContentPlanningView';
+import { SocialContent } from './StrategistContentPlanningView';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
-interface MobileContentWeek3DaysProps {
+interface MobileStrategistContentWeek3DaysProps {
   weekStart: Date;
   contents: SocialContent[];
   loading: boolean;
@@ -15,13 +15,13 @@ interface MobileContentWeek3DaysProps {
   onEditContent: (content: SocialContent) => void;
 }
 
-export default function MobileContentWeek3Days({
+export default function MobileStrategistContentWeek3Days({
   weekStart,
   contents,
   loading,
   onAddContent,
   onEditContent
-}: MobileContentWeek3DaysProps) {
+}: MobileStrategistContentWeek3DaysProps) {
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
 
   // Gerar array de 7 dias

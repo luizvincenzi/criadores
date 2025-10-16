@@ -3,11 +3,11 @@
 import React, { useRef, useEffect } from 'react';
 import { format, addDays, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { SocialContent } from './ContentPlanningView';
+import { SocialContent } from './StrategistContentPlanningView';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
-interface MobileContentWeek7DaysProps {
+interface MobileStrategistContentWeek7DaysProps {
   weekStart: Date;
   contents: SocialContent[];
   loading: boolean;
@@ -15,13 +15,13 @@ interface MobileContentWeek7DaysProps {
   onEditContent: (content: SocialContent) => void;
 }
 
-export default function MobileContentWeek7Days({
+export default function MobileStrategistContentWeek7Days({
   weekStart,
   contents,
   loading,
   onAddContent,
   onEditContent
-}: MobileContentWeek7DaysProps) {
+}: MobileStrategistContentWeek7DaysProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const todayColumnRef = useRef<HTMLDivElement>(null);
 

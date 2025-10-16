@@ -3,15 +3,15 @@
 import React, { useState, useMemo } from 'react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { SocialContent } from './ContentPlanningView';
+import { SocialContent } from './StrategistContentPlanningView';
 
-interface MobileContentSummaryProps {
+interface MobileStrategistContentSummaryProps {
   contents: SocialContent[];
   weekStart: Date;
   viewMode?: '3days' | '7days' | 'month';
 }
 
-export default function MobileContentSummary({ contents, weekStart, viewMode = '7days' }: MobileContentSummaryProps) {
+export default function MobileStrategistContentSummary({ contents, weekStart, viewMode = '7days' }: MobileStrategistContentSummaryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Filtrar conteúdos pelo período correto

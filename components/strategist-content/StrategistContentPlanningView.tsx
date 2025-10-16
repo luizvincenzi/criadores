@@ -286,25 +286,6 @@ export default function StrategistContentPlanningView({ businesses, strategistId
     return acc;
   }, {} as Record<string, Record<string, SocialContent[]>>);
 
-  // Renderizar versão mobile
-  if (isMobile) {
-    return (
-      <MobileStrategistContentView
-        contents={contents}
-        loading={loading}
-        businesses={businesses}
-        selectedBusinessId={selectedBusinessId}
-        onSelectBusiness={handleSelectBusiness}
-        onRefresh={loadContents}
-        onSaveContent={loadContents}
-        onSaveWeeklyPlanning={handleSaveWeeklyPlanning}
-        businessId={selectedBusinessId || ''}
-        strategistId={strategistId}
-      />
-    );
-  }
-
-  // Renderizar versão desktop
   return (
     <div className="flex flex-col md:flex-row bg-[#f5f5f5] min-h-screen">
       {/* Sidebar Esquerda - Ferramentas de Planejamento */}
