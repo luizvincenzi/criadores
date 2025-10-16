@@ -113,8 +113,6 @@ export default function MobileBusinessContentView({
     }
   };
 
-  const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
-
   return (
     <div className="md:hidden flex flex-col min-h-screen">
       {/* Header Sticky - OTIMIZADO */}

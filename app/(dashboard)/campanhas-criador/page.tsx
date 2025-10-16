@@ -195,7 +195,7 @@ export default function CampaignsCreatorPage() {
   return (
     <div className="min-h-screen bg-[#f5f5f5]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -204,11 +204,7 @@ export default function CampaignsCreatorPage() {
                 {campaigns.length} {campaigns.length === 1 ? 'campanha' : 'campanhas'} realizadas
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg sm:text-xl">
-                {user?.full_name?.charAt(0) || 'C'}
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>
