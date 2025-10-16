@@ -120,12 +120,14 @@ export default function BusinessContentPlanningView({
   };
 
   const handleAddContent = (date: Date) => {
+    console.log('🔵 handleAddContent chamado', { date });
     setSelectedDate(date);
     setSelectedContent(null);
     setIsModalOpen(true);
   };
 
   const handleEditContent = (content: SocialContent) => {
+    console.log('🔵 handleEditContent chamado', { content });
     setSelectedContent(content);
     setSelectedDate(null);
     setIsModalOpen(true);
@@ -343,11 +345,10 @@ export default function BusinessContentPlanningView({
           <div className="px-4 py-3">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-lg font-bold text-gray-900">Conteúdo</h1>
-              <BusinessSelector
-                businesses={businesses}
-                selectedBusinessId={selectedBusinessId}
-                onSelectBusiness={handleSelectBusiness}
-              />
+              {/* Business Name (sem dropdown no mobile por enquanto) */}
+              <div className="text-sm font-semibold text-gray-700">
+                {selectedBusiness?.name || 'Selecione um business'}
+              </div>
             </div>
 
             {/* Navegação + Dropdown */}

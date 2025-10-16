@@ -7,6 +7,8 @@ export interface Business {
   name: string;
   logo_url?: string;
   is_active: boolean;
+  has_strategist: boolean;
+  strategist_id: string;
   content_stats?: {
     total: number;
     executed: number;

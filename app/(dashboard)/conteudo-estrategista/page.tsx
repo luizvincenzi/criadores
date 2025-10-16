@@ -3,8 +3,8 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
-import BusinessContentPlanningView from '@/components/business-content/BusinessContentPlanningView';
-import { Business } from '@/components/business-content/BusinessSelector';
+import StrategistContentPlanningView from '@/components/strategist-content/StrategistContentPlanningView';
+import { Business } from '@/components/strategist-content/BusinessSelector';
 
 function ConteudoEstrategistaPageContent() {
   const { user } = useAuthStore();
@@ -106,9 +106,9 @@ function ConteudoEstrategistaPageContent() {
 
   return (
     <div className="bg-[#f5f5f5] min-h-screen">
-      <BusinessContentPlanningView
+      <StrategistContentPlanningView
         businesses={businesses}
-        strategistId={strategistId || undefined}
+        strategistId={strategistId || ''}
       />
     </div>
   );
