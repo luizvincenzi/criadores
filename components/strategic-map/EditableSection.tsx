@@ -9,6 +9,7 @@ import { ObjectivesEditor } from './editors/ObjectivesEditor';
 import { ProductAnalysisEditor } from './editors/ProductAnalysisEditor';
 import { KPITableEditor } from './editors/KPITableEditor';
 import { MetricsOverviewEditor } from './editors/MetricsOverviewEditor';
+import { ICPPersonasEditor } from './editors/ICPPersonasEditor';
 
 interface EditableSectionProps {
   section: StrategicMapSection;
@@ -26,23 +27,31 @@ export function EditableSection({ section, children, onUpdate }: EditableSection
     setError(null);
 
     try {
-      // Enviar para API
-      const response = await fetch(`/api/strategic-maps/sections/${section.id}`, {
-        method: 'PATCH',
+      console.log('🔄 Salvando seção:', section.id, content);
+
+      // Enviar para API usando PUT (método mais compatível)
+      const response = await fetch(`/api/strategic-maps/sections`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          id: section.id,
           content,
           change_description: 'Edição manual via interface',
         }),
       });
 
+      console.log('📡 Resposta da API:', response.status);
+
       if (!response.ok) {
-        throw new Error('Falha ao salvar alterações');
+        const errorData = await response.json();
+        console.error('❌ Erro da API:', errorData);
+        throw new Error(errorData.error || 'Falha ao salvar alterações');
       }
 
       const data = await response.json();
+      console.log('✅ Dados salvos:', data);
 
       // Atualizar estado local
       if (onUpdate && data.section) {
@@ -51,6 +60,7 @@ export function EditableSection({ section, children, onUpdate }: EditableSection
 
       setIsEditing(false);
     } catch (err) {
+      console.error('💥 Erro ao salvar:', err);
       setError(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally {
       setIsSaving(false);
@@ -86,6 +96,8 @@ export function EditableSection({ section, children, onUpdate }: EditableSection
         return <KPITableEditor {...editorProps} content={section.content as any} />;
       case 'objectives':
         return <ObjectivesEditor {...editorProps} content={section.content as any} />;
+      case 'icp_personas':
+        return <ICPPersonasEditor {...editorProps} />;
       default:
         // Fallback para editor JSON genérico
         return (

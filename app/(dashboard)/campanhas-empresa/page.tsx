@@ -235,33 +235,46 @@ export default function CampanhasEmpresaPage() {
 
   const getQuarter = (monthStr: string) => {
     let month = 0;
+    let year = new Date().getFullYear();
 
-    // Tentar extrair mês por nome
-    const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-                       'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-    const lowerMonth = monthStr.toLowerCase();
-    for (let i = 0; i < monthNames.length; i++) {
-      if (lowerMonth.includes(monthNames[i])) {
-        month = i + 1;
-        break;
+    // Primeiro tentar formato YYYYMM (ex: "202511")
+    if (monthStr && monthStr.match(/^\d{6}$/)) {
+      year = parseInt(monthStr.substring(0, 4));
+      month = parseInt(monthStr.substring(4, 6));
+    }
+    // Depois tentar formato YYYY-MM (ex: "2025-11")
+    else if (monthStr && monthStr.match(/^\d{4}-\d{2}$/)) {
+      const [y, m] = monthStr.split('-');
+      year = parseInt(y);
+      month = parseInt(m);
+    }
+    // Por último tentar extrair mês por nome
+    else {
+      const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+                         'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+      const lowerMonth = monthStr.toLowerCase();
+      for (let i = 0; i < monthNames.length; i++) {
+        if (lowerMonth.includes(monthNames[i])) {
+          month = i + 1;
+          break;
+        }
+      }
+
+      // Extrair ano se não foi encontrado nos formatos anteriores
+      const yearMatch = monthStr.match(/(\d{4})/);
+      if (yearMatch) {
+        year = parseInt(yearMatch[1]);
       }
     }
 
-    // Se não encontrou por nome, tentar por número
-    if (month === 0) {
-      const monthMatch = monthStr.match(/(\d{1,2})/);
-      if (monthMatch) {
-        month = parseInt(monthMatch[1]);
-      }
+    // Validar mês (1-12)
+    if (month < 1 || month > 12) {
+      console.warn('⚠️ Mês inválido detectado:', month, 'para monthStr:', monthStr);
+      month = 1; // fallback para janeiro
     }
-
-    // Extrair ano
-    const yearMatch = monthStr.match(/(\d{4})/);
-    const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
 
     // Calcular trimestre: Q1(1-3), Q2(4-6), Q3(7-9), Q4(10-12)
     const quarter = Math.ceil(month / 3);
-    const quarterLabel = `Q${quarter}`;
 
     // Label com meses do trimestre
     const monthRanges: Record<number, string> = {
@@ -271,7 +284,16 @@ export default function CampanhasEmpresaPage() {
       4: 'Out-Dez'
     };
 
-    return { quarter, year, label: `${quarterLabel} ${year} (${monthRanges[quarter]})` };
+    // Debug: verificar valores calculados
+    console.log('🔍 getQuarter Debug:', {
+      monthStr,
+      month,
+      year,
+      quarter,
+      label: `Q${quarter} ${year} (${monthRanges[quarter]})`
+    });
+
+    return { quarter, year, label: `Q${quarter} ${year} (${monthRanges[quarter]})` };
   };
 
   const calculateTrimestrStats = (campaignsInTrimester: Campaign[]) => {

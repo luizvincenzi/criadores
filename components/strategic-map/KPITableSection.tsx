@@ -37,12 +37,12 @@ export function KPITableSection({ content }: KPITableSectionProps) {
           title="Radar de Performance por ICP"
           labels={['LTV / Retenção', 'Ticket Médio', 'Fit de Marca', 'Rentabilidade', 'Satisfação (NPS)']}
           datasets={content.icps.slice(0, 3).map((icp) => {
-            // Normalizar métricas para escala 0-5
-            const ltv = Math.min((icp.metrics.ltv_6m.value / 200), 5);
-            const ticket = Math.min((icp.metrics.avg_ticket.value / 40), 5);
-            const fit = Math.min((icp.metrics.base_percentage.value / 20), 5);
-            const rentability = Math.min(((icp.metrics.ltv_6m.value / icp.metrics.cac.value)), 5);
-            const nps = icp.metrics.nps.value / 2; // NPS de 0-10 para 0-5
+            // Verificar se as métricas existem antes de acessar
+            const ltv = icp.metrics?.ltv_6m?.value ? Math.min((icp.metrics.ltv_6m.value / 200), 5) : 0;
+            const ticket = icp.metrics?.avg_ticket?.value ? Math.min((icp.metrics.avg_ticket.value / 40), 5) : 0;
+            const fit = icp.metrics?.base_percentage?.value ? Math.min((icp.metrics.base_percentage.value / 20), 5) : 0;
+            const rentability = (icp.metrics?.ltv_6m?.value && icp.metrics?.cac?.value) ? Math.min(((icp.metrics.ltv_6m.value / icp.metrics.cac.value)), 5) : 0;
+            const nps = icp.metrics?.nps?.value ? icp.metrics.nps.value / 2 : 0; // NPS de 0-10 para 0-5
 
             return {
               label: icp.name,
@@ -69,7 +69,7 @@ export function KPITableSection({ content }: KPITableSectionProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {content.icps?.map((icp, index) => {
+            {content.icps?.map((icp: any, index: number) => {
               const status = getStatusLabel(icp.matrix || 'core');
               const icon = getStatusIcon(icp.matrix || 'core');
 
@@ -81,24 +81,28 @@ export function KPITableSection({ content }: KPITableSectionProps) {
                       <span className="font-medium text-gray-800">{icp.name}</span>
                     </div>
                   </td>
-                  <td className="p-3 text-center text-gray-600 font-medium">{icp.metrics.base_percentage.value}%</td>
                   <td className="p-3 text-center text-gray-600 font-medium">
-                    R$ {icp.metrics.avg_ticket.value.toFixed(0)}
+                    {icp.metrics?.base_percentage?.value ? `${icp.metrics.base_percentage.value}%` : '—'}
                   </td>
                   <td className="p-3 text-center text-gray-600 font-medium">
-                    R$ {icp.metrics.ltv_6m.value.toFixed(0)}
+                    {icp.metrics?.avg_ticket?.value ? `R$ ${icp.metrics.avg_ticket.value.toFixed(0)}` : '—'}
                   </td>
                   <td className="p-3 text-center text-gray-600 font-medium">
-                    R$ {icp.metrics.cac.value.toFixed(0)}
+                    {icp.metrics?.ltv_6m?.value ? `R$ ${icp.metrics.ltv_6m.value.toFixed(0)}` : '—'}
                   </td>
-                  <td className="p-3 text-gray-600">{icp.metrics.main_channel.value}</td>
+                  <td className="p-3 text-center text-gray-600 font-medium">
+                    {icp.metrics?.cac?.value ? `R$ ${icp.metrics.cac.value.toFixed(0)}` : '—'}
+                  </td>
+                  <td className="p-3 text-gray-600">
+                    {icp.metrics?.main_channel?.value || '—'}
+                  </td>
                   <td className="p-3 text-center">
                     <span className={`font-bold text-lg ${
-                      icp.metrics.nps.value >= 8 ? 'text-green-600' :
-                      icp.metrics.nps.value >= 6 ? 'text-yellow-600' :
+                      (icp.metrics?.nps?.value || 0) >= 8 ? 'text-green-600' :
+                      (icp.metrics?.nps?.value || 0) >= 6 ? 'text-yellow-600' :
                       'text-red-600'
                     }`}>
-                      {icp.metrics.nps.value.toFixed(1)}
+                      {icp.metrics?.nps?.value ? icp.metrics.nps.value.toFixed(1) : '—'}
                     </span>
                   </td>
                   <td className="p-3 text-center">

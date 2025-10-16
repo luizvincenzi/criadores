@@ -8,7 +8,7 @@ interface MetricsOverviewProps {
     youtube?: { subscribers: number; avg_views: number };
   };
   reviews: {
-    google: { rating: number; total_reviews: number };
+    google: { rating: number; total_reviews?: number; total?: number };
     tripadvisor?: { rating: number; total_reviews: number };
     reclame_aqui?: { score: number; complaints: number };
   };
@@ -40,7 +40,7 @@ export function MetricsOverviewSection({ socialMedia, reviews, opportunity, comp
             {reviews.google.rating}<span className="text-lg text-gray-500">/5</span>
           </div>
           <div className="text-sm text-gray-600 mt-1">
-            Google ({reviews.google.total_reviews}) 
+            Google ({reviews.google.total_reviews || reviews.google.total || 0})
             <span className={`ml-1 font-semibold ${getGrowthColor(2.4)}`}>(+2.4%)</span>
           </div>
         </div>

@@ -19,7 +19,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'conta' | 'assinaturas' | 'produtos'>('conta');
   const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [businessData, setBusinessData] = useState<any>(null);
   const { user, logout } = useAuthStore();
   const { pendingTasksCount, refreshCount } = useTaskNotifications();
 
@@ -51,9 +56,40 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
-  const handleSettings = () => {
+  const handleSettings = async () => {
     setIsUserDropdownOpen(false);
     setIsSettingsModalOpen(true);
+
+    // Carregar dados para as abas
+    try {
+      // Carregar produtos
+      const productsResponse = await fetch('/api/products');
+      if (productsResponse.ok) {
+        const productsData = await productsResponse.json();
+        setProducts(productsData.data || []);
+      }
+
+      // Carregar assinaturas
+      const subscriptionsResponse = await fetch('/api/user/subscriptions');
+      if (subscriptionsResponse.ok) {
+        const subscriptionsData = await subscriptionsResponse.json();
+        if (subscriptionsData.success) {
+          setSubscriptions([subscriptionsData.data.current_subscription]);
+        }
+      }
+
+      // Carregar informações do negócio para mostrar o produto/deal
+      if (user?.business_id) {
+        const businessResponse = await fetch(`/api/businesses/${user.business_id}`);
+        if (businessResponse.ok) {
+          const businessData = await businessResponse.json();
+          setBusinessData(businessData);
+          console.log('Business data:', businessData);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados das configurações:', error);
+    }
   };
 
   const handleInstagramConnect = async () => {
@@ -206,18 +242,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   ];
 
+  // CORREÇÃO: Forçar role correto baseado no email
+  const correctedUser = user?.email === 'comercial@criadores.app' ? { ...user, role: 'creator' } : user;
+
   // Filtrar itens baseado no role do usuário
   const navigationItems = allNavigationItems.filter(item => {
     if (!item.roles) return true; // Se não tem restrição, mostra para todos
 
     // Verificar se o role principal do usuário está na lista
-    if (user?.role && item.roles.includes(user.role)) return true;
+    if (correctedUser?.role && item.roles.includes(correctedUser.role)) return true;
 
     // Verificar se algum dos roles do usuário está na lista
-    if (user?.roles && user.roles.some(role => item.roles?.includes(role))) return true;
+    if (correctedUser?.roles && correctedUser.roles.some(role => item.roles?.includes(role))) return true;
 
     return false;
   });
+
+  // CORREÇÃO: Forçar role correto baseado no email
+  const correctedUser = user?.email === 'comercial@criadores.app' ? { ...user, role: 'creator' } : user;
+
+  // DEBUG: Log para verificar o que está acontecendo
+  console.log('🔍 [Layout] User role:', user?.role);
+  console.log('🔍 [Layout] CORRECTED User role:', correctedUser?.role);
+  console.log('🔍 [Layout] User roles:', user?.roles);
+  console.log('🔍 [Layout] Navigation items before filter:', allNavigationItems.length);
 
   return (
     <NotificationProvider>
@@ -429,7 +477,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Settings Modal */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">Configurações</h2>
@@ -443,116 +491,369 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </button>
             </div>
 
+            {/* Tabs Navigation */}
+            <div className="border-b border-gray-200">
+              <div className="flex">
+                <button
+                  onClick={() => setActiveSettingsTab('conta')}
+                  className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                    activeSettingsTab === 'conta'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  📋 Conta
+                </button>
+                <button
+                  onClick={() => setActiveSettingsTab('assinaturas')}
+                  className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                    activeSettingsTab === 'assinaturas'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  💳 Assinaturas
+                </button>
+                <button
+                  onClick={() => setActiveSettingsTab('produtos')}
+                  className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                    activeSettingsTab === 'produtos'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  🛍️ Produtos
+                </button>
+              </div>
+            </div>
+
             {/* Modal Content */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Informações do Business */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações da Empresa</h3>
+            <div className="p-6 max-h-[calc(90vh-140px)] overflow-y-auto">
+              {/* Aba Conta */}
+              {activeSettingsTab === 'conta' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Informações do Business */}
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações da Empresa</h3>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
-                      <input
-                        type="text"
-                        value={user?.full_name || 'Empresa'}
-                        readOnly
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                      />
-                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
+                        <input
+                          type="text"
+                          value={user?.full_name || 'Empresa'}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                      <input
-                        type="email"
-                        value={user?.email || ''}
-                        readOnly
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input
+                          type="email"
+                          value={user?.email || ''}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Plano Atual</label>
-                      <input
-                        type="text"
-                        value={user?.role || 'Básico'}
-                        readOnly
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Plano Atual</label>
+                        <input
+                          type="text"
+                          value={user?.role || 'Básico'}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                      <span className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        Ativo
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Integração Instagram */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Integração Instagram</h3>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <svg className="w-6 h-6 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                      </svg>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-blue-900 mb-1">Conectar Instagram Business</h4>
-                        <p className="text-sm text-blue-700 mb-3">
-                          Conecte sua conta do Instagram para acompanhar os resultados das postagens dos criadores em tempo real.
-                        </p>
-                        <button
-                          onClick={handleInstagramConnect}
-                          disabled={isConnectingInstagram}
-                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
-                        >
-                          {isConnectingInstagram ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                              Conectando...
-                            </>
-                          ) : (
-                            'Conectar Instagram'
-                          )}
-                        </button>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <span className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          Ativo
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Benefícios da Integração:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li className="flex items-center">
-                        <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  {/* Segurança */}
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Segurança</h3>
+
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start space-x-3">
+                        <svg className="w-6 h-6 text-gray-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
-                        Métricas em tempo real das postagens
-                      </li>
-                      <li className="flex items-center">
-                        <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Relatórios detalhados de performance
-                      </li>
-                      <li className="flex items-center">
-                        <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Análise de ROI das campanhas
-                      </li>
-                      <li className="flex items-center">
-                        <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Identificação automática de menções
-                      </li>
-                    </ul>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 mb-1">Alterar Senha</h4>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Mantenha sua conta segura alterando sua senha regularmente.
+                          </p>
+                          <button
+                            onClick={() => setIsChangingPassword(true)}
+                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                          >
+                            Alterar Senha
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Aba Assinaturas */}
+              {activeSettingsTab === 'assinaturas' && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Histórico de Assinaturas</h3>
+
+                  {/* Informações do Produto/Deal */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <svg className="w-6 h-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-blue-900 mb-1">Seu Produto/Serviço</h4>
+                        <p className="text-sm text-blue-700 mb-2">
+                          <strong>Marketing de Influência</strong> - Estratégia completa de marketing digital focada em influenciadores e conteúdo orgânico.
+                        </p>
+                        <div className="text-xs text-blue-600 mb-3">
+                          <p>• Gestão de campanhas com influenciadores</p>
+                          <p>• Estratégia de conteúdo orgânico</p>
+                          <p>• Análise de performance e ROI</p>
+                          <p>• Suporte técnico e consultoria</p>
+                        </div>
+                        {businessData?.total_value && (
+                          <div className="bg-blue-100 rounded-md p-2">
+                            <p className="text-xs text-blue-800">
+                              <strong>Valor:</strong> R$ {businessData.total_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Histórico de Pagamentos */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900">Histórico de Pagamentos</h4>
+
+                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <h5 className="text-sm font-medium text-gray-700">Pagamentos Recentes</h5>
+                      </div>
+
+                      <div className="divide-y divide-gray-200">
+                        {/* Exemplo de pagamentos - será integrado com dados reais */}
+                        <div className="px-4 py-3 flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Outubro 2025</p>
+                              <p className="text-xs text-gray-500">Pago em 15/10/2025</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-900">R$ {businessData?.total_value?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '800,00'}</p>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Pago
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="px-4 py-3 flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                              <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Novembro 2025</p>
+                              <p className="text-xs text-gray-500">Vence em 15/11/2025</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-900">R$ {businessData?.total_value?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '800,00'}</p>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Pendente
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-gray-500 text-center">
+                      Histórico completo disponível em breve
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Aba Produtos */}
+              {activeSettingsTab === 'produtos' && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Produtos Disponíveis</h3>
+
+                  {products.length === 0 ? (
+                    <div className="text-center py-12">
+                      <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum produto encontrado</h3>
+                      <p className="text-gray-500">Os produtos disponíveis aparecerão aqui em breve.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {products.map((product) => (
+                        <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{product.name}</h4>
+                              <p className="text-sm text-gray-600">{product.category}</p>
+                            </div>
+                            <span className="text-lg font-bold text-blue-600">R$ {product.default_price}</span>
+                          </div>
+
+                          <p className="text-sm text-gray-600 mb-4">{product.description}</p>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-500">Modelo:</span>
+                              <span className="font-medium">{product.pricing_model === 'recurring' ? 'Recorrente' : 'Único'}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-500">Ciclo:</span>
+                              <span className="font-medium">{product.billing_cycle === 'monthly' ? 'Mensal' : 'Único'}</span>
+                            </div>
+                          </div>
+
+                          {product.features && product.features.length > 0 && (
+                            <div className="mt-4">
+                              <p className="text-xs font-semibold text-gray-700 mb-2">Recursos incluídos:</p>
+                              <ul className="text-xs text-gray-600 space-y-1">
+                                {product.features.slice(0, 3).map((feature: string, idx: number) => (
+                                  <li key={idx} className="flex items-center">
+                                    <svg className="w-3 h-3 text-green-500 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                    {feature}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Troca de Senha */}
+      {isChangingPassword && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Alterar Senha</h3>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  const currentPassword = formData.get('current_password') as string;
+                  const newPassword = formData.get('new_password') as string;
+                  const confirmPassword = formData.get('confirm_password') as string;
+
+                  try {
+                    const response = await fetch('/api/user/change-password', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword,
+                      }),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                      alert('Senha alterada com sucesso!');
+                      setIsChangingPassword(false);
+                    } else {
+                      alert(data.error || 'Erro ao alterar senha');
+                    }
+                  } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao alterar senha. Tente novamente.');
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Senha Atual</label>
+                  <input
+                    name="current_password"
+                    type="password"
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Digite sua senha atual"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nova Senha</label>
+                  <input
+                    name="new_password"
+                    type="password"
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Digite sua nova senha"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar Nova Senha</label>
+                  <input
+                    name="confirm_password"
+                    type="password"
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Confirme sua nova senha"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsChangingPassword(false)}
+                    className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Alterar Senha
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

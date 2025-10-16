@@ -109,7 +109,7 @@ export default function MapaPage() {
   const handleSectionUpdate = (updatedSection: StrategicMapSection) => {
     // Atualizar seção no estado local
     if (map?.sections) {
-      const updatedSections = map.sections.map(s =>
+      const updatedSections = map.sections.map((s: StrategicMapSection) =>
         s.id === updatedSection.id ? updatedSection : s
       );
       setMap({
@@ -206,17 +206,12 @@ export default function MapaPage() {
       <main className="space-y-12">
         {/* Render all sections including metrics_overview */}
         {map?.sections && map.sections.length > 0 ? (
-          map.sections.map((section) => (
+          map.sections.map((section: StrategicMapSection) => (
             <section key={section.id} className="bg-white rounded-xl p-8 shadow-lg border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                   {getSectionTitle(section.section_type)}
                 </h2>
-                {section.is_ai_generated && (
-                  <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-                    ✨ Gerado por IA
-                  </span>
-                )}
               </div>
               <EditableSection section={section} onUpdate={handleSectionUpdate}>
                 {renderSection(section)}
