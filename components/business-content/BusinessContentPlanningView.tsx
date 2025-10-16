@@ -272,6 +272,22 @@ export default function BusinessContentPlanningView({ businessId, businessName }
     return acc;
   }, {} as Record<string, Record<string, SocialContent[]>>);
 
+  // 📱 MOBILE VIEW
+  if (isMobile && businessId) {
+    return (
+      <MobileBusinessContentView
+        contents={contents}
+        loading={loading}
+        businessName={businessName}
+        onRefresh={loadContents}
+        onSaveContent={handleSaveContent}
+        onSaveWeeklyPlanning={handleSaveWeeklyPlanning}
+        businessId={businessId}
+      />
+    );
+  }
+
+  // 🖥️ DESKTOP VIEW
   return (
     <div className="flex flex-col md:flex-row bg-[#f5f5f5] min-h-screen">
       {/* Sidebar Esquerda - Ferramentas de Planejamento */}
