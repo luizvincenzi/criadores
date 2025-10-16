@@ -83,13 +83,19 @@ export default function CampanhasEmpresaPage() {
       // Buscar campanhas do business
       const campaignsResponse = await fetch(`/api/supabase/campaigns?business_id=${user.business_id}`);
       const campaignsData = await campaignsResponse.json();
-      
-      if (campaignsData.success) {
+
+      console.log('📊 Campanhas recebidas:', campaignsData);
+
+      if (campaignsData.success && campaignsData.data && Array.isArray(campaignsData.data)) {
         // Ordenar por data de criação (mais recente primeiro)
-        const sortedCampaigns = campaignsData.campaigns.sort((a: Campaign, b: Campaign) => 
+        const sortedCampaigns = campaignsData.data.sort((a: Campaign, b: Campaign) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         setCampaigns(sortedCampaigns);
+      } else {
+        // Se não houver campanhas ou erro, definir array vazio
+        console.log('⚠️ Nenhuma campanha encontrada ou erro na API');
+        setCampaigns([]);
       }
 
       setLoading(false);
