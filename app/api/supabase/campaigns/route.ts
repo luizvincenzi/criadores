@@ -53,6 +53,8 @@ export async function GET(request: NextRequest) {
           status,
           fee,
           deliverables,
+          video_instagram_link,
+          video_tiktok_link,
           creator:creators(
             id,
             name,
@@ -138,7 +140,9 @@ export async function GET(request: NextRequest) {
         instagram: cc.creator?.social_media?.instagram?.username || '',
         seguidores: cc.creator?.social_media?.instagram?.followers || 0,
         whatsapp: cc.creator?.contact_info?.whatsapp || '',
-        cidade: cc.creator?.profile_info?.location?.city || ''
+        cidade: cc.creator?.profile_info?.location?.city || '',
+        video_instagram_link: cc.video_instagram_link || '',
+        video_tiktok_link: cc.video_tiktok_link || ''
       })) || [],
       totalCriadores: campaign.campaign_creators?.length || 0,
       quantidadeCriadores: campaign.deliverables?.creators_count || 6,

@@ -16,6 +16,8 @@ interface Creator {
   role: string;
   status: string;
   fee: number;
+  video_instagram_link?: string;
+  video_tiktok_link?: string;
   deliverables: {
     briefing_complete: string;
     visit_datetime: string | null;
@@ -231,6 +233,87 @@ export default function CampanhasEmpresaPage() {
     return monthStr;
   };
 
+  const getQuarter = (monthStr: string) => {
+    let month = 0;
+
+    // Tentar extrair mês por nome
+    const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+                       'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    const lowerMonth = monthStr.toLowerCase();
+    for (let i = 0; i < monthNames.length; i++) {
+      if (lowerMonth.includes(monthNames[i])) {
+        month = i + 1;
+        break;
+      }
+    }
+
+    // Se não encontrou por nome, tentar por número
+    if (month === 0) {
+      const monthMatch = monthStr.match(/(\d{1,2})/);
+      if (monthMatch) {
+        month = parseInt(monthMatch[1]);
+      }
+    }
+
+    // Extrair ano
+    const yearMatch = monthStr.match(/(\d{4})/);
+    const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+
+    const quarter = Math.ceil(month / 3);
+    const quarterLabel = `Q${quarter}`;
+    return { quarter, year, label: `${quarterLabel} ${year}` };
+  };
+
+  const calculateTrimestrStats = (campaignsInTrimester: Campaign[]) => {
+    let totalPosts = 0;
+    let totalViews = 0;
+    let totalEngagement = 0;
+
+    campaignsInTrimester.forEach(campaign => {
+      if (campaign.criadores) {
+        campaign.criadores.forEach(creator => {
+          // Contar links de conteúdo
+          if (creator.deliverables?.content_links) {
+            totalPosts += creator.deliverables.content_links.length;
+          }
+          // Somar visualizações
+          if (creator.deliverables?.total_views) {
+            totalViews += creator.deliverables.total_views;
+          }
+          // Calcular engajamento médio
+          if (creator.deliverables?.engagement_rate) {
+            const rate = parseFloat(creator.deliverables.engagement_rate);
+            if (!isNaN(rate)) {
+              totalEngagement += rate;
+            }
+          }
+        });
+      }
+    });
+
+    return {
+      totalPosts,
+      totalViews,
+      avgEngagement: campaignsInTrimester.length > 0
+        ? (totalEngagement / campaignsInTrimester.length).toFixed(2)
+        : '0'
+    };
+  };
+
+  const groupCampaignsByQuarter = (campaignsList: Campaign[]) => {
+    const grouped: Record<string, Campaign[]> = {};
+
+    campaignsList.forEach(campaign => {
+      const { label } = getQuarter(campaign.month);
+      if (!grouped[label]) {
+        grouped[label] = [];
+      }
+      grouped[label].push(campaign);
+    });
+
+    return grouped;
+  };
+
   const openCampaignModal = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
     setIsModalOpen(true);
@@ -263,13 +346,56 @@ export default function CampanhasEmpresaPage() {
             <p className="text-gray-500">Suas campanhas aparecerão aqui quando forem criadas.</p>
           </div>
         ) : (
-          <div className="relative">
-            {/* Linha vertical da timeline */}
-            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+          <div className="space-y-12">
+            {Object.entries(groupCampaignsByQuarter(campaigns)).map(([quarterLabel, campaignsInQuarter]) => {
+              const stats = calculateTrimestrStats(campaignsInQuarter);
 
-            {/* Campanhas */}
-            <div className="space-y-6">
-              {campaigns.map((campaign, index) => {
+              return (
+                <div key={quarterLabel} className="space-y-8">
+                  {/* Card de Análise Trimestral */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h2 className="text-2xl font-bold text-blue-900 mb-1">📊 Trimestre {quarterLabel}</h2>
+                        <p className="text-sm text-blue-700">Análise consolidada do período</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-blue-600 font-medium">{campaignsInQuarter.length} campanhas</p>
+                      </div>
+                    </div>
+
+                    {/* Métricas do Trimestre */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <div className="bg-white rounded-lg p-4 text-center border border-blue-200">
+                        <p className="text-xs text-blue-600 font-semibold mb-1">📸 POSTAGENS</p>
+                        <p className="text-3xl font-bold text-blue-900">{stats.totalPosts}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 text-center border border-indigo-200">
+                        <p className="text-xs text-indigo-600 font-semibold mb-1">👁️ VISUALIZAÇÕES</p>
+                        <p className="text-3xl font-bold text-indigo-900">{formatNumber(stats.totalViews)}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 text-center border border-purple-200">
+                        <p className="text-xs text-purple-600 font-semibold mb-1">📈 ENGAJAMENTO</p>
+                        <p className="text-3xl font-bold text-purple-900">{stats.avgEngagement}%</p>
+                      </div>
+                    </div>
+
+                    {/* Análise Qualitativa */}
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <p className="text-sm text-gray-700">
+                        <span className="font-semibold text-blue-900">Resumo do Trimestre:</span> Realizamos <span className="font-bold text-blue-900">{stats.totalPosts} postagens</span> neste trimestre, alcançando <span className="font-bold text-indigo-900">{formatNumber(stats.totalViews)} visualizações</span> no total. O engajamento médio foi de <span className="font-bold text-purple-900">{stats.avgEngagement}%</span>, demonstrando a qualidade do conteúdo entregue pelos nossos criadores parceiros.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Campanhas do Trimestre */}
+                  <div className="relative">
+                    {/* Linha vertical da timeline */}
+                    <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+
+                    {/* Campanhas */}
+                    <div className="space-y-8">
+                      {campaignsInQuarter.map((campaign, index) => {
                 const totalReach = campaign.results?.total_reach || 0;
                 const totalEngagement = campaign.results?.total_engagement || 0;
                 const roi = campaign.results?.roi || 0;
@@ -423,9 +549,53 @@ export default function CampanhasEmpresaPage() {
                                       </a>
                                     ))}
                                   </div>
+
+                                  {/* Links de Vídeo - Instagram e TikTok */}
+                                  {(creator.video_instagram_link || creator.video_tiktok_link) && (
+                                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                                      {creator.video_instagram_link && (
+                                        <a
+                                          href={creator.video_instagram_link}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-2 p-2 bg-gradient-to-r from-pink-50 to-red-50 hover:from-pink-100 hover:to-red-100 rounded-lg transition-all group"
+                                        >
+                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-red-600 flex-shrink-0">
+                                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
+                                            <path d="M12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                          </svg>
+                                          <span className="text-sm text-gray-700 group-hover:text-red-700 truncate flex-1">🎥 Vídeo Instagram</span>
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-red-600 flex-shrink-0">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                            <polyline points="15 3 21 3 21 9" />
+                                            <line x1="10" y1="14" x2="21" y2="3" />
+                                          </svg>
+                                        </a>
+                                      )}
+                                      {creator.video_tiktok_link && (
+                                        <a
+                                          href={creator.video_tiktok_link}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-2 p-2 bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black rounded-lg transition-all group"
+                                        >
+                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white flex-shrink-0">
+                                            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.1 1.82 2.89 2.89 0 0 1 5.1-1.82V9.75a6.45 6.45 0 0 0-6.45 6.45c0 3.56 2.97 6.45 6.45 6.45s6.45-2.89 6.45-6.45-2.89-6.45-6.45-6.45"/>
+                                          </svg>
+                                          <span className="text-sm text-white group-hover:text-gray-200 truncate flex-1">🎵 Vídeo TikTok</span>
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300 group-hover:text-white flex-shrink-0">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                            <polyline points="15 3 21 3 21 9" />
+                                            <line x1="10" y1="14" x2="21" y2="3" />
+                                          </svg>
+                                        </a>
+                                      )}
+                                    </div>
+                                  )}
+
                                   {/* Métricas do criador se disponível */}
                                   {creator.deliverables.total_views && (
-                                    <div className="flex gap-3 mt-2 pt-2 border-t border-gray-100 text-xs text-gray-600">
+                                    <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
                                       {creator.deliverables.total_views > 0 && (
                                         <span>👁️ {formatNumber(creator.deliverables.total_views)} views</span>
                                       )}
@@ -458,7 +628,11 @@ export default function CampanhasEmpresaPage() {
                   </div>
                 );
               })}
-            </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -649,6 +823,52 @@ export default function CampanhasEmpresaPage() {
                                   </svg>
                                 </a>
                               ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Links de Vídeo - Instagram e TikTok */}
+                        {(creator.video_instagram_link || creator.video_tiktok_link) && (
+                          <div className="mt-3">
+                            <p className="text-xs font-semibold text-gray-700 mb-2">🎬 Vídeos Publicados</p>
+                            <div className="space-y-2">
+                              {creator.video_instagram_link && (
+                                <a
+                                  href={creator.video_instagram_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 p-2 bg-gradient-to-r from-pink-50 to-red-50 hover:from-pink-100 hover:to-red-100 rounded-lg transition-colors group"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-red-600 flex-shrink-0">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
+                                    <path d="M12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                  </svg>
+                                  <span className="text-sm text-gray-700 group-hover:text-red-700 truncate">🎥 Vídeo Instagram</span>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-red-600 flex-shrink-0">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                    <polyline points="15 3 21 3 21 9" />
+                                    <line x1="10" y1="14" x2="21" y2="3" />
+                                  </svg>
+                                </a>
+                              )}
+                              {creator.video_tiktok_link && (
+                                <a
+                                  href={creator.video_tiktok_link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 p-2 bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black rounded-lg transition-colors group"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white flex-shrink-0">
+                                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.1 1.82 2.89 2.89 0 0 1 5.1-1.82V9.75a6.45 6.45 0 0 0-6.45 6.45c0 3.56 2.97 6.45 6.45 6.45s6.45-2.89 6.45-6.45-2.89-6.45-6.45-6.45"/>
+                                  </svg>
+                                  <span className="text-sm text-white truncate">🎵 Vídeo TikTok</span>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300 group-hover:text-white flex-shrink-0">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                    <polyline points="15 3 21 3 21 9" />
+                                    <line x1="10" y1="14" x2="21" y2="3" />
+                                  </svg>
+                                </a>
+                              )}
                             </div>
                           </div>
                         )}
