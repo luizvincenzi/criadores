@@ -137,7 +137,7 @@ export default function BusinessContentPlanningView({
     setSelectedDate(null);
   };
 
-  const handleSaveContent = async (content: Partial<SocialContent>) => {
+  const handleSaveContent = async () => {
     await loadContents();
     handleCloseModal();
   };
@@ -211,8 +211,8 @@ export default function BusinessContentPlanningView({
 
   return (
     <div className="flex flex-col md:flex-row bg-[#f5f5f5] min-h-screen">
-      {/* Sidebar Esquerda - Ferramentas de Planejamento - FIXO */}
-      <div className="w-full md:w-56 bg-[#f5f5f5] flex flex-col flex-shrink-0 md:sticky md:top-0 md:h-screen md:overflow-hidden">
+      {/* Sidebar Esquerda - Ferramentas de Planejamento - FIXO (HIDDEN ON MOBILE) */}
+      <div className="hidden md:flex w-56 bg-[#f5f5f5] flex-col flex-shrink-0 sticky top-0 h-screen overflow-hidden">
         {/* Header da Sidebar */}
         <div className="p-4 flex-shrink-0">
           <div className="mb-4">
@@ -338,8 +338,109 @@ export default function BusinessContentPlanningView({
 
       {/* Área Principal - Calendário */}
       <div className="flex-1 bg-[#f5f5f5]">
-        {/* Header com navegação */}
-        <div className="border-b border-gray-200 px-6 py-4 bg-white">
+        {/* Header Mobile - APENAS MOBILE */}
+        <div className="md:hidden sticky top-0 z-20 bg-white border-b border-gray-200">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-lg font-bold text-gray-900">Conteúdo</h1>
+              <BusinessSelector
+                businesses={businesses}
+                selectedBusinessId={selectedBusinessId}
+                onSelectBusiness={handleSelectBusiness}
+              />
+            </div>
+
+            {/* Navegação + Dropdown */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={viewMode === 'week' ? handlePreviousWeek : handlePreviousMonth}
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+
+                <button
+                  onClick={handleToday}
+                  className="px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                >
+                  Hoje
+                </button>
+
+                <button
+                  onClick={viewMode === 'week' ? handleNextWeek : handleNextMonth}
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors border border-gray-300 flex items-center gap-1"
+                >
+                  <span>{viewMode === 'week' ? '3 Dias' : 'Mês'}</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+
+                {isViewDropdownOpen && (
+                  <div className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                    <button
+                      onClick={() => {
+                        setViewMode('week');
+                        setIsViewDropdownOpen(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
+                        viewMode === 'week' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                      }`}
+                    >
+                      3 Dias
+                    </button>
+                    <button
+                      onClick={() => {
+                        setViewMode('month');
+                        setIsViewDropdownOpen(false);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
+                        viewMode === 'month' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                      }`}
+                    >
+                      Mês
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Label de período */}
+            <div className="text-sm font-semibold text-gray-900 mt-2">
+              {viewMode === 'week' ? weekLabel : monthLabel}
+            </div>
+
+            {/* Resumo de conteúdos */}
+            <div className="mt-3 flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                  {stats.total}
+                </div>
+                <span className="text-gray-600">{stats.total} conteúdo{stats.total !== 1 ? 's' : ''}</span>
+              </div>
+              <div className="text-gray-500">
+                {stats.executed} executado{stats.executed !== 1 ? 's' : ''} • {stats.pending} pendente{stats.pending !== 1 ? 's' : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Header Desktop - APENAS DESKTOP */}
+        <div className="hidden md:block border-b border-gray-200 px-6 py-4 bg-white">
           <div className="flex items-center justify-between">
             {/* Navegação de Data */}
             <div className="flex items-center gap-3">
@@ -473,6 +574,17 @@ export default function BusinessContentPlanningView({
           existingContents={contents}
         />
       )}
+
+      {/* Botão Flutuante "Adicionar" - APENAS MOBILE */}
+      <button
+        onClick={() => handleAddContent(new Date())}
+        className="md:hidden fixed bottom-6 right-6 z-30 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center"
+        aria-label="Adicionar conteúdo"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
     </div>
   );
 }
