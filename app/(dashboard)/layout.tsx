@@ -149,7 +149,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
         </svg>
       ),
-      roles: ['admin', 'manager', 'business_owner'] // Excluir creators e marketing_strategist
+      roles: ['admin', 'manager'] // CRM interno apenas
     },
     {
       id: 'conteudo',
@@ -182,6 +182,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       roles: ['business_owner'] // APENAS business owners
     },
     {
+      id: 'campanhas-empresa',
+      label: 'Campanhas',
+      href: '/campanhas-empresa',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
+          <path d="M3 11l18-5v12L3 14v-3z"/>
+          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+        </svg>
+      ),
+      roles: ['business_owner'] // Timeline de campanhas para business owner
+    },
+    {
       id: 'reports',
       label: 'Relatórios',
       href: '/reports',
@@ -190,7 +202,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
       ),
-      roles: ['admin', 'manager', 'business_owner'] // Excluir creators e marketing_strategist
+      roles: ['admin', 'manager'] // CRM interno apenas
     }
   ];
 
