@@ -13,12 +13,21 @@ supabase/migrations/032_create_strategic_map_tables.sql
 
 ### 2️⃣ Popular Dados
 ```bash
-# Copie todo o conteúdo de:
+# ⚠️ IMPORTANTE: Use ESTE script se encontrar erro de constraint:
+scripts/clean-and-repopulate-strategic-map.sql
+
+# Ou tente primeiro:
 scripts/populate-boussole-strategic-map.sql
 
-# Cole no Supabase Dashboard > SQL Editor
-# Clique em "Run"
+# Se receber erro "check constraint violated", use o primeiro script acima
 ```
+
+**Se receber erro:**
+```
+ERROR: violates check constraint strategic_map_sections_section_type_check
+```
+
+Veja: `FIX_SECTION_TYPE_CONSTRAINT_ERROR.md` ou use o script de limpeza acima
 
 ### 3️⃣ Testar
 ```bash
