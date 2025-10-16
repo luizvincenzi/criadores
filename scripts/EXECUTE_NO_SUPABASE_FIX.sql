@@ -52,7 +52,7 @@ FROM businesses b
 WHERE LOWER(b.name) LIKE '%bouss%'
 LIMIT 1;
 
--- PASSO 4: Inserir as 8 seções
+-- PASSO 4: Inserir seção 1 - Métricas Overview
 INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
@@ -63,10 +63,10 @@ SELECT
   true
 FROM strategic_maps sm
 WHERE sm.business_id = (SELECT id FROM businesses WHERE LOWER(name) LIKE '%bouss%' LIMIT 1)
-LIMIT 1
+LIMIT 1;
 
-UNION ALL
-
+-- PASSO 4B: Inserir seção 2 - Market Analysis
+INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
   'market_analysis'::text,
@@ -76,10 +76,10 @@ SELECT
   true
 FROM strategic_maps sm
 WHERE sm.business_id = (SELECT id FROM businesses WHERE LOWER(name) LIKE '%bouss%' LIMIT 1)
-LIMIT 1
+LIMIT 1;
 
-UNION ALL
-
+-- PASSO 4C: Inserir seção 3 - Business Diagnosis
+INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
   'business_diagnosis'::text,
@@ -89,10 +89,10 @@ SELECT
   true
 FROM strategic_maps sm
 WHERE sm.business_id = (SELECT id FROM businesses WHERE LOWER(name) LIKE '%bouss%' LIMIT 1)
-LIMIT 1
+LIMIT 1;
 
-UNION ALL
-
+-- PASSO 4D: Inserir seção 4 - SWOT
+INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
   'swot'::text,
@@ -102,10 +102,10 @@ SELECT
   true
 FROM strategic_maps sm
 WHERE sm.business_id = (SELECT id FROM businesses WHERE LOWER(name) LIKE '%bouss%' LIMIT 1)
-LIMIT 1
+LIMIT 1;
 
-UNION ALL
-
+-- PASSO 4E: Inserir seção 5 - Product Analysis
+INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
   'product_analysis'::text,
@@ -115,10 +115,10 @@ SELECT
   true
 FROM strategic_maps sm
 WHERE sm.business_id = (SELECT id FROM businesses WHERE LOWER(name) LIKE '%bouss%' LIMIT 1)
-LIMIT 1
+LIMIT 1;
 
-UNION ALL
-
+-- PASSO 4F: Inserir seção 6 - ICP Personas
+INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
   'icp_personas'::text,
@@ -128,10 +128,10 @@ SELECT
   true
 FROM strategic_maps sm
 WHERE sm.business_id = (SELECT id FROM businesses WHERE LOWER(name) LIKE '%bouss%' LIMIT 1)
-LIMIT 1
+LIMIT 1;
 
-UNION ALL
-
+-- PASSO 4G: Inserir seção 7 - KPI Table
+INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
   'kpi_table'::text,
@@ -141,10 +141,10 @@ SELECT
   true
 FROM strategic_maps sm
 WHERE sm.business_id = (SELECT id FROM businesses WHERE LOWER(name) LIKE '%bouss%' LIMIT 1)
-LIMIT 1
+LIMIT 1;
 
-UNION ALL
-
+-- PASSO 4H: Inserir seção 8 - Objectives
+INSERT INTO strategic_map_sections (strategic_map_id, section_type, section_order, content, ai_generated_content, is_ai_generated)
 SELECT
   sm.id,
   'objectives'::text,
