@@ -225,7 +225,7 @@ export default function MobileBusinessContentView({
       </div>
 
       {/* Resumo Expansível - TODAS as visualizações */}
-      <MobileStrategistContentSummary
+      <MobileBusinessContentSummary
         contents={contents}
         weekStart={viewMode === 'month' ? currentMonthStart : currentWeekStart}
         viewMode={viewMode}
@@ -234,7 +234,7 @@ export default function MobileBusinessContentView({
       {/* Área de Conteúdo - com padding bottom para footer fixo */}
       <div className="flex-1 pb-20">
         {viewMode === '3days' && (
-          <MobileStrategistContentWeek3Days
+          <MobileBusinessContentWeek3Days
             weekStart={currentWeekStart}
             contents={contents}
             loading={loading}
@@ -244,7 +244,7 @@ export default function MobileBusinessContentView({
         )}
 
         {viewMode === '7days' && (
-          <MobileStrategistContentWeek7Days
+          <MobileBusinessContentWeek7Days
             weekStart={currentWeekStart}
             contents={contents}
             loading={loading}
@@ -254,7 +254,7 @@ export default function MobileBusinessContentView({
         )}
 
         {viewMode === 'month' && (
-          <MobileStrategistContentMonth
+          <MobileBusinessContentMonth
             monthStart={currentMonthStart}
             contents={contents}
             loading={loading}
@@ -293,7 +293,7 @@ export default function MobileBusinessContentView({
 
       {/* Content Sheet */}
       {isContentSheetOpen && (
-        <MobileStrategistContentSheet
+        <MobileBusinessContentSheet
           isOpen={isContentSheetOpen}
           onClose={handleCloseSheet}
           onSave={handleSaveSheet}
@@ -305,7 +305,7 @@ export default function MobileBusinessContentView({
 
       {/* Planning Sheet - Mobile Optimized */}
       {isPlanningModalOpen && (
-        <MobileStrategistWeeklyPlanningSheet
+        <MobileBusinessWeeklyPlanningSheet
           isOpen={isPlanningModalOpen}
           onClose={() => setIsPlanningModalOpen(false)}
           weekStart={currentWeekStart}
