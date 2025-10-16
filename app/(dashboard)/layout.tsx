@@ -258,9 +258,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return false;
   });
 
-  // CORREÇÃO: Forçar role correto baseado no email
-  const correctedUser = user?.email === 'comercial@criadores.app' ? { ...user, role: 'creator' } : user;
-
   // DEBUG: Log para verificar o que está acontecendo
   console.log('🔍 [Layout] User role:', user?.role);
   console.log('🔍 [Layout] CORRECTED User role:', correctedUser?.role);
