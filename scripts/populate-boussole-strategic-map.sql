@@ -134,7 +134,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'metrics_overview'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'metrics_overview'
   );
 
 -- 4. Inserir seção 2: Análise de Mercado
@@ -170,7 +170,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'market_analysis'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'market_analysis'
   );
 
 -- 5. Inserir seção 3: Diagnóstico do Negócio
@@ -209,7 +209,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'business_diagnosis'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'business_diagnosis'
   );
 
 -- 6. Inserir seção 4: Análise SWOT
@@ -263,7 +263,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'swot'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'swot'
   );
 
 -- 7. Inserir seção 5: Análise de Produto
@@ -318,7 +318,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'product_analysis'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'product_analysis'
   );
 
 -- 8. Inserir seção 6: ICP (Ideal Customer Profile)
@@ -365,7 +365,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'icp_personas'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'icp_personas'
   );
 
 -- 9. Inserir seção 7: KPIs e Indicadores
@@ -430,7 +430,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'kpi_table'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'kpi_table'
   );
 
 -- 10. Inserir seção 8: Objetivos e Plano de Ação
@@ -484,7 +484,7 @@ WHERE sm.business_id = (SELECT id FROM businesses WHERE name ILIKE '%boussolé%'
   AND sm.year = 2025
   AND NOT EXISTS (
     SELECT 1 FROM strategic_map_sections
-    WHERE strategic_map_id = sm.id AND section_type = 'objectives'::section_type
+    WHERE strategic_map_id = sm.id AND section_type::text = 'objectives'
   );
 
 -- 11. Verificar se os dados foram inseridos corretamente
