@@ -3,33 +3,43 @@
 import React, { useState, useEffect } from 'react';
 import { format, startOfWeek, addWeeks, subWeeks, startOfMonth, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { SocialContent } from './ContentPlanningView';
-import MobileContentWeek3Days from './MobileContentWeek3Days';
-import MobileContentWeek7Days from './MobileContentWeek7Days';
-import MobileContentMonth from './MobileContentMonth';
-import MobileContentSheet from './MobileContentSheet';
-import MobileWeeklyPlanningSheet from './MobileWeeklyPlanningSheet';
-import MobileContentSummary from './MobileContentSummary';
+import { SocialContent } from './StrategistContentPlanningView';
+import MobileStrategistContentWeek3Days from './MobileStrategistContentWeek3Days';
+import MobileStrategistContentWeek7Days from './MobileStrategistContentWeek7Days';
+import MobileStrategistContentMonth from './MobileStrategistContentMonth';
+import MobileStrategistContentSheet from './MobileStrategistContentSheet';
+import MobileStrategistWeeklyPlanningSheet from './MobileStrategistWeeklyPlanningSheet';
+import MobileStrategistContentSummary from './MobileStrategistContentSummary';
+import BusinessSelector from './BusinessSelector';
+import { Business } from './BusinessSelector';
 
-interface MobileContentViewProps {
+interface MobileStrategistContentViewProps {
   contents: SocialContent[];
   loading: boolean;
+  businesses: Business[];
+  selectedBusinessId: string | null;
+  onSelectBusiness: (businessId: string) => void;
   onRefresh: () => void;
   onSaveContent: () => void;
   onSaveWeeklyPlanning: (plans: any[]) => void;
-  onOpenMenu?: () => void;
+  businessId: string;
+  strategistId: string;
 }
 
 type ViewMode = '3days' | '7days' | 'month';
 
-export default function MobileContentView({
+export default function MobileStrategistContentView({
   contents,
   loading,
+  businesses,
+  selectedBusinessId,
+  onSelectBusiness,
   onRefresh,
   onSaveContent,
   onSaveWeeklyPlanning,
-  onOpenMenu
-}: MobileContentViewProps) {
+  businessId,
+  strategistId
+}: MobileStrategistContentViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('3days');
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
@@ -111,14 +121,27 @@ export default function MobileContentView({
     }
   };
 
+  const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+
   return (
-    <div className="sticky md:hidden flex flex-col min-h-screen bg-gray-50">
+    <div className="md:hidden flex flex-col min-h-screen bg-gray-50">
       {/* Header Sticky - OTIMIZADO */}
-      <div className="sticky top-5 left-0 right-0 z-30 bg-white shadow-sm">
+      <div className="sticky top-0 left-0 right-0 z-30 bg-white shadow-sm">
+        {/* Business Selector */}
+        <div className="px-3 py-2 border-b border-gray-200">
+          <BusinessSelector
+            businesses={businesses}
+            selectedBusinessId={selectedBusinessId}
+            onSelectBusiness={onSelectBusiness}
+          />
+        </div>
+
         {/* Linha única: Título + Navegação + Visualização */}
         <div className="px-3 py-2 flex items-center justify-between gap-2">
-          {/* Título compacto */}
-          <h1 className="text-base font-bold text-gray-900">Conteúdo</h1>
+          {/* Período */}
+          <div className="text-sm font-semibold text-gray-900">
+            {getperiodLabel()}
+          </div>
 
           {/* Navegação compacta */}
           <div className="flex items-center gap-1">
@@ -213,16 +236,10 @@ export default function MobileContentView({
           </div>
         </div>
 
-        {/* Label do Período - compacto */}
-        <div className="px-3 py-1.5">
-          <div className="text-xs font-semibold text-gray-700">
-            {getperiodLabel()}
-          </div>
-        </div>
       </div>
 
       {/* Resumo Expansível - TODAS as visualizações */}
-      <MobileContentSummary
+      <MobileStrategistContentSummary
         contents={contents}
         weekStart={viewMode === 'month' ? currentMonthStart : currentWeekStart}
         viewMode={viewMode}
@@ -231,7 +248,7 @@ export default function MobileContentView({
       {/* Área de Conteúdo - com padding bottom para footer fixo */}
       <div className="flex-1 pb-20">
         {viewMode === '3days' && (
-          <MobileContentWeek3Days
+          <MobileStrategistContentWeek3Days
             weekStart={currentWeekStart}
             contents={contents}
             loading={loading}
@@ -241,7 +258,7 @@ export default function MobileContentView({
         )}
 
         {viewMode === '7days' && (
-          <MobileContentWeek7Days
+          <MobileStrategistContentWeek7Days
             weekStart={currentWeekStart}
             contents={contents}
             loading={loading}
@@ -251,7 +268,7 @@ export default function MobileContentView({
         )}
 
         {viewMode === 'month' && (
-          <MobileContentMonth
+          <MobileStrategistContentMonth
             monthStart={currentMonthStart}
             contents={contents}
             loading={loading}
@@ -261,23 +278,9 @@ export default function MobileContentView({
         )}
       </div>
 
-      {/* Footer Fixo - OTIMIZADO COM 3 BOTÕES */}
+      {/* Footer Fixo - 2 BOTÕES */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-2 shadow-lg">
-        <div className="grid grid-cols-3 gap-2">
-          {/* Botão Menu */}
-          {onOpenMenu && (
-            <button
-              onClick={onOpenMenu}
-              className="py-2.5 px-2 bg-gray-100 text-gray-700 rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
-              aria-label="Abrir menu de navegação"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h18M3 6h18M3 18h18" />
-              </svg>
-              <span>Menu</span>
-            </button>
-          )}
-
+        <div className="grid grid-cols-2 gap-2">
           {/* Botão Planejamento */}
           <button
             onClick={() => setIsPlanningModalOpen(true)}
@@ -304,18 +307,20 @@ export default function MobileContentView({
 
       {/* Content Sheet */}
       {isContentSheetOpen && (
-        <MobileContentSheet
+        <MobileStrategistContentSheet
           isOpen={isContentSheetOpen}
           onClose={handleCloseSheet}
           onSave={handleSaveSheet}
           content={selectedContent}
           initialDate={selectedDate}
+          businessId={businessId}
+          strategistId={strategistId}
         />
       )}
 
       {/* Planning Sheet - Mobile Optimized */}
       {isPlanningModalOpen && (
-        <MobileWeeklyPlanningSheet
+        <MobileStrategistWeeklyPlanningSheet
           isOpen={isPlanningModalOpen}
           onClose={() => setIsPlanningModalOpen(false)}
           weekStart={currentWeekStart}

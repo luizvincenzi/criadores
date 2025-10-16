@@ -10,6 +10,7 @@ import ContentStatsWidget from '../content/ContentStatsWidget';
 import WeeklyPlanningModal from '../content/WeeklyPlanningModal';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import BusinessSelector from './BusinessSelector';
+import MobileStrategistContentView from './MobileStrategistContentView';
 
 export interface SocialContent {
   id: string;
@@ -62,8 +63,19 @@ export default function StrategistContentPlanningView({ businesses, strategistId
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
+
+  // Detectar mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (selectedBusinessId) {
@@ -274,6 +286,25 @@ export default function StrategistContentPlanningView({ businesses, strategistId
     return acc;
   }, {} as Record<string, Record<string, SocialContent[]>>);
 
+  // Renderizar versão mobile
+  if (isMobile) {
+    return (
+      <MobileStrategistContentView
+        contents={contents}
+        loading={loading}
+        businesses={businesses}
+        selectedBusinessId={selectedBusinessId}
+        onSelectBusiness={handleSelectBusiness}
+        onRefresh={loadContents}
+        onSaveContent={loadContents}
+        onSaveWeeklyPlanning={handleSaveWeeklyPlanning}
+        businessId={selectedBusinessId || ''}
+        strategistId={strategistId}
+      />
+    );
+  }
+
+  // Renderizar versão desktop
   return (
     <div className="flex flex-col md:flex-row bg-[#f5f5f5] min-h-screen">
       {/* Sidebar Esquerda - Ferramentas de Planejamento */}

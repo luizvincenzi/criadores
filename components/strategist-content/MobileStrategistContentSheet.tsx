@@ -3,28 +3,27 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import BottomSheet from '../BottomSheet';
-import { SocialContent } from './ContentPlanningView';
+import { SocialContent } from './StrategistContentPlanningView';
 
-interface MobileContentSheetProps {
+interface MobileStrategistContentSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
   content: SocialContent | null;
   initialDate: Date | null;
+  businessId: string;
+  strategistId: string;
 }
 
-interface User {
-  id: string;
-  full_name: string;
-}
-
-export default function MobileContentSheet({
+export default function MobileStrategistContentSheet({
   isOpen,
   onClose,
   onSave,
   content,
-  initialDate
-}: MobileContentSheetProps) {
+  initialDate,
+  businessId,
+  strategistId
+}: MobileStrategistContentSheetProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -33,30 +32,9 @@ export default function MobileContentSheet({
     platforms: [] as string[],
     scheduled_date: '',
     scheduled_time: '',
-    assigned_to: '',
     notes: ''
   });
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
-
-  // Carregar usuários
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    try {
-      const roles = 'admin,vendas,ops,manager';
-      const response = await fetch(`/api/users?roles=${roles}&active=true`);
-      const data = await response.json();
-
-      if (data.users) {
-        setUsers(data.users);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar usuários:', error);
-    }
-  };
 
   useEffect(() => {
     if (content) {
@@ -68,7 +46,6 @@ export default function MobileContentSheet({
         platforms: content.platforms || [],
         scheduled_date: content.scheduled_date.split('T')[0],
         scheduled_time: content.scheduled_time || '',
-        assigned_to: content.assigned_to || '',
         notes: content.notes || ''
       });
     } else if (initialDate) {
@@ -100,67 +77,28 @@ export default function MobileContentSheet({
     setLoading(true);
 
     try {
-      // Verificar se houve mudança de responsável
-      const previousAssignedTo = content?.assigned_to;
-      const newAssignedTo = formData.assigned_to;
-      const assignedToChanged = previousAssignedTo !== newAssignedTo;
-      const isNewAssignment = !content && newAssignedTo; // Novo conteúdo com responsável
-
       const url = content
-        ? `/api/content-calendar/${content.id}`
-        : '/api/content-calendar';
+        ? `/api/business-content/${content.id}`
+        : '/api/business-content';
 
       const method = content ? 'PUT' : 'POST';
+
+      const payload = {
+        ...formData,
+        business_id: businessId,
+        strategist_id: strategistId
+      };
 
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Erro ao salvar conteúdo');
-      }
-
-      // 🔥 ENVIAR EMAIL SE HOUVER RESPONSÁVEL (NOVO OU ALTERADO)
-      if ((isNewAssignment || assignedToChanged) && newAssignedTo) {
-        console.log('📧 Enviando email de atribuição...');
-
-        // Buscar dados do usuário
-        const assignedUser = users.find(u => u.id === newAssignedTo);
-
-        if (assignedUser) {
-          try {
-            const emailResponse = await fetch('/api/email/send-content-assignment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userEmail: assignedUser.id, // A API vai buscar o email pelo ID
-                userName: assignedUser.full_name,
-                contentType: formData.content_type,
-                contentTitle: formData.title,
-                scheduledDate: formData.scheduled_date,
-                scheduledTime: formData.scheduled_time || '09:00',
-                platforms: formData.platforms,
-                briefing: formData.briefing || ''
-              })
-            });
-
-            const emailData = await emailResponse.json();
-
-            if (emailData.success) {
-              console.log('✅ Email enviado com sucesso!');
-            } else {
-              console.error('❌ Erro ao enviar email:', emailData.error);
-              // Não bloqueia o fluxo se o email falhar
-            }
-          } catch (emailError) {
-            console.error('❌ Erro ao enviar email:', emailError);
-            // Não bloqueia o fluxo se o email falhar
-          }
-        }
       }
 
       await onSave();
@@ -182,7 +120,7 @@ export default function MobileContentSheet({
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/content-calendar/${content.id}`, {
+      const response = await fetch(`/api/business-content/${content.id}`, {
         method: 'DELETE'
       });
 
@@ -346,28 +284,6 @@ export default function MobileContentSheet({
                 className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
-          </div>
-
-          {/* Responsável - Select Melhorado */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              👤 Responsável
-            </label>
-            <select
-              value={formData.assigned_to}
-              onChange={(e) => setFormData(prev => ({ ...prev, assigned_to: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-            >
-              <option value="">Nenhum responsável</option>
-              {users.map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.full_name}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500">
-              💡 Ao atribuir, um email será enviado automaticamente
-            </p>
           </div>
         </div>
 
