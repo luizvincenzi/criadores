@@ -343,11 +343,11 @@ export default function BusinessContentPlanningView({
       </div>
 
       {/* Área Principal - Calendário */}
-      <div className="flex-1 bg-white">
+      <div className="flex-1 bg-[#f5f5f5]">
         {/* Header com navegação */}
-        <div className="border-b border-gray-200 px-6 py-4">
+        <div className="border-b border-gray-200 px-6 py-4 bg-white">
           <div className="flex items-center justify-between">
-            {/* Navegação de Data */}
+            {/* Navegação de Data + Dropdown Semana/Mês */}
             <div className="flex items-center gap-3">
               <button
                 onClick={viewMode === 'week' ? handlePreviousWeek : handlePreviousMonth}
@@ -375,59 +375,60 @@ export default function BusinessContentPlanningView({
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </button>
+
+              {/* Dropdown de Visualização - MOVIDO PARA CÁ */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
+                  className="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors border-2 border-gray-300 flex items-center gap-2 min-w-[140px] justify-between"
+                >
+                  <span>{viewMode === 'week' ? 'Semana' : 'Mês'}</span>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className={`transition-transform ${isViewDropdownOpen ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+
+                {isViewDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                    <button
+                      onClick={() => {
+                        setViewMode('week');
+                        setIsViewDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
+                        viewMode === 'week' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                      }`}
+                    >
+                      Semana
+                    </button>
+                    <button
+                      onClick={() => {
+                        setViewMode('month');
+                        setIsViewDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
+                        viewMode === 'month' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                      }`}
+                    >
+                      Mês
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Label de Data */}
             <div className="text-base font-semibold text-gray-900">
               {viewMode === 'week' ? weekLabel : monthLabel}
             </div>
-          </div>
-
-          {/* Dropdown de Visualização */}
-          <div className="relative">
-            <button
-              onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors border-2 border-gray-300 flex items-center gap-2 min-w-[140px] justify-between"
-            >
-              <span>{viewMode === 'week' ? 'Semana' : 'Mês'}</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className={`transition-transform ${isViewDropdownOpen ? 'rotate-180' : ''}`}
-              >
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-
-            {isViewDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                <button
-                  onClick={() => {
-                    setViewMode('week');
-                    setIsViewDropdownOpen(false);
-                  }}
-                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
-                    viewMode === 'week' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Semana
-                </button>
-                <button
-                  onClick={() => {
-                    setViewMode('month');
-                    setIsViewDropdownOpen(false);
-                  }}
-                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors ${
-                    viewMode === 'month' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Mês
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
