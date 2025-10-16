@@ -7,12 +7,12 @@
 -- 2. Substitua os valores entre [COLCHETES] pelos dados reais da empresa
 -- 3. Execute no Supabase SQL Editor
 --
--- VARIÁVEIS A SUBSTITUIR:
--- [EMPRESA_NOME]: Nome da empresa (ex: "Boussolé", "Restaurante XYZ")
--- [EMPRESA_EMAIL]: Email do usuário responsável
--- [TRIMESTRE]: Formato "YYYY-QN" (ex: "2025-Q4")
--- [ANO]: Ano (ex: 2025)
--- [NUMERO_TRIMESTRE]: 1, 2, 3 ou 4
+-- VARIÁVEIS A SUBSTITUIR (sem colchetes na ordem de execução):
+-- EMPRESA_NOME: Nome da empresa (ex: "Boussolé", "Restaurante XYZ")
+-- EMPRESA_EMAIL: Email do usuário responsável
+-- TRIMESTRE: Formato "YYYY-QN" (ex: "2025-Q4")
+-- ANO_VAL: Ano (ex: 2025)
+-- NUMERO_TRIMESTRE: 1, 2, 3 ou 4
 --
 -- DICAS:
 -- - Mude os dados JSON para refletir a realidade da empresa
@@ -35,9 +35,9 @@ INSERT INTO strategic_maps (
 SELECT
   b.organization_id,
   b.id,
-  '[TRIMESTRE]',
-  [ANO],
-  [NUMERO_TRIMESTRE],
+  '2025-Q4',  -- SUBSTITUIR: altere para o trimestre desejado
+  2025,       -- SUBSTITUIR: altere para o ano desejado
+  4,          -- SUBSTITUIR: altere para 1, 2, 3 ou 4
   'completed',
   100,
   '{
