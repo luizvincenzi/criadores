@@ -56,6 +56,11 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Login realizado com sucesso:', email);
 
+    // CORREÇÃO: Forçar role correto baseado no email
+    const correctedRole = user.email === 'comercial@criadores.app' ? 'creator' : user.role;
+
+    console.log('🔍 [Supabase Login] Role original:', user.role, 'Role corrigido:', correctedRole);
+
     // Retornar dados do usuário (sem senha)
     return NextResponse.json({
       success: true,
@@ -63,7 +68,8 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        role: user.role,
+        role: correctedRole, // Usar role corrigido
+        roles: user.roles || [correctedRole], // Incluir array de roles
         business_id: user.business_id,
         creator_id: user.creator_id,
         managed_businesses: user.managed_businesses,
