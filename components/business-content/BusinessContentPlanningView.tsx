@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isToday, startOfMonth, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import ContentWeekView from '../content/ContentWeekView';
-import ContentMonthView from '../content/ContentMonthView';
+import BusinessContentWeekView from './BusinessContentWeekView';
+import BusinessContentMonthView from './BusinessContentMonthView';
 import ContentModal from '../ContentModal';
-import ContentStatsWidget from '../content/ContentStatsWidget';
-import WeeklyPlanningModal from '../content/WeeklyPlanningModal';
+import BusinessContentStatsWidget from './BusinessContentStatsWidget';
+import BusinessWeeklyPlanningModal from './BusinessWeeklyPlanningModal';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import MobileBusinessContentView from './MobileBusinessContentView';
 
@@ -390,7 +390,7 @@ export default function BusinessContentPlanningView({ businessId, businessName }
         {/* Estatísticas */}
         <div className="p-4">
           <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Estatística de conteúdo</h3>
-          <ContentStatsWidget stats={weekStats} compact />
+          <BusinessContentStatsWidget stats={weekStats} compact />
         </div>
       </div>
 
@@ -485,7 +485,7 @@ export default function BusinessContentPlanningView({ businessId, businessName }
         {/* Week/Month View */}
         <div className="flex-1">
           {viewMode === 'week' ? (
-            <ContentWeekView
+            <BusinessContentWeekView
               weekStart={currentWeekStart}
               contents={contents}
               loading={loading}
@@ -495,7 +495,7 @@ export default function BusinessContentPlanningView({ businessId, businessName }
               onToggleExecuted={handleToggleExecuted}
             />
           ) : (
-            <ContentMonthView
+            <BusinessContentMonthView
               monthStart={currentMonthStart}
               contents={contents}
               loading={loading}
@@ -520,7 +520,7 @@ export default function BusinessContentPlanningView({ businessId, businessName }
 
       {/* Modal de Planejamento Semanal */}
       {isWeeklyPlanningOpen && (
-        <WeeklyPlanningModal
+        <BusinessWeeklyPlanningModal
           isOpen={isWeeklyPlanningOpen}
           onClose={() => setIsWeeklyPlanningOpen(false)}
           weekStart={currentWeekStart}
