@@ -164,7 +164,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <polyline points="10 9 9 9 8 9"/>
         </svg>
       ),
-      roles: ['admin', 'manager', 'business_owner', 'marketing_strategist'] // Creators não veem conteúdo
+      roles: ['admin', 'manager', 'ops', 'vendas', 'user'] // APENAS CRM interno - business_owner e strategist têm suas próprias páginas
     },
     {
       id: 'reports',

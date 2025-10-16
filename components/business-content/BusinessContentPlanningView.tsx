@@ -9,8 +9,7 @@ import ContentModal from '../ContentModal';
 import ContentStatsWidget from '../content/ContentStatsWidget';
 import WeeklyPlanningModal from '../content/WeeklyPlanningModal';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
-import BusinessSelector from './BusinessSelector';
-import MobileStrategistContentView from './MobileStrategistContentView';
+import MobileBusinessContentView from './MobileBusinessContentView';
 
 export interface SocialContent {
   id: string;
@@ -36,19 +35,14 @@ interface Business {
   id: string;
   name: string;
   is_active: boolean;
-  has_strategist: boolean;
-  strategist_id: string;
 }
 
-interface StrategistContentPlanningViewProps {
-  businesses: Business[];
-  strategistId: string;
+interface BusinessContentPlanningViewProps {
+  businessId: string;
+  businessName: string;
 }
 
-export default function StrategistContentPlanningView({ businesses, strategistId }: StrategistContentPlanningViewProps) {
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
-    businesses.length > 0 ? businesses[0].id : null
-  );
+export default function BusinessContentPlanningView({ businessId, businessName }: BusinessContentPlanningViewProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
     startOfWeek(new Date(), { weekStartsOn: 1 }) // Segunda-feira
   );
@@ -65,8 +59,6 @@ export default function StrategistContentPlanningView({ businesses, strategistId
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
-
   // Detectar mobile
   useEffect(() => {
     const checkMobile = () => {
@@ -78,13 +70,13 @@ export default function StrategistContentPlanningView({ businesses, strategistId
   }, []);
 
   useEffect(() => {
-    if (selectedBusinessId) {
+    if (businessId) {
       loadContents();
     }
-  }, [selectedBusinessId, currentWeekStart, currentMonthStart, viewMode]);
+  }, [businessId, currentWeekStart, currentMonthStart, viewMode]);
 
   const loadContents = async () => {
-    if (!selectedBusinessId) return;
+    if (!businessId) return;
 
     try {
       setLoading(true);
@@ -102,16 +94,15 @@ export default function StrategistContentPlanningView({ businesses, strategistId
         endDate = addDays(addMonths(currentMonthStart, 1), -1);
       }
 
-      console.log('🔍 Carregando conteúdos do strategist:', {
-        businessId: selectedBusinessId,
-        strategistId,
+      console.log('🔍 Carregando conteúdos do business owner:', {
+        businessId,
         mode: viewMode,
         start: format(startDate, 'yyyy-MM-dd'),
         end: format(endDate, 'yyyy-MM-dd')
       });
 
       const response = await fetch(
-        `/api/business-content?business_id=${selectedBusinessId}&start=${format(startDate, 'yyyy-MM-dd')}&end=${format(endDate, 'yyyy-MM-dd')}`
+        `/api/business-content?business_id=${businessId}&start=${format(startDate, 'yyyy-MM-dd')}&end=${format(endDate, 'yyyy-MM-dd')}`
       );
 
       const data = await response.json();
@@ -178,7 +169,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
   };
 
   const handleSaveWeeklyPlanning = async (plans: any[]) => {
-    if (!selectedBusinessId) return;
+    if (!businessId) return;
 
     try {
       // Criar todos os conteúdos do planejamento
@@ -188,8 +179,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...content,
-            business_id: selectedBusinessId,
-            strategist_id: strategistId
+            business_id: businessId
           })
         }).then(res => res.json())
       );
@@ -251,10 +241,6 @@ export default function StrategistContentPlanningView({ businesses, strategistId
     }
   };
 
-  const handleSelectBusiness = (businessId: string) => {
-    setSelectedBusinessId(businessId);
-  };
-
   // Calcular estatísticas da semana
   const weekStats = {
     planned: contents.length,
@@ -286,25 +272,6 @@ export default function StrategistContentPlanningView({ businesses, strategistId
     return acc;
   }, {} as Record<string, Record<string, SocialContent[]>>);
 
-  // 📱 MOBILE VIEW
-  if (isMobile && selectedBusinessId) {
-    return (
-      <MobileStrategistContentView
-        contents={contents}
-        loading={loading}
-        businesses={businesses}
-        selectedBusinessId={selectedBusinessId}
-        onSelectBusiness={handleSelectBusiness}
-        onRefresh={loadContents}
-        onSaveContent={handleSaveContent}
-        onSaveWeeklyPlanning={handleSaveWeeklyPlanning}
-        businessId={selectedBusinessId}
-        strategistId={strategistId}
-      />
-    );
-  }
-
-  // 🖥️ DESKTOP VIEW
   return (
     <div className="flex flex-col md:flex-row bg-[#f5f5f5] min-h-screen">
       {/* Sidebar Esquerda - Ferramentas de Planejamento */}
@@ -313,15 +280,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
         <div className="p-4">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-900 leading-tight" style={{ fontFamily: 'Onest, sans-serif' }}>Programação de conteúdo</h2>
-          </div>
-
-          {/* Business Selector */}
-          <div className="mb-4">
-            <BusinessSelector
-              businesses={businesses}
-              selectedBusinessId={selectedBusinessId}
-              onSelectBusiness={handleSelectBusiness}
-            />
+            <p className="text-sm text-gray-600 mt-1">{businessName}</p>
           </div>
 
           {/* Botão de Planejamento Semanal */}
@@ -532,15 +491,14 @@ export default function StrategistContentPlanningView({ businesses, strategistId
       </div>
 
       {/* Modal de Conteúdo Individual */}
-      {isModalOpen && selectedBusinessId && (
+      {isModalOpen && businessId && (
         <ContentModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           content={selectedContent}
           selectedDate={selectedDate}
           onSave={handleSaveContent}
-          businessId={selectedBusinessId}
-          strategistId={strategistId}
+          businessId={businessId}
         />
       )}
 
