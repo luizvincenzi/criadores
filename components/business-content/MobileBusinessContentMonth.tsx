@@ -7,7 +7,7 @@ import { SocialContent } from './BusinessContentPlanningView';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
-interface MobileStrategistContentMonthProps {
+interface MobileBusinessContentMonthProps {
   monthStart: Date;
   contents: SocialContent[];
   loading: boolean;
@@ -15,7 +15,7 @@ interface MobileStrategistContentMonthProps {
   onEditContent: (content: SocialContent) => void;
 }
 
-export default function MobileStrategistContentMonth({
+export default function MobileBusinessContentMonth({
   monthStart,
   contents,
   loading,

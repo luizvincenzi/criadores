@@ -7,7 +7,7 @@ import { SocialContent } from './BusinessContentPlanningView';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
-interface MobileStrategistContentWeek3DaysProps {
+interface MobileBusinessContentWeek3DaysProps {
   weekStart: Date;
   contents: SocialContent[];
   loading: boolean;
@@ -15,7 +15,7 @@ interface MobileStrategistContentWeek3DaysProps {
   onEditContent: (content: SocialContent) => void;
 }
 
-export default function MobileStrategistContentWeek3Days({
+export default function MobileBusinessContentWeek3Days({
   weekStart,
   contents,
   loading,

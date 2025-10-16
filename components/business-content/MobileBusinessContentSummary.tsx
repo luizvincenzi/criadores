@@ -5,13 +5,13 @@ import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInter
 import { ptBR } from 'date-fns/locale';
 import { SocialContent } from './BusinessContentPlanningView';
 
-interface MobileStrategistContentSummaryProps {
+interface MobileBusinessContentSummaryProps {
   contents: SocialContent[];
   weekStart: Date;
   viewMode?: '3days' | '7days' | 'month';
 }
 
-export default function MobileStrategistContentSummary({ contents, weekStart, viewMode = '7days' }: MobileStrategistContentSummaryProps) {
+export default function MobileBusinessContentSummary({ contents, weekStart, viewMode = '7days' }: MobileBusinessContentSummaryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Filtrar conteúdos pelo período correto
