@@ -133,6 +133,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const isCreator = user?.role === 'creator' || (user?.roles && user.roles.includes('creator'));
   const isOnlyCreator = user?.role === 'creator' && (!user?.roles || user.roles.length === 1);
 
+  // Verificar se é creator ou strategist (roles que devem ter configurações limitadas)
+  const isCreatorOrStrategist = isCreator || (user?.roles && user.roles.includes('marketing_strategist'));
+
   // Itens de navegação baseados no role
   const allNavigationItems = [
     {
@@ -488,7 +491,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </button>
             </div>
 
-            {/* Tabs Navigation */}
+            {/* Tabs Navigation - Limitada para creators e strategists */}
             <div className="border-b border-gray-200">
               <div className="flex">
                 <button
@@ -501,44 +504,48 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   📋 Conta
                 </button>
-                <button
-                  onClick={() => setActiveSettingsTab('assinaturas')}
-                  className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                    activeSettingsTab === 'assinaturas'
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  💳 Assinaturas
-                </button>
-                <button
-                  onClick={() => setActiveSettingsTab('produtos')}
-                  className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                    activeSettingsTab === 'produtos'
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  🛍️ Produtos
-                </button>
+                {!isCreatorOrStrategist && (
+                  <>
+                    <button
+                      onClick={() => setActiveSettingsTab('assinaturas')}
+                      className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                        activeSettingsTab === 'assinaturas'
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      💳 Assinaturas
+                    </button>
+                    <button
+                      onClick={() => setActiveSettingsTab('produtos')}
+                      className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                        activeSettingsTab === 'produtos'
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      🛍️ Produtos
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Modal Content */}
             <div className="p-6 max-h-[calc(90vh-140px)] overflow-y-auto">
-              {/* Aba Conta */}
+              {/* Aba Conta - Disponível para todos */}
               {activeSettingsTab === 'conta' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Informações do Business */}
+                  {/* Informações do Usuário */}
                   <div className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações da Empresa</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações da Conta</h3>
 
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
                         <input
                           type="text"
-                          value={user?.full_name || 'Empresa'}
+                          value={user?.full_name || 'Usuário'}
                           readOnly
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                         />
@@ -555,10 +562,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Plano Atual</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Conta</label>
                         <input
                           type="text"
-                          value={user?.role || 'Básico'}
+                          value={user?.role === 'creator' ? 'Criador' : user?.role === 'marketing_strategist' ? 'Estrategista' : user?.role || 'Usuário'}
                           readOnly
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                         />
@@ -600,8 +607,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
               )}
 
-              {/* Aba Assinaturas */}
-              {activeSettingsTab === 'assinaturas' && (
+              {/* Aba Assinaturas - Apenas para business owners e admins */}
+              {activeSettingsTab === 'assinaturas' && !isCreatorOrStrategist && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Histórico de Assinaturas</h3>
 
@@ -693,8 +700,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
               )}
 
-              {/* Aba Produtos */}
-              {activeSettingsTab === 'produtos' && (
+              {/* Aba Produtos - Apenas para business owners e admins */}
+              {activeSettingsTab === 'produtos' && !isCreatorOrStrategist && (
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Produtos Disponíveis</h3>
 
