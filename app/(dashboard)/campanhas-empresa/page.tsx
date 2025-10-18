@@ -259,14 +259,11 @@ export default function CampanhasEmpresaPage() {
           break;
         }
       }
-    }
 
       // Extrair ano se não foi encontrado nos formatos anteriores
-      if (monthStr) {
-        const yearMatch = monthStr.match(/(\d{4})/);
-        if (yearMatch) {
-          year = parseInt(yearMatch[1]);
-        }
+      const yearMatch = monthStr.match(/(\d{4})/);
+      if (yearMatch) {
+        year = parseInt(yearMatch[1]);
       }
     }
 
