@@ -71,7 +71,7 @@ export function BusinessDiagnosisSection({ content }: BusinessDiagnosisSectionPr
             {dimensions.map((dim) => {
               // Find matching focus area for this dimension
               const focusArea = content.focus_areas?.find(
-                (area) => area.dimension.toLowerCase().includes(dim.label.toLowerCase().split(' ')[0])
+                (area) => area.dimension?.toLowerCase().includes(dim.label.toLowerCase().split(' ')[0])
               );
               return (
                 <tr key={dim.key} className="group hover:bg-slate-50">

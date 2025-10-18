@@ -41,8 +41,8 @@ export default function CriadoresVIPPage() {
       setFilteredCreators(creators);
     } else {
       const filtered = creators.filter(creator =>
-        creator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        creator.profile_info?.category?.toLowerCase().includes(searchTerm.toLowerCase())
+        creator.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        creator.profile_info?.category?.toLowerCase()?.includes(searchTerm.toLowerCase())
       );
       setFilteredCreators(filtered);
     }

@@ -249,7 +249,7 @@ export default function CampanhasEmpresaPage() {
       month = parseInt(m);
     }
     // Por último tentar extrair mês por nome
-    else {
+    else if (monthStr) {
       const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
                          'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
       const lowerMonth = monthStr.toLowerCase();
@@ -259,11 +259,14 @@ export default function CampanhasEmpresaPage() {
           break;
         }
       }
+    }
 
       // Extrair ano se não foi encontrado nos formatos anteriores
-      const yearMatch = monthStr.match(/(\d{4})/);
-      if (yearMatch) {
-        year = parseInt(yearMatch[1]);
+      if (monthStr) {
+        const yearMatch = monthStr.match(/(\d{4})/);
+        if (yearMatch) {
+          year = parseInt(yearMatch[1]);
+        }
       }
     }
 
