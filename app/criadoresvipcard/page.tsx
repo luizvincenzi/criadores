@@ -46,7 +46,7 @@ export default function CriadoresVIPCard() {
       nome: 'Folks Pub',
       categoria: 'Pub',
       beneficio: 'Entrada sua e de um acompanhante grátis e na fila vip',
-      descricao: '',
+      descricao: '* Não é válido para dias de festas e eventos específicas',
       logo: '🍺',
     },
     {
@@ -128,6 +128,22 @@ export default function CriadoresVIPCard() {
       beneficio: 'Na compra de um salgado ou um lanche, ganhe um café expresso',
       descricao: '',
       logo: '☕',
+    },
+    {
+      id: 12,
+      nome: 'Ana Lara Confeitaria Artesanal',
+      categoria: 'Confeitaria',
+      beneficio: 'Compre um bolo de aniversário e ganhe a personalização com o tema que preferir!',
+      descricao: '',
+      logo: '🍰',
+    },
+    {
+      id: 13,
+      nome: 'Londrichama',
+      categoria: 'Produtos e Serviços',
+      beneficio: 'Nas compras acima de $150 reais ganhe 10% de desconto',
+      descricao: '',
+      logo: '🧯',
     },
   ];
 
