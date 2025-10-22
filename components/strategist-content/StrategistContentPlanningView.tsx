@@ -537,7 +537,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           content={selectedContent}
-          selectedDate={selectedDate}
+          initialDate={selectedDate}
           onSave={handleSaveContent}
           businessId={selectedBusinessId}
           strategistId={strategistId}

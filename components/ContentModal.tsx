@@ -14,11 +14,13 @@ interface ContentModalProps {
   content?: SocialContent | null;
   initialDate?: Date | null;
   businessId?: string;
+  strategistId?: string; // ID do strategist para contexto de strategist
 }
 
 interface User {
   id: string;
   full_name: string;
+  role?: string; // Para identificar se é owner ou strategist
 }
 
 export default function ContentModal({
@@ -27,7 +29,8 @@ export default function ContentModal({
   onSave,
   content,
   initialDate,
-  businessId
+  businessId,
+  strategistId
 }: ContentModalProps) {
   const { user: currentUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
@@ -49,7 +52,7 @@ export default function ContentModal({
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [businessId, strategistId]);
 
   useEffect(() => {
     if (content) {
@@ -76,13 +79,57 @@ export default function ContentModal({
 
   const loadUsers = async () => {
     try {
-      // Buscar apenas usuários com roles específicas (admin, vendas, ops, manager)
-      const roles = 'admin,vendas,ops,manager';
-      const response = await fetch(`/api/users?roles=${roles}&active=true`);
-      const data = await response.json();
+      // Se for contexto de strategist (businessId E strategistId fornecidos)
+      if (businessId && strategistId) {
+        console.log('🔍 Carregando responsáveis para strategist:', { businessId, strategistId });
+        
+        const responsibleUsers: User[] = [];
 
-      if (data.users) {
-        setUsers(data.users);
+        // 1. Buscar dados do business para pegar o owner
+        const businessResponse = await fetch(`/api/supabase/businesses/${businessId}`);
+        const businessData = await businessResponse.json();
+
+        if (businessData.success && businessData.business) {
+          const business = businessData.business;
+          
+          // Buscar platform_user do business owner
+          if (business.platform_owner_email) {
+            const ownerResponse = await fetch(`/api/platform/users?email=${encodeURIComponent(business.platform_owner_email)}`);
+            const ownerData = await ownerResponse.json();
+            
+            if (ownerData.success && ownerData.user) {
+              responsibleUsers.push({
+                id: ownerData.user.id,
+                full_name: `${business.platform_owner_name || ownerData.user.full_name} (Dono)`,
+                role: 'business_owner'
+              });
+            }
+          }
+        }
+
+        // 2. Buscar dados da strategist
+        const strategistResponse = await fetch(`/api/platform/users/${strategistId}`);
+        const strategistData = await strategistResponse.json();
+
+        if (strategistData.success && strategistData.user) {
+          responsibleUsers.push({
+            id: strategistData.user.id,
+            full_name: `${strategistData.user.full_name} (Estrategista)`,
+            role: 'marketing_strategist'
+          });
+        }
+
+        console.log('✅ Responsáveis carregados:', responsibleUsers);
+        setUsers(responsibleUsers);
+      } else {
+        // Contexto normal: buscar usuários da tabela users (admin, vendas, ops, manager)
+        const roles = 'admin,vendas,ops,manager';
+        const response = await fetch(`/api/users?roles=${roles}&active=true`);
+        const data = await response.json();
+
+        if (data.users) {
+          setUsers(data.users);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
