@@ -106,7 +106,9 @@ async function validatePassword(email: string, password: string): Promise<boolea
     
     // Criadores e Estrategistas
     { email: 'pietramantovani98@gmail.com', password: '2#Todoscria' },
-    { email: 'marilia12cavalheiro@gmail.com', password: '2#Todoscria' }
+    { email: 'marilia12cavalheiro@gmail.com', password: '2#Todoscria' },
+    { email: 'juliacarolinasan83@gmail.com', password: '2#Todoscria' },
+    { email: 'comercial@criadores.app', password: '2#Todoscria' }
   ];
 
   // Verificar se é um usuário conhecido com credenciais específicas
