@@ -24,9 +24,25 @@ export default function Dashboard() {
         break;
 
       case 'creator':
+        // ❌ Creators NÃO têm acesso ao dashboard personalizado
+        // Redirecionar para página apropriada baseada em roles adicionais
+        if (user.roles && user.roles.includes('marketing_strategist')) {
+          // Se tem strategist, priorizar estrategista
+          router.push('/conteudo-estrategista');
+        } else {
+          // Creator puro - redirecionar para campanhas
+          router.push('/campanhas-criador');
+        }
+        break;
+
       case 'creator_strategist':
-        // Criadores vão para o dashboard de criadores
+        // Criadores estrategistas vão para o dashboard de criadores
         router.push('/dashboard/criador');
+        break;
+
+      case 'marketing_strategist':
+        // Marketing strategists vão para conteúdo estrategista
+        router.push('/conteudo-estrategista');
         break;
 
       case 'admin':

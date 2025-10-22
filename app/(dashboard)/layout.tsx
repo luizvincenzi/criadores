@@ -150,19 +150,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <rect x="3" y="16" width="7" height="5"></rect>
         </svg>
       ),
-      roles: ['admin', 'manager', 'business_owner', 'marketing_strategist'] // Creators não veem dashboard
-    },
-    {
-      id: 'campanhas_criador',
-      label: 'Campanhas',
-      href: '/campanhas-criador',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M3 11l18-5v12L3 14v-3z"/>
-          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-        </svg>
-      ),
-      roles: ['creator'] // Apenas creators puros
+      roles: ['admin', 'manager', 'business_owner'] // ❌ Creators e Strategists NÃO veem dashboard
     },
     {
       id: 'conteudo_estrategista',
@@ -176,7 +164,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
       ),
-      roles: ['marketing_strategist'] // Apenas marketing strategists
+      roles: ['marketing_strategist'] // ✅ PRIORIDADE 1: Marketing strategists
+    },
+    {
+      id: 'campanhas_criador',
+      label: 'Campanhas',
+      href: '/campanhas-criador',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
+          <path d="M3 11l18-5v12L3 14v-3z"/>
+          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+        </svg>
+      ),
+      roles: ['creator'] // ✅ PRIORIDADE 2: Apenas creators puros
     },
     {
       id: 'campaigns',
@@ -303,24 +303,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Right Side - Tasks & User */}
             <div className="hidden md:flex items-center gap-3">
-              {/* Tasks Button */}
-              <button
-                onClick={() => setIsTasksSidebarOpen(!isTasksSidebarOpen)}
-                className="p-2 rounded-lg transition-colors relative text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                title="Tarefas"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 12l2 2 4-4"></path>
-                  <path d="M3 6h18"></path>
-                  <path d="M3 12h18"></path>
-                  <path d="M3 18h18"></path>
-                </svg>
-                {pendingTasksCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                    {pendingTasksCount}
-                  </span>
-                )}
-              </button>
+              {/* Tasks Button - ❌ ESCONDER para creators e strategists */}
+              {!isCreatorOrStrategist && (
+                <button
+                  onClick={() => setIsTasksSidebarOpen(!isTasksSidebarOpen)}
+                  className="p-2 rounded-lg transition-colors relative text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  title="Tarefas"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 12l2 2 4-4"></path>
+                    <path d="M3 6h18"></path>
+                    <path d="M3 12h18"></path>
+                    <path d="M3 18h18"></path>
+                  </svg>
+                  {pendingTasksCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                      {pendingTasksCount}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* User Dropdown */}
               <div className="relative" ref={dropdownRef}>
@@ -412,33 +414,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 ))}
 
-                {/* Mobile Tasks Button */}
-                <button
-                  onClick={() => {
-                    setIsTasksSidebarOpen(!isTasksSidebarOpen);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    isTasksSidebarOpen
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="mr-3">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 12l2 2 4-4"/>
-                      <path d="M3 6h18"/>
-                      <path d="M3 12h18"/>
-                      <path d="M3 18h18"/>
-                    </svg>
-                  </span>
-                  <span>Tarefas</span>
-                  {pendingTasksCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                      {pendingTasksCount}
+                {/* Mobile Tasks Button - ❌ ESCONDER para creators e strategists */}
+                {!isCreatorOrStrategist && (
+                  <button
+                    onClick={() => {
+                      setIsTasksSidebarOpen(!isTasksSidebarOpen);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isTasksSidebarOpen
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="mr-3">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 12l2 2 4-4"/>
+                        <path d="M3 6h18"/>
+                        <path d="M3 12h18"/>
+                        <path d="M3 18h18"/>
+                      </svg>
                     </span>
-                  )}
-                </button>
+                    <span>Tarefas</span>
+                    {pendingTasksCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                        {pendingTasksCount}
+                      </span>
+                    )}
+                  </button>
+                )}
 
                 {/* Mobile User Info */}
                 <div className="px-4 py-3 border-t border-gray-100 mt-4">
@@ -565,7 +569,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Conta</label>
                         <input
                           type="text"
-                          value={user?.role === 'creator' ? 'Criador' : user?.role === 'marketing_strategist' ? 'Estrategista' : user?.role || 'Usuário'}
+                          value={
+                            user?.role === 'creator' ? 'Criador' :
+                            user?.roles?.includes('marketing_strategist') ? 'Estrategista' :
+                            user?.role || 'Usuário'
+                          }
                           readOnly
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                         />
@@ -779,13 +787,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   const newPassword = formData.get('new_password') as string;
                   const confirmPassword = formData.get('confirm_password') as string;
 
+                  // Validações no frontend
+                  if (!currentPassword || !newPassword || !confirmPassword) {
+                    alert('Todos os campos são obrigatórios');
+                    return;
+                  }
+
+                  if (newPassword !== confirmPassword) {
+                    alert('A nova senha e a confirmação não coincidem');
+                    return;
+                  }
+
+                  if (newPassword.length < 6) {
+                    alert('A nova senha deve ter pelo menos 6 caracteres');
+                    return;
+                  }
+
                   try {
+                    console.log('🔐 Alterando senha para usuário:', user?.email);
+
                     const response = await fetch('/api/user/change-password', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
                       },
                       body: JSON.stringify({
+                        user_id: user?.id, // ✅ NOVO: Enviar ID do usuário
+                        user_email: user?.email, // ✅ NOVO: Enviar email para validação
                         current_password: currentPassword,
                         new_password: newPassword,
                         confirm_password: confirmPassword,
@@ -795,14 +823,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     const data = await response.json();
 
                     if (data.success) {
-                      alert('Senha alterada com sucesso!');
+                      alert('✅ Senha alterada com sucesso!');
                       setIsChangingPassword(false);
+                      // Limpar formulário
+                      (e.target as HTMLFormElement).reset();
                     } else {
-                      alert(data.error || 'Erro ao alterar senha');
+                      alert('❌ ' + (data.error || 'Erro ao alterar senha'));
                     }
                   } catch (error) {
-                    console.error('Erro:', error);
-                    alert('Erro ao alterar senha. Tente novamente.');
+                    console.error('❌ Erro ao alterar senha:', error);
+                    alert('❌ Erro ao alterar senha. Tente novamente.');
                   }
                 }}
                 className="space-y-4"

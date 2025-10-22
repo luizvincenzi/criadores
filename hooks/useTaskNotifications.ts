@@ -25,6 +25,17 @@ export const useTaskNotifications = () => {
   const loadPendingTasksCount = async () => {
     if (!user?.id) return;
 
+    // ❌ BLOQUEIO: Creators e Strategists não acessam tarefas
+    const isCreatorOrStrategist =
+      user?.role === 'creator' ||
+      user?.role === 'creator_strategist' ||
+      (user?.roles && (user.roles.includes('creator') || user.roles.includes('marketing_strategist')));
+
+    if (isCreatorOrStrategist) {
+      setPendingTasksCount(0);
+      return;
+    }
+
     // Verificar se o usuário tem permissão para ver tarefas
     if (!hasPermission('tasks', 'read')) {
       setPendingTasksCount(0);

@@ -28,6 +28,7 @@ function ConteudoPageContent() {
       const isInternalUser = allowedRoles.includes(user.role);
 
       // ❌ BLOQUEAR: strategist, creator, business_owner (platform_users table)
+      // ⚠️  ATUALIZAÇÃO: Creators agora são BLOQUEADOS também
       const blockedRoles = ['marketing_strategist', 'creator', 'business_owner'];
       const isExternalUser = blockedRoles.includes(user.role) ||
         (user.roles && user.roles.some((r: string) => blockedRoles.includes(r)));
@@ -40,10 +41,14 @@ function ConteudoPageContent() {
         });
 
         // Redirecionar para página apropriada
-        if (user.role === 'marketing_strategist' || (user.roles && user.roles.includes('marketing_strategist'))) {
+        // ⚠️  ATUALIZAÇÃO: Priorizar estrategista se usuário tem creator + strategist
+        if (user.roles && user.roles.includes('marketing_strategist')) {
           router.push('/conteudo-estrategista');
         } else if (user.role === 'business_owner' || (user.roles && user.roles.includes('business_owner'))) {
           router.push('/conteudo-empresa');
+        } else if (user.role === 'creator' || (user.roles && user.roles.includes('creator'))) {
+          // Creator puro - redirecionar para campanhas
+          router.push('/campanhas-criador');
         } else {
           router.push('/dashboard');
         }
