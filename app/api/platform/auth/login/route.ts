@@ -101,6 +101,9 @@ async function validatePassword(email: string, password: string): Promise<boolea
     // Admin
     { email: 'luizvincenzi@gmail.com', password: '2#Todoscria' },
     
+    // Operações
+    { email: 'criadores.ops@gmail.com', password: '1#Criamudar' },
+    
     // Criadores e Estrategistas
     { email: 'pietramantovani98@gmail.com', password: '2#Todoscria' },
     { email: 'marilia12cavalheiro@gmail.com', password: '2#Todoscria' }

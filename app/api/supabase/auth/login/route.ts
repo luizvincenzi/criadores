@@ -98,7 +98,7 @@ async function validatePassword(email: string, password: string, user: any): Pro
     { email: 'marloncpascoal@gmail.com', password: 'admin2345' },
     // Novos usuários do sistema
     { email: 'comercial@criadores.app', password: 'Criadores2024!' },
-    { email: 'criadores.ops@gmail.com', password: 'CriadoresOps2024!' },
+    { email: 'criadores.ops@gmail.com', password: '1#Criamudar' },
     { email: 'test.ops@criadores.app', password: 'TestOps2024!' },
     // Usuários business_owner
     { email: 'financeiro.brooftop@gmail.com', password: '1#Boussolecria' },
