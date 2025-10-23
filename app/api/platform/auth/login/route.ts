@@ -18,6 +18,29 @@ export async function POST(request: NextRequest) {
 
     console.log('🔐 [Platform] Tentativa de login para:', email);
 
+    // Primeiro, buscar TODOS os usuários com este email (sem filtro de is_active)
+    const { data: allUsers, error: allUsersError } = await supabase
+      .from('platform_users')
+      .select('id, email, is_active, password_hash, role')
+      .eq('email', email.toLowerCase())
+      .eq('organization_id', DEFAULT_ORG_ID);
+
+    console.log('📊 [Platform] Todos os usuários encontrados:', allUsers);
+    console.log('📊 [Platform] Total de usuários:', allUsers?.length || 0);
+
+    if (allUsers && allUsers.length > 0) {
+      allUsers.forEach((u, i) => {
+        console.log(`📋 [Platform] Usuário ${i + 1}:`, {
+          id: u.id,
+          email: u.email,
+          is_active: u.is_active,
+          has_password: !!u.password_hash,
+          hash_length: u.password_hash?.length,
+          role: u.role
+        });
+      });
+    }
+
     // Buscar usuário em platform_users
     const { data: platformUser, error } = await supabase
       .from('platform_users')
@@ -31,9 +54,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !platformUser) {
-      console.log('❌ [Platform] Usuário não encontrado:', email);
+      console.log('❌ [Platform] Usuário ativo não encontrado:', email);
       console.log('❌ [Platform] Erro do Supabase:', error);
-      console.log('❌ [Platform] Dados retornados:', platformUser);
+      console.log('❌ [Platform] Código do erro:', error?.code);
       return NextResponse.json(
         { success: false, error: 'Email ou senha incorretos' },
         { status: 401 }
