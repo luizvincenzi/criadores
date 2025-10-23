@@ -69,7 +69,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-on-surface mb-2">crIAdores</h1>
+          <h1 className="text-3xl font-bold text-on-surface mb-2"><div className="flex items-center justify-center mb-2"><span className="text-3xl font-onest tracking-tight"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span></div></h1>
           <p className="text-on-surface-variant">Faça login para acessar a plataforma</p>
         </div>
 
@@ -130,13 +130,23 @@ export default function LoginPage() {
             </Button>
           </form>
 
-
+          {/* Informações de Acesso */}
+          <div className="mt-6 pt-6 border-t border-outline-variant">
+            <p className="text-xs text-on-surface-variant text-center">
+              Acesso restrito a usuários autorizados.<br />
+              Entre em contato com o administrador para obter acesso.
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-xs text-on-surface-variant">
-            © 2024 crIAdores
+            © 2024 <span className="font-onest tracking-tight">
+              <span className="text-gray-600 font-light">cr</span>
+              <span className="text-black font-bold">IA</span>
+              <span className="text-gray-600 font-light">dores</span>
+            </span> - Sistema de Gestão
           </p>
         </div>
       </div>
