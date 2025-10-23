@@ -222,16 +222,22 @@ export default function ContentModal({
     setLoading(true);
 
     try {
+      // 🔑 Determinar qual API usar baseado no contexto
+      // Se tiver businessId, usar /api/business-content (business owners e strategists)
+      // Caso contrário, usar /api/content-calendar (CRM interno)
+      const isBusinessContext = !!businessId;
+
       const url = content
-        ? `/api/content-calendar/${content.id}`
-        : '/api/content-calendar';
+        ? (isBusinessContext ? `/api/business-content/${content.id}` : `/api/content-calendar/${content.id}`)
+        : (isBusinessContext ? '/api/business-content' : '/api/content-calendar');
 
       const method = content ? 'PUT' : 'POST';
 
       console.log(`📤 Enviando ${method} para ${url}`);
+      console.log('📤 Contexto: ${isBusinessContext ? 'Business' : 'CRM Interno'}`);
       console.log('📤 Dados:', formData);
 
-      // 🔒 Adicionar business_id se fornecido (para strategists)
+      // 🔒 Adicionar business_id se fornecido (para business owners e strategists)
       const payload = businessId
         ? { ...formData, business_id: businessId }
         : formData;
@@ -326,7 +332,15 @@ export default function ContentModal({
     try {
       console.log(`🗑️ Deletando conteúdo ID: ${content.id}`);
 
-      const response = await fetch(`/api/content-calendar/${content.id}`, {
+      // 🔑 Determinar qual API usar baseado no contexto
+      const isBusinessContext = !!businessId;
+      const url = isBusinessContext
+        ? `/api/business-content/${content.id}`
+        : `/api/content-calendar/${content.id}`;
+
+      console.log(`🗑️ URL: ${url} (contexto: ${isBusinessContext ? 'Business' : 'CRM'})`);
+
+      const response = await fetch(url, {
         method: 'DELETE'
       });
 
