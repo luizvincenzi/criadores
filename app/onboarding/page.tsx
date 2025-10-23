@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Button from '@/components/ui/Button';
 
-export default function OnboardingPage() {
+function OnboardingForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -164,7 +164,7 @@ export default function OnboardingPage() {
       </div>
     );
   }
-
+  
   // Error state
   if (error && !userData) {
     return (
@@ -284,5 +284,20 @@ export default function OnboardingPage() {
       </div>
     </div>
   );
+}
+
+export default function OnboardingPage() {
+ return (
+   <Suspense fallback={
+     <div className="min-h-screen bg-surface-dim flex items-center justify-center px-4">
+       <div className="text-center">
+         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+         <p className="text-on-surface-variant">Carregando...</p>
+       </div>
+     </div>
+   }>
+     <OnboardingForm />
+   </Suspense>
+ );
 }
 
