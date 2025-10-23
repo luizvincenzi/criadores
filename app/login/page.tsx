@@ -14,6 +14,19 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, setLoading: setAuthLoading } = useAuthStore();
 
+  // Detectar convite e redirecionar para onboarding
+  useEffect(() => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const tokenType = params.get('type');
+
+    if (tokenType === 'invite') {
+      console.log('🎉 [Login] Convite detectado, redirecionando para onboarding');
+      router.push(`/onboarding${window.location.hash}`);
+      return;
+    }
+  }, [router]);
+
   // Redireciona se já estiver autenticado
   useEffect(() => {
     if (isAuthenticated) {
