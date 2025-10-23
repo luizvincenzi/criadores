@@ -16,6 +16,19 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 
 console.log('✅ [SUPABASE] Cliente configurado com sucesso');
 
+// Cliente Admin (Service Role) - APENAS para uso em APIs server-side
+// NUNCA exponha a service_role_key no client-side!
+export const supabaseAdmin = createClient(
+  supabaseUrl,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseKey,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
+
 // Tipos para o blog (tabela posts)
 export interface BlogPost {
   id: string;

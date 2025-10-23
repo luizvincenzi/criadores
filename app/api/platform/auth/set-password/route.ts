@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
@@ -41,31 +41,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. PRIMEIRO: Atualizar senha no Supabase Auth (auth.users)
-    console.log('🔐 [Set Password] Atualizando senha no Supabase Auth...');
+    // 1. PRIMEIRO: Obter o ID do usuário do token
+    console.log('🔐 [Set Password] Decodificando token para obter user ID...');
 
-    // Criar cliente Supabase com o access token do usuário
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    let userId: string;
+    try {
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      userId = payload.sub;
+      console.log('📋 [Set Password] User ID do token:', userId);
+    } catch (err) {
+      console.error('❌ [Set Password] Erro ao decodificar token:', err);
+      return NextResponse.json(
+        { success: false, error: 'Token inválido' },
+        { status: 400 }
+      );
+    }
 
-    const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      }
-    });
+    // 2. SEGUNDO: Atualizar senha no Supabase Auth usando Admin API
+    console.log('🔐 [Set Password] Atualizando senha no Supabase Auth (admin)...');
 
-    // Atualizar senha no auth.users
-    const { data: authUpdateData, error: authUpdateError } = await userSupabase.auth.updateUser({
-      password: password
-    });
+    const { data: authUpdateData, error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      { password: password }
+    );
 
     if (authUpdateError) {
       console.error('❌ [Set Password] Erro ao atualizar senha no Supabase Auth:', authUpdateError);
+      console.error('❌ [Set Password] Detalhes do erro:', {
+        message: authUpdateError.message,
+        status: authUpdateError.status,
+        name: authUpdateError.name
+      });
       return NextResponse.json(
-        { success: false, error: 'Erro ao atualizar senha no sistema de autenticação' },
+        {
+          success: false,
+          error: 'Erro ao atualizar senha no sistema de autenticação',
+          details: authUpdateError.message
+        },
         { status: 500 }
       );
     }
