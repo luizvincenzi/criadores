@@ -114,32 +114,67 @@ function OnboardingForm() {
 
       if (data.success) {
         console.log('✅ [Onboarding] Senha criada com sucesso');
-        
-        // Fazer login automático
-        const loginResponse = await fetch('/api/platform/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        console.log('⏳ [Onboarding] Aguardando 1 segundo antes do login...');
+
+        // Aguardar 1 segundo para garantir que a senha foi salva
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        console.log('🔐 [Onboarding] Iniciando login automático via Supabase Auth...');
+
+        // Tentar login via Supabase Auth primeiro
+        try {
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+          const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
             email: userData.email,
             password: password,
-          }),
-        });
+          });
 
-        const loginData = await loginResponse.json();
+          if (authError) {
+            console.error('❌ [Onboarding] Erro no login Supabase Auth:', authError);
+            throw authError;
+          }
 
-        if (loginData.success) {
-          console.log('✅ [Onboarding] Login automático realizado');
-          
-          // Atualizar store
-          setUser(loginData.user);
-          setIsAuthenticated(true);
-          
-          // Redirecionar para dashboard
-          router.push('/dashboard');
-        } else {
-          setError('Senha criada, mas erro no login. Tente fazer login manualmente.');
+          console.log('✅ [Onboarding] Login Supabase Auth realizado');
+          console.log('📋 [Onboarding] User ID:', authData.user?.id);
+
+          // Agora buscar dados do usuário em platform_users
+          const loginResponse = await fetch('/api/platform/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: userData.email,
+              password: password,
+            }),
+          });
+
+          console.log('📊 [Onboarding] Status do login platform:', loginResponse.status);
+
+          const loginData = await loginResponse.json();
+          console.log('📋 [Onboarding] Resposta do login platform:', loginData);
+
+          if (loginData.success) {
+            console.log('✅ [Onboarding] Login completo realizado');
+
+            // Atualizar store
+            setUser(loginData.user);
+            setIsAuthenticated(true);
+
+            // Redirecionar para dashboard
+            router.push('/dashboard');
+          } else {
+            console.error('❌ [Onboarding] Erro no login platform:', loginData.error);
+            setError('Senha criada, mas erro no login. Tente fazer login manualmente.');
+          }
+        } catch (err) {
+          console.error('❌ [Onboarding] Erro no login automático:', err);
+          setError('Senha criada com sucesso! Faça login manualmente.');
         }
       } else {
         console.error('❌ [Onboarding] Erro ao criar senha:', data.error);
