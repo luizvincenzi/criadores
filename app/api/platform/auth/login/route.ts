@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { verifyPassword } from '@/lib/auth';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -37,8 +38,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar senha (temporário - hardcoded)
-    const isValidPassword = await validatePassword(email, password);
+    // Validar senha
+    const isValidPassword = await validatePassword(email, password, platformUser);
 
     if (!isValidPassword) {
       console.log('❌ [Platform] Senha incorreta para:', email);
@@ -92,35 +93,47 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Validação temporária de senha (hardcoded)
- * TODO: Implementar hash de senha no banco
+ * Validação de senha com suporte a bcrypt e fallback para hardcoded
  */
-async function validatePassword(email: string, password: string): Promise<boolean> {
-  // Credenciais conhecidas (temporário)
-  const userCredentials = [
-    // Admin
-    { email: 'luizvincenzi@gmail.com', password: '2#Todoscria' },
-    
-    // Operações
-    { email: 'criadores.ops@gmail.com', password: '1#Criamudar' },
-    
-    // Criadores e Estrategistas
-    { email: 'pietramantovani98@gmail.com', password: '2#Todoscria' },
-    { email: 'marilia12cavalheiro@gmail.com', password: '2#Todoscria' },
-    { email: 'juliacarolinasan83@gmail.com', password: '2#Todoscria' },
-    { email: 'comercial@criadores.app', password: '2#Todoscria' }
-  ];
+async function validatePassword(email: string, password: string, user: any): Promise<boolean> {
+  try {
+    // Se o usuário tem password_hash, usar bcrypt para validar
+    if (user.password_hash) {
+      console.log(`🔐 [Platform] Validando senha com bcrypt para: ${email}`);
+      const isValid = await verifyPassword(password, user.password_hash);
+      console.log(`${isValid ? '✅' : '❌'} [Platform] Validação de senha com bcrypt para usuário: ${email}`);
+      return isValid;
+    }
 
-  // Verificar se é um usuário conhecido com credenciais específicas
-  const knownUser = userCredentials.find(cred => cred.email === email.toLowerCase());
-  if (knownUser) {
-    const isValidPassword = password === knownUser.password;
-    console.log(`${isValidPassword ? '✅' : '❌'} [Platform] Validação de senha para: ${email}`);
-    return isValidPassword;
+    // Fallback: Credenciais conhecidas (temporário)
+    const userCredentials = [
+      // Admin
+      { email: 'luizvincenzi@gmail.com', password: '2#Todoscria' },
+
+      // Operações
+      { email: 'criadores.ops@gmail.com', password: '1#Criamudar' },
+
+      // Criadores e Estrategistas
+      { email: 'pietramantovani98@gmail.com', password: '2#Todoscria' },
+      { email: 'marilia12cavalheiro@gmail.com', password: '2#Todoscria' },
+      { email: 'juliacarolinasan83@gmail.com', password: '2#Todoscria' },
+      { email: 'comercial@criadores.app', password: '2#Todoscria' }
+    ];
+
+    // Verificar se é um usuário conhecido com credenciais específicas
+    const knownUser = userCredentials.find(cred => cred.email === email.toLowerCase());
+    if (knownUser) {
+      const isValidPassword = password === knownUser.password;
+      console.log(`${isValidPassword ? '✅' : '❌'} [Platform] Validação de senha para: ${email}`);
+      return isValidPassword;
+    }
+
+    // Se não é usuário conhecido e não tem password_hash, rejeitar
+    console.log(`❌ [Platform] Usuário não autorizado: ${email}`);
+    return false;
+  } catch (error) {
+    console.error(`❌ [Platform] Erro ao validar senha para ${email}:`, error);
+    return false;
   }
-
-  // Se não é usuário conhecido, rejeitar
-  console.log(`❌ [Platform] Usuário não autorizado: ${email}`);
-  return false;
 }
 
