@@ -32,6 +32,8 @@ interface AuthState {
 interface AuthActions {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  setUser: (user: User) => void;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
   setLoading: (loading: boolean) => void;
   clearError: () => void;
   checkAuth: () => Promise<void>;
@@ -215,6 +217,37 @@ export const useAuthStore = create<AuthStore>()(
           isLoading: false,
           error: null,
         });
+      },
+
+      // 👤 SET USER (para uso em onboarding e outros fluxos)
+      setUser: (user: User) => {
+        console.log('👤 [crIAdores] Atualizando usuário no store:', user.email);
+
+        const clientBusinessId = process.env.NEXT_PUBLIC_CLIENT_BUSINESS_ID || '00000000-0000-0000-0000-000000000002';
+        const finalBusinessId = user.role === 'business_owner' && user.business_id
+          ? user.business_id
+          : clientBusinessId;
+
+        const session: AuthSession = {
+          user,
+          business_id: finalBusinessId,
+          creator_id: user.creator_id || undefined,
+          permissions: user.permissions || [],
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h
+        };
+
+        set({
+          user,
+          session,
+          isAuthenticated: true,
+          error: null,
+        });
+      },
+
+      // 🔐 SET IS AUTHENTICATED
+      setIsAuthenticated: (isAuthenticated: boolean) => {
+        console.log('🔐 [crIAdores] Atualizando isAuthenticated:', isAuthenticated);
+        set({ isAuthenticated });
       },
 
       // ⏳ LOADING

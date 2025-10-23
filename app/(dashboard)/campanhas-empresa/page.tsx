@@ -385,10 +385,10 @@ export default function CampanhasEmpresaPage() {
               return (
                 <div key={quarterLabel} className="space-y-8">
                   {/* Card de Análise Trimestral */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h2 className="text-2xl font-bold text-blue-900 mb-1">📊 Trimestre {quarterLabel}</h2>
+                        <h2 className="text-2xl font-bold text-blue-900 mb-1">Trimestre {quarterLabel}</h2>
                         <p className="text-sm text-blue-700">Análise consolidada do período</p>
                       </div>
                       <div className="text-right">
@@ -399,15 +399,15 @@ export default function CampanhasEmpresaPage() {
                     {/* Métricas do Trimestre */}
                     <div className="grid grid-cols-3 gap-4 mb-6">
                       <div className="bg-white rounded-lg p-4 text-center border border-blue-200">
-                        <p className="text-xs text-blue-600 font-semibold mb-1">📸 POSTAGENS</p>
+                        <p className="text-xs text-blue-600 font-semibold mb-1">POSTAGENS</p>
                         <p className="text-3xl font-bold text-blue-900">{stats.totalPosts}</p>
                       </div>
                       <div className="bg-white rounded-lg p-4 text-center border border-indigo-200">
-                        <p className="text-xs text-indigo-600 font-semibold mb-1">👁️ VISUALIZAÇÕES</p>
+                        <p className="text-xs text-indigo-600 font-semibold mb-1">VISUALIZAÇÕES</p>
                         <p className="text-3xl font-bold text-indigo-900">{formatNumber(stats.totalViews)}</p>
                       </div>
                       <div className="bg-white rounded-lg p-4 text-center border border-purple-200">
-                        <p className="text-xs text-purple-600 font-semibold mb-1">📈 ENGAJAMENTO</p>
+                        <p className="text-xs text-purple-600 font-semibold mb-1">ENGAJAMENTO</p>
                         <p className="text-3xl font-bold text-purple-900">{stats.avgEngagement}%</p>
                       </div>
                     </div>
@@ -445,7 +445,7 @@ export default function CampanhasEmpresaPage() {
                         <div className="flex-1">
                           <h3 className="text-xl font-semibold text-gray-900 mb-1">{campaign.title}</h3>
                           <div className="flex items-center gap-3 text-sm text-gray-500">
-                            <span>📅 {formatMonthYear(campaign.month)}</span>
+                            <span>{formatMonthYear(campaign.month)}</span>
                             {campaign.start_date && campaign.end_date && (
                               <span>• {format(new Date(campaign.start_date), 'dd/MM')} - {format(new Date(campaign.end_date), 'dd/MM/yyyy')}</span>
                             )}
@@ -472,15 +472,15 @@ export default function CampanhasEmpresaPage() {
                       {/* Métricas Principais */}
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                          <p className="text-xs text-blue-600 mb-1">📊 Alcance</p>
+                          <p className="text-xs text-blue-600 mb-1">Alcance</p>
                           <p className="text-2xl font-bold text-blue-700">{formatNumber(totalReach)}</p>
                         </div>
                         <div className="text-center p-3 bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg">
-                          <p className="text-xs text-pink-600 mb-1">❤️ Engajamento</p>
+                          <p className="text-xs text-pink-600 mb-1">Engajamento</p>
                           <p className="text-2xl font-bold text-pink-700">{formatNumber(totalEngagement)}</p>
                         </div>
                         <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                          <p className="text-xs text-purple-600 mb-1">👥 Criadores</p>
+                          <p className="text-xs text-purple-600 mb-1">Criadores</p>
                           <p className="text-2xl font-bold text-purple-700">{creatorsCount}</p>
                         </div>
                       </div>
@@ -488,26 +488,26 @@ export default function CampanhasEmpresaPage() {
                       {/* Entregas Planejadas */}
                       {campaign.deliverables && (
                         <div className="mb-4">
-                          <p className="text-xs font-semibold text-gray-700 mb-2">📦 Entregas Planejadas</p>
+                          <p className="text-xs font-semibold text-gray-700 mb-2">Entregas Planejadas</p>
                           <div className="flex gap-3 flex-wrap">
                             {campaign.deliverables.posts > 0 && (
                               <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                📸 {campaign.deliverables.posts} Posts
+                                {campaign.deliverables.posts} Posts
                               </span>
                             )}
                             {campaign.deliverables.reels > 0 && (
                               <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                🎬 {campaign.deliverables.reels} Reels
+                                {campaign.deliverables.reels} Reels
                               </span>
                             )}
                             {campaign.deliverables.stories > 0 && (
                               <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                📱 {campaign.deliverables.stories} Stories
+                                {campaign.deliverables.stories} Stories
                               </span>
                             )}
                             {campaign.deliverables.events > 0 && (
                               <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                🎉 {campaign.deliverables.events} Eventos
+                                {campaign.deliverables.events} Eventos
                               </span>
                             )}
                           </div>

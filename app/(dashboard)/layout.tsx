@@ -136,111 +136,69 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Verificar se é creator ou strategist (roles que devem ter configurações limitadas)
   const isCreatorOrStrategist = isCreator || (user?.roles && user.roles.includes('marketing_strategist'));
 
+  // Função helper para extrair iniciais do nome
+  const getInitials = (name: string | undefined): string => {
+    if (!name) return 'U';
+
+    const parts = name.trim().split(' ');
+
+    if (parts.length === 1) {
+      // Se só tem um nome, pega as 2 primeiras letras
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+
+    // Se tem nome e sobrenome, pega primeira letra de cada
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   // Itens de navegação baseados no role
   const allNavigationItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       href: '/dashboard',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <rect x="3" y="3" width="7" height="9"></rect>
-          <rect x="14" y="3" width="7" height="5"></rect>
-          <rect x="14" y="12" width="7" height="9"></rect>
-          <rect x="3" y="16" width="7" height="5"></rect>
-        </svg>
-      ),
       roles: ['admin', 'manager', 'business_owner'] // ❌ Creators e Strategists NÃO veem dashboard
     },
     {
       id: 'conteudo_estrategista',
       label: 'Conteúdo',
       href: '/conteudo-estrategista',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      ),
       roles: ['marketing_strategist'] // ✅ PRIORIDADE 1: Marketing strategists
     },
     {
       id: 'campanhas_criador',
       label: 'Campanhas',
       href: '/campanhas-criador',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M3 11l18-5v12L3 14v-3z"/>
-          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-        </svg>
-      ),
       roles: ['creator'] // ✅ PRIORIDADE 2: Apenas creators puros
     },
     {
       id: 'campaigns',
       label: 'Campanhas',
       href: '/campaigns',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M3 11l18-5v12L3 14v-3z"/>
-          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-        </svg>
-      ),
       roles: ['admin', 'manager'] // CRM interno apenas
     },
     {
       id: 'conteudo',
       label: 'Conteúdo',
       href: '/conteudo',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-          <polyline points="10 9 9 9 8 9"/>
-        </svg>
-      ),
       roles: ['admin', 'manager', 'ops', 'vendas', 'user'] // APENAS CRM interno
     },
     {
       id: 'conteudo-empresa',
       label: 'Conteúdo',
       href: '/conteudo-empresa',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-          <polyline points="10 9 9 9 8 9"/>
-        </svg>
-      ),
       roles: ['business_owner'] // APENAS business owners
     },
     {
       id: 'campanhas-empresa',
       label: 'Campanhas',
       href: '/campanhas-empresa',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M3 11l18-5v12L3 14v-3z"/>
-          <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-        </svg>
-      ),
       roles: ['business_owner'] // Timeline de campanhas para business owner
     },
     {
       id: 'reports',
       label: 'Relatórios',
       href: '/reports',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
-          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-        </svg>
-      ),
       roles: ['admin', 'manager'] // CRM interno apenas
     }
   ];
@@ -283,22 +241,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </span>
             </div>
 
-            {/* Desktop Navigation - Centralizada */}
-            <nav className="hidden md:flex items-center gap-1 flex-1 justify-center mx-8">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className={`flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    pathname === item.href
-                      ? 'bg-gray-200 text-gray-900'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="mr-2">{item.icon}</span>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+            {/* Desktop Navigation - Centralizada - Estilo Facebook */}
+            <nav className="hidden md:flex items-stretch gap-2 flex-1 justify-center mx-8 -mb-3.5">
+              {navigationItems.map((item) => {
+                // Verificar se está ativo - suporta rotas aninhadas (ex: /dashboard/empresa)
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className={`relative px-4 py-3.5 text-sm font-medium transition-all flex items-center justify-center ${
+                      isActive
+                        ? 'text-gray-900'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+
+                    {/* Borda inferior para aba ativa - estilo Facebook */}
+                    {isActive && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900"></div>
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Right Side - Tasks & User */}
@@ -328,13 +295,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                   aria-expanded={isUserDropdownOpen}
                   aria-haspopup="true"
                 >
-                  <span className="text-sm text-gray-700 font-semibold">
-                    {(user?.full_name || 'U').substring(0, 2).toUpperCase()}
-                  </span>
+                  {/* Ícone Redondo com Iniciais */}
+                  {user?.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.full_name}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-gray-200"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-xs font-bold ring-2 ring-gray-200">
+                      {getInitials(user?.full_name)}
+                    </div>
+                  )}
+
+                  {/* Chevron */}
                   <svg
                     width="12"
                     height="12"
@@ -350,7 +328,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 {/* Dropdown Menu */}
                 {isUserDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">{user?.full_name || 'Usuário'}</p>
                       <p className="text-xs text-gray-500">{user?.email || ''}</p>
@@ -483,7 +461,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="bg-[#f5f5f5] flex items-center justify-between p-6">
               <h2 className="text-2xl font-bold text-gray-900">Configurações</h2>
               <button
                 onClick={() => setIsSettingsModalOpen(false)}
@@ -496,7 +474,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
 
             {/* Tabs Navigation - Limitada para creators e strategists */}
-            <div className="border-b border-gray-200">
+            <div className="bg-[#f5f5f5] border-b border-gray-200">
               <div className="flex">
                 <button
                   onClick={() => setActiveSettingsTab('conta')}
@@ -506,13 +484,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  📋 Conta
+                  Conta
                 </button>
                 {!isCreatorOrStrategist && (
                   <>
+                    {/* Aba Assinaturas - TEMPORARIAMENTE ESCONDIDA */}
                     <button
                       onClick={() => setActiveSettingsTab('assinaturas')}
-                      className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                      className={`hidden px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                         activeSettingsTab === 'assinaturas'
                           ? 'border-blue-600 text-blue-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -528,7 +507,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           : 'border-transparent text-gray-500 hover:text-gray-700'
                       }`}
                     >
-                      🛍️ Produtos
+                      Produtos
                     </button>
                   </>
                 )}

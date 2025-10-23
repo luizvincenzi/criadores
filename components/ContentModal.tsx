@@ -79,10 +79,63 @@ export default function ContentModal({
 
   const loadUsers = async () => {
     try {
+      // Se for contexto de business owner (apenas businessId, sem strategistId)
+      if (businessId && !strategistId) {
+        console.log('🔍 Carregando responsáveis para business owner:', { businessId });
+
+        const responsibleUsers: User[] = [];
+
+        // 1. Buscar platform_users relacionados a esse business_id
+        const platformUsersResponse = await fetch(`/api/platform/users?business_id=${businessId}&active=true`);
+        const platformUsersData = await platformUsersResponse.json();
+
+        if (platformUsersData.success && platformUsersData.users) {
+          // Adicionar todos os platform_users do business (owners, creators, etc)
+          platformUsersData.users.forEach((user: any) => {
+            let roleLabel = '';
+            if (user.role === 'business_owner') roleLabel = ' (Dono)';
+            else if (user.role === 'creator') roleLabel = ' (Criador)';
+            else if (user.role === 'marketing_strategist') roleLabel = ' (Estrategista)';
+
+            responsibleUsers.push({
+              id: user.id,
+              full_name: `${user.full_name}${roleLabel}`,
+              role: user.role
+            });
+          });
+        }
+
+        // 2. Buscar strategist relacionado ao business (se houver)
+        const businessResponse = await fetch(`/api/supabase/businesses/${businessId}`);
+        const businessData = await businessResponse.json();
+
+        if (businessData.success && businessData.business?.strategist_id) {
+          const strategistId = businessData.business.strategist_id;
+
+          // Verificar se o strategist já não está na lista
+          const strategistExists = responsibleUsers.some(u => u.id === strategistId);
+
+          if (!strategistExists) {
+            const strategistResponse = await fetch(`/api/platform/users/${strategistId}`);
+            const strategistData = await strategistResponse.json();
+
+            if (strategistData.success && strategistData.user) {
+              responsibleUsers.push({
+                id: strategistData.user.id,
+                full_name: `${strategistData.user.full_name} (Estrategista)`,
+                role: 'marketing_strategist'
+              });
+            }
+          }
+        }
+
+        console.log('✅ Responsáveis carregados para business owner:', responsibleUsers);
+        setUsers(responsibleUsers);
+      }
       // Se for contexto de strategist (businessId E strategistId fornecidos)
-      if (businessId && strategistId) {
+      else if (businessId && strategistId) {
         console.log('🔍 Carregando responsáveis para strategist:', { businessId, strategistId });
-        
+
         const responsibleUsers: User[] = [];
 
         // 1. Buscar dados do business para pegar o owner
@@ -91,12 +144,12 @@ export default function ContentModal({
 
         if (businessData.success && businessData.business) {
           const business = businessData.business;
-          
+
           // Buscar platform_user do business owner
           if (business.platform_owner_email) {
             const ownerResponse = await fetch(`/api/platform/users?email=${encodeURIComponent(business.platform_owner_email)}`);
             const ownerData = await ownerResponse.json();
-            
+
             if (ownerData.success && ownerData.user) {
               responsibleUsers.push({
                 id: ownerData.user.id,
@@ -119,10 +172,10 @@ export default function ContentModal({
           });
         }
 
-        console.log('✅ Responsáveis carregados:', responsibleUsers);
+        console.log('✅ Responsáveis carregados para strategist:', responsibleUsers);
         setUsers(responsibleUsers);
       } else {
-        // Contexto normal: buscar usuários da tabela users (admin, vendas, ops, manager)
+        // Contexto normal (CRM interno): buscar usuários da tabela users (admin, vendas, ops, manager)
         const roles = 'admin,vendas,ops,manager';
         const response = await fetch(`/api/users?roles=${roles}&active=true`);
         const data = await response.json();
