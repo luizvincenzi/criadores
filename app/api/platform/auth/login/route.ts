@@ -41,13 +41,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Buscar usuário em platform_users
+    // Buscar usuário em platform_users (sem JOIN com organizations)
     const { data: platformUser, error } = await supabase
       .from('platform_users')
-      .select(`
-        *,
-        organization:organizations(*)
-      `)
+      .select('*')
       .eq('email', email.toLowerCase())
       .eq('organization_id', DEFAULT_ORG_ID)
       .eq('is_active', true)
