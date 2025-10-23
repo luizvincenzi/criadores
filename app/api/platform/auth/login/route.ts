@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     // Validação básica
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email e senha são obrigatórios' },
+        { success: false, error: 'Email e senha são obrigatórios' },
         { status: 400 }
       );
     }
@@ -32,11 +32,21 @@ export async function POST(request: NextRequest) {
 
     if (error || !platformUser) {
       console.log('❌ [Platform] Usuário não encontrado:', email);
+      console.log('❌ [Platform] Erro do Supabase:', error);
+      console.log('❌ [Platform] Dados retornados:', platformUser);
       return NextResponse.json(
-        { error: 'Email ou senha incorretos' },
+        { success: false, error: 'Email ou senha incorretos' },
         { status: 401 }
       );
     }
+
+    console.log('✅ [Platform] Usuário encontrado:', {
+      email: platformUser.email,
+      has_password_hash: !!platformUser.password_hash,
+      hash_length: platformUser.password_hash?.length,
+      is_active: platformUser.is_active,
+      role: platformUser.role
+    });
 
     // Validar senha
     const isValidPassword = await validatePassword(email, password, platformUser);
@@ -44,7 +54,7 @@ export async function POST(request: NextRequest) {
     if (!isValidPassword) {
       console.log('❌ [Platform] Senha incorreta para:', email);
       return NextResponse.json(
-        { error: 'Email ou senha incorretos' },
+        { success: false, error: 'Email ou senha incorretos' },
         { status: 401 }
       );
     }
@@ -86,7 +96,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ [Platform] Erro na API de login:', error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { success: false, error: 'Erro interno do servidor' },
       { status: 500 }
     );
   }
@@ -100,8 +110,16 @@ async function validatePassword(email: string, password: string, user: any): Pro
     // Se o usuário tem password_hash, usar bcrypt para validar
     if (user.password_hash) {
       console.log(`🔐 [Platform] Validando senha com bcrypt para: ${email}`);
+      console.log(`🔐 [Platform] Hash length: ${user.password_hash.length}`);
+      console.log(`🔐 [Platform] Password length: ${password.length}`);
+
       const isValid = await verifyPassword(password, user.password_hash);
       console.log(`${isValid ? '✅' : '❌'} [Platform] Validação de senha com bcrypt para usuário: ${email}`);
+
+      if (!isValid) {
+        console.log(`❌ [Platform] Senha fornecida não corresponde ao hash armazenado`);
+      }
+
       return isValid;
     }
 
