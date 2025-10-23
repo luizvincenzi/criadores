@@ -234,7 +234,7 @@ export default function ContentModal({
       const method = content ? 'PUT' : 'POST';
 
       console.log(`📤 Enviando ${method} para ${url}`);
-      console.log('📤 Contexto: ${isBusinessContext ? 'Business' : 'CRM Interno'}`);
+      console.log(`📤 Contexto: ${isBusinessContext ? 'Business' : 'CRM Interno'}`);
       console.log('📤 Dados:', formData);
 
       // 🔒 Adicionar business_id se fornecido (para business owners e strategists)
