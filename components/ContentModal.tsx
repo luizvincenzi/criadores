@@ -589,7 +589,7 @@ export default function ContentModal({
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading}
               >
-                {loading ? 'Deletando...' : '🗑️ Deletar'}
+                {loading ? 'Deletando...' : 'Deletar'}
               </button>
             )}
             <button

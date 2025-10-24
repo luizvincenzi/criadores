@@ -68,12 +68,11 @@ export default function BusinessSelector({
 
     const initial = business.name.charAt(0).toUpperCase();
     const colors = [
-      'from-purple-500 to-blue-500',
-      'from-pink-500 to-rose-500',
+      'from-black-500 to-blue-500',
       'from-orange-500 to-amber-500',
       'from-green-500 to-emerald-500',
       'from-cyan-500 to-blue-500',
-      'from-indigo-500 to-purple-500',
+      'from-indigo-500 to-green-500',
     ];
     const colorIndex = business.name.charCodeAt(0) % colors.length;
 
@@ -120,9 +119,7 @@ export default function BusinessSelector({
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {selectedBusiness ? (
             <>
-              <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-                {getBusinessAvatar(selectedBusiness)}
-              </div>
+              
               <div className="text-left flex-1 min-w-0">
                 <div className="text-sm font-semibold text-gray-900 truncate">
                   {selectedBusiness.name}
@@ -171,7 +168,7 @@ export default function BusinessSelector({
                 placeholder="Buscar business..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 autoFocus
               />
             </div>
@@ -193,14 +190,12 @@ export default function BusinessSelector({
                     onClick={() => handleSelectBusiness(business.id)}
                     className={`w-full px-3 py-3 rounded-lg transition-all flex items-center gap-3 ${
                       isSelected
-                        ? 'bg-purple-50 border-2 border-purple-200'
+                        ? 'bg-green-50 '
                         : 'hover:bg-gray-50 border-2 border-transparent'
                     }`}
                   >
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-                      {getBusinessAvatar(business)}
-                    </div>
+                   
 
                     {/* Info */}
                     <div className="flex-1 text-left min-w-0">
@@ -210,7 +205,7 @@ export default function BusinessSelector({
                         </span>
                         {isSelected && (
                           <svg
-                            className="w-4 h-4 text-purple-600 flex-shrink-0"
+                            className="w-4 h-4 text-green-600 flex-shrink-0"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -224,7 +219,7 @@ export default function BusinessSelector({
                       </div>
                       {business.content_stats && (
                         <div className="text-xs text-gray-500 mt-0.5 truncate">
-                          📊 {business.content_stats.total} conteúdos • {business.content_stats.executed} executados
+                           {business.content_stats.total} conteúdos • {business.content_stats.executed} executados
                         </div>
                       )}
                     </div>
