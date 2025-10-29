@@ -521,7 +521,7 @@ export default function BusinessContentPlanningView({ businessId, businessName }
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           content={selectedContent}
-          selectedDate={selectedDate}
+          initialDate={selectedDate}
           onSave={handleSaveContent}
           businessId={businessId}
         />

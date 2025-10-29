@@ -11,18 +11,18 @@ export const contentTypeConfig = {
   },
   reels: {
     label: 'Reels',
-    color: 'bg-purple-500',
-    bg: 'bg-purple-50',
-    text: 'text-purple-700',
-    border: 'border-purple-500',
+    color: 'bg-green-500',
+    bg: 'bg-green-50',
+    text: 'text-green-700',
+    border: 'border-green-500',
     order: 2
   },
   story: {
     label: 'Story',
-    color: 'bg-pink-500',
-    bg: 'bg-pink-50',
-    text: 'text-pink-700',
-    border: 'border-pink-500',
+    color: 'bg-yellow-500',
+    bg: 'bg-yellow-50',
+    text: 'text-yellow-700',
+    border: 'border-yellow-500',
     order: 3
   }
 };
