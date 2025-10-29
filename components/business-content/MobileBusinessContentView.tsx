@@ -19,6 +19,7 @@ interface MobileBusinessContentViewProps {
   onSaveContent: () => void;
   onSaveWeeklyPlanning: (plans: any[]) => void;
   businessId: string;
+  onToggleExecuted?: (contentId: string, isExecuted: boolean) => void;
 }
 
 type ViewMode = '3days' | '7days' | 'month';
@@ -30,7 +31,8 @@ export default function MobileBusinessContentView({
   onRefresh,
   onSaveContent,
   onSaveWeeklyPlanning,
-  businessId
+  businessId,
+  onToggleExecuted
 }: MobileBusinessContentViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('3days');
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
@@ -240,6 +242,7 @@ export default function MobileBusinessContentView({
             loading={loading}
             onAddContent={handleAddContent}
             onEditContent={handleEditContent}
+            onToggleExecuted={onToggleExecuted}
           />
         )}
 
@@ -250,6 +253,7 @@ export default function MobileBusinessContentView({
             loading={loading}
             onAddContent={handleAddContent}
             onEditContent={handleEditContent}
+            onToggleExecuted={onToggleExecuted}
           />
         )}
 
@@ -260,6 +264,7 @@ export default function MobileBusinessContentView({
             loading={loading}
             onAddContent={handleAddContent}
             onEditContent={handleEditContent}
+            onToggleExecuted={onToggleExecuted}
           />
         )}
       </div>

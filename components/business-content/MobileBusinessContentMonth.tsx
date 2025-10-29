@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SocialContent } from './BusinessContentPlanningView';
-import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
+import { ContentTypeIcon, contentTypeConfig } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
 interface MobileBusinessContentMonthProps {
@@ -13,6 +13,7 @@ interface MobileBusinessContentMonthProps {
   loading: boolean;
   onAddContent: (date: Date) => void;
   onEditContent: (content: SocialContent) => void;
+  onToggleExecuted?: (contentId: string, isExecuted: boolean) => void;
 }
 
 export default function MobileBusinessContentMonth({
@@ -20,8 +21,9 @@ export default function MobileBusinessContentMonth({
   contents,
   loading,
   onAddContent,
-  onEditContent
-}: MobileStrategistContentMonthProps) {
+  onEditContent,
+  onToggleExecuted
+}: MobileBusinessContentMonthProps) {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   // Gerar todos os dias do mês
@@ -194,6 +196,7 @@ export default function MobileBusinessContentMonth({
                   key={content.id}
                   content={content}
                   onClick={() => onEditContent(content)}
+                  onToggleExecuted={onToggleExecuted}
                 />
               ))
             )}
@@ -212,32 +215,22 @@ export default function MobileBusinessContentMonth({
 }
 
 // Card de conteúdo para visualização mensal
-function MobileContentCardMonth({ content, onClick }: { content: SocialContent; onClick: () => void }) {
-  const typeConfig = {
-    reels: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', label: 'Reels' },
-    story: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', label: 'Story' },
-    post: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', label: 'Post' }
-  }[content.content_type];
+function MobileContentCardMonth({
+  content,
+  onClick,
+  onToggleExecuted
+}: {
+  content: SocialContent;
+  onClick: () => void;
+  onToggleExecuted?: (contentId: string, isExecuted: boolean) => void;
+}) {
+  const typeConfig = contentTypeConfig[content.content_type];
 
   const handleCheckmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    try {
-      const response = await fetch('/api/content-calendar', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: content.id,
-          is_executed: !content.is_executed,
-          executed_at: !content.is_executed ? new Date().toISOString() : null
-        })
-      });
-
-      if (response.ok) {
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error);
+    if (onToggleExecuted) {
+      onToggleExecuted(content.id, !content.is_executed);
     }
   };
 

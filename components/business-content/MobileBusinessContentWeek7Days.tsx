@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { format, addDays, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SocialContent } from './BusinessContentPlanningView';
-import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
+import { ContentTypeIcon, contentTypeConfig } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
 interface MobileBusinessContentWeek7DaysProps {
@@ -13,6 +13,7 @@ interface MobileBusinessContentWeek7DaysProps {
   loading: boolean;
   onAddContent: (date: Date) => void;
   onEditContent: (content: SocialContent) => void;
+  onToggleExecuted?: (contentId: string, isExecuted: boolean) => void;
 }
 
 export default function MobileBusinessContentWeek7Days({
@@ -20,8 +21,9 @@ export default function MobileBusinessContentWeek7Days({
   contents,
   loading,
   onAddContent,
-  onEditContent
-}: MobileStrategistContentWeek7DaysProps) {
+  onEditContent,
+  onToggleExecuted
+}: MobileBusinessContentWeek7DaysProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const todayColumnRef = useRef<HTMLDivElement>(null);
 
@@ -130,6 +132,7 @@ export default function MobileBusinessContentWeek7Days({
                           e.stopPropagation();
                           onEditContent(content);
                         }}
+                        onToggleExecuted={onToggleExecuted}
                       />
                     ))
                   )}
@@ -149,32 +152,22 @@ export default function MobileBusinessContentWeek7Days({
 }
 
 // Card de conteúdo ultra-compacto para 7 dias
-function MobileContentCard7Days({ content, onClick }: { content: SocialContent; onClick: (e: React.MouseEvent) => void }) {
-  const typeConfig = {
-    reels: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
-    story: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700' },
-    post: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' }
-  }[content.content_type];
+function MobileContentCard7Days({
+  content,
+  onClick,
+  onToggleExecuted
+}: {
+  content: SocialContent;
+  onClick: (e: React.MouseEvent) => void;
+  onToggleExecuted?: (contentId: string, isExecuted: boolean) => void;
+}) {
+  const typeConfig = contentTypeConfig[content.content_type];
 
   const handleCheckmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    try {
-      const response = await fetch('/api/content-calendar', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: content.id,
-          is_executed: !content.is_executed,
-          executed_at: !content.is_executed ? new Date().toISOString() : null
-        })
-      });
-
-      if (response.ok) {
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error);
+    if (onToggleExecuted) {
+      onToggleExecuted(content.id, !content.is_executed);
     }
   };
 

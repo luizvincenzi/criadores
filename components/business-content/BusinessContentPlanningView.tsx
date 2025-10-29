@@ -233,6 +233,14 @@ export default function BusinessContentPlanningView({ businessId, businessName }
 
       if (data.success) {
         await loadContents();
+
+        // 🆕 Se marcou como executado, abrir modal automaticamente para análise qualitativa
+        if (isExecuted) {
+          const content = contents.find(c => c.id === contentId);
+          if (content) {
+            handleEditContent(content);
+          }
+        }
       } else {
         console.error('Erro ao atualizar status:', data.error);
       }
@@ -283,6 +291,7 @@ export default function BusinessContentPlanningView({ businessId, businessName }
         onSaveContent={handleSaveContent}
         onSaveWeeklyPlanning={handleSaveWeeklyPlanning}
         businessId={businessId}
+        onToggleExecuted={handleToggleExecuted}
       />
     );
   }

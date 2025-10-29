@@ -4,6 +4,7 @@ export const contentTypeConfig = {
   post: {
     label: 'Post',
     color: 'bg-blue-500',
+    bg: 'bg-blue-50',
     text: 'text-blue-700',
     border: 'border-blue-500',
     order: 1
@@ -11,6 +12,7 @@ export const contentTypeConfig = {
   reels: {
     label: 'Reels',
     color: 'bg-purple-500',
+    bg: 'bg-purple-50',
     text: 'text-purple-700',
     border: 'border-purple-500',
     order: 2
@@ -18,6 +20,7 @@ export const contentTypeConfig = {
   story: {
     label: 'Story',
     color: 'bg-pink-500',
+    bg: 'bg-pink-50',
     text: 'text-pink-700',
     border: 'border-pink-500',
     order: 3
