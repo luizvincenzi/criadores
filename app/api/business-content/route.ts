@@ -158,7 +158,11 @@ export async function POST(request: NextRequest) {
       notes: body.notes || null,
       attachments: body.attachments || [],
       tags: body.tags || [],
-      order_index: body.order_index || 0
+      order_index: body.order_index || 0,
+      // 🆕 Campos de análise qualitativa
+      post_url: body.post_url || null,
+      sentiment: body.sentiment || null,
+      analysis_notes: body.analysis_notes || null
     };
 
     console.log('💾 [BUSINESS-CONTENT] Inserindo:', insertData);

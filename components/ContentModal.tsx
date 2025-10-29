@@ -45,7 +45,11 @@ export default function ContentModal({
     scheduled_date: '',
     scheduled_time: '',
     assigned_to: '',
-    is_executed: false
+    is_executed: false,
+    // 🆕 Campos de análise qualitativa
+    post_url: '',
+    sentiment: '' as '' | 'positive' | 'neutral' | 'negative',
+    analysis_notes: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -65,7 +69,11 @@ export default function ContentModal({
         scheduled_date: content.scheduled_date,
         scheduled_time: content.scheduled_time || '',
         assigned_to: content.assigned_to || '',
-        is_executed: content.is_executed
+        is_executed: content.is_executed,
+        // 🆕 Campos de análise qualitativa
+        post_url: (content as any).post_url || '',
+        sentiment: (content as any).sentiment || '',
+        analysis_notes: (content as any).analysis_notes || ''
       });
     } else if (initialDate) {
       // Novo: usar data inicial, SEM atribuir responsável automaticamente
@@ -570,6 +578,101 @@ export default function ContentModal({
                 )}
               </div>
             </div>
+
+            {/* 📊 SEÇÃO DE ANÁLISE QUALITATIVA - Aparece quando marca como executado */}
+            {formData.is_executed && (
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <span>📊</span>
+                  <span>Análise Qualitativa</span>
+                </h3>
+
+                <div className="space-y-4">
+                  {/* Link da Postagem - Apenas para Post e Reels */}
+                  {(formData.content_type === 'post' || formData.content_type === 'reels') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        🔗 Link da Postagem
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.post_url}
+                        onChange={(e) => setFormData(prev => ({ ...prev, post_url: e.target.value }))}
+                        placeholder="https://instagram.com/p/... ou https://tiktok.com/@..."
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Cole o link da postagem publicada (Instagram, TikTok, YouTube, etc.)
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Sentimento da Audiência */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      💬 Sentimento da Audiência
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, sentiment: 'positive' }))}
+                        className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.sentiment === 'positive'
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : 'border-gray-300 hover:border-green-300'
+                        }`}
+                      >
+                        <div className="text-2xl mb-1">😊</div>
+                        <div className="text-sm font-medium">Positivo</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, sentiment: 'neutral' }))}
+                        className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.sentiment === 'neutral'
+                            ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
+                            : 'border-gray-300 hover:border-yellow-300'
+                        }`}
+                      >
+                        <div className="text-2xl mb-1">😐</div>
+                        <div className="text-sm font-medium">Neutro</div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, sentiment: 'negative' }))}
+                        className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.sentiment === 'negative'
+                            ? 'border-red-500 bg-red-50 text-red-700'
+                            : 'border-gray-300 hover:border-red-300'
+                        }`}
+                      >
+                        <div className="text-2xl mb-1">😞</div>
+                        <div className="text-sm font-medium">Negativo</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Observações e Insights */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📝 Observações e Insights
+                    </label>
+                    <textarea
+                      value={formData.analysis_notes}
+                      onChange={(e) => setFormData(prev => ({ ...prev, analysis_notes: e.target.value }))}
+                      placeholder="Ex: Ótimo engajamento nos comentários, muitas perguntas sobre o produto, audiência pediu mais conteúdo sobre o tema..."
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Registre observações qualitativas sobre a recepção do conteúdo
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer FIXO */}

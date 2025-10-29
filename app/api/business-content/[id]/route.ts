@@ -107,7 +107,11 @@ export async function PUT(
       notes: body.notes || null,
       attachments: body.attachments || [],
       tags: body.tags || [],
-      order_index: body.order_index || 0
+      order_index: body.order_index || 0,
+      // 🆕 Campos de análise qualitativa
+      post_url: body.post_url || null,
+      sentiment: body.sentiment || null,
+      analysis_notes: body.analysis_notes || null
     };
 
     console.log('💾 [BUSINESS-CONTENT] Atualizando:', updateData);
@@ -180,6 +184,10 @@ export async function PATCH(
     if (body.attachments !== undefined) updateData.attachments = body.attachments;
     if (body.tags !== undefined) updateData.tags = body.tags;
     if (body.order_index !== undefined) updateData.order_index = body.order_index;
+    // 🆕 Campos de análise qualitativa
+    if (body.post_url !== undefined) updateData.post_url = body.post_url;
+    if (body.sentiment !== undefined) updateData.sentiment = body.sentiment;
+    if (body.analysis_notes !== undefined) updateData.analysis_notes = body.analysis_notes;
 
     console.log('💾 [BUSINESS-CONTENT] Atualizando parcialmente:', updateData);
 
