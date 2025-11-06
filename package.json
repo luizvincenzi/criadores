@@ -22,7 +22,9 @@
     "supabase:types": "supabase gen types typescript --local > lib/database.types.ts",
     "verify-ga": "node scripts/verify-ga-coverage.js",
     "test-ga": "node test-ga-all-pages.js",
-    "implement-briefing": "tsx scripts/implement-briefing-optimized.ts"
+    "implement-briefing": "tsx scripts/implement-briefing-optimized.ts",
+    "invite-creator": "tsx scripts/invite-creator.ts",
+    "invite-business": "tsx scripts/invite-business-owner.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

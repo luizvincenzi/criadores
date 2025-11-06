@@ -171,10 +171,14 @@ export async function POST(request: NextRequest) {
       console.log('📝 [Set Password] Criando novo usuário em platform_users');
 
       // Determinar role e roles baseado nos dados do convite
-      const role = userData?.role || 'business_owner';
-      const roles = userData?.role === 'business_owner' 
-        ? ['business_owner'] 
-        : [userData?.role || 'creator'];
+      const entityType = userData?.entityType || 'business';
+      const isCreator = entityType === 'creator';
+      const role = userData?.role || (isCreator ? 'creator' : 'business_owner');
+      const roles = isCreator
+        ? ['creator']
+        : (userData?.role === 'business_owner' ? ['business_owner'] : [userData?.role || 'creator']);
+
+      console.log('📋 [Set Password] Tipo de entidade:', entityType, 'Role:', role);
 
       // Preparar dados do novo usuário
       const newUserData: any = {
@@ -191,7 +195,7 @@ export async function POST(request: NextRequest) {
         last_password_change: new Date().toISOString(),
         permissions: {
           campaigns: { read: true, write: role === 'business_owner', delete: false },
-          conteudo: { read: true, write: role !== 'business_owner', delete: false },
+          conteudo: { read: true, write: isCreator || role === 'marketing_strategist', delete: false },
           briefings: { read: true, write: role === 'marketing_strategist', delete: false },
           reports: { read: true, write: false, delete: false },
           tasks: { read: true, write: true, delete: false }
@@ -217,6 +221,11 @@ export async function POST(request: NextRequest) {
       if (userData?.businessId) {
         newUserData.business_id = userData.businessId;
         newUserData.managed_businesses = [userData.businessId];
+      }
+
+      // Adicionar creator_id se for creator
+      if (userData?.creatorId) {
+        newUserData.creator_id = userData.creatorId;
       }
 
       const { data: newUser, error: insertError } = await supabase

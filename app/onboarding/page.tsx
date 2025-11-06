@@ -47,14 +47,19 @@ function OnboardingForm() {
       console.log('📋 [Onboarding] Dados do token:', payload);
 
       const userMetadata = payload.user_metadata || {};
-      
+
+      // Detectar se é business ou creator baseado no entity_type
+      const entityType = userMetadata.entity_type || 'business';
+      const isCreator = entityType === 'creator';
+
       setUserData({
         email: payload.email,
         fullName: userMetadata.full_name || '',
         businessName: userMetadata.business_name || '',
         businessId: userMetadata.business_id || '',
-        role: userMetadata.role || 'business_owner',
-        entityType: userMetadata.entity_type || 'business'
+        creatorId: userMetadata.creator_id || '',
+        role: userMetadata.role || (isCreator ? 'creator' : 'business_owner'),
+        entityType: entityType
       });
 
       setTokenData({
@@ -241,6 +246,9 @@ function OnboardingForm() {
             </p>
             <p className="text-sm text-on-primary-container mb-1">
               <strong>Email:</strong> {userData?.email}
+            </p>
+            <p className="text-sm text-on-primary-container mb-1">
+              <strong>Tipo:</strong> {userData?.entityType === 'creator' ? 'Criador' : 'Empresa'}
             </p>
             {userData?.businessName && (
               <p className="text-sm text-on-primary-container">
