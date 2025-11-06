@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 // Componente FAQ com collapse
 function FAQItem({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
@@ -27,8 +28,22 @@ function FAQItem({ question, answer, isOpen, onToggle }: { question: string; ans
 }
 
 export default function Home() {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+
+  // Detectar convite e redirecionar para onboarding
+  useEffect(() => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const tokenType = params.get('type');
+
+    if (tokenType === 'invite') {
+      console.log('🎉 [Home] Convite detectado, redirecionando para onboarding');
+      router.push(`/onboarding${window.location.hash}`);
+      return;
+    }
+  }, [router]);
 
   const faqs = [
     {
