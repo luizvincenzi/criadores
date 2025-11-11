@@ -159,16 +159,16 @@ export function hasAllRoles(user: PlatformUser, roles: PlatformUserRole[]): bool
  * Retorna o dashboard apropriado baseado nos roles do usuário
  */
 export function getDashboardRoute(user: PlatformUser): string {
-  // Business owner vai para dashboard empresa
+  // Business owner vai para conteúdo empresa (dashboard temporariamente desabilitado)
   if (hasRole(user, PlatformUserRole.BUSINESS_OWNER)) {
-    return '/dashboard/empresa';
+    return '/conteudo-empresa';
   }
-  
+
   // Creator ou Marketing Strategist vão para dashboard criador
   if (hasAnyRole(user, [PlatformUserRole.CREATOR, PlatformUserRole.MARKETING_STRATEGIST])) {
     return '/dashboard/criador';
   }
-  
+
   // Fallback
   return '/dashboard/geral';
 }
@@ -177,16 +177,16 @@ export function getDashboardRoute(user: PlatformUser): string {
  * Verifica se o usuário pode acessar uma rota específica
  */
 export function canAccessRoute(user: PlatformUser, route: string): boolean {
-  // Business owner só pode acessar /dashboard/empresa
+  // Business owner pode acessar conteúdo e campanhas empresa (dashboard temporariamente desabilitado)
   if (hasRole(user, PlatformUserRole.BUSINESS_OWNER)) {
-    return route.startsWith('/dashboard/empresa');
+    return route.startsWith('/conteudo-empresa') || route.startsWith('/campanhas-empresa');
   }
-  
+
   // Creator e Marketing Strategist podem acessar /dashboard/criador
   if (hasAnyRole(user, [PlatformUserRole.CREATOR, PlatformUserRole.MARKETING_STRATEGIST])) {
     return route.startsWith('/dashboard/criador') || route.startsWith('/dashboard/geral');
   }
-  
+
   return false;
 }
 

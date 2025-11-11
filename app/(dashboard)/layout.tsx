@@ -157,7 +157,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       id: 'dashboard',
       label: 'Dashboard',
       href: '/dashboard',
-      roles: ['admin', 'manager', 'business_owner'] // ❌ Creators e Strategists NÃO veem dashboard
+      roles: ['admin', 'manager'] // ❌ Creators, Strategists e Business Owners NÃO veem dashboard (temporariamente removido para business_owner)
     },
     {
       id: 'conteudo_estrategista',

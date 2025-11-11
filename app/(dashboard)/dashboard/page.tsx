@@ -18,8 +18,12 @@ export default function Dashboard() {
     // Redirecionar baseado no role do usuário
     switch (user.role) {
       case 'business_owner':
+        // Business owners vão direto para conteúdo (dashboard temporariamente desabilitado)
+        router.push('/conteudo-empresa');
+        break;
+
       case 'manager':
-        // Empresas vão para o dashboard empresarial
+        // Managers vão para o dashboard empresarial
         router.push('/dashboard/empresa');
         break;
 
