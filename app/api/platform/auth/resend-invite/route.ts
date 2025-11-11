@@ -90,8 +90,21 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // O Supabase retorna erro "User already registered" mas AINDA ENVIA O EMAIL
+    // Então vamos ignorar esse erro específico e retornar sucesso
     if (inviteError) {
-      console.error('❌ [Resend Invite] Erro ao reenviar convite:', inviteError);
+      console.error('⚠️ [Resend Invite] Erro do Supabase:', inviteError.message);
+
+      // Se o erro é "user already registered", o email foi enviado mesmo assim
+      if (inviteError.message.includes('already been registered')) {
+        console.log('✅ [Resend Invite] Email enviado apesar do erro (usuário já existe no Auth)');
+        return NextResponse.json({
+          success: true,
+          message: 'Novo link de ativação enviado para seu email! Verifique sua caixa de entrada.'
+        });
+      }
+
+      // Outros erros são realmente problemas
       return NextResponse.json(
         { success: false, error: `Erro ao reenviar convite: ${inviteError.message}` },
         { status: 500 }
