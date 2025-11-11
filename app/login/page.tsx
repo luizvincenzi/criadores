@@ -92,7 +92,13 @@ export default function LoginPage() {
         body: JSON.stringify({ email }),
       });
 
+      console.log('📧 [Login] Resposta da API:', {
+        status: response.status,
+        ok: response.ok
+      });
+
       const data = await response.json();
+      console.log('📧 [Login] Dados da resposta:', data);
 
       if (response.ok && data.success) {
         console.log('✅ [Login] Convite reenviado com sucesso');
@@ -103,9 +109,9 @@ export default function LoginPage() {
         console.error('❌ [Login] Erro ao reenviar convite:', data.error);
         setError(data.error || 'Erro ao reenviar convite. Entre em contato com o administrador.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [Login] Erro inesperado ao reenviar convite:', error);
-      setError('Erro ao reenviar convite. Tente novamente mais tarde.');
+      setError(`Erro ao reenviar convite: ${error?.message || 'Tente novamente mais tarde.'}`);
     } finally {
       setResendingInvite(false);
     }

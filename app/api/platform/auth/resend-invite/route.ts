@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+
+// Criar cliente admin do Supabase com service role key
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,22 +26,22 @@ export async function POST(request: NextRequest) {
 
     console.log('📧 [Resend Invite] Solicitação de reenvio para:', email);
 
-    const supabase = createClient();
+    // 1. Verificar se o usuário existe na tabela platform_users
+    const { data: platformUser, error: platformError } = await supabaseAdmin
+      .from('platform_users')
+      .select('id, email, password_hash, is_active')
+      .eq('email', email)
+      .single();
 
-    // 1. Verificar se o usuário existe no Supabase Auth
-    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
-
-    if (listError) {
-      console.error('❌ [Resend Invite] Erro ao listar usuários:', listError);
+    if (platformError && platformError.code !== 'PGRST116') {
+      console.error('❌ [Resend Invite] Erro ao verificar platform_users:', platformError);
       return NextResponse.json(
         { success: false, error: 'Erro ao verificar usuário' },
         { status: 500 }
       );
     }
 
-    const existingUser = users?.find(u => u.email === email);
-
-    if (!existingUser) {
+    if (!platformUser) {
       console.log('❌ [Resend Invite] Usuário não encontrado:', email);
       return NextResponse.json(
         { success: false, error: 'Usuário não encontrado. Entre em contato com o administrador.' },
@@ -38,35 +50,35 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Verificar se o usuário já criou senha (já completou onboarding)
-    const { data: platformUser, error: platformError } = await supabase
-      .from('platform_users')
-      .select('id, email, password_hash, is_active')
-      .eq('email', email)
-      .single();
-
-    if (platformError && platformError.code !== 'PGRST116') {
-      console.error('❌ [Resend Invite] Erro ao verificar platform_users:', platformError);
-    }
-
-    // Se já tem senha, não precisa reenviar convite
-    if (platformUser && platformUser.password_hash) {
+    if (platformUser.password_hash) {
       console.log('⚠️ [Resend Invite] Usuário já completou onboarding:', email);
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Sua conta já está ativa. Use o formulário de login acima para acessar.' 
+        {
+          success: false,
+          error: 'Sua conta já está ativa. Use o formulário de login acima para acessar.'
         },
         { status: 400 }
       );
     }
 
-    // 3. Buscar informações do usuário para reenviar convite com metadata correto
-    const userMetadata = existingUser.user_metadata || {};
-    
-    console.log('📧 [Resend Invite] Reenviando convite com metadata:', userMetadata);
+    // 3. Buscar metadata do usuário no Supabase Auth
+    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+
+    if (listError) {
+      console.error('❌ [Resend Invite] Erro ao listar usuários:', listError);
+    }
+
+    const existingUser = users?.find(u => u.email === email);
+    const userMetadata = existingUser?.user_metadata || {};
+
+    console.log('📧 [Resend Invite] Reenviando convite com metadata:', {
+      email,
+      hasMetadata: Object.keys(userMetadata).length > 0,
+      entityType: userMetadata.entity_type
+    });
 
     // 4. Reenviar convite via Supabase Admin API
-    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       email,
       {
         redirectTo: 'https://www.criadores.app/auth/callback',
@@ -81,7 +93,7 @@ export async function POST(request: NextRequest) {
     if (inviteError) {
       console.error('❌ [Resend Invite] Erro ao reenviar convite:', inviteError);
       return NextResponse.json(
-        { success: false, error: 'Erro ao reenviar convite. Tente novamente mais tarde.' },
+        { success: false, error: `Erro ao reenviar convite: ${inviteError.message}` },
         { status: 500 }
       );
     }
@@ -93,10 +105,10 @@ export async function POST(request: NextRequest) {
       message: 'Novo link de ativação enviado para seu email!'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [Resend Invite] Erro inesperado:', error);
     return NextResponse.json(
-      { success: false, error: 'Erro interno do servidor' },
+      { success: false, error: `Erro interno: ${error?.message || 'Desconhecido'}` },
       { status: 500 }
     );
   }
