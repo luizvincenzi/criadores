@@ -74,11 +74,59 @@ export default function AuthCallbackPage() {
         }
       }
 
-      // Se for um recovery (type=recovery), redirecionar para reset de senha
-      if (tokenType === 'recovery' && accessToken) {
-        console.log('🔑 [Auth Callback] Recovery detectado, redirecionando para reset de senha');
-        router.push(`/reset-password${window.location.hash}`);
-        return;
+      // Se for um recovery (type=recovery), verificar se é onboarding ou reset de senha
+      if (tokenType === 'recovery' && accessToken && refreshToken) {
+        console.log('🔑 [Auth Callback] Recovery detectado, verificando se é onboarding ou reset...');
+
+        try {
+          const supabase = createClient();
+
+          // Criar sessão para poder verificar o usuário
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (sessionError) {
+            console.error('❌ [Auth Callback] Erro ao criar sessão:', sessionError);
+            router.push(`/login?error=${encodeURIComponent('Erro ao processar link')}`);
+            return;
+          }
+
+          const userEmail = sessionData.session?.user?.email || '';
+          console.log('📧 [Auth Callback] Email do usuário:', userEmail);
+
+          // Verificar se o usuário já tem senha (onboarding completo)
+          const checkResponse = await fetch('/api/platform/auth/check-onboarding', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail })
+          });
+
+          const checkData = await checkResponse.json();
+
+          if (checkData.completed) {
+            // Usuário já tem senha -> Reset de senha
+            console.log('🔑 [Auth Callback] Usuário já tem senha, redirecionando para reset de senha');
+            router.push(`/reset-password${window.location.hash}`);
+            return;
+          } else {
+            // Usuário não tem senha -> Onboarding
+            console.log('🎉 [Auth Callback] Usuário sem senha, redirecionando para onboarding');
+
+            // Armazenar flags de onboarding
+            localStorage.setItem('onboarding_pending', 'true');
+            localStorage.setItem('onboarding_email', userEmail);
+            localStorage.setItem('invite_email', userEmail);
+
+            router.push('/onboarding');
+            return;
+          }
+        } catch (err) {
+          console.error('❌ [Auth Callback] Erro ao processar recovery:', err);
+          router.push(`/login?error=${encodeURIComponent('Erro ao processar link')}`);
+          return;
+        }
       }
 
       // Se for um login normal, redirecionar para dashboard
