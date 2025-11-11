@@ -10,16 +10,33 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inviteExpired, setInviteExpired] = useState(false);
+  const [resendingInvite, setResendingInvite] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const router = useRouter();
   const { login, isAuthenticated, setLoading: setAuthLoading } = useAuthStore();
 
-  // Detectar convite e redirecionar para onboarding
+  // Detectar convite expirado ou erro de acesso
   useEffect(() => {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     const tokenType = params.get('type');
+    const errorType = params.get('error');
+    const errorCode = params.get('error_code');
+    const errorDescription = params.get('error_description');
 
+    // Detectar link de convite expirado
+    if (errorType === 'access_denied' && errorCode === 'otp_expired') {
+      console.log('⚠️ [Login] Link de convite expirado detectado');
+      setInviteExpired(true);
+      setError('O link de ativação expirou ou já foi utilizado. Solicite um novo link abaixo.');
+      // Limpar o hash da URL
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+
+    // Detectar convite válido e redirecionar para onboarding
     if (tokenType === 'invite') {
       console.log('🎉 [Login] Convite detectado, redirecionando para onboarding');
       router.push(`/onboarding${window.location.hash}`);
@@ -34,6 +51,46 @@ export default function LoginPage() {
       router.push('/dashboard');
     }
   }, [isAuthenticated, router]);
+
+  const handleResendInvite = async () => {
+    if (!email) {
+      setError('Por favor, digite seu email para solicitar um novo link de ativação.');
+      return;
+    }
+
+    setResendingInvite(true);
+    setError('');
+    setResendSuccess(false);
+
+    try {
+      console.log('📧 [Login] Solicitando reenvio de convite para:', email);
+
+      const response = await fetch('/api/platform/auth/resend-invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        console.log('✅ [Login] Convite reenviado com sucesso');
+        setResendSuccess(true);
+        setInviteExpired(false);
+        setError('');
+      } else {
+        console.error('❌ [Login] Erro ao reenviar convite:', data.error);
+        setError(data.error || 'Erro ao reenviar convite. Entre em contato com o administrador.');
+      }
+    } catch (error) {
+      console.error('❌ [Login] Erro inesperado ao reenviar convite:', error);
+      setError('Erro ao reenviar convite. Tente novamente mais tarde.');
+    } finally {
+      setResendingInvite(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,11 +167,33 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Mensagem de Sucesso */}
+            {resendSuccess && (
+              <div className="bg-green-50 text-green-800 px-4 py-3 rounded-xl text-sm border border-green-200">
+                ✅ Novo link de ativação enviado! Verifique seu email.
+              </div>
+            )}
+
             {/* Mensagem de Erro */}
             {error && (
               <div className="bg-error-container text-on-error-container px-4 py-3 rounded-xl text-sm">
                 {error}
               </div>
+            )}
+
+            {/* Botão de Reenviar Convite (quando link expirado) */}
+            {inviteExpired && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                loading={resendingInvite}
+                className="w-full"
+                onClick={handleResendInvite}
+                disabled={resendingInvite || !email}
+              >
+                {resendingInvite ? 'Enviando...' : '📧 Solicitar Novo Link de Ativação'}
+              </Button>
             )}
 
             {/* Botão de Login */}
