@@ -40,14 +40,19 @@ export default function LoginPage() {
     if (errorType === 'access_denied' && errorCode === 'otp_expired') {
       console.log('⚠️ [Login] Link de convite expirado detectado');
 
-      // Tentar extrair email do hash ou do localStorage
+      // Tentar extrair email do localStorage
       const storedEmail = localStorage.getItem('invite_email');
 
       if (storedEmail) {
         console.log('📧 [Login] Email encontrado no localStorage:', storedEmail);
+        console.log('🔄 [Login] Reenviando convite automaticamente...');
+
         setEmail(storedEmail);
         setInviteExpired(true);
-        setError(`Link expirado. Digite sua senha ou clique em "Solicitar Novo Link" para receber um novo email.`);
+        setError('Link expirado. Reenviando novo link automaticamente...');
+
+        // Reenviar convite automaticamente
+        handleResendInvite(storedEmail);
       } else {
         setInviteExpired(true);
         setError('O link de ativação expirou. Digite seu email abaixo e clique em "Solicitar Novo Link".');
@@ -84,8 +89,10 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
-  const handleResendInvite = async () => {
-    if (!email) {
+  const handleResendInvite = async (emailToResend?: string) => {
+    const targetEmail = emailToResend || email;
+
+    if (!targetEmail) {
       setError('Por favor, digite seu email para solicitar um novo link de ativação.');
       return;
     }
@@ -95,14 +102,14 @@ export default function LoginPage() {
     setResendSuccess(false);
 
     try {
-      console.log('📧 [Login] Solicitando reenvio de convite para:', email);
+      console.log('📧 [Login] Solicitando reenvio de convite para:', targetEmail);
 
       const response = await fetch('/api/platform/auth/resend-invite', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: targetEmail }),
       });
 
       console.log('📧 [Login] Resposta da API:', {
@@ -227,7 +234,7 @@ export default function LoginPage() {
                 size="lg"
                 loading={resendingInvite}
                 className="w-full"
-                onClick={handleResendInvite}
+                onClick={() => handleResendInvite()}
                 disabled={resendingInvite || !email}
               >
                 {resendingInvite ? 'Enviando...' : '📧 Solicitar Novo Link de Ativação'}

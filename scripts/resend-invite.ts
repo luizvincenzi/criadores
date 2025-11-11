@@ -1,14 +1,19 @@
 /**
  * Script para reenviar convite para usuário que ainda não completou onboarding
- * 
+ *
  * USO:
  * npm run resend-invite
- * 
+ *
  * Depois digite o email do usuário quando solicitado
  */
 
 import { createClient } from '@supabase/supabase-js';
 import * as readline from 'readline';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Carregar variáveis de ambiente do .env.local
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
