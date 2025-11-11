@@ -2,58 +2,93 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // O Supabase Auth retorna dados no hash fragment (#)
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    
-    const accessToken = params.get('access_token');
-    const tokenType = params.get('type');
-    const error = params.get('error');
-    const errorDescription = params.get('error_description');
+    const handleCallback = async () => {
+      // O Supabase Auth retorna dados no hash fragment (#)
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
 
-    console.log('🔐 [Auth Callback] Processando callback...', {
-      hasAccessToken: !!accessToken,
-      tokenType,
-      error,
-      errorDescription
-    });
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const tokenType = params.get('type');
+      const error = params.get('error');
+      const errorDescription = params.get('error_description');
 
-    // Se houver erro, redirecionar para login com mensagem
-    if (error) {
-      console.error('❌ [Auth Callback] Erro no callback:', error, errorDescription);
-      router.push(`/login?error=${encodeURIComponent(error)}`);
-      return;
-    }
+      console.log('🔐 [Auth Callback] Processando callback...', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        tokenType,
+        error,
+        errorDescription
+      });
 
-    // Se for um convite (type=invite), redirecionar para onboarding
-    if (tokenType === 'invite' && accessToken) {
-      console.log('🎉 [Auth Callback] Convite detectado, redirecionando para onboarding');
-      router.push(`/onboarding${window.location.hash}`);
-      return;
-    }
+      // Se houver erro, redirecionar para login com mensagem
+      if (error) {
+        console.error('❌ [Auth Callback] Erro no callback:', error, errorDescription);
+        router.push(`/login?error=${encodeURIComponent(error)}`);
+        return;
+      }
 
-    // Se for um recovery (type=recovery), redirecionar para reset de senha
-    if (tokenType === 'recovery' && accessToken) {
-      console.log('🔑 [Auth Callback] Recovery detectado, redirecionando para reset de senha');
-      router.push(`/reset-password${window.location.hash}`);
-      return;
-    }
+      // Se for um convite (type=invite), criar sessão persistente e redirecionar para onboarding
+      if (tokenType === 'invite' && accessToken && refreshToken) {
+        console.log('🎉 [Auth Callback] Convite detectado, criando sessão persistente...');
 
-    // Se for um login normal, redirecionar para dashboard
-    if (accessToken && !tokenType) {
-      console.log('✅ [Auth Callback] Login detectado, redirecionando para dashboard');
-      router.push('/dashboard');
-      return;
-    }
+        try {
+          const supabase = createClient();
 
-    // Caso padrão: redirecionar para login
-    console.log('⚠️ [Auth Callback] Caso não tratado, redirecionando para login');
-    router.push('/login');
+          // Criar sessão persistente no Supabase
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (sessionError) {
+            console.error('❌ [Auth Callback] Erro ao criar sessão:', sessionError);
+            router.push(`/login?error=${encodeURIComponent('Erro ao processar convite')}`);
+            return;
+          }
+
+          console.log('✅ [Auth Callback] Sessão criada com sucesso, redirecionando para onboarding');
+
+          // Armazenar flag indicando que é um onboarding pendente
+          localStorage.setItem('onboarding_pending', 'true');
+          localStorage.setItem('onboarding_email', sessionData.session?.user?.email || '');
+
+          // Redirecionar para onboarding SEM o hash (sessão já está criada)
+          router.push('/onboarding');
+          return;
+        } catch (err) {
+          console.error('❌ [Auth Callback] Erro inesperado:', err);
+          router.push(`/login?error=${encodeURIComponent('Erro ao processar convite')}`);
+          return;
+        }
+      }
+
+      // Se for um recovery (type=recovery), redirecionar para reset de senha
+      if (tokenType === 'recovery' && accessToken) {
+        console.log('🔑 [Auth Callback] Recovery detectado, redirecionando para reset de senha');
+        router.push(`/reset-password${window.location.hash}`);
+        return;
+      }
+
+      // Se for um login normal, redirecionar para dashboard
+      if (accessToken && !tokenType) {
+        console.log('✅ [Auth Callback] Login detectado, redirecionando para dashboard');
+        router.push('/dashboard');
+        return;
+      }
+
+      // Caso padrão: redirecionar para login
+      console.log('⚠️ [Auth Callback] Caso não tratado, redirecionando para login');
+      router.push('/login');
+    };
+
+    handleCallback();
   }, [router]);
 
   return (

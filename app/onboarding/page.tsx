@@ -3,12 +3,14 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { createClient } from '@/lib/supabase/client';
 import Button from '@/components/ui/Button';
 
 function OnboardingForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(true);
   const [error, setError] = useState('');
   const [userData, setUserData] = useState<any>(null);
   const [tokenData, setTokenData] = useState<any>(null);
@@ -17,86 +19,96 @@ function OnboardingForm() {
   const searchParams = useSearchParams();
   const { setUser, setIsAuthenticated } = useAuthStore();
 
-  // Extrair dados do hash fragment (access_token, etc.)
+  // Carregar sessão do Supabase
   useEffect(() => {
-    // O Supabase Auth retorna dados no hash fragment (#)
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
+    const loadSession = async () => {
+      try {
+        const supabase = createClient();
 
-    const accessToken = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
-    const expiresIn = params.get('expires_in');
-    const tokenType = params.get('type');
+        console.log('🔐 [Onboarding] Carregando sessão do Supabase...');
 
-    console.log('🔐 [Onboarding] Hash params:', {
-      accessToken: accessToken ? '✅ Presente' : '❌ Ausente',
-      refreshToken: refreshToken ? '✅ Presente' : '❌ Ausente',
-      type: tokenType,
-      expiresIn,
-      fullHash: hash.substring(0, 100) + '...'
-    });
+        // Obter sessão atual
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    // Validar se tem access_token (obrigatório)
-    if (!accessToken) {
-      console.error('❌ [Onboarding] Access token ausente');
-      setError('Link de convite inválido ou expirado');
-      return;
-    }
+        if (sessionError) {
+          console.error('❌ [Onboarding] Erro ao carregar sessão:', sessionError);
+          setError('Erro ao carregar sessão. Por favor, clique no link do email novamente.');
+          setLoadingSession(false);
+          return;
+        }
 
-    // Se tem tokenType, validar que seja 'invite'
-    // Se não tem tokenType, aceitar (alguns links do Supabase não enviam o type)
-    if (tokenType && tokenType !== 'invite') {
-      console.error('❌ [Onboarding] Tipo de token incorreto:', tokenType);
-      setError('Link de convite inválido');
-      return;
-    }
+        if (!session) {
+          console.error('❌ [Onboarding] Nenhuma sessão encontrada');
+          setError('Sessão não encontrada. Por favor, clique no link do email novamente.');
+          setLoadingSession(false);
+          return;
+        }
 
-    // Decodificar JWT para extrair dados do usuário
-    try {
-      const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      console.log('📋 [Onboarding] Dados do token JWT:', {
-        email: payload.email,
-        sub: payload.sub,
-        user_metadata: payload.user_metadata,
-        app_metadata: payload.app_metadata
-      });
+        console.log('✅ [Onboarding] Sessão carregada com sucesso');
+        console.log('📋 [Onboarding] Dados da sessão:', {
+          email: session.user.email,
+          userId: session.user.id,
+          metadata: session.user.user_metadata
+        });
 
-      const userMetadata = payload.user_metadata || {};
+        // Verificar se o usuário já completou o onboarding
+        const checkResponse = await fetch('/api/platform/auth/check-onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: session.user.email })
+        });
 
-      // Detectar se é business ou creator baseado no entity_type
-      const entityType = userMetadata.entity_type || 'business';
-      const isCreator = entityType === 'creator';
+        const checkData = await checkResponse.json();
 
-      console.log('👤 [Onboarding] Tipo de entidade detectado:', {
-        entityType,
-        isCreator,
-        role: userMetadata.role,
-        businessId: userMetadata.business_id,
-        creatorId: userMetadata.creator_id
-      });
+        if (checkData.completed) {
+          console.log('⚠️ [Onboarding] Usuário já completou onboarding, redirecionando para login');
+          setError('Sua conta já está ativa. Por favor, faça login.');
+          setTimeout(() => router.push('/login'), 2000);
+          setLoadingSession(false);
+          return;
+        }
 
-      setUserData({
-        email: payload.email,
-        fullName: userMetadata.full_name || '',
-        businessName: userMetadata.business_name || '',
-        businessId: userMetadata.business_id || '',
-        creatorId: userMetadata.creator_id || '',
-        role: userMetadata.role || (isCreator ? 'creator' : 'business_owner'),
-        entityType: entityType
-      });
+        const userMetadata = session.user.user_metadata || {};
 
-      setTokenData({
-        accessToken,
-        refreshToken,
-        expiresIn: parseInt(expiresIn || '3600')
-      });
+        // Detectar se é business ou creator baseado no entity_type
+        const entityType = userMetadata.entity_type || 'business';
+        const isCreator = entityType === 'creator';
 
-      console.log('✅ [Onboarding] Dados do usuário configurados com sucesso');
+        console.log('👤 [Onboarding] Tipo de entidade detectado:', {
+          entityType,
+          isCreator,
+          role: userMetadata.role,
+          businessId: userMetadata.business_id,
+          creatorId: userMetadata.creator_id
+        });
 
-    } catch (err) {
-      console.error('❌ [Onboarding] Erro ao decodificar token:', err);
-      setError('Erro ao processar convite. Token inválido.');
-    }
+        setUserData({
+          email: session.user.email,
+          fullName: userMetadata.full_name || '',
+          businessName: userMetadata.business_name || '',
+          businessId: userMetadata.business_id || '',
+          creatorId: userMetadata.creator_id || '',
+          role: userMetadata.role || (isCreator ? 'creator' : 'business_owner'),
+          entityType: entityType
+        });
+
+        setTokenData({
+          accessToken: session.access_token,
+          refreshToken: session.refresh_token,
+          expiresIn: 3600
+        });
+
+        console.log('✅ [Onboarding] Dados do usuário configurados com sucesso');
+        setLoadingSession(false);
+
+      } catch (err) {
+        console.error('❌ [Onboarding] Erro inesperado:', err);
+        setError('Erro ao processar convite. Por favor, clique no link do email novamente.');
+        setLoadingSession(false);
+      }
+    };
+
+    loadSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,6 +204,10 @@ function OnboardingForm() {
           if (loginData.success) {
             console.log('✅ [Onboarding] Login completo realizado');
 
+            // Limpar flags de onboarding pendente
+            localStorage.removeItem('onboarding_pending');
+            localStorage.removeItem('onboarding_email');
+
             // Atualizar store
             setUser(loginData.user);
             setIsAuthenticated(true);
@@ -218,18 +234,18 @@ function OnboardingForm() {
     }
   };
 
-  // Loading state enquanto processa o token
-  if (!userData && !error) {
+  // Loading state enquanto carrega sessão
+  if (loadingSession) {
     return (
       <div className="min-h-screen bg-surface-dim flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-on-surface-variant">Processando convite...</p>
+          <p className="text-on-surface-variant">Carregando...</p>
         </div>
       </div>
     );
   }
-  
+
   // Error state
   if (error && !userData) {
     return (
@@ -238,8 +254,11 @@ function OnboardingForm() {
           <div className="bg-surface rounded-2xl shadow-sm border-0 p-8">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">❌</div>
-              <h1 className="text-2xl font-bold text-on-surface mb-2">Convite Inválido</h1>
-              <p className="text-on-surface-variant">{error}</p>
+              <h1 className="text-2xl font-bold text-on-surface mb-2">Sessão Inválida</h1>
+              <p className="text-on-surface-variant mb-4">{error}</p>
+              <p className="text-sm text-on-surface-variant">
+                Por favor, clique no link de ativação que você recebeu por email.
+              </p>
             </div>
             <Button
               onClick={() => router.push('/login')}
