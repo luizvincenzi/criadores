@@ -55,9 +55,14 @@ export default function AuthCallbackPage() {
 
           console.log('✅ [Auth Callback] Sessão criada com sucesso, redirecionando para onboarding');
 
+          const userEmail = sessionData.session?.user?.email || '';
+
           // Armazenar flag indicando que é um onboarding pendente
           localStorage.setItem('onboarding_pending', 'true');
-          localStorage.setItem('onboarding_email', sessionData.session?.user?.email || '');
+          localStorage.setItem('onboarding_email', userEmail);
+          localStorage.setItem('invite_email', userEmail); // Para recuperar em caso de link expirado
+
+          console.log('📧 [Auth Callback] Email armazenado:', userEmail);
 
           // Redirecionar para onboarding SEM o hash (sessão já está criada)
           router.push('/onboarding');

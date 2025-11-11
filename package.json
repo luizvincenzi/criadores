@@ -24,7 +24,8 @@
     "test-ga": "node test-ga-all-pages.js",
     "implement-briefing": "tsx scripts/implement-briefing-optimized.ts",
     "invite-creator": "tsx scripts/invite-creator.ts",
-    "invite-business": "tsx scripts/invite-business-owner.ts"
+    "invite-business": "tsx scripts/invite-business-owner.ts",
+    "resend-invite": "tsx scripts/resend-invite.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

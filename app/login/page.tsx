@@ -32,14 +32,27 @@ export default function LoginPage() {
       hasAccessToken: !!accessToken,
       errorType,
       errorCode,
-      hashLength: hash.length
+      hashLength: hash.length,
+      fullHash: hash.substring(0, 200)
     });
 
     // Detectar link de convite expirado
     if (errorType === 'access_denied' && errorCode === 'otp_expired') {
       console.log('⚠️ [Login] Link de convite expirado detectado');
-      setInviteExpired(true);
-      setError('O link de ativação expirou ou já foi utilizado. Solicite um novo link abaixo.');
+
+      // Tentar extrair email do hash ou do localStorage
+      const storedEmail = localStorage.getItem('invite_email');
+
+      if (storedEmail) {
+        console.log('📧 [Login] Email encontrado no localStorage:', storedEmail);
+        setEmail(storedEmail);
+        setInviteExpired(true);
+        setError(`Link expirado. Digite sua senha ou clique em "Solicitar Novo Link" para receber um novo email.`);
+      } else {
+        setInviteExpired(true);
+        setError('O link de ativação expirou. Digite seu email abaixo e clique em "Solicitar Novo Link".');
+      }
+
       // Limpar o hash da URL
       window.history.replaceState(null, '', window.location.pathname);
       return;
