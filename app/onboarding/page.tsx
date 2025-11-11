@@ -32,25 +32,48 @@ function OnboardingForm() {
       accessToken: accessToken ? '✅ Presente' : '❌ Ausente',
       refreshToken: refreshToken ? '✅ Presente' : '❌ Ausente',
       type: tokenType,
-      expiresIn
+      expiresIn,
+      fullHash: hash.substring(0, 100) + '...'
     });
 
-    if (!accessToken || tokenType !== 'invite') {
-      console.error('❌ [Onboarding] Token inválido ou tipo incorreto');
+    // Validar se tem access_token (obrigatório)
+    if (!accessToken) {
+      console.error('❌ [Onboarding] Access token ausente');
       setError('Link de convite inválido ou expirado');
+      return;
+    }
+
+    // Se tem tokenType, validar que seja 'invite'
+    // Se não tem tokenType, aceitar (alguns links do Supabase não enviam o type)
+    if (tokenType && tokenType !== 'invite') {
+      console.error('❌ [Onboarding] Tipo de token incorreto:', tokenType);
+      setError('Link de convite inválido');
       return;
     }
 
     // Decodificar JWT para extrair dados do usuário
     try {
       const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      console.log('📋 [Onboarding] Dados do token:', payload);
+      console.log('📋 [Onboarding] Dados do token JWT:', {
+        email: payload.email,
+        sub: payload.sub,
+        user_metadata: payload.user_metadata,
+        app_metadata: payload.app_metadata
+      });
 
       const userMetadata = payload.user_metadata || {};
 
       // Detectar se é business ou creator baseado no entity_type
       const entityType = userMetadata.entity_type || 'business';
       const isCreator = entityType === 'creator';
+
+      console.log('👤 [Onboarding] Tipo de entidade detectado:', {
+        entityType,
+        isCreator,
+        role: userMetadata.role,
+        businessId: userMetadata.business_id,
+        creatorId: userMetadata.creator_id
+      });
 
       setUserData({
         email: payload.email,
@@ -68,9 +91,11 @@ function OnboardingForm() {
         expiresIn: parseInt(expiresIn || '3600')
       });
 
+      console.log('✅ [Onboarding] Dados do usuário configurados com sucesso');
+
     } catch (err) {
       console.error('❌ [Onboarding] Erro ao decodificar token:', err);
-      setError('Erro ao processar convite');
+      setError('Erro ao processar convite. Token inválido.');
     }
   }, []);
 

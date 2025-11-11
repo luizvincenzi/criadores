@@ -22,9 +22,18 @@ export default function LoginPage() {
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     const tokenType = params.get('type');
+    const accessToken = params.get('access_token');
     const errorType = params.get('error');
     const errorCode = params.get('error_code');
     const errorDescription = params.get('error_description');
+
+    console.log('🔍 [Login] Hash detectado:', {
+      tokenType,
+      hasAccessToken: !!accessToken,
+      errorType,
+      errorCode,
+      hashLength: hash.length
+    });
 
     // Detectar link de convite expirado
     if (errorType === 'access_denied' && errorCode === 'otp_expired') {
@@ -37,8 +46,18 @@ export default function LoginPage() {
     }
 
     // Detectar convite válido e redirecionar para onboarding
-    if (tokenType === 'invite') {
-      console.log('🎉 [Login] Convite detectado, redirecionando para onboarding');
+    // Verifica tanto type=invite quanto presença de access_token (convite válido)
+    if (tokenType === 'invite' || (accessToken && tokenType === 'invite')) {
+      console.log('🎉 [Login] Convite válido detectado, redirecionando para onboarding');
+      router.push(`/onboarding${window.location.hash}`);
+      return;
+    }
+
+    // Se tem access_token mas não tem type, pode ser um convite sem o parâmetro type
+    // Vamos verificar se é um token de convite válido
+    if (accessToken && !tokenType) {
+      console.log('🔍 [Login] Access token detectado sem type, verificando se é convite...');
+      // Redirecionar para onboarding para processar o token
       router.push(`/onboarding${window.location.hash}`);
       return;
     }
