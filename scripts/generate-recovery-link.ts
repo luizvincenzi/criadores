@@ -22,10 +22,11 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
-async function generateRecoveryLink() {
-  const ownerEmail = 'gustavucaliani@gmail.com';
-  
-  console.log('\n🔗 Gerando link de ativação para Gustavo Caliani...\n');
+async function generateRecoveryLink(emailParam?: string) {
+  // Aceitar email como parâmetro ou usar o padrão
+  const ownerEmail = emailParam || process.argv[2] || 'gustavucaliani@gmail.com';
+
+  console.log(`\n🔗 Gerando link de ativação para ${ownerEmail}...\n`);
 
   try {
     // 1. Buscar o usuário em platform_users
@@ -70,7 +71,7 @@ async function generateRecoveryLink() {
     console.log('✅ Link gerado com sucesso!');
     console.log('');
     console.log('═══════════════════════════════════════════════════════════════');
-    console.log('📧 LINK DE ATIVAÇÃO PARA GUSTAVO CALIANI:');
+    console.log(`📧 LINK DE ATIVAÇÃO PARA ${ownerEmail.toUpperCase()}:`);
     console.log('═══════════════════════════════════════════════════════════════');
     console.log('');
     console.log(data.properties.action_link);
@@ -79,7 +80,7 @@ async function generateRecoveryLink() {
     console.log('');
     console.log('💡 INSTRUÇÕES:');
     console.log('   1. Copie o link acima');
-    console.log('   2. Envie para o email: gustavucaliani@gmail.com');
+    console.log(`   2. Envie para o email: ${ownerEmail}`);
     console.log('   3. Peça para o usuário clicar no link');
     console.log('   4. O usuário deve criar uma senha');
     console.log('   5. Após criar a senha, o login será automático');
