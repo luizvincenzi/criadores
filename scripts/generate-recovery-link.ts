@@ -54,12 +54,12 @@ async function generateRecoveryLink(emailParam?: string) {
 
     // 2. Gerar link de recovery (funciona como invite para usuários sem senha)
     console.log('🔗 Gerando link de ativação...\n');
-    
+
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: ownerEmail,
       options: {
-        redirectTo: 'https://www.criadores.app/onboarding'
+        redirectTo: 'https://www.criadores.app/auth/callback'
       }
     });
 
