@@ -34,16 +34,16 @@ export default function SetPasswordPage() {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        console.log('🔐 [Senha] Inicializando autenticação...');
-        console.log('📍 [Senha] URL completa:', window.location.href);
-        console.log('📍 [Senha] Hash:', window.location.hash);
+        console.log(' [Senha] Inicializando autenticação...');
+        console.log(' [Senha] URL completa:', window.location.href);
+        console.log(' [Senha] Hash:', window.location.hash);
 
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         const type = hashParams.get('type');
 
-        console.log('📋 [Senha] Parâmetros da URL:', {
+        console.log(' [Senha] Parâmetros da URL:', {
           hasAccessToken: !!accessToken,
           hasRefreshToken: !!refreshToken,
           type
@@ -64,7 +64,7 @@ export default function SetPasswordPage() {
             return;
           }
 
-          console.log('✅ [Senha] Sessão definida com sucesso!');
+          console.log(' [Senha] Sessão definida com sucesso!');
           // Limpar hash da URL para não expor o token
           window.history.replaceState(null, '', window.location.pathname);
         }
@@ -78,8 +78,8 @@ export default function SetPasswordPage() {
           return;
         }
 
-        console.log('✅ [Senha] Sessão ativa encontrada');
-        console.log('👤 [Senha] Usuário:', session.user.email);
+        console.log(' [Senha] Sessão ativa encontrada');
+        console.log(' [Senha] Usuário:', session.user.email);
 
         setUserName(session.user.user_metadata?.full_name || '');
         setUserEmail(session.user.email || '');
@@ -186,7 +186,7 @@ export default function SetPasswordPage() {
   // Loading state
   if (initializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center">
@@ -202,7 +202,7 @@ export default function SetPasswordPage() {
   // Success state
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center">
@@ -222,7 +222,7 @@ export default function SetPasswordPage() {
   // Error state (sem sessão)
   if (error && !userEmail) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center">
@@ -246,7 +246,7 @@ export default function SetPasswordPage() {
 
   // Main form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
