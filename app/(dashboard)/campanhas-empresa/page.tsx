@@ -626,7 +626,7 @@ export default function CampanhasEmpresaPage() {
   const executedContentsCount = contents.filter(c => c.is_executed).length;
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans">
+    <div className="min-h-screen bg-[#F5F5F5] font-sans">
 
       {/* MAIN CONTENT */}
       <main className="max-w-5xl mx-auto px-6 pt-8 pb-20">
