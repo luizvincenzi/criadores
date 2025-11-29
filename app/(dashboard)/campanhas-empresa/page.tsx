@@ -599,269 +599,236 @@ export default function CampanhasEmpresaPage() {
             <p className="text-gray-500">Suas campanhas aparecerão aqui quando forem criadas.</p>
           </div>
         ) : (
-          <div className="relative">
-            {/* Linha vertical principal da timeline */}
-            <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-blue-300 to-gray-200"></div>
+          <div className="space-y-4">
+            {/* Agrupar por Trimestre */}
+            {Object.entries(groupCampaignsByQuarterAndMonth(campaigns))
+              .sort(([a], [b]) => {
+                const yearA = parseInt(a.match(/\d{4}/)?.[0] || '0');
+                const yearB = parseInt(b.match(/\d{4}/)?.[0] || '0');
+                const qA = parseInt(a.match(/Q(\d)/)?.[1] || '0');
+                const qB = parseInt(b.match(/Q(\d)/)?.[1] || '0');
+                if (yearA !== yearB) return yearB - yearA;
+                return qB - qA;
+              })
+              .map(([quarterLabel, monthsData]) => {
+                const quarterStats = calculateQuarterStats(monthsData);
+                const isQuarterExpanded = expandedQuarters.has(quarterLabel);
+                // Formatar label do trimestre: "Q4 2025 (Out-Nov-Dez)" -> "Out - Dez 2025"
+                const quarterMonths = quarterLabel.match(/\(([^)]+)\)/)?.[1] || '';
+                const quarterYear = quarterLabel.match(/\d{4}/)?.[0] || '';
+                const monthParts = quarterMonths.split('-');
+                const simpleQuarterLabel = monthParts.length >= 2
+                  ? `${monthParts[0]} - ${monthParts[monthParts.length - 1]} ${quarterYear}`
+                  : quarterLabel;
 
-            <div className="space-y-6">
-              {/* Agrupar por Trimestre */}
-              {Object.entries(groupCampaignsByQuarterAndMonth(campaigns))
-                .sort(([a], [b]) => {
-                  // Ordenar trimestres do mais recente para o mais antigo
-                  const yearA = parseInt(a.match(/\d{4}/)?.[0] || '0');
-                  const yearB = parseInt(b.match(/\d{4}/)?.[0] || '0');
-                  const qA = parseInt(a.match(/Q(\d)/)?.[1] || '0');
-                  const qB = parseInt(b.match(/Q(\d)/)?.[1] || '0');
-                  if (yearA !== yearB) return yearB - yearA;
-                  return qB - qA;
-                })
-                .map(([quarterLabel, monthsData]) => {
-                  const quarterStats = calculateQuarterStats(monthsData);
-                  const isQuarterExpanded = expandedQuarters.has(quarterLabel);
-
-                  return (
-                    <div key={quarterLabel} className="relative">
-                      {/* Ponto do Trimestre na timeline */}
-                      <div className="absolute left-4 top-6 w-5 h-5 rounded-full bg-blue-600 border-4 border-white shadow-lg z-10"></div>
-
-                      {/* Header do Trimestre - CLICÁVEL */}
-                      <div className="ml-14">
-                        <div
-                          className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-5 cursor-pointer hover:shadow-lg transition-all"
-                          onClick={() => toggleQuarter(quarterLabel)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {isQuarterExpanded ? (
-                                <ChevronDown className="w-6 h-6 text-white" />
-                              ) : (
-                                <ChevronRight className="w-6 h-6 text-white" />
-                              )}
-                              <div>
-                                <h2 className="text-xl font-bold text-white">{quarterLabel}</h2>
-                                <p className="text-sm text-blue-100">Clique para {isQuarterExpanded ? 'colapsar' : 'expandir'}</p>
-                              </div>
-                            </div>
-
-                            {/* Métricas do Trimestre */}
-                            <div className="flex items-center gap-6">
-                              <div className="text-center">
-                                <p className="text-2xl font-bold text-white">{quarterStats.totalCampaigns}</p>
-                                <p className="text-xs text-blue-100">Campanhas</p>
-                              </div>
-                              {quarterStats.totalContents > 0 && (
-                                <div className="text-center">
-                                  <p className="text-2xl font-bold text-green-300">{quarterStats.executedContents}/{quarterStats.totalContents}</p>
-                                  <p className="text-xs text-green-200">Postados</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                return (
+                  <div key={quarterLabel}>
+                    {/* Header do Trimestre */}
+                    <div
+                      className="bg-amber-50 rounded-xl p-5 cursor-pointer hover:bg-amber-100 transition-all border border-amber-200"
+                      onClick={() => toggleQuarter(quarterLabel)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {isQuarterExpanded ? (
+                            <ChevronDown className="w-5 h-5 text-gray-600" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                          )}
+                          <h2 className="text-lg font-semibold text-gray-900">{simpleQuarterLabel}</h2>
                         </div>
+                        <span className="px-4 py-1.5 bg-green-600 text-white rounded-full text-sm font-medium">
+                          {quarterStats.totalCampaigns} {quarterStats.totalCampaigns === 1 ? 'campanha' : 'campanhas'}
+                        </span>
+                      </div>
+                      {/* Resumo do Trimestre */}
+                      <p className="text-sm text-gray-600 mt-2">
+                        <span className="font-medium">Resumo do Trimestre:</span> {quarterStats.totalCampaigns} campanhas
+                        {quarterStats.totalContents > 0 && `, ${quarterStats.executedContents}/${quarterStats.totalContents} conteúdos postados`}.
+                      </p>
+                    </div>
 
-                        {/* Meses dentro do Trimestre */}
-                        {isQuarterExpanded && (
-                          <div className="mt-4 space-y-4 relative">
-                            {/* Linha vertical dos meses */}
-                            <div className="absolute -left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+                    {/* Meses dentro do Trimestre */}
+                    {isQuarterExpanded && (
+                      <div className="mt-3 space-y-3 pl-4">
+                        {Object.entries(monthsData)
+                          .sort(([a], [b]) => b.localeCompare(a))
+                          .map(([monthKey, monthCampaigns]) => {
+                            const monthContents = getContentsForMonth(monthKey);
+                            const monthStats = calculateMonthStats(monthCampaigns, monthContents);
+                            const isMonthExpanded = expandedMonths.has(monthKey);
+                            const monthLabel = formatMonthLabel(monthKey);
 
-                            {Object.entries(monthsData)
-                              .sort(([a], [b]) => b.localeCompare(a))
-                              .map(([monthKey, monthCampaigns]) => {
-                                const monthContents = getContentsForMonth(monthKey);
-                                const monthStats = calculateMonthStats(monthCampaigns, monthContents);
-                                const isMonthExpanded = expandedMonths.has(monthKey);
-                                const monthLabel = formatMonthLabel(monthKey);
-
-                                return (
-                                  <div key={monthKey} className="relative">
-                                    {/* Ponto do Mês na timeline */}
-                                    <div className="absolute -left-10 top-4 w-4 h-4 rounded-full bg-teal-500 border-3 border-white shadow z-10"></div>
-
-                                    {/* Header do Mês - CLICÁVEL */}
-                                    <div
-                                      className="bg-white rounded-lg p-4 cursor-pointer hover:shadow-md transition-all border border-gray-200"
-                                      onClick={() => toggleMonth(monthKey)}
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                          {isMonthExpanded ? (
-                                            <ChevronDown className="w-5 h-5 text-gray-600" />
-                                          ) : (
-                                            <ChevronRight className="w-5 h-5 text-gray-600" />
-                                          )}
-                                          <h3 className="text-lg font-semibold text-gray-900 capitalize">{monthLabel}</h3>
-                                        </div>
-
-                                        {/* Métricas do Mês */}
-                                        <div className="flex items-center gap-4 flex-wrap">
-                                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                            {monthStats.campaigns} Campanhas
-                                          </span>
-                                          {monthStats.contents > 0 && (
-                                            <>
-                                              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                                                {monthStats.executed}/{monthStats.contents} Postados
-                                              </span>
-                                              {monthStats.reels > 0 && (
-                                                <span className="text-sm text-gray-600">{monthStats.reels} Reels</span>
-                                              )}
-                                              {monthStats.posts > 0 && (
-                                                <span className="text-sm text-gray-600">{monthStats.posts} Posts</span>
-                                              )}
-                                              {monthStats.stories > 0 && (
-                                                <span className="text-sm text-gray-600">{monthStats.stories} Stories</span>
-                                              )}
-                                            </>
-                                          )}
-                                        </div>
-                                      </div>
+                            return (
+                              <div key={monthKey}>
+                                {/* Header do Mês */}
+                                <div
+                                  className="bg-yellow-50 rounded-xl p-4 cursor-pointer hover:bg-yellow-100 transition-all border border-yellow-200"
+                                  onClick={() => toggleMonth(monthKey)}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      {isMonthExpanded ? (
+                                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                                      ) : (
+                                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                                      )}
+                                      <h3 className="text-base font-semibold text-gray-900 capitalize">{monthLabel}</h3>
                                     </div>
+                                    <span className="px-4 py-1.5 bg-green-600 text-white rounded-full text-sm font-medium">
+                                      {monthStats.campaigns} {monthStats.campaigns === 1 ? 'campanha' : 'campanhas'}
+                                    </span>
+                                  </div>
+                                  {/* Resumo do Mês */}
+                                  <p className="text-sm text-gray-600 mt-2">
+                                    <span className="font-medium">Resumo:</span> {monthStats.campaigns} campanhas
+                                    {monthStats.contents > 0 && `, ${monthStats.executed}/${monthStats.contents} conteúdos postados`}.
+                                  </p>
+                                </div>
 
-                                    {/* Conteúdo do Mês Expandido */}
-                                    {isMonthExpanded && (
-                                      <div className="mt-3 ml-4 space-y-4 relative">
-                                        {/* Linha vertical do conteúdo */}
-                                        <div className="absolute -left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                                {/* Conteúdo do Mês Expandido */}
+                                {isMonthExpanded && (
+                                  <div className="mt-4 space-y-4 pl-4 relative">
+                                    {/* Linha vertical azul da timeline */}
+                                    <div className="absolute left-1 top-0 bottom-0 w-0.5 bg-blue-400"></div>
+
                                     {/* Campanhas do Mês */}
-                                    {monthCampaigns.length > 0 && (
-                                      <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Campanhas</h4>
-                                        <div className="space-y-3">
-                                          {monthCampaigns.map((campaign: Campaign) => {
-                                            const creatorsCount = campaign.totalCriadores || campaign.deliverables?.creators_count || 0;
+                                    {monthCampaigns.map((campaign: Campaign) => {
+                                      const creatorsCount = campaign.totalCriadores || campaign.deliverables?.creators_count || 0;
 
-                                            return (
-                                              <div key={campaign.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-4 border border-gray-200">
-                                                {/* Header */}
-                                                <div className="flex items-start justify-between mb-3">
-                                                  <div className="flex-1">
-                                                    <h3 className="text-lg font-semibold text-gray-900">{campaign.title}</h3>
-                                                    <div className="flex items-center gap-3 text-sm text-gray-500">
-                                                      <span>{formatMonthYear(campaign.month)}</span>
-                                                      {campaign.start_date && campaign.end_date && (
-                                                        <span>• {format(new Date(campaign.start_date), 'dd/MM')} - {format(new Date(campaign.end_date), 'dd/MM/yyyy')}</span>
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                                                    {campaign.status}
-                                                  </span>
-                                                </div>
+                                      return (
+                                        <div key={campaign.id} className="relative pl-6">
+                                          {/* Ponto na timeline */}
+                                          <div className="absolute left-0 top-6 w-2.5 h-2.5 rounded-full bg-blue-500 -translate-x-1"></div>
 
-                                                {/* Descrição */}
-                                                {campaign.description && (
-                                                  <p className="text-gray-600 mb-3 text-sm">{campaign.description}</p>
-                                                )}
-
-                                                {/* Métricas */}
-                                                <div className="flex items-center gap-4 mb-3">
-                                                  <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
-                                                    {creatorsCount} Criadores
-                                                  </span>
-                                                  {campaign.deliverables && (
-                                                    <span className="text-sm text-gray-600">
-                                                      {(campaign.deliverables?.posts || 0) + (campaign.deliverables?.reels || 0) + (campaign.deliverables?.stories || 0)} Entregas
-                                                    </span>
+                                          <div className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-md transition-all">
+                                            {/* Header da Campanha */}
+                                            <div className="flex items-start justify-between mb-3">
+                                              <div>
+                                                <h4 className="text-lg font-semibold text-gray-900">{campaign.title}</h4>
+                                                <p className="text-sm text-blue-600 mt-1">
+                                                  {formatMonthYear(campaign.month)}
+                                                  {campaign.start_date && campaign.end_date && (
+                                                    <span className="text-gray-500"> - {format(new Date(campaign.start_date), 'dd/MM')} a {format(new Date(campaign.end_date), 'dd/MM/yyyy')}</span>
                                                   )}
-                                                </div>
-
-                                                {/* Botão Ver Detalhes */}
-                                                <button
-                                                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-all"
-                                                  onClick={() => openCampaignModal(campaign)}
-                                                >
-                                                  Ver Detalhes Completos
-                                                </button>
+                                                </p>
                                               </div>
-                                            );
-                                          })}
+                                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                                                {campaign.status}
+                                              </span>
+                                            </div>
+
+                                            {/* Descrição */}
+                                            {campaign.description && (
+                                              <p className="text-gray-600 text-sm mb-4">{campaign.description}</p>
+                                            )}
+
+                                            {/* Métricas em linha */}
+                                            <div className="flex items-center gap-3 mb-4">
+                                              <span className="text-sm text-gray-600">
+                                                <span className="font-medium text-gray-900">{creatorsCount}</span> Criadores
+                                              </span>
+                                              {campaign.deliverables && (
+                                                <span className="text-sm text-gray-600">
+                                                  <span className="font-medium text-gray-900">
+                                                    {(campaign.deliverables?.posts || 0) + (campaign.deliverables?.reels || 0) + (campaign.deliverables?.stories || 0)}
+                                                  </span> Entregas
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            {/* Botão Ver Detalhes */}
+                                            <button
+                                              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                                              onClick={() => openCampaignModal(campaign)}
+                                            >
+                                              Ver detalhes completos
+                                            </button>
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
+                                      );
+                                    })}
 
                                     {/* Conteúdos do Mês - Agrupados por Semana */}
                                     {monthContents.length > 0 && (
-                                      <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Conteúdo Planejado</h4>
-                                        {(() => {
-                                          const groupedByWeek = groupContentsByWeek(monthContents);
-                                          return (
-                                            <div className="space-y-3">
-                                              {Object.entries(groupedByWeek)
-                                                .sort(([a], [b]) => Number(a) - Number(b))
-                                                .map(([weekNum, weekContents]) => (
-                                                  <div key={weekNum} className="bg-white rounded-lg border border-gray-200 p-4">
-                                                    <h5 className="text-sm font-semibold text-gray-800 mb-3">
-                                                      Semana {weekNum}
-                                                      <span className="text-xs font-normal text-gray-500 ml-2">
-                                                        ({weekContents.length} {weekContents.length === 1 ? 'conteúdo' : 'conteúdos'})
-                                                      </span>
-                                                    </h5>
-                                                    <div className="space-y-2">
-                                                      {weekContents.map((content) => (
-                                                        <div
-                                                          key={content.id}
-                                                          className={`flex items-center justify-between p-3 rounded-lg ${
-                                                            content.is_executed
-                                                              ? 'bg-green-50 border border-green-200'
-                                                              : 'bg-gray-50 border border-gray-200'
-                                                          }`}
-                                                        >
-                                                          <div className="flex items-center gap-3">
-                                                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                                              content.content_type === 'reels' ? 'bg-blue-100 text-blue-700' :
-                                                              content.content_type === 'story' ? 'bg-teal-100 text-teal-700' : 'bg-gray-200 text-gray-700'
-                                                            }`}>
-                                                              {content.content_type === 'reels' ? 'Reels' :
-                                                               content.content_type === 'story' ? 'Story' : 'Post'}
-                                                            </span>
-                                                            <div>
-                                                              <p className="text-sm font-medium text-gray-900">{content.title}</p>
-                                                              <p className="text-xs text-gray-500">
-                                                                {format(new Date(content.scheduled_date), "dd/MM/yyyy", { locale: ptBR })}
-                                                              </p>
+                                      <div className="relative pl-6">
+                                        {/* Ponto na timeline */}
+                                        <div className="absolute left-0 top-6 w-2.5 h-2.5 rounded-full bg-blue-500 -translate-x-1"></div>
+
+                                        <div className="bg-white rounded-xl p-5 border border-gray-200">
+                                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Conteudo Planejado</h4>
+
+                                          {(() => {
+                                            const groupedByWeek = groupContentsByWeek(monthContents);
+                                            return (
+                                              <div className="space-y-4">
+                                                {Object.entries(groupedByWeek)
+                                                  .sort(([a], [b]) => Number(a) - Number(b))
+                                                  .map(([weekNum, weekContents]) => (
+                                                    <div key={weekNum}>
+                                                      <h5 className="text-sm font-medium text-gray-700 mb-2">
+                                                        Semana {weekNum}
+                                                        <span className="text-gray-400 font-normal ml-2">
+                                                          ({weekContents.length} {weekContents.length === 1 ? 'item' : 'itens'})
+                                                        </span>
+                                                      </h5>
+                                                      <div className="space-y-2">
+                                                        {weekContents.map((content) => (
+                                                          <div
+                                                            key={content.id}
+                                                            className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50"
+                                                          >
+                                                            <div className="flex items-center gap-3">
+                                                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                                content.content_type === 'reels' ? 'bg-blue-100 text-blue-700' :
+                                                                content.content_type === 'story' ? 'bg-teal-100 text-teal-700' : 'bg-gray-200 text-gray-700'
+                                                              }`}>
+                                                                {content.content_type === 'reels' ? 'Reels' :
+                                                                 content.content_type === 'story' ? 'Story' : 'Post'}
+                                                              </span>
+                                                              <span className="text-sm text-gray-900">{content.title}</span>
+                                                              <span className="text-xs text-gray-400">
+                                                                {format(new Date(content.scheduled_date), "dd/MM", { locale: ptBR })}
+                                                              </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                              {content.is_executed ? (
+                                                                <span className="text-green-600 text-xs font-medium">Postado</span>
+                                                              ) : (
+                                                                <span className="text-gray-400 text-xs">Pendente</span>
+                                                              )}
+                                                              {content.post_url && (
+                                                                <a
+                                                                  href={content.post_url}
+                                                                  target="_blank"
+                                                                  rel="noopener noreferrer"
+                                                                  className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                                                                >
+                                                                  Ver
+                                                                </a>
+                                                              )}
                                                             </div>
                                                           </div>
-                                                          <div className="flex items-center gap-2">
-                                                            {content.is_executed ? (
-                                                              <span className="text-green-600 text-xs font-medium px-2 py-1 bg-green-100 rounded">Postado</span>
-                                                            ) : (
-                                                              <span className="text-gray-500 text-xs px-2 py-1 bg-gray-100 rounded">Pendente</span>
-                                                            )}
-                                                            {content.post_url && (
-                                                              <a
-                                                                href={content.post_url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200 transition-colors"
-                                                              >
-                                                                Ver <ExternalLink className="w-3 h-3" />
-                                                              </a>
-                                                            )}
-                                                          </div>
-                                                        </div>
-                                                      ))}
+                                                        ))}
+                                                      </div>
                                                     </div>
-                                                  </div>
-                                                ))}
-                                            </div>
-                                          );
-                                        })()}
+                                                  ))}
+                                              </div>
+                                            );
+                                          })()}
                                         </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                       </div>
-                    </div>
-                  );
-                })}
-            </div>
+                    )}
+                  </div>
+                );
+              })}
           </div>
         )}
       </div>
