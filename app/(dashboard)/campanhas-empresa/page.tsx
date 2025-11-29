@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ChevronDown, ChevronRight, ExternalLink, FileText, Image, Film } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -79,16 +80,66 @@ interface Campaign {
   updated_at: string;
 }
 
+// Interface para conteúdos do planejamento
+interface ContentItem {
+  id: string;
+  title: string;
+  content_type: 'post' | 'reels' | 'story';
+  scheduled_date: string;
+  status: string;
+  is_executed: boolean;
+  post_url?: string;
+  description?: string;
+}
+
+// Interface para dados agrupados por mês
+interface MonthData {
+  month: number;
+  year: number;
+  label: string;
+  campaigns: Campaign[];
+  contents: ContentItem[];
+  stats: {
+    totalReels: number;
+    totalStories: number;
+    totalPosts: number;
+    postedReels: number;
+    postedStories: number;
+    postedPosts: number;
+  };
+}
+
+// Interface para dados agrupados por trimestre
+interface QuarterData {
+  quarter: number;
+  year: number;
+  label: string;
+  months: MonthData[];
+  stats: {
+    totalCampaigns: number;
+    totalContents: number;
+    totalViews: number;
+    avgEngagement: string;
+  };
+}
+
 export default function CampanhasEmpresaPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [contents, setContents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [businessId, setBusinessId] = useState<string>('');
   const [businessName, setBusinessName] = useState<string>('');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Estados para controlar acordeões
+  const [expandedQuarters, setExpandedQuarters] = useState<Set<string>>(new Set());
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
+  const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
+  const [expandedContentTypes, setExpandedContentTypes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function checkBusinessOwnerAccess() {
@@ -114,27 +165,55 @@ export default function CampanhasEmpresaPage() {
       setBusinessId(user.business_id);
       setHasAccess(true);
 
-      // Buscar informações do business
-      const businessResponse = await fetch(`/api/businesses/${user.business_id}`);
-      const business = await businessResponse.json();
-      setBusinessName(business.name);
+      try {
+        // Buscar informações do business
+        const businessResponse = await fetch(`/api/businesses/${user.business_id}`);
+        const business = await businessResponse.json();
+        setBusinessName(business.name);
 
-      // Buscar campanhas do business
-      const campaignsResponse = await fetch(`/api/supabase/campaigns?business_id=${user.business_id}`);
-      const campaignsData = await campaignsResponse.json();
+        // Buscar campanhas do business
+        const campaignsResponse = await fetch(`/api/supabase/campaigns?business_id=${user.business_id}`);
+        const campaignsData = await campaignsResponse.json();
 
-      console.log('📊 Campanhas recebidas:', campaignsData);
+        console.log('📊 Campanhas recebidas:', campaignsData);
 
-      if (campaignsData.success && campaignsData.data && Array.isArray(campaignsData.data)) {
-        // Ordenar por data de criação (mais recente primeiro)
-        const sortedCampaigns = campaignsData.data.sort((a: Campaign, b: Campaign) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        if (campaignsData.success && campaignsData.data && Array.isArray(campaignsData.data)) {
+          const sortedCampaigns = campaignsData.data.sort((a: Campaign, b: Campaign) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+          setCampaigns(sortedCampaigns);
+        } else {
+          console.log('⚠️ Nenhuma campanha encontrada ou erro na API');
+          setCampaigns([]);
+        }
+
+        // 🆕 Buscar conteúdos do planejamento (últimos 12 meses)
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+        const endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+
+        const contentsResponse = await fetch(
+          `/api/business-content?business_id=${user.business_id}&start=${format(startDate, 'yyyy-MM-dd')}&end=${format(endDate, 'yyyy-MM-dd')}`
         );
-        setCampaigns(sortedCampaigns);
-      } else {
-        // Se não houver campanhas ou erro, definir array vazio
-        console.log('⚠️ Nenhuma campanha encontrada ou erro na API');
-        setCampaigns([]);
+        const contentsData = await contentsResponse.json();
+
+        console.log('📱 Conteúdos recebidos:', contentsData);
+
+        if (contentsData.success && contentsData.contents) {
+          setContents(contentsData.contents);
+        }
+
+        // Expandir o trimestre atual por padrão
+        const currentQuarter = Math.ceil((today.getMonth() + 1) / 3);
+        const currentQuarterKey = `Q${currentQuarter}-${today.getFullYear()}`;
+        setExpandedQuarters(new Set([currentQuarterKey]));
+
+        // Expandir o mês atual por padrão
+        const currentMonthKey = `${today.getMonth() + 1}-${today.getFullYear()}`;
+        setExpandedMonths(new Set([currentMonthKey]));
+
+      } catch (error) {
+        console.error('❌ Erro ao carregar dados:', error);
       }
 
       setLoading(false);
@@ -356,373 +435,582 @@ export default function CampanhasEmpresaPage() {
     setTimeout(() => setSelectedCampaign(null), 300);
   };
 
-  return (
-    <div className="min-h-screen bg-[#f5f5f5] p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Minhas Campanhas</h1>
-        <p className="text-gray-600">{businessName}</p>
-        <p className="text-sm text-gray-500 mt-1">
-          {campaigns.length} {campaigns.length === 1 ? 'campanha' : 'campanhas'} realizadas
-        </p>
-      </div>
+  // 🆕 Toggle functions para acordeões
+  const toggleQuarter = (quarterKey: string) => {
+    setExpandedQuarters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(quarterKey)) {
+        newSet.delete(quarterKey);
+      } else {
+        newSet.add(quarterKey);
+      }
+      return newSet;
+    });
+  };
 
-      {/* Timeline */}
-      <div className="max-w-4xl mx-auto">
-        {campaigns.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma campanha encontrada</h3>
-            <p className="text-gray-500">Suas campanhas aparecerão aqui quando forem criadas.</p>
+  const toggleMonth = (monthKey: string) => {
+    setExpandedMonths(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(monthKey)) {
+        newSet.delete(monthKey);
+      } else {
+        newSet.add(monthKey);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleCampaign = (campaignId: string) => {
+    setExpandedCampaigns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(campaignId)) {
+        newSet.delete(campaignId);
+      } else {
+        newSet.add(campaignId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleContentType = (contentTypeKey: string) => {
+    setExpandedContentTypes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(contentTypeKey)) {
+        newSet.delete(contentTypeKey);
+      } else {
+        newSet.add(contentTypeKey);
+      }
+      return newSet;
+    });
+  };
+
+  // 🆕 Agrupar campanhas e conteúdos por trimestre e mês
+  const getGroupedData = () => {
+    const quarterMap = new Map<string, {
+      quarter: number;
+      year: number;
+      label: string;
+      months: Map<string, MonthData>;
+    }>();
+
+    // Agrupar campanhas
+    campaigns.forEach(campaign => {
+      const { quarter, year, label } = getQuarter(campaign.month);
+      const quarterKey = `Q${quarter}-${year}`;
+
+      if (!quarterMap.has(quarterKey)) {
+        quarterMap.set(quarterKey, {
+          quarter,
+          year,
+          label,
+          months: new Map()
+        });
+      }
+
+      // Extrair mês da campanha
+      let campaignMonth = 1;
+      let campaignYear = year;
+
+      if (campaign.month && campaign.month.match(/^\d{6}$/)) {
+        campaignYear = parseInt(campaign.month.substring(0, 4));
+        campaignMonth = parseInt(campaign.month.substring(4, 6));
+      } else if (campaign.month && campaign.month.match(/^\d{4}-\d{2}$/)) {
+        const [y, m] = campaign.month.split('-');
+        campaignYear = parseInt(y);
+        campaignMonth = parseInt(m);
+      } else if (campaign.month) {
+        const monthNames = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+                           'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const lowerMonth = campaign.month.toLowerCase();
+        for (let i = 0; i < monthNames.length; i++) {
+          if (lowerMonth.includes(monthNames[i])) {
+            campaignMonth = i + 1;
+            break;
+          }
+        }
+        const yearMatch = campaign.month.match(/(\d{4})/);
+        if (yearMatch) {
+          campaignYear = parseInt(yearMatch[1]);
+        }
+      }
+
+      const monthKey = `${campaignMonth}-${campaignYear}`;
+      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+      const quarterData = quarterMap.get(quarterKey)!;
+      if (!quarterData.months.has(monthKey)) {
+        quarterData.months.set(monthKey, {
+          month: campaignMonth,
+          year: campaignYear,
+          label: `${monthNames[campaignMonth - 1]} ${campaignYear}`,
+          campaigns: [],
+          contents: [],
+          stats: {
+            totalReels: 0,
+            totalStories: 0,
+            totalPosts: 0,
+            postedReels: 0,
+            postedStories: 0,
+            postedPosts: 0
+          }
+        });
+      }
+
+      quarterData.months.get(monthKey)!.campaigns.push(campaign);
+    });
+
+    // Agrupar conteúdos
+    contents.forEach(content => {
+      if (!content.scheduled_date) return;
+
+      const date = new Date(content.scheduled_date);
+      const contentMonth = date.getMonth() + 1;
+      const contentYear = date.getFullYear();
+      const quarter = Math.ceil(contentMonth / 3);
+      const quarterKey = `Q${quarter}-${contentYear}`;
+      const monthKey = `${contentMonth}-${contentYear}`;
+
+      const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      const monthRanges: Record<number, string> = {
+        1: 'Jan-Mar',
+        2: 'Abr-Jun',
+        3: 'Jul-Set',
+        4: 'Out-Dez'
+      };
+
+      if (!quarterMap.has(quarterKey)) {
+        quarterMap.set(quarterKey, {
+          quarter,
+          year: contentYear,
+          label: `Q${quarter} ${contentYear} (${monthRanges[quarter]})`,
+          months: new Map()
+        });
+      }
+
+      const quarterData = quarterMap.get(quarterKey)!;
+      if (!quarterData.months.has(monthKey)) {
+        quarterData.months.set(monthKey, {
+          month: contentMonth,
+          year: contentYear,
+          label: `${monthNames[contentMonth - 1]} ${contentYear}`,
+          campaigns: [],
+          contents: [],
+          stats: {
+            totalReels: 0,
+            totalStories: 0,
+            totalPosts: 0,
+            postedReels: 0,
+            postedStories: 0,
+            postedPosts: 0
+          }
+        });
+      }
+
+      const monthData = quarterData.months.get(monthKey)!;
+      monthData.contents.push(content);
+
+      // Atualizar stats
+      if (content.content_type === 'reels') {
+        monthData.stats.totalReels++;
+        if (content.is_executed || content.post_url) monthData.stats.postedReels++;
+      } else if (content.content_type === 'story') {
+        monthData.stats.totalStories++;
+        if (content.is_executed || content.post_url) monthData.stats.postedStories++;
+      } else if (content.content_type === 'post') {
+        monthData.stats.totalPosts++;
+        if (content.is_executed || content.post_url) monthData.stats.postedPosts++;
+      }
+    });
+
+    // Converter para array e ordenar (mais recente primeiro)
+    const result = Array.from(quarterMap.entries())
+      .map(([key, data]) => ({
+        key,
+        ...data,
+        months: Array.from(data.months.entries())
+          .map(([mKey, mData]) => ({ key: mKey, ...mData }))
+          .sort((a, b) => b.month - a.month || b.year - a.year)
+      }))
+      .sort((a, b) => b.year - a.year || b.quarter - a.quarter);
+
+    return result;
+  };
+
+  const groupedData = getGroupedData();
+
+  // Calcular totais gerais
+  const totalStats = {
+    totalContents: contents.length,
+    totalCampaigns: campaigns.length,
+    postedContents: contents.filter(c => c.is_executed || c.post_url).length,
+    totalViews: campaigns.reduce((sum, c) => sum + (c.results?.total_reach || 0), 0)
+  };
+
+  // Componente para acordeão de tipo de conteúdo
+  const ContentTypeAccordion = ({
+    type,
+    label,
+    icon,
+    contents: typeContents,
+    monthKey,
+    expandedContentTypes: expanded,
+    toggleContentType: toggle,
+    postedCount,
+    totalCount
+  }: {
+    type: string;
+    label: string;
+    icon: React.ReactNode;
+    contents: ContentItem[];
+    monthKey: string;
+    expandedContentTypes: Set<string>;
+    toggleContentType: (key: string) => void;
+    postedCount: number;
+    totalCount: number;
+  }) => {
+    const contentTypeKey = `${monthKey}-${type}`;
+    const isExpanded = expanded.has(contentTypeKey);
+
+    const bgColors: Record<string, string> = {
+      reels: 'bg-pink-50 border-pink-200 hover:bg-pink-100',
+      post: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+      story: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100'
+    };
+
+    const textColors: Record<string, string> = {
+      reels: 'text-pink-700',
+      post: 'text-blue-700',
+      story: 'text-yellow-700'
+    };
+
+    return (
+      <div className={`border rounded-lg overflow-hidden ${bgColors[type] || 'bg-gray-50 border-gray-200'}`}>
+        <button
+          onClick={() => toggle(contentTypeKey)}
+          className="w-full px-3 py-2 flex items-center justify-between transition-all"
+        >
+          <div className="flex items-center gap-2">
+            {isExpanded ? <ChevronDown size={16} className={textColors[type]} /> : <ChevronRight size={16} className={textColors[type]} />}
+            <span className={textColors[type]}>{icon}</span>
+            <span className={`font-medium ${textColors[type]}`}>{label}</span>
           </div>
-        ) : (
-          <div className="space-y-12">
-            {Object.entries(groupCampaignsByQuarter(campaigns)).map(([quarterLabel, campaignsInQuarter]) => {
-              const stats = calculateTrimestrStats(campaignsInQuarter);
+          <span className={`text-xs ${textColors[type]} font-medium`}>
+            {postedCount}/{totalCount} postados
+          </span>
+        </button>
+
+        {isExpanded && (
+          <div className="px-3 pb-3 space-y-2">
+            {typeContents.map((content) => {
+              const isPosted = content.is_executed || !!content.post_url;
 
               return (
-                <div key={quarterLabel} className="space-y-8">
-                  {/* Card de Análise Trimestral */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h2 className="text-2xl font-bold text-blue-900 mb-1">Trimestre {quarterLabel}</h2>
-                        <p className="text-sm text-blue-700">Análise consolidada do período</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-blue-600 font-medium">{campaignsInQuarter.length} campanhas</p>
-                      </div>
+                <div
+                  key={content.id}
+                  className="bg-white rounded-lg p-3 border border-gray-100 flex items-center justify-between"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={isPosted ? 'text-green-500' : 'text-yellow-500'}>
+                        {isPosted ? '✅' : '⏳'}
+                      </span>
+                      <span className="font-medium text-gray-900 text-sm truncate">
+                        {content.title || 'Sem título'}
+                      </span>
                     </div>
-
-                    {/* Métricas do Trimestre */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="bg-white rounded-lg p-4 text-center border border-blue-200">
-                        <p className="text-xs text-blue-600 font-semibold mb-1">POSTAGENS</p>
-                        <p className="text-3xl font-bold text-blue-900">{stats.totalPosts}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 text-center border border-indigo-200">
-                        <p className="text-xs text-indigo-600 font-semibold mb-1">VISUALIZAÇÕES</p>
-                        <p className="text-3xl font-bold text-indigo-900">{formatNumber(stats.totalViews)}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 text-center border border-purple-200">
-                        <p className="text-xs text-purple-600 font-semibold mb-1">ENGAJAMENTO</p>
-                        <p className="text-3xl font-bold text-purple-900">{stats.avgEngagement}%</p>
-                      </div>
-                    </div>
-
-                    {/* Análise Qualitativa */}
-                    <div className="bg-white rounded-lg p-4 border border-blue-200">
-                      <p className="text-sm text-gray-700">
-                        <span className="font-semibold text-blue-900">Resumo do Trimestre:</span> Realizamos <span className="font-bold text-blue-900">{stats.totalPosts} postagens</span> neste trimestre, alcançando <span className="font-bold text-indigo-900">{formatNumber(stats.totalViews)} visualizações</span> no total. O engajamento médio foi de <span className="font-bold text-purple-900">{stats.avgEngagement}%</span>, demonstrando a qualidade do conteúdo entregue pelos nossos criadores parceiros.
-                      </p>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      📅 {format(new Date(content.scheduled_date), "dd 'de' MMM", { locale: ptBR })}
+                    </p>
                   </div>
 
-                  {/* Campanhas do Trimestre */}
-                  <div className="relative">
-                    {/* Linha vertical da timeline */}
-                    <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
-
-                    {/* Campanhas */}
-                    <div className="space-y-8">
-                      {campaignsInQuarter.map((campaign, index) => {
-                const totalReach = campaign.results?.total_reach || 0;
-                const totalEngagement = campaign.results?.total_engagement || 0;
-                const roi = campaign.results?.roi || 0;
-                const creatorsCount = campaign.totalCriadores || campaign.deliverables?.creators_count || 0;
-
-                return (
-                  <div key={campaign.id} className="relative pl-20">
-                    {/* Círculo na timeline */}
-                    <div className="absolute left-6 top-6 w-4 h-4 rounded-full bg-blue-600 border-4 border-white shadow"></div>
-
-                    {/* Card da campanha - DETALHADO */}
-                    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all p-6">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-1">{campaign.title}</h3>
-                          <div className="flex items-center gap-3 text-sm text-gray-500">
-                            <span>{formatMonthYear(campaign.month)}</span>
-                            {campaign.start_date && campaign.end_date && (
-                              <span>• {format(new Date(campaign.start_date), 'dd/MM')} - {format(new Date(campaign.end_date), 'dd/MM/yyyy')}</span>
-                            )}
-                          </div>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                          {campaign.status}
-                        </span>
-                      </div>
-
-                      {/* Descrição */}
-                      {campaign.description && (
-                        <p className="text-gray-600 mb-4 text-sm">{campaign.description}</p>
-                      )}
-
-                      {/* Objetivo Principal */}
-                      {campaign.objectives?.primary && (
-                        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                          <p className="text-xs font-semibold text-blue-700 mb-1">🎯 Objetivo Principal</p>
-                          <p className="text-sm text-blue-900">{campaign.objectives.primary}</p>
-                        </div>
-                      )}
-
-                      {/* Métricas Principais */}
-                      <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                          <p className="text-xs text-blue-600 mb-1">Alcance</p>
-                          <p className="text-2xl font-bold text-blue-700">{formatNumber(totalReach)}</p>
-                        </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg">
-                          <p className="text-xs text-pink-600 mb-1">Engajamento</p>
-                          <p className="text-2xl font-bold text-pink-700">{formatNumber(totalEngagement)}</p>
-                        </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                          <p className="text-xs text-purple-600 mb-1">Criadores</p>
-                          <p className="text-2xl font-bold text-purple-700">{creatorsCount}</p>
-                        </div>
-                      </div>
-
-                      {/* Entregas Planejadas */}
-                      {campaign.deliverables && (
-                        <div className="mb-4">
-                          <p className="text-xs font-semibold text-gray-700 mb-2">Entregas Planejadas</p>
-                          <div className="flex gap-3 flex-wrap">
-                            {campaign.deliverables.posts > 0 && (
-                              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                {campaign.deliverables.posts} Posts
-                              </span>
-                            )}
-                            {campaign.deliverables.reels > 0 && (
-                              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                {campaign.deliverables.reels} Reels
-                              </span>
-                            )}
-                            {campaign.deliverables.stories > 0 && (
-                              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                {campaign.deliverables.stories} Stories
-                              </span>
-                            )}
-                            {campaign.deliverables.events > 0 && (
-                              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                                {campaign.deliverables.events} Eventos
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Preview de Criadores */}
-                      {campaign.criadores && campaign.criadores.length > 0 && (
-                        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                          <p className="text-xs font-semibold text-gray-700 mb-2">👥 Criadores Participantes</p>
-                          <div className="flex flex-wrap gap-2">
-                            {campaign.criadores.slice(0, 6).map((creator, idx) => (
-                              <div key={idx} className="flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-gray-200">
-                                <span className="text-sm font-medium text-gray-900">{creator.nome}</span>
-                                {creator.instagram && (
-                                  <span className="text-xs text-gray-500">@{formatInstagramHandle(creator.instagram)}</span>
-                                )}
-                              </div>
-                            ))}
-                            {campaign.criadores.length > 6 && (
-                              <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-xs font-medium">
-                                +{campaign.criadores.length - 6} criadores
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Links de Vídeos - Instagram e TikTok */}
-                      {campaign.criadores && campaign.criadores.some(c => c.video_instagram_link || c.video_tiktok_link) && (
-                        <div className="mb-4">
-                          <p className="text-xs font-semibold text-gray-700 mb-3">🎬 Vídeos Publicados (Instagram & TikTok)</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {campaign.criadores.map((creator, idx) => {
-                              if (!creator.video_instagram_link && !creator.video_tiktok_link) return null;
-
-                              return (
-                                <div key={idx} className="space-y-2">
-                                  <p className="text-xs font-medium text-gray-600 mb-1">{creator.nome}</p>
-                                  <div className="space-y-1">
-                                    {creator.video_instagram_link && (
-                                      <a
-                                        href={creator.video_instagram_link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 p-2 bg-gradient-to-r from-pink-50 to-red-50 hover:from-pink-100 hover:to-red-100 rounded-lg transition-all group"
-                                      >
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-red-600 flex-shrink-0">
-                                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
-                                          <path d="M12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                                        </svg>
-                                        <span className="text-xs text-gray-700 group-hover:text-red-700 truncate flex-1">🎥 Instagram</span>
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-red-600 flex-shrink-0">
-                                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                          <polyline points="15 3 21 3 21 9" />
-                                          <line x1="10" y1="14" x2="21" y2="3" />
-                                        </svg>
-                                      </a>
-                                    )}
-                                    {creator.video_tiktok_link && (
-                                      <a
-                                        href={creator.video_tiktok_link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 p-2 bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black rounded-lg transition-all group"
-                                      >
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-white flex-shrink-0">
-                                          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.1 1.82 2.89 2.89 0 0 1 5.1-1.82V9.75a6.45 6.45 0 0 0-6.45 6.45c0 3.56 2.97 6.45 6.45 6.45s6.45-2.89 6.45-6.45-2.89-6.45-6.45-6.45"/>
-                                        </svg>
-                                        <span className="text-xs text-white truncate flex-1">🎵 TikTok</span>
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300 group-hover:text-white flex-shrink-0">
-                                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                          <polyline points="15 3 21 3 21 9" />
-                                          <line x1="10" y1="14" x2="21" y2="3" />
-                                        </svg>
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Links do Instagram */}
-                      {campaign.criadores && campaign.criadores.some(c => c.deliverables?.content_links && c.deliverables.content_links.length > 0) && (
-                        <div className="mb-4">
-                          <p className="text-xs font-semibold text-gray-700 mb-3">🔗 Posts Publicados no Instagram</p>
-                          <div className="space-y-2">
-                            {campaign.criadores.map((creator, idx) => {
-                              if (!creator.deliverables?.content_links || creator.deliverables.content_links.length === 0) return null;
-
-                              return (
-                                <div key={idx} className="bg-white border border-gray-200 rounded-lg p-3">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="font-medium text-gray-900 text-sm">{creator.nome}</span>
-                                    {creator.instagram && (
-                                      <a
-                                        href={getInstagramProfileUrl(creator.instagram)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs text-pink-600 hover:underline"
-                                      >
-                                        @{formatInstagramHandle(creator.instagram)}
-                                      </a>
-                                    )}
-                                  </div>
-                                  <div className="space-y-1">
-                                    {creator.deliverables.content_links.map((link, linkIdx) => (
-                                      <a
-                                        key={linkIdx}
-                                        href={link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 p-2 bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 rounded-lg transition-all group"
-                                      >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-pink-600 flex-shrink-0">
-                                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
-                                          <path d="M12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                                        </svg>
-                                        <span className="text-sm text-gray-700 group-hover:text-pink-700 truncate flex-1">{link}</span>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-pink-600 flex-shrink-0">
-                                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                          <polyline points="15 3 21 3 21 9" />
-                                          <line x1="10" y1="14" x2="21" y2="3" />
-                                        </svg>
-                                      </a>
-                                    ))}
-                                  </div>
-
-                                  {/* Links de Vídeo - Instagram e TikTok */}
-                                  {(creator.video_instagram_link || creator.video_tiktok_link) && (
-                                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
-                                      {creator.video_instagram_link && (
-                                        <a
-                                          href={creator.video_instagram_link}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-2 p-2 bg-gradient-to-r from-pink-50 to-red-50 hover:from-pink-100 hover:to-red-100 rounded-lg transition-all group"
-                                        >
-                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-red-600 flex-shrink-0">
-                                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/>
-                                            <path d="M12 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                                          </svg>
-                                          <span className="text-sm text-gray-700 group-hover:text-red-700 truncate flex-1">🎥 Vídeo Instagram</span>
-                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400 group-hover:text-red-600 flex-shrink-0">
-                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                            <polyline points="15 3 21 3 21 9" />
-                                            <line x1="10" y1="14" x2="21" y2="3" />
-                                          </svg>
-                                        </a>
-                                      )}
-                                      {creator.video_tiktok_link && (
-                                        <a
-                                          href={creator.video_tiktok_link}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-2 p-2 bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black rounded-lg transition-all group"
-                                        >
-                                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white flex-shrink-0">
-                                            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.1 1.82 2.89 2.89 0 0 1 5.1-1.82V9.75a6.45 6.45 0 0 0-6.45 6.45c0 3.56 2.97 6.45 6.45 6.45s6.45-2.89 6.45-6.45-2.89-6.45-6.45-6.45"/>
-                                          </svg>
-                                          <span className="text-sm text-white group-hover:text-gray-200 truncate flex-1">🎵 Vídeo TikTok</span>
-                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-300 group-hover:text-white flex-shrink-0">
-                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                            <polyline points="15 3 21 3 21 9" />
-                                            <line x1="10" y1="14" x2="21" y2="3" />
-                                          </svg>
-                                        </a>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {/* Métricas do criador se disponível */}
-                                  {creator.deliverables.total_views && (
-                                    <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
-                                      {creator.deliverables.total_views > 0 && (
-                                        <span>👁️ {formatNumber(creator.deliverables.total_views)} views</span>
-                                      )}
-                                      {creator.deliverables.likes && creator.deliverables.likes > 0 && (
-                                        <span>❤️ {formatNumber(creator.deliverables.likes)} likes</span>
-                                      )}
-                                      {creator.deliverables.engagement_rate && (
-                                        <span>📈 {creator.deliverables.engagement_rate}% eng.</span>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Botão Ver Detalhes Completos */}
-                      <button
-                        className="w-full mt-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 shadow-sm"
-                        onClick={() => openCampaignModal(campaign)}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        Ver Detalhes Completos e Links dos Posts
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-                    </div>
-                  </div>
+                  {content.post_url && (
+                    <a
+                      href={content.post_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs hover:bg-pink-200 transition-colors"
+                    >
+                      <ExternalLink size={12} />
+                      Ver post
+                    </a>
+                  )}
                 </div>
               );
             })}
           </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f5f5f5] p-4 md:p-6">
+      {/* Header com Resumo Geral */}
+      <div className="mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">📊 Campanhas & Conteúdo</h1>
+          <p className="text-gray-600">{businessName}</p>
+
+          {/* Métricas Gerais */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 text-center">
+              <p className="text-xs text-blue-600 font-medium">Campanhas</p>
+              <p className="text-2xl font-bold text-blue-700">{totalStats.totalCampaigns}</p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 text-center">
+              <p className="text-xs text-purple-600 font-medium">Conteúdos</p>
+              <p className="text-2xl font-bold text-purple-700">{totalStats.totalContents}</p>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 text-center">
+              <p className="text-xs text-green-600 font-medium">Postados</p>
+              <p className="text-2xl font-bold text-green-700">{totalStats.postedContents}</p>
+            </div>
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-3 text-center">
+              <p className="text-xs text-pink-600 font-medium">Alcance</p>
+              <p className="text-2xl font-bold text-pink-700">{formatNumber(totalStats.totalViews)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline com Acordeões */}
+      <div className="max-w-5xl mx-auto space-y-4">
+        {groupedData.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum conteúdo encontrado</h3>
+            <p className="text-gray-500">Suas campanhas e conteúdos aparecerão aqui.</p>
+          </div>
+        ) : (
+          groupedData.map((quarterData) => {
+            const isQuarterExpanded = expandedQuarters.has(quarterData.key);
+            const quarterStats = calculateTrimestrStats(quarterData.months.flatMap(m => m.campaigns));
+            const totalQuarterContents = quarterData.months.reduce((sum, m) => sum + m.contents.length, 0);
+
+            return (
+              <div key={quarterData.key} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                {/* Header do Trimestre - Clicável */}
+                <button
+                  onClick={() => toggleQuarter(quarterData.key)}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between hover:from-blue-700 hover:to-indigo-700 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    {isQuarterExpanded ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
+                    <div className="text-left">
+                      <h2 className="text-xl font-bold">{quarterData.label}</h2>
+                      <p className="text-blue-100 text-sm">
+                        {quarterData.months.flatMap(m => m.campaigns).length} campanhas • {totalQuarterContents} conteúdos
+                      </p>
+                    </div>
+                  </div>
+                  <div className="hidden md:flex items-center gap-4 text-sm">
+                    <span className="bg-white/20 px-3 py-1 rounded-full">📊 {quarterStats.totalPosts} posts</span>
+                    <span className="bg-white/20 px-3 py-1 rounded-full">👁️ {formatNumber(quarterStats.totalViews)} views</span>
+                  </div>
+                </button>
+
+                {/* Conteúdo do Trimestre - Expandível */}
+                {isQuarterExpanded && (
+                  <div className="p-4 space-y-4">
+                    {/* Métricas do Trimestre */}
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                      <div className="bg-blue-50 rounded-lg p-3 text-center border border-blue-100">
+                        <p className="text-xs text-blue-600 font-semibold">POSTAGENS</p>
+                        <p className="text-2xl font-bold text-blue-700">{quarterStats.totalPosts}</p>
+                      </div>
+                      <div className="bg-indigo-50 rounded-lg p-3 text-center border border-indigo-100">
+                        <p className="text-xs text-indigo-600 font-semibold">VISUALIZAÇÕES</p>
+                        <p className="text-2xl font-bold text-indigo-700">{formatNumber(quarterStats.totalViews)}</p>
+                      </div>
+                      <div className="bg-purple-50 rounded-lg p-3 text-center border border-purple-100">
+                        <p className="text-xs text-purple-600 font-semibold">ENGAJAMENTO</p>
+                        <p className="text-2xl font-bold text-purple-700">{quarterStats.avgEngagement}%</p>
+                      </div>
+                    </div>
+
+                    {/* Meses do Trimestre */}
+                    {quarterData.months.map((monthData) => {
+                      const isMonthExpanded = expandedMonths.has(monthData.key);
+                      const totalMonthContents = monthData.contents.length;
+                      const postedContents = monthData.contents.filter(c => c.is_executed || c.post_url).length;
+
+                      return (
+                        <div key={monthData.key} className="border border-gray-200 rounded-lg overflow-hidden">
+                          {/* Header do Mês - Clicável */}
+                          <button
+                            onClick={() => toggleMonth(monthData.key)}
+                            className="w-full px-4 py-3 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-all"
+                          >
+                            <div className="flex items-center gap-2">
+                              {isMonthExpanded ? <ChevronDown size={20} className="text-gray-600" /> : <ChevronRight size={20} className="text-gray-600" />}
+                              <span className="font-semibold text-gray-900">{monthData.label}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              {monthData.campaigns.length > 0 && (
+                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                  📢 {monthData.campaigns.length} campanha{monthData.campaigns.length > 1 ? 's' : ''}
+                                </span>
+                              )}
+                              {totalMonthContents > 0 && (
+                                <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                  📱 {postedContents}/{totalMonthContents} postados
+                                </span>
+                              )}
+                              {monthData.stats.totalReels > 0 && (
+                                <span className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full hidden md:inline-flex">
+                                  🎬 {monthData.stats.postedReels}/{monthData.stats.totalReels} Reels
+                                </span>
+                              )}
+                            </div>
+                          </button>
+
+                          {/* Conteúdo do Mês - Expandível */}
+                          {isMonthExpanded && (
+                            <div className="p-4 space-y-4 bg-white">
+                              {/* Campanhas do Mês */}
+                              {monthData.campaigns.length > 0 && (
+                                <div className="space-y-3">
+                                  <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs">📢 CAMPANHAS</span>
+                                  </h4>
+                                  {monthData.campaigns.map((campaign) => {
+                                    const isCampaignExpanded = expandedCampaigns.has(campaign.id);
+                                    const creatorsCount = campaign.totalCriadores || campaign.deliverables?.creators_count || 0;
+
+                                    return (
+                                      <div key={campaign.id} className="border border-blue-200 rounded-lg overflow-hidden">
+                                        <button
+                                          onClick={() => toggleCampaign(campaign.id)}
+                                          className="w-full px-4 py-3 bg-blue-50 flex items-center justify-between hover:bg-blue-100 transition-all"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            {isCampaignExpanded ? <ChevronDown size={18} className="text-blue-600" /> : <ChevronRight size={18} className="text-blue-600" />}
+                                            <span className="font-medium text-blue-900">{campaign.title}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusColor(campaign.status)}`}>
+                                              {campaign.status}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-2 text-xs text-blue-700">
+                                            <span>👥 {creatorsCount} criadores</span>
+                                            <span>👁️ {formatNumber(campaign.results?.total_reach || 0)}</span>
+                                          </div>
+                                        </button>
+
+                                        {isCampaignExpanded && (
+                                          <div className="p-4 space-y-3">
+                                            {campaign.description && (
+                                              <p className="text-sm text-gray-600">{campaign.description}</p>
+                                            )}
+
+                                            {/* Métricas da Campanha */}
+                                            <div className="grid grid-cols-3 gap-2">
+                                              <div className="bg-blue-50 p-2 rounded text-center">
+                                                <p className="text-xs text-blue-600">Alcance</p>
+                                                <p className="font-bold text-blue-700">{formatNumber(campaign.results?.total_reach || 0)}</p>
+                                              </div>
+                                              <div className="bg-pink-50 p-2 rounded text-center">
+                                                <p className="text-xs text-pink-600">Engajamento</p>
+                                                <p className="font-bold text-pink-700">{formatNumber(campaign.results?.total_engagement || 0)}</p>
+                                              </div>
+                                              <div className="bg-purple-50 p-2 rounded text-center">
+                                                <p className="text-xs text-purple-600">Criadores</p>
+                                                <p className="font-bold text-purple-700">{creatorsCount}</p>
+                                              </div>
+                                            </div>
+
+                                            {/* Botão Ver Detalhes */}
+                                            <button
+                                              onClick={() => openCampaignModal(campaign)}
+                                              className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                                            >
+                                              <ExternalLink size={16} />
+                                              Ver Detalhes Completos
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {/* Planejamento de Conteúdo do Mês */}
+                              {monthData.contents.length > 0 && (
+                                <div className="space-y-3">
+                                  <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <span className="bg-purple-600 text-white px-2 py-0.5 rounded text-xs">📱 PLANEJAMENTO DE CONTEÚDO</span>
+                                    <span className="text-gray-500 font-normal">
+                                      ({monthData.contents.filter(c => c.is_executed || c.post_url).length} postados de {monthData.contents.length})
+                                    </span>
+                                  </h4>
+
+                                  {/* Reels */}
+                                  {monthData.stats.totalReels > 0 && (
+                                    <ContentTypeAccordion
+                                      type="reels"
+                                      label="Reels"
+                                      icon={<Film size={16} />}
+                                      contents={monthData.contents.filter(c => c.content_type === 'reels')}
+                                      monthKey={monthData.key}
+                                      expandedContentTypes={expandedContentTypes}
+                                      toggleContentType={toggleContentType}
+                                      postedCount={monthData.stats.postedReels}
+                                      totalCount={monthData.stats.totalReels}
+                                    />
+                                  )}
+
+                                  {/* Posts */}
+                                  {monthData.stats.totalPosts > 0 && (
+                                    <ContentTypeAccordion
+                                      type="post"
+                                      label="Posts"
+                                      icon={<Image size={16} />}
+                                      contents={monthData.contents.filter(c => c.content_type === 'post')}
+                                      monthKey={monthData.key}
+                                      expandedContentTypes={expandedContentTypes}
+                                      toggleContentType={toggleContentType}
+                                      postedCount={monthData.stats.postedPosts}
+                                      totalCount={monthData.stats.totalPosts}
+                                    />
+                                  )}
+
+                                  {/* Stories */}
+                                  {monthData.stats.totalStories > 0 && (
+                                    <ContentTypeAccordion
+                                      type="story"
+                                      label="Stories"
+                                      icon={<FileText size={16} />}
+                                      contents={monthData.contents.filter(c => c.content_type === 'story')}
+                                      monthKey={monthData.key}
+                                      expandedContentTypes={expandedContentTypes}
+                                      toggleContentType={toggleContentType}
+                                      postedCount={monthData.stats.postedStories}
+                                      totalCount={monthData.stats.totalStories}
+                                    />
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Mensagem se não há nada no mês */}
+                              {monthData.campaigns.length === 0 && monthData.contents.length === 0 && (
+                                <p className="text-gray-500 text-sm text-center py-4">
+                                  Nenhuma campanha ou conteúdo neste mês.
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 
