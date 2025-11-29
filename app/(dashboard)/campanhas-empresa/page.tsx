@@ -623,34 +623,37 @@ export default function CampanhasEmpresaPage() {
 
                 return (
                   <div key={quarterLabel}>
-                    {/* Header do Trimestre */}
+                    {/* Header do Trimestre - AZUL */}
                     <div
-                      className="bg-amber-50 rounded-xl p-5 cursor-pointer hover:bg-amber-100 transition-all border border-amber-200"
+                      className="bg-blue-600 rounded-xl p-5 cursor-pointer hover:bg-blue-700 transition-all shadow-sm"
                       onClick={() => toggleQuarter(quarterLabel)}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           {isQuarterExpanded ? (
-                            <ChevronDown className="w-5 h-5 text-gray-600" />
+                            <ChevronDown className="w-5 h-5 text-white" />
                           ) : (
-                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                            <ChevronRight className="w-5 h-5 text-white" />
                           )}
-                          <h2 className="text-lg font-semibold text-gray-900">{simpleQuarterLabel}</h2>
+                          <h2 className="text-lg font-semibold text-white">{simpleQuarterLabel}</h2>
                         </div>
-                        <span className="px-4 py-1.5 bg-green-600 text-white rounded-full text-sm font-medium">
+                        <span className="px-4 py-1.5 bg-white/20 text-white rounded-full text-sm font-medium backdrop-blur-sm">
                           {quarterStats.totalCampaigns} {quarterStats.totalCampaigns === 1 ? 'campanha' : 'campanhas'}
                         </span>
                       </div>
                       {/* Resumo do Trimestre */}
-                      <p className="text-sm text-gray-600 mt-2">
-                        <span className="font-medium">Resumo do Trimestre:</span> {quarterStats.totalCampaigns} campanhas
-                        {quarterStats.totalContents > 0 && `, ${quarterStats.executedContents}/${quarterStats.totalContents} conteúdos postados`}.
+                      <p className="text-sm text-blue-100 mt-2">
+                        {quarterStats.totalCampaigns} campanhas
+                        {quarterStats.totalContents > 0 && ` | ${quarterStats.executedContents}/${quarterStats.totalContents} conteúdos postados`}
                       </p>
                     </div>
 
                     {/* Meses dentro do Trimestre */}
                     {isQuarterExpanded && (
-                      <div className="mt-3 space-y-3 pl-4">
+                      <div className="mt-4 space-y-3 pl-6 relative">
+                        {/* Linha vertical principal do trimestre - cinza clara e fina */}
+                        <div className="absolute left-2 top-0 bottom-0 w-px bg-gray-200"></div>
+
                         {Object.entries(monthsData)
                           .sort(([a], [b]) => b.localeCompare(a))
                           .map(([monthKey, monthCampaigns]) => {
@@ -660,48 +663,54 @@ export default function CampanhasEmpresaPage() {
                             const monthLabel = formatMonthLabel(monthKey);
 
                             return (
-                              <div key={monthKey}>
+                              <div key={monthKey} className="relative">
+                                {/* Ponto do mês na timeline principal */}
+                                <div className="absolute -left-4 top-5 w-2 h-2 rounded-full bg-gray-300 border-2 border-white shadow-sm"></div>
+
                                 {/* Header do Mês */}
                                 <div
-                                  className="bg-yellow-50 rounded-xl p-4 cursor-pointer hover:bg-yellow-100 transition-all border border-yellow-200"
+                                  className="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-all border border-gray-200"
                                   onClick={() => toggleMonth(monthKey)}
                                 >
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                       {isMonthExpanded ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                                        <ChevronDown className="w-4 h-4 text-gray-500" />
                                       ) : (
-                                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                                        <ChevronRight className="w-4 h-4 text-gray-500" />
                                       )}
-                                      <h3 className="text-base font-semibold text-gray-900 capitalize">{monthLabel}</h3>
+                                      <h3 className="text-base font-medium text-gray-900 capitalize">{monthLabel}</h3>
                                     </div>
-                                    <span className="px-4 py-1.5 bg-green-600 text-white rounded-full text-sm font-medium">
+                                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                                       {monthStats.campaigns} {monthStats.campaigns === 1 ? 'campanha' : 'campanhas'}
                                     </span>
                                   </div>
-                                  {/* Resumo do Mês */}
-                                  <p className="text-sm text-gray-600 mt-2">
-                                    <span className="font-medium">Resumo:</span> {monthStats.campaigns} campanhas
-                                    {monthStats.contents > 0 && `, ${monthStats.executed}/${monthStats.contents} conteúdos postados`}.
-                                  </p>
+                                  {monthStats.contents > 0 && (
+                                    <p className="text-xs text-gray-500 mt-1.5 ml-6">
+                                      {monthStats.executed}/{monthStats.contents} conteúdos postados
+                                    </p>
+                                  )}
                                 </div>
 
                                 {/* Conteúdo do Mês Expandido */}
                                 {isMonthExpanded && (
-                                  <div className="mt-4 space-y-4 pl-4 relative">
-                                    {/* Linha vertical azul da timeline */}
-                                    <div className="absolute left-1 top-0 bottom-0 w-0.5 bg-blue-400"></div>
+                                  <div className="mt-3 ml-4 space-y-3 relative">
+                                    {/* Linha vertical interna do mês - mais sutil */}
+                                    <div className="absolute left-0 top-2 bottom-2 w-px bg-gray-200"></div>
 
                                     {/* Campanhas do Mês */}
-                                    {monthCampaigns.map((campaign: Campaign) => {
+                                    {monthCampaigns.map((campaign: Campaign, idx: number) => {
                                       const creatorsCount = campaign.totalCriadores || campaign.deliverables?.creators_count || 0;
+                                      const isLastItem = idx === monthCampaigns.length - 1 && monthContents.length === 0;
 
                                       return (
-                                        <div key={campaign.id} className="relative pl-6">
-                                          {/* Ponto na timeline */}
-                                          <div className="absolute left-0 top-6 w-2.5 h-2.5 rounded-full bg-blue-500 -translate-x-1"></div>
+                                        <div key={campaign.id} className="relative pl-5">
+                                          {/* Ponto da campanha - azul */}
+                                          <div className="absolute left-0 top-5 w-2 h-2 rounded-full bg-blue-500 -translate-x-0.5"></div>
+                                          {/* Linha horizontal conectora */}
+                                          <div className="absolute left-2 top-6 w-2 h-px bg-gray-200"></div>
 
-                                          <div className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-md transition-all">
+                                          <div className="bg-white rounded-lg p-4 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all">
                                             {/* Header da Campanha */}
                                             <div className="flex items-start justify-between mb-3">
                                               <div>
@@ -751,58 +760,61 @@ export default function CampanhasEmpresaPage() {
 
                                     {/* Conteúdos do Mês - Agrupados por Semana */}
                                     {monthContents.length > 0 && (
-                                      <div className="relative pl-6">
-                                        {/* Ponto na timeline */}
-                                        <div className="absolute left-0 top-6 w-2.5 h-2.5 rounded-full bg-blue-500 -translate-x-1"></div>
+                                      <div className="relative pl-5">
+                                        {/* Ponto do conteúdo - verde/teal */}
+                                        <div className="absolute left-0 top-4 w-2 h-2 rounded-full bg-teal-500 -translate-x-0.5"></div>
+                                        {/* Linha horizontal conectora */}
+                                        <div className="absolute left-2 top-5 w-2 h-px bg-gray-200"></div>
 
-                                        <div className="bg-white rounded-xl p-5 border border-gray-200">
-                                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Conteudo Planejado</h4>
+                                        <div className="bg-white rounded-lg p-4 border border-gray-100">
+                                          <h4 className="text-sm font-medium text-gray-700 mb-3">Conteudo Planejado</h4>
 
                                           {(() => {
                                             const groupedByWeek = groupContentsByWeek(monthContents);
                                             return (
-                                              <div className="space-y-4">
+                                              <div className="space-y-3">
                                                 {Object.entries(groupedByWeek)
                                                   .sort(([a], [b]) => Number(a) - Number(b))
                                                   .map(([weekNum, weekContents]) => (
-                                                    <div key={weekNum}>
-                                                      <h5 className="text-sm font-medium text-gray-700 mb-2">
+                                                    <div key={weekNum} className="border-l-2 border-gray-100 pl-3">
+                                                      <h5 className="text-xs font-medium text-gray-500 mb-2">
                                                         Semana {weekNum}
-                                                        <span className="text-gray-400 font-normal ml-2">
-                                                          ({weekContents.length} {weekContents.length === 1 ? 'item' : 'itens'})
+                                                        <span className="text-gray-400 font-normal ml-1">
+                                                          ({weekContents.length})
                                                         </span>
                                                       </h5>
-                                                      <div className="space-y-2">
+                                                      <div className="space-y-1.5">
                                                         {weekContents.map((content) => (
                                                           <div
                                                             key={content.id}
-                                                            className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50"
+                                                            className="flex items-center justify-between py-1.5 px-2 rounded bg-gray-50/50"
                                                           >
-                                                            <div className="flex items-center gap-3">
-                                                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                                                content.content_type === 'reels' ? 'bg-blue-100 text-blue-700' :
-                                                                content.content_type === 'story' ? 'bg-teal-100 text-teal-700' : 'bg-gray-200 text-gray-700'
-                                                              }`}>
+                                                            <div className="flex items-center gap-2">
+                                                              <span className={`w-1.5 h-1.5 rounded-full ${
+                                                                content.content_type === 'reels' ? 'bg-blue-500' :
+                                                                content.content_type === 'story' ? 'bg-teal-500' : 'bg-gray-400'
+                                                              }`}></span>
+                                                              <span className="text-xs text-gray-600">
                                                                 {content.content_type === 'reels' ? 'Reels' :
                                                                  content.content_type === 'story' ? 'Story' : 'Post'}
                                                               </span>
-                                                              <span className="text-sm text-gray-900">{content.title}</span>
+                                                              <span className="text-xs text-gray-900">{content.title}</span>
                                                               <span className="text-xs text-gray-400">
                                                                 {format(new Date(content.scheduled_date), "dd/MM", { locale: ptBR })}
                                                               </span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                               {content.is_executed ? (
-                                                                <span className="text-green-600 text-xs font-medium">Postado</span>
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                                               ) : (
-                                                                <span className="text-gray-400 text-xs">Pendente</span>
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                                                               )}
                                                               {content.post_url && (
                                                                 <a
                                                                   href={content.post_url}
                                                                   target="_blank"
                                                                   rel="noopener noreferrer"
-                                                                  className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                                                                  className="text-blue-600 hover:text-blue-800 text-xs"
                                                                 >
                                                                   Ver
                                                                 </a>
