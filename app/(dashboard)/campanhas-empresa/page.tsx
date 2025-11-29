@@ -104,6 +104,7 @@ export default function CampanhasEmpresaPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedQuarters, setExpandedQuarters] = useState<Set<string>>(new Set());
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
+  const [currentQuarterLabel, setCurrentQuarterLabel] = useState<string>('');
 
   useEffect(() => {
     async function checkBusinessOwnerAccess() {
@@ -158,10 +159,13 @@ export default function CampanhasEmpresaPage() {
           3: ['Jul', 'Ago', 'Set'],
           4: ['Out', 'Nov', 'Dez']
         };
-        const currentQuarterLabel = `Q${currentQuarter} ${currentYear} (${quarterMonthMap[currentQuarter].join('-')})`;
+        const quarterLabel = `Q${currentQuarter} ${currentYear} (${quarterMonthMap[currentQuarter].join('-')})`;
+
+        // Salvar o label do trimestre atual para impedir que seja fechado
+        setCurrentQuarterLabel(quarterLabel);
 
         // Expandir o trimestre atual
-        setExpandedQuarters(new Set([currentQuarterLabel]));
+        setExpandedQuarters(new Set([quarterLabel]));
 
         // Expandir todos os meses do trimestre atual
         const startMonth = (currentQuarter - 1) * 3 + 1;
@@ -433,8 +437,13 @@ export default function CampanhasEmpresaPage() {
     };
   };
 
-  // Toggle para expandir/colapsar trimestre
+  // Toggle para expandir/colapsar trimestre (trimestre atual SEMPRE aberto)
   const toggleQuarter = (quarterLabel: string) => {
+    // Não permitir fechar o trimestre atual
+    if (quarterLabel === currentQuarterLabel) {
+      return; // Trimestre atual sempre aberto
+    }
+
     setExpandedQuarters(prev => {
       const newSet = new Set(prev);
       if (newSet.has(quarterLabel)) {
@@ -621,21 +630,33 @@ export default function CampanhasEmpresaPage() {
                   ? `${monthParts[0]} - ${monthParts[monthParts.length - 1]} ${quarterYear}`
                   : quarterLabel;
 
+                const isCurrentQuarter = quarterLabel === currentQuarterLabel;
+
                 return (
                   <div key={quarterLabel}>
                     {/* Header do Trimestre - AZUL */}
                     <div
-                      className="bg-blue-600 rounded-xl p-5 cursor-pointer hover:bg-blue-700 transition-all shadow-sm"
+                      className={`bg-blue-600 rounded-xl p-5 transition-all shadow-sm ${
+                        isCurrentQuarter ? 'cursor-default' : 'cursor-pointer hover:bg-blue-700'
+                      }`}
                       onClick={() => toggleQuarter(quarterLabel)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          {isQuarterExpanded ? (
+                          {/* Trimestre atual não tem seta (sempre aberto) */}
+                          {isCurrentQuarter ? (
+                            <div className="w-5 h-5 flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-white"></div>
+                            </div>
+                          ) : isQuarterExpanded ? (
                             <ChevronDown className="w-5 h-5 text-white" />
                           ) : (
                             <ChevronRight className="w-5 h-5 text-white" />
                           )}
-                          <h2 className="text-lg font-semibold text-white">{simpleQuarterLabel}</h2>
+                          <h2 className="text-lg font-semibold text-white">
+                            {simpleQuarterLabel}
+                            {isCurrentQuarter && <span className="ml-2 text-xs font-normal text-blue-200">(atual)</span>}
+                          </h2>
                         </div>
                         <span className="px-4 py-1.5 bg-white/20 text-white rounded-full text-sm font-medium backdrop-blur-sm">
                           {quarterStats.totalCampaigns} {quarterStats.totalCampaigns === 1 ? 'campanha' : 'campanhas'}
