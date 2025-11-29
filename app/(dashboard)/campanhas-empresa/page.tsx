@@ -147,12 +147,29 @@ export default function CampanhasEmpresaPage() {
         );
         setCampaigns(sortedCampaigns);
 
-        // Expandir o mês atual por padrão
-        if (sortedCampaigns.length > 0) {
-          const today = new Date();
-          const currentMonthLabel = format(today, 'MMMM yyyy', { locale: ptBR });
-          setExpandedMonths(new Set([currentMonthLabel]));
+        // Calcular trimestre atual e expandir ele + todos os meses dele
+        const today = new Date();
+        const currentMonth = today.getMonth() + 1;
+        const currentYear = today.getFullYear();
+        const currentQuarter = Math.ceil(currentMonth / 3);
+        const quarterMonthMap: Record<number, string[]> = {
+          1: ['Jan', 'Fev', 'Mar'],
+          2: ['Abr', 'Mai', 'Jun'],
+          3: ['Jul', 'Ago', 'Set'],
+          4: ['Out', 'Nov', 'Dez']
+        };
+        const currentQuarterLabel = `Q${currentQuarter} ${currentYear} (${quarterMonthMap[currentQuarter].join('-')})`;
+
+        // Expandir o trimestre atual
+        setExpandedQuarters(new Set([currentQuarterLabel]));
+
+        // Expandir todos os meses do trimestre atual
+        const startMonth = (currentQuarter - 1) * 3 + 1;
+        const monthsToExpand: string[] = [];
+        for (let m = startMonth; m < startMonth + 3; m++) {
+          monthsToExpand.push(`${currentYear}-${m.toString().padStart(2, '0')}`);
         }
+        setExpandedMonths(new Set(monthsToExpand));
       } else {
         // Se não houver campanhas ou erro, definir array vazio
         console.log('⚠️ Nenhuma campanha encontrada ou erro na API');
@@ -582,114 +599,130 @@ export default function CampanhasEmpresaPage() {
             <p className="text-gray-500">Suas campanhas aparecerão aqui quando forem criadas.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Agrupar por Trimestre */}
-            {Object.entries(groupCampaignsByQuarterAndMonth(campaigns))
-              .sort(([a], [b]) => {
-                // Ordenar trimestres do mais recente para o mais antigo
-                const yearA = parseInt(a.match(/\d{4}/)?.[0] || '0');
-                const yearB = parseInt(b.match(/\d{4}/)?.[0] || '0');
-                const qA = parseInt(a.match(/Q(\d)/)?.[1] || '0');
-                const qB = parseInt(b.match(/Q(\d)/)?.[1] || '0');
-                if (yearA !== yearB) return yearB - yearA;
-                return qB - qA;
-              })
-              .map(([quarterLabel, monthsData]) => {
-                const quarterStats = calculateQuarterStats(monthsData);
-                const isQuarterExpanded = expandedQuarters.has(quarterLabel);
+          <div className="relative">
+            {/* Linha vertical principal da timeline */}
+            <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-blue-300 to-gray-200"></div>
 
-                return (
-                  <div key={quarterLabel} className="space-y-4">
-                    {/* Header do Trimestre - CLICÁVEL */}
-                    <div
-                      className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg p-5 cursor-pointer hover:shadow-md transition-all border border-blue-200"
-                      onClick={() => toggleQuarter(quarterLabel)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {isQuarterExpanded ? (
-                            <ChevronDown className="w-6 h-6 text-blue-600" />
-                          ) : (
-                            <ChevronRight className="w-6 h-6 text-blue-600" />
-                          )}
-                          <div>
-                            <h2 className="text-xl font-bold text-blue-900">{quarterLabel}</h2>
-                            <p className="text-sm text-blue-700">Clique para {isQuarterExpanded ? 'colapsar' : 'expandir'}</p>
-                          </div>
-                        </div>
+            <div className="space-y-6">
+              {/* Agrupar por Trimestre */}
+              {Object.entries(groupCampaignsByQuarterAndMonth(campaigns))
+                .sort(([a], [b]) => {
+                  // Ordenar trimestres do mais recente para o mais antigo
+                  const yearA = parseInt(a.match(/\d{4}/)?.[0] || '0');
+                  const yearB = parseInt(b.match(/\d{4}/)?.[0] || '0');
+                  const qA = parseInt(a.match(/Q(\d)/)?.[1] || '0');
+                  const qB = parseInt(b.match(/Q(\d)/)?.[1] || '0');
+                  if (yearA !== yearB) return yearB - yearA;
+                  return qB - qA;
+                })
+                .map(([quarterLabel, monthsData]) => {
+                  const quarterStats = calculateQuarterStats(monthsData);
+                  const isQuarterExpanded = expandedQuarters.has(quarterLabel);
 
-                        {/* Métricas do Trimestre */}
-                        <div className="flex items-center gap-6">
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-blue-800">{quarterStats.totalCampaigns}</p>
-                            <p className="text-xs text-blue-600">Campanhas</p>
-                          </div>
-                          {quarterStats.totalContents > 0 && (
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-green-700">{quarterStats.executedContents}/{quarterStats.totalContents}</p>
-                              <p className="text-xs text-green-600">Conteúdos Postados</p>
+                  return (
+                    <div key={quarterLabel} className="relative">
+                      {/* Ponto do Trimestre na timeline */}
+                      <div className="absolute left-4 top-6 w-5 h-5 rounded-full bg-blue-600 border-4 border-white shadow-lg z-10"></div>
+
+                      {/* Header do Trimestre - CLICÁVEL */}
+                      <div className="ml-14">
+                        <div
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-5 cursor-pointer hover:shadow-lg transition-all"
+                          onClick={() => toggleQuarter(quarterLabel)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {isQuarterExpanded ? (
+                                <ChevronDown className="w-6 h-6 text-white" />
+                              ) : (
+                                <ChevronRight className="w-6 h-6 text-white" />
+                              )}
+                              <div>
+                                <h2 className="text-xl font-bold text-white">{quarterLabel}</h2>
+                                <p className="text-sm text-blue-100">Clique para {isQuarterExpanded ? 'colapsar' : 'expandir'}</p>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Meses dentro do Trimestre */}
-                    {isQuarterExpanded && (
-                      <div className="ml-6 space-y-4">
-                        {Object.entries(monthsData)
-                          .sort(([a], [b]) => b.localeCompare(a))
-                          .map(([monthKey, monthCampaigns]) => {
-                            const monthContents = getContentsForMonth(monthKey);
-                            const monthStats = calculateMonthStats(monthCampaigns, monthContents);
-                            const isMonthExpanded = expandedMonths.has(monthKey);
-                            const monthLabel = formatMonthLabel(monthKey);
-
-                            return (
-                              <div key={monthKey} className="space-y-3">
-                                {/* Header do Mês - CLICÁVEL */}
-                                <div
-                                  className="bg-white rounded-lg p-4 cursor-pointer hover:shadow-md transition-all border border-gray-200"
-                                  onClick={() => toggleMonth(monthKey)}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                      {isMonthExpanded ? (
-                                        <ChevronDown className="w-5 h-5 text-gray-600" />
-                                      ) : (
-                                        <ChevronRight className="w-5 h-5 text-gray-600" />
-                                      )}
-                                      <h3 className="text-lg font-semibold text-gray-900 capitalize">{monthLabel}</h3>
-                                    </div>
-
-                                    {/* Métricas do Mês */}
-                                    <div className="flex items-center gap-4 flex-wrap">
-                                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                        {monthStats.campaigns} Campanhas
-                                      </span>
-                                      {monthStats.contents > 0 && (
-                                        <>
-                                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                                            {monthStats.executed}/{monthStats.contents} Postados
-                                          </span>
-                                          {monthStats.reels > 0 && (
-                                            <span className="text-sm text-gray-600">{monthStats.reels} Reels</span>
-                                          )}
-                                          {monthStats.posts > 0 && (
-                                            <span className="text-sm text-gray-600">{monthStats.posts} Posts</span>
-                                          )}
-                                          {monthStats.stories > 0 && (
-                                            <span className="text-sm text-gray-600">{monthStats.stories} Stories</span>
-                                          )}
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
+                            {/* Métricas do Trimestre */}
+                            <div className="flex items-center gap-6">
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-white">{quarterStats.totalCampaigns}</p>
+                                <p className="text-xs text-blue-100">Campanhas</p>
+                              </div>
+                              {quarterStats.totalContents > 0 && (
+                                <div className="text-center">
+                                  <p className="text-2xl font-bold text-green-300">{quarterStats.executedContents}/{quarterStats.totalContents}</p>
+                                  <p className="text-xs text-green-200">Postados</p>
                                 </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
 
-                                {/* Conteúdo do Mês Expandido */}
-                                {isMonthExpanded && (
-                                  <div className="ml-6 space-y-4">
+                        {/* Meses dentro do Trimestre */}
+                        {isQuarterExpanded && (
+                          <div className="mt-4 space-y-4 relative">
+                            {/* Linha vertical dos meses */}
+                            <div className="absolute -left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+
+                            {Object.entries(monthsData)
+                              .sort(([a], [b]) => b.localeCompare(a))
+                              .map(([monthKey, monthCampaigns]) => {
+                                const monthContents = getContentsForMonth(monthKey);
+                                const monthStats = calculateMonthStats(monthCampaigns, monthContents);
+                                const isMonthExpanded = expandedMonths.has(monthKey);
+                                const monthLabel = formatMonthLabel(monthKey);
+
+                                return (
+                                  <div key={monthKey} className="relative">
+                                    {/* Ponto do Mês na timeline */}
+                                    <div className="absolute -left-10 top-4 w-4 h-4 rounded-full bg-teal-500 border-3 border-white shadow z-10"></div>
+
+                                    {/* Header do Mês - CLICÁVEL */}
+                                    <div
+                                      className="bg-white rounded-lg p-4 cursor-pointer hover:shadow-md transition-all border border-gray-200"
+                                      onClick={() => toggleMonth(monthKey)}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                          {isMonthExpanded ? (
+                                            <ChevronDown className="w-5 h-5 text-gray-600" />
+                                          ) : (
+                                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                                          )}
+                                          <h3 className="text-lg font-semibold text-gray-900 capitalize">{monthLabel}</h3>
+                                        </div>
+
+                                        {/* Métricas do Mês */}
+                                        <div className="flex items-center gap-4 flex-wrap">
+                                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                                            {monthStats.campaigns} Campanhas
+                                          </span>
+                                          {monthStats.contents > 0 && (
+                                            <>
+                                              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                                                {monthStats.executed}/{monthStats.contents} Postados
+                                              </span>
+                                              {monthStats.reels > 0 && (
+                                                <span className="text-sm text-gray-600">{monthStats.reels} Reels</span>
+                                              )}
+                                              {monthStats.posts > 0 && (
+                                                <span className="text-sm text-gray-600">{monthStats.posts} Posts</span>
+                                              )}
+                                              {monthStats.stories > 0 && (
+                                                <span className="text-sm text-gray-600">{monthStats.stories} Stories</span>
+                                              )}
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Conteúdo do Mês Expandido */}
+                                    {isMonthExpanded && (
+                                      <div className="mt-3 ml-4 space-y-4 relative">
+                                        {/* Linha vertical do conteúdo */}
+                                        <div className="absolute -left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                                     {/* Campanhas do Mês */}
                                     {monthCampaigns.length > 0 && (
                                       <div className="space-y-3">
@@ -815,18 +848,20 @@ export default function CampanhasEmpresaPage() {
                                             </div>
                                           );
                                         })()}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         )}
       </div>
