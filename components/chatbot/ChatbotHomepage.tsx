@@ -372,7 +372,7 @@ export default function ChatbotHomepage({
     if (step.final) {
       if (value === 'whatsapp') {
         const whatsappMessage = generateWhatsAppMessage(userData);
-        window.open(`https://wa.me/554391936400?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+        window.open(`https://wa.me/5543999520526?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
       } else if (value === 'home') {
         router.push('/');
       }
