@@ -5,6 +5,18 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
+
+// Interface para conteúdos do planejamento
+interface ContentItem {
+  id: string;
+  title: string;
+  content_type: 'post' | 'reels' | 'story';
+  scheduled_date: string;
+  status: string;
+  is_executed: boolean;
+  post_url?: string;
+}
 
 interface Creator {
   id: string;
@@ -83,12 +95,14 @@ export default function CampanhasEmpresaPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [contents, setContents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [businessId, setBusinessId] = useState<string>('');
   const [businessName, setBusinessName] = useState<string>('');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [expandedQuarters, setExpandedQuarters] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function checkBusinessOwnerAccess() {
@@ -131,10 +145,38 @@ export default function CampanhasEmpresaPage() {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         setCampaigns(sortedCampaigns);
+
+        // Expandir o trimestre atual por padrão
+        if (sortedCampaigns.length > 0) {
+          const today = new Date();
+          const currentQuarter = Math.ceil((today.getMonth() + 1) / 3);
+          const currentYear = today.getFullYear();
+          const monthRanges: Record<number, string> = { 1: 'Jan-Mar', 2: 'Abr-Jun', 3: 'Jul-Set', 4: 'Out-Dez' };
+          const currentQuarterLabel = `Q${currentQuarter} ${currentYear} (${monthRanges[currentQuarter]})`;
+          setExpandedQuarters(new Set([currentQuarterLabel]));
+        }
       } else {
         // Se não houver campanhas ou erro, definir array vazio
         console.log('⚠️ Nenhuma campanha encontrada ou erro na API');
         setCampaigns([]);
+      }
+
+      // Buscar conteúdos do planejamento (últimos 12 meses)
+      try {
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+        const endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+
+        const contentsResponse = await fetch(
+          `/api/business-content?business_id=${user.business_id}&start=${format(startDate, 'yyyy-MM-dd')}&end=${format(endDate, 'yyyy-MM-dd')}`
+        );
+        const contentsData = await contentsResponse.json();
+
+        if (contentsData.success && contentsData.contents) {
+          setContents(contentsData.contents);
+        }
+      } catch (error) {
+        console.log('⚠️ Erro ao buscar conteúdos:', error);
       }
 
       setLoading(false);
@@ -296,10 +338,8 @@ export default function CampanhasEmpresaPage() {
     return { quarter, year, label: `Q${quarter} ${year} (${monthRanges[quarter]})` };
   };
 
-  const calculateTrimestrStats = (campaignsInTrimester: Campaign[]) => {
+  const calculateTrimestrStats = (campaignsInTrimester: Campaign[], quarterContents: ContentItem[]) => {
     let totalPosts = 0;
-    let totalViews = 0;
-    let totalEngagement = 0;
 
     campaignsInTrimester.forEach(campaign => {
       if (campaign.criadores) {
@@ -308,28 +348,45 @@ export default function CampanhasEmpresaPage() {
           if (creator.deliverables?.content_links) {
             totalPosts += creator.deliverables.content_links.length;
           }
-          // Somar visualizações
-          if (creator.deliverables?.total_views) {
-            totalViews += creator.deliverables.total_views;
-          }
-          // Calcular engajamento médio
-          if (creator.deliverables?.engagement_rate) {
-            const rate = parseFloat(creator.deliverables.engagement_rate);
-            if (!isNaN(rate)) {
-              totalEngagement += rate;
-            }
-          }
         });
       }
     });
 
+    // Estatísticas de conteúdos
+    const totalContents = quarterContents.length;
+    const executedContents = quarterContents.filter(c => c.is_executed).length;
+
     return {
       totalPosts,
-      totalViews,
-      avgEngagement: campaignsInTrimester.length > 0
-        ? (totalEngagement / campaignsInTrimester.length).toFixed(2)
-        : '0'
+      totalContents,
+      executedContents
     };
+  };
+
+  // Função para agrupar conteúdos por trimestre
+  const getContentsForQuarter = (quarterLabel: string): ContentItem[] => {
+    return contents.filter(content => {
+      const contentDate = new Date(content.scheduled_date);
+      const month = contentDate.getMonth() + 1;
+      const year = contentDate.getFullYear();
+      const quarter = Math.ceil(month / 3);
+      const monthRanges: Record<number, string> = { 1: 'Jan-Mar', 2: 'Abr-Jun', 3: 'Jul-Set', 4: 'Out-Dez' };
+      const contentQuarterLabel = `Q${quarter} ${year} (${monthRanges[quarter]})`;
+      return contentQuarterLabel === quarterLabel;
+    });
+  };
+
+  // Toggle para expandir/colapsar trimestre
+  const toggleQuarter = (quarterLabel: string) => {
+    setExpandedQuarters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(quarterLabel)) {
+        newSet.delete(quarterLabel);
+      } else {
+        newSet.add(quarterLabel);
+      }
+      return newSet;
+    });
   };
 
   const groupCampaignsByQuarter = (campaignsList: Campaign[]) => {
@@ -378,59 +435,61 @@ export default function CampanhasEmpresaPage() {
             <p className="text-gray-500">Suas campanhas aparecerão aqui quando forem criadas.</p>
           </div>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-6">
             {Object.entries(groupCampaignsByQuarter(campaigns)).map(([quarterLabel, campaignsInQuarter]) => {
-              const stats = calculateTrimestrStats(campaignsInQuarter);
+              const quarterContents = getContentsForQuarter(quarterLabel);
+              const stats = calculateTrimestrStats(campaignsInQuarter, quarterContents);
+              const isExpanded = expandedQuarters.has(quarterLabel);
 
               return (
-                <div key={quarterLabel} className="space-y-8">
-                  {/* Card de Análise Trimestral */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h2 className="text-2xl font-bold text-blue-900 mb-1">Trimestre {quarterLabel}</h2>
-                        <p className="text-sm text-blue-700">Análise consolidada do período</p>
+                <div key={quarterLabel} className="space-y-4">
+                  {/* Card de Análise Trimestral - CLICÁVEL */}
+                  <div
+                    className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 cursor-pointer hover:shadow-md transition-all"
+                    onClick={() => toggleQuarter(quarterLabel)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {isExpanded ? (
+                          <ChevronDown className="w-6 h-6 text-blue-600" />
+                        ) : (
+                          <ChevronRight className="w-6 h-6 text-blue-600" />
+                        )}
+                        <div>
+                          <h2 className="text-2xl font-bold text-blue-900">Trimestre {quarterLabel}</h2>
+                          <p className="text-sm text-blue-700">Clique para {isExpanded ? 'colapsar' : 'expandir'}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-blue-600 font-medium">{campaignsInQuarter.length} campanhas</p>
-                      </div>
-                    </div>
 
-                    {/* Métricas do Trimestre */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="bg-white rounded-lg p-4 text-center border border-blue-200">
-                        <p className="text-xs text-blue-600 font-semibold mb-1">POSTAGENS</p>
-                        <p className="text-3xl font-bold text-blue-900">{stats.totalPosts}</p>
+                      {/* Métricas resumidas */}
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-blue-900">{campaignsInQuarter.length}</p>
+                          <p className="text-xs text-blue-600">Campanhas</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-indigo-900">{stats.totalContents}</p>
+                          <p className="text-xs text-indigo-600">Conteúdos</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-green-700">{stats.executedContents}</p>
+                          <p className="text-xs text-green-600">Postados</p>
+                        </div>
                       </div>
-                      <div className="bg-white rounded-lg p-4 text-center border border-indigo-200">
-                        <p className="text-xs text-indigo-600 font-semibold mb-1">VISUALIZAÇÕES</p>
-                        <p className="text-3xl font-bold text-indigo-900">{formatNumber(stats.totalViews)}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 text-center border border-purple-200">
-                        <p className="text-xs text-purple-600 font-semibold mb-1">ENGAJAMENTO</p>
-                        <p className="text-3xl font-bold text-purple-900">{stats.avgEngagement}%</p>
-                      </div>
-                    </div>
-
-                    {/* Análise Qualitativa */}
-                    <div className="bg-white rounded-lg p-4 border border-blue-200">
-                      <p className="text-sm text-gray-700">
-                        <span className="font-semibold text-blue-900">Resumo do Trimestre:</span> Realizamos <span className="font-bold text-blue-900">{stats.totalPosts} postagens</span> neste trimestre, alcançando <span className="font-bold text-indigo-900">{formatNumber(stats.totalViews)} visualizações</span> no total. O engajamento médio foi de <span className="font-bold text-purple-900">{stats.avgEngagement}%</span>, demonstrando a qualidade do conteúdo entregue pelos nossos criadores parceiros.
-                      </p>
                     </div>
                   </div>
 
-                  {/* Campanhas do Trimestre */}
-                  <div className="relative">
-                    {/* Linha vertical da timeline */}
-                    <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+                  {/* Conteúdo Expandido */}
+                  {isExpanded && (
+                    <>
+                      {/* Campanhas do Trimestre */}
+                      <div className="relative ml-4">
+                        {/* Linha vertical da timeline */}
+                        <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-300"></div>
 
-                    {/* Campanhas */}
-                    <div className="space-y-8">
-                      {campaignsInQuarter.map((campaign, index) => {
-                const totalReach = campaign.results?.total_reach || 0;
-                const totalEngagement = campaign.results?.total_engagement || 0;
-                const roi = campaign.results?.roi || 0;
+                        {/* Campanhas */}
+                        <div className="space-y-6">
+                          {campaignsInQuarter.map((campaign) => {
                 const creatorsCount = campaign.totalCriadores || campaign.deliverables?.creators_count || 0;
 
                 return (
@@ -470,18 +529,16 @@ export default function CampanhasEmpresaPage() {
                       )}
 
                       {/* Métricas Principais */}
-                      <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                          <p className="text-xs text-blue-600 mb-1">Alcance</p>
-                          <p className="text-2xl font-bold text-blue-700">{formatNumber(totalReach)}</p>
-                        </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg">
-                          <p className="text-xs text-pink-600 mb-1">Engajamento</p>
-                          <p className="text-2xl font-bold text-pink-700">{formatNumber(totalEngagement)}</p>
-                        </div>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
                           <p className="text-xs text-purple-600 mb-1">Criadores</p>
                           <p className="text-2xl font-bold text-purple-700">{creatorsCount}</p>
+                        </div>
+                        <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                          <p className="text-xs text-blue-600 mb-1">Entregas</p>
+                          <p className="text-2xl font-bold text-blue-700">
+                            {(campaign.deliverables?.posts || 0) + (campaign.deliverables?.reels || 0) + (campaign.deliverables?.stories || 0)}
+                          </p>
                         </div>
                       </div>
 
@@ -682,20 +739,7 @@ export default function CampanhasEmpresaPage() {
                                     </div>
                                   )}
 
-                                  {/* Métricas do criador se disponível */}
-                                  {creator.deliverables.total_views && (
-                                    <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
-                                      {creator.deliverables.total_views > 0 && (
-                                        <span>👁️ {formatNumber(creator.deliverables.total_views)} views</span>
-                                      )}
-                                      {creator.deliverables.likes && creator.deliverables.likes > 0 && (
-                                        <span>❤️ {formatNumber(creator.deliverables.likes)} likes</span>
-                                      )}
-                                      {creator.deliverables.engagement_rate && (
-                                        <span>📈 {creator.deliverables.engagement_rate}% eng.</span>
-                                      )}
-                                    </div>
-                                  )}
+
                                 </div>
                               );
                             })}
@@ -717,8 +761,65 @@ export default function CampanhasEmpresaPage() {
                   </div>
                 );
               })}
-                    </div>
-                  </div>
+                        </div>
+                      </div>
+
+                      {/* Seção de Conteúdo Planejado */}
+                      {quarterContents.length > 0 && (
+                        <div className="ml-4 mt-4 bg-white rounded-lg shadow-sm p-6">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            📱 Conteúdo Planejado
+                            <span className="text-sm font-normal text-gray-500">
+                              ({quarterContents.filter(c => c.is_executed).length}/{quarterContents.length} postados)
+                            </span>
+                          </h3>
+                          <div className="space-y-3">
+                            {quarterContents.map((content) => (
+                              <div
+                                key={content.id}
+                                className={`flex items-center justify-between p-3 rounded-lg border ${
+                                  content.is_executed
+                                    ? 'bg-green-50 border-green-200'
+                                    : 'bg-gray-50 border-gray-200'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-lg">
+                                    {content.content_type === 'reels' ? '🎬' :
+                                     content.content_type === 'story' ? '📱' : '📷'}
+                                  </span>
+                                  <div>
+                                    <p className="font-medium text-gray-900">{content.title}</p>
+                                    <p className="text-xs text-gray-500">
+                                      {format(new Date(content.scheduled_date), "dd 'de' MMMM", { locale: ptBR })} •
+                                      <span className="capitalize ml-1">{content.content_type}</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {content.is_executed ? (
+                                    <span className="text-green-600 text-sm font-medium">✅ Postado</span>
+                                  ) : (
+                                    <span className="text-gray-500 text-sm">⏳ Pendente</span>
+                                  )}
+                                  {content.post_url && (
+                                    <a
+                                      href={content.post_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1 px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-medium hover:bg-pink-200 transition-colors"
+                                    >
+                                      Ver post <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               );
             })}
@@ -795,23 +896,21 @@ export default function CampanhasEmpresaPage() {
 
               {/* Métricas Gerais */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">📊 Resultados Gerais</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg text-center">
-                    <p className="text-xs text-blue-600 mb-1">Alcance Total</p>
-                    <p className="text-2xl font-bold text-blue-700">{formatNumber(selectedCampaign.results?.total_reach || 0)}</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg text-center">
-                    <p className="text-xs text-pink-600 mb-1">Engajamento</p>
-                    <p className="text-2xl font-bold text-pink-700">{formatNumber(selectedCampaign.results?.total_engagement || 0)}</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg text-center">
-                    <p className="text-xs text-green-600 mb-1">Conversões</p>
-                    <p className="text-2xl font-bold text-green-700">{formatNumber(selectedCampaign.results?.total_conversions || 0)}</p>
-                  </div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">📊 Resumo da Campanha</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg text-center">
                     <p className="text-xs text-purple-600 mb-1">Criadores</p>
                     <p className="text-2xl font-bold text-purple-700">{selectedCampaign.totalCriadores || selectedCampaign.deliverables?.creators_count || 0}</p>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg text-center">
+                    <p className="text-xs text-blue-600 mb-1">Entregas</p>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {(selectedCampaign.deliverables?.posts || 0) + (selectedCampaign.deliverables?.reels || 0) + (selectedCampaign.deliverables?.stories || 0)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg text-center">
+                    <p className="text-xs text-green-600 mb-1">Eventos</p>
+                    <p className="text-2xl font-bold text-green-700">{selectedCampaign.deliverables?.events || 0}</p>
                   </div>
                 </div>
               </div>
@@ -856,36 +955,6 @@ export default function CampanhasEmpresaPage() {
                             </span>
                           )}
                         </div>
-
-                        {/* Performance do Criador */}
-                        {creator.deliverables && (creator.deliverables.total_views || creator.deliverables.reach || creator.deliverables.likes) && (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                            {creator.deliverables.total_views && (
-                              <div className="bg-blue-50 p-2 rounded text-center">
-                                <p className="text-xs text-blue-600">👁️ Visualizações</p>
-                                <p className="font-bold text-blue-700">{formatNumber(creator.deliverables.total_views)}</p>
-                              </div>
-                            )}
-                            {creator.deliverables.reach && (
-                              <div className="bg-purple-50 p-2 rounded text-center">
-                                <p className="text-xs text-purple-600">📊 Alcance</p>
-                                <p className="font-bold text-purple-700">{formatNumber(creator.deliverables.reach)}</p>
-                              </div>
-                            )}
-                            {creator.deliverables.likes && (
-                              <div className="bg-pink-50 p-2 rounded text-center">
-                                <p className="text-xs text-pink-600">❤️ Curtidas</p>
-                                <p className="font-bold text-pink-700">{formatNumber(creator.deliverables.likes)}</p>
-                              </div>
-                            )}
-                            {creator.deliverables.engagement_rate && (
-                              <div className="bg-green-50 p-2 rounded text-center">
-                                <p className="text-xs text-green-600">📈 Taxa Eng.</p>
-                                <p className="font-bold text-green-700">{creator.deliverables.engagement_rate}%</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
 
                         {/* Links de Conteúdo */}
                         {creator.deliverables?.content_links && creator.deliverables.content_links.length > 0 && (
