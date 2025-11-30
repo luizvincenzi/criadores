@@ -234,46 +234,45 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="h-screen overflow-hidden" style={{ backgroundColor: '#f5f5f5' }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white shadow border-b border-gray-200">
-        <div className="h-full px-6 flex items-center">
-          <div className="flex items-center justify-between w-full">
-            {/* Logo */}
-            <div className="flex items-center">
-              <span className="text-2xl font-onest tracking-tight">
-                <span className="text-gray-600 font-light">cr</span>
-                <span className="text-black font-bold">IA</span>
-                <span className="text-gray-600 font-light">dores</span>
-              </span>
-            </div>
+        <div className="h-full px-6 flex items-stretch">
+          {/* Logo - centralizado verticalmente */}
+          <div className="flex items-center flex-shrink-0">
+            <span className="text-2xl font-onest tracking-tight">
+              <span className="text-gray-600 font-light">cr</span>
+              <span className="text-black font-bold">IA</span>
+              <span className="text-gray-600 font-light">dores</span>
+            </span>
+          </div>
 
-            {/* Desktop Navigation - Centralizada - Estilo Facebook */}
-            <nav className="hidden md:flex items-center gap-1 flex-1 justify-center mx-8 h-full">
-              {navigationItems.map((item) => {
-                // Verificar se está ativo - suporta rotas aninhadas (ex: /dashboard/empresa)
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          {/* Desktop Navigation - Centralizada - Estilo Facebook */}
+          <nav className="hidden md:flex items-stretch gap-1 flex-1 justify-center mx-8">
+            {navigationItems.map((item) => {
+              // Verificar se está ativo - suporta rotas aninhadas (ex: /dashboard/empresa)
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    className={`relative h-full px-5 text-sm font-medium transition-all flex items-center justify-center ${
-                      isActive
-                        ? 'text-gray-900'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span>{item.label}</span>
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className={`relative px-6 text-sm font-medium transition-all flex items-center justify-center ${
+                    isActive
+                      ? 'text-gray-900'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <span>{item.label}</span>
 
-                    {/* Borda inferior para aba ativa - estilo Facebook */}
-                    {isActive && (
-                      <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gray-900"></div>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+                  {/* Borda inferior para aba ativa - estilo Facebook */}
+                  {isActive && (
+                    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gray-900"></div>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-            {/* Right Side - Tasks & User */}
-            <div className="hidden md:flex items-center gap-3">
+          {/* Right Side - Tasks & User */}
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
               {/* Tasks Button - ❌ ESCONDER para creators e strategists */}
               {!isCreatorOrStrategist && (
                 <button
@@ -441,7 +440,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
           )}
-        </div>
       </header>
 
       {/* Main Content */}
