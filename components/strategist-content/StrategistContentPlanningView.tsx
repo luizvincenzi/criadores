@@ -306,7 +306,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
 
   // 🖥️ DESKTOP VIEW
   return (
-    <div className="flex flex-col md:flex-row bg-[#f5f5f5] h-screen overflow-hidden">
+    <div className="flex flex-col md:flex-row bg-[#f5f5f5] h-full overflow-hidden">
       {/* Sidebar Esquerda - Ferramentas de Planejamento */}
       <div className="w-full md:w-56 bg-[#f5f5f5] flex flex-col flex-shrink-0 overflow-y-auto">
         {/* Header da Sidebar */}

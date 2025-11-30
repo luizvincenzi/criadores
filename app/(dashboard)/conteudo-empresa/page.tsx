@@ -148,12 +148,10 @@ function ConteudoEmpresaPageContent() {
 
   // ✅ RENDER: Business Content Planning View
   return (
-    <div className="bg-[#f5f5f5] min-h-screen">
-      <BusinessContentPlanningView
-        businessId={businessId}
-        businessName={businessName}
-      />
-    </div>
+    <BusinessContentPlanningView
+      businessId={businessId}
+      businessName={businessName}
+    />
   );
 }
 

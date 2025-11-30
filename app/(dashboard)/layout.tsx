@@ -136,6 +136,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Verificar se é creator ou strategist (roles que devem ter configurações limitadas)
   const isCreatorOrStrategist = isCreator || (user?.roles && user.roles.includes('marketing_strategist'));
 
+  // Páginas que devem ocupar 100% da largura sem padding
+  const fullWidthPages = ['/conteudo-empresa', '/conteudo-estrategista', '/conteudo'];
+  const isFullWidthPage = fullWidthPages.includes(pathname);
+
   // Função helper para extrair iniciais do nome
   const getInitials = (name: string | undefined): string => {
     if (!name) return 'U';
@@ -442,12 +446,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <main
-        style={{ paddingTop: '80px' }}
-        className={`dashboard-bg p-6 transition-all duration-300 ${isTasksSidebarOpen ? 'pr-[320px]' : ''}`}
+        className={`h-[calc(100vh-64px)] mt-16 transition-all duration-300 ${isTasksSidebarOpen ? 'pr-[320px]' : ''} ${
+          isFullWidthPage ? 'p-0' : 'dashboard-bg p-6'
+        }`}
       >
-        <div className="max-w-7xl mx-auto">
-          {children}
-        </div>
+        {isFullWidthPage ? (
+          children
+        ) : (
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        )}
       </main>
 
       {/* Tasks Sidebar */}

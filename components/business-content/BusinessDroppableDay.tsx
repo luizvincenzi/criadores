@@ -35,7 +35,7 @@ export default function DroppableDay({
     <div
       ref={setNodeRef}
       className={`
-        flex-1 rounded-[30px] p-2 flex flex-col transition-all relative min-h-[calc(100vh-240px)]
+        h-full rounded-[30px] p-2 flex flex-col transition-all relative
         ${isToday
           ? 'bg-white border-2 border-blue-500/20 shadow-xl shadow-blue-500/5'
           : 'bg-white border border-white/50 shadow-sm hover:shadow-md'}

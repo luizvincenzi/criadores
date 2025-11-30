@@ -105,12 +105,10 @@ function ConteudoEstrategistaPageContent() {
   }
 
   return (
-    <div className="bg-[#f5f5f5] min-h-screen">
-      <StrategistContentPlanningView
-        businesses={businesses}
-        strategistId={strategistId || ''}
-      />
-    </div>
+    <StrategistContentPlanningView
+      businesses={businesses}
+      strategistId={strategistId || ''}
+    />
   );
 }
 
