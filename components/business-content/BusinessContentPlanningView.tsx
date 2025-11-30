@@ -5,7 +5,7 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks, isToday, startOfMonth
 import { ptBR } from 'date-fns/locale';
 import BusinessContentWeekView from './BusinessContentWeekView';
 import BusinessContentMonthView from './BusinessContentMonthView';
-import ContentModal from '../ContentModal';
+import BusinessContentModal from '../BusinessContentModal';
 import BusinessContentStatsWidget from './BusinessContentStatsWidget';
 import BusinessWeeklyPlanningModal from './BusinessWeeklyPlanningModal';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
@@ -517,11 +517,11 @@ export default function BusinessContentPlanningView({ businessId, businessName }
 
       {/* Modal de Conteúdo Individual */}
       {isModalOpen && businessId && (
-        <ContentModal
+        <BusinessContentModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           content={selectedContent}
-          initialDate={selectedDate}
+          selectedDate={selectedDate}
           onSave={handleSaveContent}
           businessId={businessId}
         />
