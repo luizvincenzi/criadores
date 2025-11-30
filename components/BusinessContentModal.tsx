@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { useAuthStore } from '@/store/authStore';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon, platformNames } from '@/components/icons/PlatformIcons';
-import { Calendar, Clock, Trash2, X, Image as ImageIcon, Video, Disc } from 'lucide-react';
+import { Calendar, Clock, Trash2, X, Image as ImageIcon, Video, Disc, Link2, BarChart3 } from 'lucide-react';
 
 export interface BusinessSocialContent {
   id: string;
@@ -63,7 +63,10 @@ export default function BusinessContentModal({
     platforms: [] as string[],
     scheduled_date: '',
     scheduled_time: '',
-    is_executed: false
+    is_executed: false,
+    post_link: '',
+    audience_sentiment: '' as '' | 'positive' | 'neutral' | 'negative',
+    observations: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -71,6 +74,7 @@ export default function BusinessContentModal({
   useEffect(() => {
     if (content) {
       // Edição: preencher com dados existentes
+      const contentAny = content as any;
       setFormData({
         title: content.title,
         briefing: content.briefing || '',
@@ -78,7 +82,10 @@ export default function BusinessContentModal({
         platforms: content.platforms,
         scheduled_date: content.scheduled_date,
         scheduled_time: content.scheduled_time || '',
-        is_executed: content.is_executed
+        is_executed: content.is_executed,
+        post_link: contentAny.post_link || '',
+        audience_sentiment: contentAny.audience_sentiment || '',
+        observations: contentAny.observations || ''
       });
     } else if (selectedDate) {
       // Novo: usar data selecionada
@@ -406,6 +413,100 @@ export default function BusinessContentModal({
                   />
                 </div>
 
+              </div>
+            </div>
+
+            {/* Seção de Análise Qualitativa - Aparece quando is_executed está ativo */}
+            <div className={`
+              border-t border-slate-100 overflow-hidden transition-all duration-300 ease-in-out
+              ${formData.is_executed ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}
+            `}>
+              <div className="p-8 space-y-6 bg-gradient-to-b from-green-50/30 to-transparent">
+
+                {/* Link da Postagem */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                    <Link2 className="w-4 h-4" />
+                    Link da Postagem
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.post_link}
+                    onChange={(e) => setFormData(prev => ({ ...prev, post_link: e.target.value }))}
+                    className="
+                      w-full px-5 py-4 bg-white/50 border border-slate-200/60 rounded-2xl
+                      text-sm font-medium text-slate-900 placeholder-slate-400
+                      outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500/50
+                      transition-all shadow-sm
+                    "
+                    placeholder="https://instagram.com/p/... ou https://tiktok.com/@..."
+                  />
+                  <p className="text-xs text-slate-400 pl-1">
+                    Cole o link da postagem publicada (Instagram, TikTok, YouTube, etc.)
+                  </p>
+                </div>
+
+                {/* Análise Qualitativa Card */}
+                <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-2xl p-6 space-y-5">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-base font-semibold text-slate-800">Análise Qualitativa</h3>
+                  </div>
+
+                  {/* Sentimento Geral da Audiência */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                      Sentimento Geral da Audiência
+                    </label>
+                    <div className="flex p-1 bg-slate-100/80 rounded-2xl w-full">
+                      {[
+                        { id: 'positive', label: 'Positivo', emoji: '😊' },
+                        { id: 'neutral', label: 'Neutro', emoji: '😐' },
+                        { id: 'negative', label: 'Negativo', emoji: '😔' }
+                      ].map((sentiment) => {
+                        const isActive = formData.audience_sentiment === sentiment.id;
+                        return (
+                          <button
+                            key={sentiment.id}
+                            type="button"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              audience_sentiment: sentiment.id as 'positive' | 'neutral' | 'negative'
+                            }))}
+                            className={`
+                              flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium
+                              transition-all duration-200
+                              ${isActive
+                                ? 'bg-white text-slate-900 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.08)] scale-[1.02]'
+                                : 'text-slate-500 hover:text-slate-700 hover:bg-black/5'}
+                            `}
+                          >
+                            <span className="text-lg">{sentiment.emoji}</span>
+                            <span>{sentiment.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Observações e Insights */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                      Observações e Insights
+                    </label>
+                    <textarea
+                      value={formData.observations}
+                      onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
+                      className="
+                        w-full px-5 py-4 bg-white/50 border border-slate-200/60 rounded-2xl
+                        text-sm text-slate-700 leading-relaxed placeholder-slate-400
+                        outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50
+                        transition-all shadow-inner resize-none min-h-[120px]
+                      "
+                      placeholder="Adicione observações sobre o desempenho, insights, aprendizados, etc..."
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
