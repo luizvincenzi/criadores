@@ -231,11 +231,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <NotificationProvider>
-      <div className="min-h-screen" style={{ backgroundColor: '#f5f5f5' }}>
+      <div className="h-screen overflow-hidden" style={{ backgroundColor: '#f5f5f5' }}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow border-b border-gray-200">
-        <div className="px-6 py-3.5">
-          <div className="flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white shadow border-b border-gray-200">
+        <div className="h-full px-6 flex items-center">
+          <div className="flex items-center justify-between w-full">
             {/* Logo */}
             <div className="flex items-center">
               <span className="text-2xl font-onest tracking-tight">
@@ -246,7 +246,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
 
             {/* Desktop Navigation - Centralizada - Estilo Facebook */}
-            <nav className="hidden md:flex items-stretch gap-2 flex-1 justify-center mx-8 -mb-3.5">
+            <nav className="hidden md:flex items-center gap-2 flex-1 justify-center mx-8 h-full">
               {navigationItems.map((item) => {
                 // Verificar se está ativo - suporta rotas aninhadas (ex: /dashboard/empresa)
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -255,7 +255,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <Link
                     key={item.id}
                     href={item.href}
-                    className={`relative px-4 py-3.5 text-sm font-medium transition-all flex items-center justify-center ${
+                    className={`relative h-full px-4 text-sm font-medium transition-all flex items-center justify-center ${
                       isActive
                         ? 'text-gray-900'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg'
@@ -446,17 +446,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <main
-        className={`h-[calc(100vh-64px)] mt-16 transition-all duration-300 ${isTasksSidebarOpen ? 'pr-[320px]' : ''} ${
-          isFullWidthPage ? 'p-0' : 'dashboard-bg p-6'
-        }`}
+        className={`pt-16 h-screen overflow-hidden transition-all duration-300 ${isTasksSidebarOpen ? 'pr-[320px]' : ''}`}
       >
-        {isFullWidthPage ? (
-          children
-        ) : (
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        )}
+        <div className={`h-full overflow-auto ${isFullWidthPage ? '' : 'dashboard-bg p-6'}`}>
+          {isFullWidthPage ? (
+            children
+          ) : (
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Tasks Sidebar */}
