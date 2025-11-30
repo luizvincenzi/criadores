@@ -3,34 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isToday, startOfMonth, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import ContentWeekView from '../content/ContentWeekView';
-import ContentMonthView from '../content/ContentMonthView';
-import ContentModal from '../ContentModal';
-import ContentStatsWidget from '../content/ContentStatsWidget';
-import WeeklyPlanningModal from '../content/WeeklyPlanningModal';
+// Usar os mesmos componentes do business-content para consistência visual
+import ContentWeekView from './BusinessContentWeekView';
+import ContentMonthView from './BusinessContentMonthView';
+import ContentModal from '../BusinessContentModal';
+import ContentStatsWidget from './BusinessContentStatsWidget';
+import WeeklyPlanningModal from './WeeklyPlanningModal';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import BusinessSelector from './BusinessSelector';
 import MobileStrategistContentView from './MobileStrategistContentView';
+import { BusinessSocialContent } from '../BusinessContentModal';
 
-export interface SocialContent {
-  id: string;
-  title: string;
-  description?: string;
-  briefing?: string;
-  content_type: 'post' | 'reels' | 'story';
-  platforms: string[];
-  scheduled_date: string;
-  scheduled_time?: string;
-  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
-  is_executed: boolean;
-  executed_at?: string;
-  notes?: string;
-  tags?: string[];
-  business_id: string;
-  strategist_id?: string;
-  created_at: string;
-  updated_at: string;
-}
+// Reexportar para compatibilidade com outros componentes
+export type SocialContent = BusinessSocialContent;
 
 interface Business {
   id: string;
@@ -537,7 +522,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           content={selectedContent}
-          initialDate={selectedDate}
+          selectedDate={selectedDate}
           onSave={handleSaveContent}
           businessId={selectedBusinessId}
           strategistId={strategistId}
