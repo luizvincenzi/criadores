@@ -29,22 +29,22 @@ export default function ContentMonthView({
 
   // Preencher dias para completar a grade (começar na segunda-feira)
   const firstDayOfWeek = monthDays[0].getDay();
-  const daysToAdd = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Ajustar para segunda-feira
-  
+  const daysToAdd = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
   const calendarDays: Date[] = [];
-  
+
   // Adicionar dias do mês anterior
   for (let i = daysToAdd; i > 0; i--) {
     const prevDay = new Date(monthDays[0]);
     prevDay.setDate(prevDay.getDate() - i);
     calendarDays.push(prevDay);
   }
-  
+
   // Adicionar dias do mês atual
   calendarDays.push(...monthDays);
-  
+
   // Adicionar dias do próximo mês para completar a grade
-  const remainingDays = 42 - calendarDays.length; // 6 semanas x 7 dias
+  const remainingDays = 42 - calendarDays.length;
   for (let i = 1; i <= remainingDays; i++) {
     const nextDay = new Date(monthEnd);
     nextDay.setDate(nextDay.getDate() + i);
@@ -53,99 +53,127 @@ export default function ContentMonthView({
 
   // Agrupar conteúdos por dia
   const getContentsForDay = (date: Date) => {
-    return contents.filter(content => 
+    return contents.filter(content =>
       isSameDay(new Date(content.scheduled_date), date)
     );
   };
 
-  const contentTypeConfig = {
-    reels: { color: 'bg-green-100 text-green-700' },
-    story: { color: 'bg-yellow-100 text-yellow-700' },
-    post: { color: 'bg-blue-100 text-blue-700' }
+  const contentTypeColors = {
+    reels: 'bg-green-500',
+    story: 'bg-purple-500',
+    post: 'bg-blue-500'
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando conteúdos...</p>
+          <p className="text-gray-500 text-sm">Carregando...</p>
         </div>
       </div>
     );
   }
 
+  // Agrupar por semanas
+  const weeks: Date[][] = [];
+  for (let i = 0; i < calendarDays.length; i += 7) {
+    weeks.push(calendarDays.slice(i, i + 7));
+  }
+
   return (
-    <div className="h-full flex flex-col p-4">
-      {/* Header dos dias da semana */}
-      <div className="grid grid-cols-7 gap-2 mb-2">
+    <div className="h-full flex flex-col bg-[#f5f5f5] overflow-hidden">
+      {/* Header dos dias da semana - Apple Style */}
+      <div className="grid grid-cols-7 bg-[#f5f5f5] px-4">
         {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map((day) => (
-          <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
+          <div key={day} className="text-center text-[11px] font-semibold text-gray-400 uppercase tracking-wider py-3">
             {day}
           </div>
         ))}
       </div>
 
-      {/* Grade de dias */}
-      <div className="grid grid-cols-7 gap-2 flex-1 overflow-y-auto">
-        {calendarDays.map((day, index) => {
-          const dayContents = getContentsForDay(day);
-          const isCurrentDay = isToday(day);
-          const isCurrentMonth = isSameMonth(day, monthStart);
+      {/* Grade de dias - Apple Style com cards brancos */}
+      <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {weeks.map((week, weekIndex) => (
+          <div key={weekIndex} className="grid grid-cols-7 gap-2 mb-2">
+            {week.map((day, dayIndex) => {
+              const dayContents = getContentsForDay(day);
+              const isCurrentDay = isToday(day);
+              const isCurrentMonth = isSameMonth(day, monthStart);
 
-          return (
-            <div
-              key={index}
-              className={`
-                border rounded-lg p-2 min-h-[100px] flex flex-col
-                ${isCurrentDay ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200'}
-                ${!isCurrentMonth ? 'opacity-40' : ''}
-                hover:shadow-md transition-shadow cursor-pointer
-              `}
-              onClick={() => onAddContent(day)}
-            >
-              {/* Número do dia */}
-              <div className={`
-                text-sm font-semibold mb-1
-                ${isCurrentDay ? 'text-blue-700' : isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
-              `}>
-                {format(day, 'd')}
-              </div>
-
-              {/* Conteúdos do dia */}
-              <div className="space-y-1 flex-1 overflow-y-auto">
-                {dayContents.slice(0, 3).map((content) => {
-                  const config = contentTypeConfig[content.content_type];
-                  
-                  return (
-                    <div
-                      key={content.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditContent(content);
-                      }}
-                      className={`
-                        ${config.color} rounded px-1.5 py-0.5 text-xs truncate
-                        hover:opacity-80 transition-opacity flex items-center gap-1
-                      `}
-                      title={content.title}
-                    >
-                      <ContentTypeIcon type={content.content_type} className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{content.title}</span>
-                    </div>
-                  );
-                })}
-                
-                {/* Indicador de mais conteúdos */}
-                {dayContents.length > 3 && (
-                  <div className="text-xs text-gray-500 font-medium">
-                    +{dayContents.length - 3} mais
+              return (
+                <div
+                  key={dayIndex}
+                  className={`
+                    relative p-2 md:p-3 flex flex-col cursor-pointer transition-all group
+                    rounded-2xl min-h-[100px] md:min-h-[120px]
+                    ${isCurrentMonth
+                      ? 'bg-white shadow-sm hover:shadow-md'
+                      : 'bg-gray-100/50'}
+                    ${isCurrentDay ? 'ring-2 ring-blue-500/30' : ''}
+                  `}
+                  onClick={() => onAddContent(day)}
+                >
+                  {/* Número do dia - Apple Style */}
+                  <div className="flex justify-end mb-2">
+                    <span className={`
+                      inline-flex items-center justify-center text-sm font-medium transition-all
+                      ${isCurrentDay
+                        ? 'w-7 h-7 bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/30'
+                        : isCurrentMonth
+                          ? 'text-gray-800'
+                          : 'text-gray-300'
+                      }
+                    `}>
+                      {format(day, 'd')}
+                    </span>
                   </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+
+                  {/* Conteúdos do dia - Clean lines */}
+                  <div className="space-y-1 flex-1 overflow-hidden">
+                    {dayContents.slice(0, 2).map((content) => {
+                      const bgColor = contentTypeColors[content.content_type];
+
+                      return (
+                        <div
+                          key={content.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditContent(content);
+                          }}
+                          className={`
+                            flex items-center gap-1.5 px-2 py-1 rounded-md text-xs
+                            hover:opacity-80 transition-opacity cursor-pointer
+                            ${content.is_executed ? 'opacity-50' : ''}
+                          `}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${bgColor}`}></span>
+                          <span className={`truncate text-gray-700 ${content.is_executed ? 'line-through' : ''}`}>
+                            {content.title}
+                          </span>
+                        </div>
+                      );
+                    })}
+
+                    {/* Indicador de mais conteúdos */}
+                    {dayContents.length > 2 && (
+                      <div className="text-[10px] text-gray-400 font-medium pl-2">
+                        +{dayContents.length - 2} mais
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hover indicator */}
+                  {isCurrentMonth && (
+                    <div className="absolute inset-x-2 bottom-2 h-6 border border-dashed border-gray-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[10px] text-gray-400">+ Adicionar</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

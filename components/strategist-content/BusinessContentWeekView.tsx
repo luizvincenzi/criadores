@@ -36,75 +36,42 @@ export default function ContentWeekView({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3, // Reduzido de 8 para 3 - mais responsivo
+        distance: 3,
         delay: 0,
         tolerance: 5,
       },
     })
   );
 
-  // Auto-scroll para o dia de hoje quando o componente montar ou a semana mudar
+  // Auto-scroll para o dia de hoje
   React.useEffect(() => {
     if (todayColumnRef.current && scrollContainerRef.current) {
       const container = scrollContainerRef.current;
       const todayColumn = todayColumnRef.current;
-
-      // Calcular a posição para centralizar a coluna de hoje
       const containerWidth = container.offsetWidth;
       const columnLeft = todayColumn.offsetLeft;
       const columnWidth = todayColumn.offsetWidth;
-
-      // Centralizar a coluna de hoje
       const scrollPosition = columnLeft - (containerWidth / 2) + (columnWidth / 2);
-
-      container.scrollTo({
-        left: scrollPosition,
-        behavior: 'smooth'
-      });
+      container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
     }
-  }, [weekStart]); // Re-executar quando a semana mudar
+  }, [weekStart]);
 
-  // Gerar array de 7 dias (Segunda a Domingo)
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  // Agrupar conteúdos por dia
   const getContentsForDay = (date: Date) => {
     const targetDateStr = format(date, 'yyyy-MM-dd');
-
-    const dayContents = contents.filter(content => {
-      // Validar se scheduled_date existe e é uma string
-      if (!content.scheduled_date || typeof content.scheduled_date !== 'string') {
-        console.warn('⚠️ Conteúdo sem data agendada válida:', content);
-        return false;
-      }
-
-      // Usar apenas a parte da data (yyyy-MM-dd) para comparação
+    return contents.filter(content => {
+      if (!content.scheduled_date || typeof content.scheduled_date !== 'string') return false;
       const contentDateStr = content.scheduled_date.includes('T')
         ? content.scheduled_date.split('T')[0]
         : content.scheduled_date;
-      const isSame = contentDateStr === targetDateStr;
-
-      // Debug: log para verificar comparação de datas
-      if (date.getDay() === 0) { // Apenas para domingos
-        console.log('🔍 Verificando domingo:', {
-          targetDate: targetDateStr,
-          contentDate: contentDateStr,
-          isSame,
-          content: content.title,
-          contentId: content.id
-        });
-      }
-
-      return isSame;
+      return contentDateStr === targetDateStr;
     }).sort((a, b) => {
-      // Ordenar por horário se disponível
       if (a.scheduled_time && b.scheduled_time) {
         return a.scheduled_time.localeCompare(b.scheduled_time);
       }
       return 0;
     });
-
-    return dayContents;
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -113,42 +80,33 @@ export default function ContentWeekView({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (over) {
-      // Encontrar o conteúdo que foi arrastado
       const draggedContent = contents.find(c => c.id === active.id);
-
       if (draggedContent) {
-        // O over.id é o ID do dia (formato: yyyy-MM-dd)
         const targetDayIndex = weekDays.findIndex(day =>
           format(day, 'yyyy-MM-dd') === over.id
         );
-
         if (targetDayIndex !== -1) {
           const targetDate = weekDays[targetDayIndex];
-          // Só mover se for para um dia diferente
           if (!isSameDay(new Date(draggedContent.scheduled_date), targetDate)) {
             onMoveContent(draggedContent.id, targetDate);
           }
         }
       }
     }
-
     setActiveId(null);
   };
 
-  const handleDragCancel = () => {
-    setActiveId(null);
-  };
+  const handleDragCancel = () => setActiveId(null);
 
   const activeContent = activeId ? contents.find(c => c.id === activeId) : null;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center h-full bg-[#f5f5f5]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando conteúdos...</p>
+          <p className="text-gray-500 text-sm">Carregando...</p>
         </div>
       </div>
     );
@@ -161,52 +119,62 @@ export default function ContentWeekView({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div ref={scrollContainerRef} className="h-full overflow-auto">
-        <div className="flex gap-2 min-w-max px-2 md:px-4 pb-4">
-          {weekDays.map((day, index) => {
-            const dayContents = getContentsForDay(day);
-            const dayId = format(day, 'yyyy-MM-dd');
-            const isCurrentDay = isToday(day);
+      {/* Apple Calendar Week View */}
+      <div
+        ref={scrollContainerRef}
+        className="h-full overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-8 pt-4 md:pt-6 flex gap-3 md:gap-4 snap-x snap-mandatory bg-[#f5f5f5]"
+      >
+        {weekDays.map((day) => {
+          const dayContents = getContentsForDay(day);
+          const dayId = format(day, 'yyyy-MM-dd');
+          const isCurrentDay = isToday(day);
+          const dayShort = format(day, 'EEE', { locale: ptBR }).toUpperCase().substring(0, 3);
 
-            return (
-              <div
-                key={dayId}
-                ref={isCurrentDay ? todayColumnRef : null}
-                className="w-40 md:w-48 flex-shrink-0 flex flex-col"
-              >
-                {/* Header do Dia - COMPACTO */}
-                <div className={`rounded-t-lg px-3 py-2 ${isCurrentDay ? 'bg-blue-100' : 'bg-gray-100'} flex-shrink-0`}>
-                  <div className="flex items-center justify-between">
-                    <div className={`text-xs font-medium uppercase ${isCurrentDay ? 'text-blue-700' : 'text-gray-600'}`}>
-                      {format(day, 'EEE', { locale: ptBR }).toUpperCase()}
-                    </div>
-                    <div className={`text-xl font-bold ${isCurrentDay ? 'text-blue-900' : 'text-gray-900'}`}>
-                      {format(day, 'd')}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Coluna Droppable */}
-                <div className="flex-1">
-                  <BusinessDroppableDay
-                    id={dayId}
-                    date={day}
-                    contents={dayContents}
-                    onAddContent={() => onAddContent(day)}
-                    onEditContent={onEditContent}
-                    onToggleExecuted={onToggleExecuted}
-                  />
-                </div>
+          return (
+            <div
+              key={dayId}
+              ref={isCurrentDay ? todayColumnRef : null}
+              className="snap-center flex-shrink-0 w-[85vw] md:w-[220px] flex flex-col h-full group"
+            >
+              {/* Floating Date Header - Apple Style */}
+              <div className={`mb-3 flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 ${
+                isCurrentDay
+                  ? 'bg-blue-600 shadow-md shadow-blue-500/20 translate-y-1'
+                  : 'bg-transparent'
+              }`}>
+                <span className={`text-xs font-bold uppercase tracking-widest ${
+                  isCurrentDay ? 'text-white/80' : 'text-gray-500'
+                }`}>
+                  {dayShort}
+                </span>
+                <span className={`text-xl font-light tracking-tight ${
+                  isCurrentDay ? 'text-white font-medium' : 'text-[#1d1d1f]'
+                }`}>
+                  {format(day, 'd')}
+                </span>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Day Column - White Background with Apple Styling */}
+              <div className="flex-1">
+                <BusinessDroppableDay
+                  id={dayId}
+                  date={day}
+                  contents={dayContents}
+                  onAddContent={() => onAddContent(day)}
+                  onEditContent={onEditContent}
+                  onToggleExecuted={onToggleExecuted}
+                  isToday={isCurrentDay}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Drag Overlay */}
       <DragOverlay>
         {activeContent ? (
-          <div className="opacity-80">
+          <div className="opacity-90 scale-105">
             <BusinessContentCard
               content={activeContent}
               onEdit={() => {}}

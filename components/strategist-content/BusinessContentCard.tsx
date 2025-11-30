@@ -5,6 +5,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { BusinessSocialContent } from '../BusinessContentModal';
 import { contentTypeConfig, ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import { PlatformIcon } from '@/components/icons/PlatformIcons';
+import { Video, Image as ImageIcon, Clock, Circle, CheckCircle2 } from 'lucide-react';
 
 type SocialContent = BusinessSocialContent;
 
@@ -14,9 +15,6 @@ interface ContentCardProps {
   onToggleExecuted: (isExecuted: boolean) => void;
   isDragging?: boolean;
 }
-
-// Configuração movida para components/icons/ContentTypeIcons.tsx
-// Ícones de plataforma movidos para components/icons/PlatformIcons.tsx
 
 export default function ContentCard({
   content,
@@ -41,120 +39,114 @@ export default function ContentCard({
   const typeConfig = contentTypeConfig[content.content_type];
   const isExecuted = content.is_executed;
 
+  // Apple-style type colors
+  const typeColors = {
+    reels: { bg: 'bg-green-500/10', text: 'text-green-700', icon: Video },
+    story: { bg: 'bg-purple-500/10', text: 'text-purple-700', icon: ImageIcon },
+    post: { bg: 'bg-blue-500/10', text: 'text-blue-700', icon: ImageIcon },
+  };
+
+  const currentType = typeColors[content.content_type] || typeColors.post;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className={`
-        relative ${typeConfig.bg} rounded-lg p-2 shadow-sm
-        hover:shadow-md transition-shadow duration-150
-        ${isExecuted ? 'opacity-75' : ''}
-        ${isDraggingActive ? 'opacity-40 scale-95' : ''}
-        ${isDragging ? 'shadow-xl scale-105' : ''}
-      `}
+      className="relative group/card"
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-1.5 relative">
-        <div
-          {...listeners}
-          className="flex items-center gap-1.5 cursor-grab active:cursor-grabbing flex-1"
-        >
-          <ContentTypeIcon type={content.content_type} size={16} />
-          <span className={`text-xs font-semibold ${typeConfig.text}`}>
+      <div
+        className={`
+          p-3 md:p-4 rounded-[24px] border transition-all duration-300
+          ${isExecuted
+            ? 'bg-gray-50 border-gray-100 opacity-60'
+            : 'bg-white border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1'}
+          ${isDraggingActive ? 'opacity-40 scale-95' : ''}
+          ${isDragging ? 'shadow-xl scale-105 opacity-90' : ''}
+        `}
+      >
+        {/* Header: Tag + Check Button */}
+        <div className="flex justify-between items-start mb-3">
+          <div
+            {...listeners}
+            className={`px-2 md:px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 cursor-grab active:cursor-grabbing ${currentType.bg} ${currentType.text}`}
+          >
+            {content.content_type === 'reels' ? (
+              <Video className="w-3 h-3" />
+            ) : (
+              <ImageIcon className="w-3 h-3" />
+            )}
             {typeConfig.label}
-          </span>
+          </div>
+
+          {/* Check Button - Apple Style */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleExecuted(!isExecuted);
+            }}
+            className="text-gray-300 hover:text-green-500 transition-colors focus:outline-none"
+            title={isExecuted ? 'Marcar como pendente' : 'Marcar como executado'}
+          >
+            {isExecuted ? (
+              <CheckCircle2 className="w-5 h-5 text-green-500 fill-green-100" />
+            ) : (
+              <Circle className="w-5 h-5 hover:stroke-2" />
+            )}
+          </button>
         </div>
 
-        {/* Status Indicator */}
+        {/* Title - Draggable Area */}
+        <h4
+          {...listeners}
+          className={`text-sm md:text-[15px] font-medium text-[#1d1d1f] mb-2 leading-snug transition-all cursor-grab active:cursor-grabbing line-clamp-2 ${
+            isExecuted ? 'line-through text-gray-400' : ''
+          }`}
+        >
+          {content.title}
+        </h4>
+
+        {/* Footer: Time + Platforms */}
+        <div
+          {...listeners}
+          className="flex items-center gap-2 text-xs text-gray-500 font-medium pt-2 border-t border-gray-100 cursor-grab active:cursor-grabbing"
+        >
+          {content.scheduled_time && (
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {content.scheduled_time.substring(0, 5)}
+            </div>
+          )}
+
+          {/* Platform Icons */}
+          <div className="flex items-center gap-1 ml-auto">
+            {content.platforms.slice(0, 2).map(platform => (
+              <span key={platform} className="text-gray-400">
+                <PlatformIcon platform={platform} size={12} />
+              </span>
+            ))}
+            {content.platforms.length > 2 && (
+              <span className="text-[10px] text-gray-400">+{content.platforms.length - 2}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Ver Detalhes - Appears on hover */}
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onToggleExecuted(!isExecuted);
+            e.preventDefault();
+            onEdit();
           }}
-          className={`
-            w-4 h-4 rounded-full border-2 flex items-center justify-center
-            transition-all duration-200 flex-shrink-0
-            ${isExecuted
-              ? 'bg-green-500 border-green-600'
-              : 'bg-white border-gray-300 hover:border-gray-400'
-            }
-          `}
-          title={isExecuted ? 'Marcar como pendente' : 'Marcar como executado'}
+          className="w-full mt-3 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5 opacity-0 group-hover/card:opacity-100"
         >
-          {isExecuted && (
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          )}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Ver detalhes
         </button>
       </div>
-
-      {/* Título - Área de drag */}
-      <h4
-        {...listeners}
-        className="text-xs font-semibold text-gray-900 mb-1.5 line-clamp-2 cursor-grab active:cursor-grabbing"
-      >
-        {content.title}
-      </h4>
-
-      {/* Plataformas - Área de drag */}
-      <div
-        {...listeners}
-        className="flex items-center gap-1 mb-1.5 flex-wrap cursor-grab active:cursor-grabbing"
-      >
-        {content.platforms.map(platform => (
-          <span
-            key={platform}
-            className="text-xs bg-white px-1.5 py-0.5 rounded-full border border-gray-200 flex items-center gap-1"
-            title={platform}
-          >
-            <PlatformIcon platform={platform} size={12} className="text-gray-600" />
-          </span>
-        ))}
-      </div>
-
-      {/* Footer - Responsável e Horário - Área de drag */}
-      <div
-        {...listeners}
-        className="flex items-center justify-between text-xs text-gray-600 mb-2 cursor-grab active:cursor-grabbing"
-      >
-        {/* Horário */}
-        {content.scheduled_time && (
-          <div className="flex items-center gap-1">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            <span className="text-xs">{content.scheduled_time.substring(0, 5)}</span>
-          </div>
-        )}
-
-        {/* Responsável */}
-        {content.assigned_user && (
-          <div className="flex items-center gap-1 ml-auto" title={content.assigned_user.full_name}>
-            <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-xs font-medium text-white">
-              {content.assigned_user.full_name.charAt(0).toUpperCase()}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Botão Ver Detalhes dentro do card */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          onEdit();
-        }}
-        className="w-full py-1.5 px-2 bg-white/60 hover:bg-white border border-gray-300 text-gray-700 rounded text-xs font-medium transition-all flex items-center justify-center gap-1"
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-          <circle cx="12" cy="12" r="3"></circle>
-        </svg>
-        Ver detalhes
-      </button>
     </div>
   );
 }

@@ -143,10 +143,10 @@ export default function ContentWeekView({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center h-full bg-[#f5f5f5]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando conteúdos...</p>
+          <p className="text-gray-500 text-sm">Carregando...</p>
         </div>
       </div>
     );
@@ -159,52 +159,57 @@ export default function ContentWeekView({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div ref={scrollContainerRef} className="h-full overflow-auto">
-        <div className="flex gap-2 min-w-max px-2 md:px-4 pb-4">
-          {weekDays.map((day, index) => {
-            const dayContents = getContentsForDay(day);
-            const dayId = format(day, 'yyyy-MM-dd');
-            const isCurrentDay = isToday(day);
+      <div ref={scrollContainerRef} className="h-full overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-8 pt-4 md:pt-6 flex gap-3 md:gap-4 snap-x snap-mandatory bg-[#f5f5f5]">
+        {weekDays.map((day, index) => {
+          const dayContents = getContentsForDay(day);
+          const dayId = format(day, 'yyyy-MM-dd');
+          const isCurrentDay = isToday(day);
+          const dayShort = format(day, 'EEE', { locale: ptBR }).toUpperCase().substring(0, 3);
 
-            return (
-              <div
-                key={dayId}
-                ref={isCurrentDay ? todayColumnRef : null}
-                className="w-40 md:w-48 flex-shrink-0 flex flex-col"
-              >
-                {/* Header do Dia - COMPACTO */}
-                <div className={`rounded-t-lg px-3 py-2 ${isCurrentDay ? 'bg-blue-100' : 'bg-gray-100'} flex-shrink-0`}>
-                  <div className="flex items-center justify-between">
-                    <div className={`text-xs font-medium uppercase ${isCurrentDay ? 'text-blue-700' : 'text-gray-600'}`}>
-                      {format(day, 'EEE', { locale: ptBR }).toUpperCase()}
-                    </div>
-                    <div className={`text-xl font-bold ${isCurrentDay ? 'text-blue-900' : 'text-gray-900'}`}>
-                      {format(day, 'd')}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Coluna Droppable */}
-                <div className="flex-1">
-                  <DroppableDay
-                    id={dayId}
-                    date={day}
-                    contents={dayContents}
-                    onAddContent={() => onAddContent(day)}
-                    onEditContent={onEditContent}
-                    onToggleExecuted={onToggleExecuted}
-                  />
-                </div>
+          return (
+            <div
+              key={dayId}
+              ref={isCurrentDay ? todayColumnRef : null}
+              className="snap-center flex-shrink-0 w-[85vw] md:w-[220px] flex flex-col h-full group"
+            >
+              {/* Floating Date Header - Apple Style */}
+              <div className={`mb-3 flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 ${
+                isCurrentDay
+                  ? 'bg-blue-600 shadow-md shadow-blue-500/20 translate-y-1'
+                  : 'bg-transparent'
+              }`}>
+                <span className={`text-xs font-bold uppercase tracking-widest ${
+                  isCurrentDay ? 'text-white/80' : 'text-gray-500'
+                }`}>
+                  {dayShort}
+                </span>
+                <span className={`text-xl font-light tracking-tight ${
+                  isCurrentDay ? 'text-white font-medium' : 'text-[#1d1d1f]'
+                }`}>
+                  {format(day, 'd')}
+                </span>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Coluna Droppable */}
+              <div className="flex-1">
+                <DroppableDay
+                  id={dayId}
+                  date={day}
+                  contents={dayContents}
+                  onAddContent={() => onAddContent(day)}
+                  onEditContent={onEditContent}
+                  onToggleExecuted={onToggleExecuted}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Drag Overlay */}
       <DragOverlay>
         {activeContent ? (
-          <div className="opacity-80">
+          <div className="opacity-90 scale-105">
             <ContentCard
               content={activeContent}
               onEdit={() => {}}

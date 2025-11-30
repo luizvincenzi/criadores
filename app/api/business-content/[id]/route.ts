@@ -6,11 +6,11 @@ import { createClient } from '@/lib/supabase/server';
 // =====================================================
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
 
     console.log('🔍 [BUSINESS-CONTENT] GET by ID:', id);
 
@@ -50,11 +50,11 @@ export async function GET(
 // =====================================================
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     console.log('📝 [BUSINESS-CONTENT] PUT:', id, body);
@@ -153,11 +153,11 @@ export async function PUT(
 // =====================================================
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     console.log('📝 [BUSINESS-CONTENT] PATCH:', id, body);
@@ -228,11 +228,11 @@ export async function PATCH(
 // =====================================================
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { id } = params;
+    const { id } = await params;
 
     console.log('🗑️ [BUSINESS-CONTENT] DELETE:', id);
 

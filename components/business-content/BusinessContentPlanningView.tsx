@@ -298,9 +298,9 @@ export default function BusinessContentPlanningView({ businessId, businessName }
 
   // 🖥️ DESKTOP VIEW
   return (
-    <div className="flex flex-col md:flex-row bg-[#f5f5f5] min-h-screen">
+    <div className="flex flex-col md:flex-row bg-[#f5f5f5] h-screen overflow-hidden">
       {/* Sidebar Esquerda - Ferramentas de Planejamento */}
-      <div className="w-full md:w-56 bg-[#f5f5f5] flex flex-col flex-shrink-0">
+      <div className="w-full md:w-56 bg-[#f5f5f5] flex flex-col flex-shrink-0 overflow-y-auto">
         {/* Header da Sidebar */}
         <div className="p-4">
           <div className="mb-4">
@@ -403,96 +403,96 @@ export default function BusinessContentPlanningView({ businessId, businessName }
         </div>
       </div>
 
-      {/* Área Principal - Calendário */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header Compacto */}
-        <div className="bg-[#f5f5f5] px-3 md:px-6 py-2 flex items-center justify-between flex-shrink-0 flex-wrap gap-2">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <button
-                onClick={viewMode === 'week' ? handlePreviousWeek : handlePreviousMonth}
-                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                title={viewMode === 'week' ? 'Semana anterior' : 'Mês anterior'}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="15 18 9 12 15 6"/>
-                </svg>
-              </button>
+      {/* Área Principal - Calendário com estilo Apple */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f5f5f5]">
+        {/* Header Apple Style */}
+        <div className="flex-shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between p-4 md:px-8 md:py-5 gap-3 md:gap-4 bg-[#f5f5f5]">
 
-              <button
-                onClick={handleToday}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded transition-colors"
-              >
-                Hoje
-              </button>
+          {/* Left: Date & Nav */}
+          <div className="flex items-center w-full md:w-auto gap-3 md:gap-6">
+            <div className="flex flex-col">
+              <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest pl-0.5">Calendário</span>
+              <div className="flex items-center gap-2 md:gap-3">
+                <h1 className="text-lg md:text-2xl font-semibold text-[#1d1d1f] tracking-tight whitespace-nowrap capitalize">
+                  {viewMode === 'week' ? weekLabel : monthLabel}
+                </h1>
 
-              <button
-                onClick={viewMode === 'week' ? handleNextWeek : handleNextMonth}
-                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                title={viewMode === 'week' ? 'Próxima semana' : 'Próximo mês'}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
-              </button>
-            </div>
+                {/* Navigation Arrows */}
+                <div className="flex gap-0.5 ml-1">
+                  <button
+                    onClick={viewMode === 'week' ? handlePreviousWeek : handlePreviousMonth}
+                    className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors text-gray-500"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={viewMode === 'week' ? handleNextWeek : handleNextMonth}
+                    className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors text-gray-500"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </button>
+                </div>
 
-            <div className="text-base font-semibold text-gray-900">
-              {viewMode === 'week' ? weekLabel : monthLabel}
+                {/* Button: Go to Today */}
+                <button
+                  onClick={handleToday}
+                  className="ml-1 md:ml-2 px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-semibold text-[#1d1d1f] transition-all flex items-center gap-1.5 active:scale-95"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span>Hoje</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Dropdown de Visualização */}
-          <div className="relative">
-            <button
-              onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors border-2 border-gray-300 flex items-center gap-2 min-w-[140px] justify-between"
-            >
-              <span>{viewMode === 'week' ? 'Semana' : 'Mês'}</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className={`transition-transform ${isViewDropdownOpen ? 'rotate-180' : ''}`}
+          {/* Right: View Switcher (Dynamic Island style) */}
+          <div className="self-center md:self-auto bg-gray-200/80 p-1 rounded-full w-full md:w-auto flex justify-center max-w-[280px] md:max-w-none">
+            <div className="flex relative w-full md:w-auto">
+              <button
+                onClick={() => setViewMode('week')}
+                className={`flex-1 md:flex-none px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-300 ${
+                  viewMode === 'week'
+                    ? 'bg-white text-[#1d1d1f] shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-
-            {isViewDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                <button
-                  onClick={() => {
-                    setViewMode('week');
-                    setIsViewDropdownOpen(false);
-                  }}
-                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
-                    viewMode === 'week' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Semana
-                </button>
-                <button
-                  onClick={() => {
-                    setViewMode('month');
-                    setIsViewDropdownOpen(false);
-                  }}
-                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
-                    viewMode === 'month' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
-                  }`}
-                >
-                  Mês
-                </button>
-              </div>
-            )}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="18"></rect>
+                  <rect x="14" y="3" width="7" height="18"></rect>
+                </svg>
+                <span>Semana</span>
+              </button>
+              <button
+                onClick={() => setViewMode('month')}
+                className={`flex-1 md:flex-none px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-300 ${
+                  viewMode === 'month'
+                    ? 'bg-white text-[#1d1d1f] shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Mês</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Week/Month View */}
-        <div className="flex-1">
+        {/* Week/Month View - Full height with internal scroll */}
+        <div className="flex-1 overflow-hidden relative bg-[#f5f5f5]">
           {viewMode === 'week' ? (
             <BusinessContentWeekView
               weekStart={currentWeekStart}

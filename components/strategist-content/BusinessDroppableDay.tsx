@@ -4,6 +4,7 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import BusinessContentCard from './BusinessContentCard';
 import { BusinessSocialContent } from '../BusinessContentModal';
+import { Plus } from 'lucide-react';
 
 type SocialContent = BusinessSocialContent;
 
@@ -14,6 +15,7 @@ interface DroppableDayProps {
   onAddContent: () => void;
   onEditContent: (content: SocialContent) => void;
   onToggleExecuted: (contentId: string, isExecuted: boolean) => void;
+  isToday?: boolean;
 }
 
 export default function DroppableDay({
@@ -22,7 +24,8 @@ export default function DroppableDay({
   contents,
   onAddContent,
   onEditContent,
-  onToggleExecuted
+  onToggleExecuted,
+  isToday = false
 }: DroppableDayProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -32,12 +35,28 @@ export default function DroppableDay({
     <div
       ref={setNodeRef}
       className={`
-        bg-white rounded-b-lg min-h-[calc(100vh-200px)]
-        ${isOver ? 'bg-blue-50' : ''}
-        transition-colors duration-200
+        flex-1 rounded-[30px] p-2 flex flex-col transition-all relative min-h-[calc(100vh-240px)]
+        ${isToday
+          ? 'bg-white border-2 border-blue-500/20 shadow-xl shadow-blue-500/5'
+          : 'bg-white border border-white/50 shadow-sm hover:shadow-md'}
+        ${isOver ? 'ring-2 ring-blue-400 ring-opacity-50 bg-blue-50/30' : ''}
       `}
     >
-      <div className="p-2 space-y-2">
+      {/* Ghost Add Button - Always visible on today or hover on others */}
+      <button
+        onClick={onAddContent}
+        className={`
+          absolute inset-x-4 top-2 h-10 border border-dashed rounded-xl flex items-center justify-center transition-all z-10
+          ${isToday
+            ? 'border-blue-200 text-blue-400 hover:bg-blue-50'
+            : 'border-gray-200 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-gray-50'}
+        `}
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+
+      {/* Content Cards */}
+      <div className="mt-14 flex flex-col gap-3 overflow-y-auto pr-1 h-full custom-scrollbar">
         {contents.map(content => (
           <BusinessContentCard
             key={content.id}
@@ -47,21 +66,12 @@ export default function DroppableDay({
           />
         ))}
 
-        {/* Botão Adicionar - Compacto */}
-        <button
-          onClick={onAddContent}
-          className="
-            w-full py-2 px-3 border-2 border-dashed border-gray-300
-            rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400
-            hover:bg-gray-50 transition-all duration-200
-            flex items-center justify-center gap-1.5 text-xs font-medium
-          "
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          Adicionar
-        </button>
+        {/* Empty State for Today */}
+        {isToday && contents.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-8 text-center opacity-40">
+            <span className="text-sm text-gray-400 font-medium">Nada por enquanto</span>
+          </div>
+        )}
       </div>
     </div>
   );
