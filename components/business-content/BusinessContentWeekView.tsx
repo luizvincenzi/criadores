@@ -122,7 +122,7 @@ export default function ContentWeekView({
       {/* Apple Calendar Week View */}
       <div
         ref={scrollContainerRef}
-        className="h-full overflow-x-auto overflow-y-hidden px-4 md:px-8 pb-8 pt-4 md:pt-6 flex gap-3 md:gap-4 snap-x snap-mandatory bg-[#f5f5f5]"
+        className="h-full overflow-auto px-4 md:px-8 pb-8 pt-4 md:pt-6 flex items-stretch gap-3 md:gap-4 snap-x snap-mandatory bg-[#f5f5f5]"
       >
         {weekDays.map((day) => {
           const dayContents = getContentsForDay(day);
@@ -134,10 +134,10 @@ export default function ContentWeekView({
             <div
               key={dayId}
               ref={isCurrentDay ? todayColumnRef : null}
-              className="snap-center flex-shrink-0 w-[85vw] md:w-[220px] flex flex-col h-full group"
+              className="snap-center flex-shrink-0 w-[85vw] md:w-[220px] flex flex-col group"
             >
               {/* Floating Date Header - Apple Style */}
-              <div className={`mb-3 flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 ${
+              <div className={`mb-3 flex-shrink-0 flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 ${
                 isCurrentDay
                   ? 'bg-blue-600 shadow-md shadow-blue-500/20 translate-y-1'
                   : 'bg-transparent'
@@ -155,7 +155,7 @@ export default function ContentWeekView({
               </div>
 
               {/* Day Column - White Background with Apple Styling */}
-              <div className="flex-1">
+              <div className="flex-1 flex flex-col">
                 <BusinessDroppableDay
                   id={dayId}
                   date={day}

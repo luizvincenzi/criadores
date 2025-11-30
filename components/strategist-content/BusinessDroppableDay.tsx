@@ -35,7 +35,7 @@ export default function DroppableDay({
     <div
       ref={setNodeRef}
       className={`
-        h-full rounded-[30px] p-2 flex flex-col transition-all relative
+        h-full min-h-[300px] rounded-[30px] p-2 flex flex-col transition-all relative
         ${isToday
           ? 'bg-white border-2 border-blue-500/20 shadow-xl shadow-blue-500/5'
           : 'bg-white border border-white/50 shadow-sm hover:shadow-md'}
@@ -56,7 +56,7 @@ export default function DroppableDay({
       </button>
 
       {/* Content Cards */}
-      <div className="mt-14 flex flex-col gap-3 overflow-y-auto pr-1 h-full custom-scrollbar">
+      <div className="mt-14 flex flex-col gap-3 pr-1">
         {contents.map(content => (
           <BusinessContentCard
             key={content.id}
