@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { format, addDays, isSameDay } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
+import { X, Calendar, Video, Image as ImageIcon, Disc, Check, BarChart2, Info, Plus, Minus } from 'lucide-react';
 
 interface SocialContent {
   id: string;
@@ -81,9 +81,39 @@ export default function WeeklyPlanningModal({
   }));
 
   const contentTypeConfig = {
-    reels: { label: 'Reels', color: 'text-green-600', bg: 'bg-green-50' },
-    story: { label: 'Stories', color: 'text-yellow-600', bg: 'bg-yellow-50' },
-    post: { label: 'Posts', color: 'text-blue-600', bg: 'bg-blue-50' }
+    reels: {
+      label: 'Reels',
+      subtitle: 'Vídeo Curto',
+      icon: Video,
+      iconBg: 'bg-green-100',
+      iconColor: 'text-green-600',
+      selectedClass: 'bg-green-500 text-white border-green-600',
+      stepperBg: 'bg-green-500 hover:bg-green-600',
+      feedbackBg: 'bg-green-50/80 border-green-100/50 text-green-700',
+      emptyBg: 'bg-green-50/50 border-green-200 text-green-700/70'
+    },
+    story: {
+      label: 'Stories',
+      subtitle: 'Conteúdo Efêmero',
+      icon: Disc,
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
+      selectedClass: 'bg-amber-500 text-white border-amber-600',
+      stepperBg: 'bg-amber-500 hover:bg-amber-600',
+      feedbackBg: 'bg-amber-50/80 border-amber-100/50 text-amber-700',
+      emptyBg: 'bg-amber-50/50 border-amber-200 text-amber-700/70'
+    },
+    post: {
+      label: 'Posts',
+      subtitle: 'Feed / Carrossel',
+      icon: ImageIcon,
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      selectedClass: 'bg-blue-500 text-white border-blue-600',
+      stepperBg: 'bg-blue-500 hover:bg-blue-600',
+      feedbackBg: 'bg-blue-50/80 border-blue-100/50 text-blue-700',
+      emptyBg: 'bg-blue-50/50 border-blue-200 text-blue-700/70'
+    }
   };
 
   const handleQuantityChange = (type: 'post' | 'reels' | 'story', value: number) => {
@@ -121,168 +151,249 @@ export default function WeeklyPlanningModal({
     return plans.reduce((sum, p) => sum + p.quantity, 0);
   };
 
+  // Componente de Seleção de Dia (Estilo iOS Calendar)
+  const DaySelector = ({
+    day,
+    date,
+    isSelected,
+    colorClass,
+    onClick,
+    disabled
+  }: {
+    day: string;
+    date: string;
+    isSelected: boolean;
+    colorClass: string;
+    onClick: () => void;
+    disabled: boolean;
+  }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled && !isSelected}
+      className={`
+        flex flex-col items-center justify-center p-2 sm:p-3 rounded-2xl border transition-all duration-300 w-full aspect-square
+        ${isSelected
+          ? `${colorClass} shadow-lg scale-105 ring-1 ring-offset-2 ring-offset-white/50`
+          : 'bg-white/40 border-slate-200/60 text-slate-400 hover:bg-white/80 hover:border-slate-300'}
+        ${disabled && !isSelected ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
+      `}
+    >
+      <span className="text-[10px] font-bold uppercase tracking-wider mb-1">{day}</span>
+      <span className={`text-lg sm:text-xl font-semibold ${isSelected ? 'font-bold' : ''}`}>{date}</span>
+    </button>
+  );
+
+  // Componente de Stepper (Quantidade)
+  const QuantityStepper = ({
+    value,
+    onChange,
+    colorBase
+  }: {
+    value: number;
+    onChange: (v: number) => void;
+    colorBase: string;
+  }) => (
+    <div className="flex items-center gap-2 sm:gap-3 bg-white/60 p-1.5 rounded-xl border border-slate-200/50 shadow-sm">
+      <button
+        onClick={() => onChange(Math.max(0, value - 1))}
+        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+      >
+        <Minus className="w-4 h-4" />
+      </button>
+      <span className="w-6 text-center font-semibold text-slate-700">{value}</span>
+      <button
+        onClick={() => onChange(value + 1)}
+        className={`w-8 h-8 flex items-center justify-center rounded-lg text-white shadow-sm transition-transform active:scale-95 ${colorBase}`}
+      >
+        <Plus className="w-4 h-4" />
+      </button>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-8 font-sans text-[#1D1D1F]">
+      {/* Backdrop com blur */}
+      <div
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col z-10">
-        {/* Header FIXO */}
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Planejamento Semanal</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {format(weekStart, 'd MMM', { locale: ptBR })} - {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: ptBR })}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            type="button"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
+      {/* Container Principal - Glassmorphism */}
+      <div className="
+        relative w-full max-w-6xl h-[90vh] lg:h-[85vh] flex flex-col lg:flex-row
+        bg-white/80 backdrop-blur-3xl
+        border border-white/40 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)]
+        rounded-[32px] overflow-hidden z-10
+      ">
 
-        {/* Conteúdo com Scroll */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {plans.map((plan) => {
-            const config = contentTypeConfig[plan.content_type];
-            
-            return (
-              <div key={plan.content_type} className={`${config.bg} border-2 border-gray-200 rounded-lg p-4`}>
-                {/* Header do Tipo */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <ContentTypeIcon type={plan.content_type} className="w-6 h-6" />
-                    <span className={`text-lg font-semibold ${config.color}`}>
-                      {config.label}
-                    </span>
-                  </div>
-                  
-                  {/* Quantidade */}
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-gray-700">Quantidade:</label>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleQuantityChange(plan.content_type, plan.quantity - 1)}
-                        className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-50"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        min="0"
-                        value={plan.quantity}
-                        onChange={(e) => handleQuantityChange(plan.content_type, parseInt(e.target.value) || 0)}
-                        className="w-16 text-center border border-gray-300 rounded px-2 py-1"
-                      />
-                      <button
-                        onClick={() => handleQuantityChange(plan.content_type, plan.quantity + 1)}
-                        className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-50"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                </div>
+        {/* LADO ESQUERDO: Canvas de Planejamento */}
+        <div className="flex-1 flex flex-col min-w-0 bg-white/30 relative">
 
-                {/* Seleção de Dias */}
-                {plan.quantity > 0 && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      Selecione até {plan.quantity} {plan.quantity === 1 ? 'dia' : 'dias'} ({plan.days.length}/{plan.quantity} selecionados):
-                    </label>
-                    <div className="grid grid-cols-7 gap-2">
-                      {weekDays.map((day) => {
-                        const isSelected = plan.days.includes(day.index);
-                        const canSelect = isSelected || plan.days.length < plan.quantity;
-
-                        return (
-                          <button
-                            key={day.index}
-                            onClick={() => handleDayToggle(plan.content_type, day.index)}
-                            disabled={!canSelect}
-                            className={`
-                              p-3 rounded-lg border-2 transition-all
-                              ${isSelected
-                                ? 'bg-blue-500 border-blue-600 text-white'
-                                : canSelect
-                                  ? 'bg-white border-gray-300 text-gray-700 hover:border-blue-400'
-                                  : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
-                              }
-                            `}
-                          >
-                            <div className="text-xs font-medium">{day.label}</div>
-                            <div className="text-lg font-bold">{format(day.date, 'd')}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {plan.quantity > 0 && plan.days.length === 0 && (
-                      <p className="text-sm text-orange-600 mt-2">
-                        ⚠️ Selecione pelo menos um dia para distribuir os {plan.quantity} {config.label.toLowerCase()}
-                      </p>
-                    )}
-
-                    {plan.days.length === plan.quantity && (
-                      <p className="text-sm text-green-600 mt-2">
-                        ✅ Limite atingido: {plan.quantity} {plan.quantity === 1 ? 'dia selecionado' : 'dias selecionados'}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Resumo */}
-          {getTotalPlanned() > 0 && (
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900 mb-2">📊 Resumo do Planejamento</h3>
-              <div className="space-y-1 text-sm text-blue-800">
-                {plans.filter(p => p.quantity > 0).map(p => {
-                  const config = contentTypeConfig[p.content_type];
-                  return (
-                    <div key={p.content_type} className="flex items-center justify-between">
-                      <span>{config.icon} {config.label}:</span>
-                      <span className="font-semibold">{p.quantity} em {p.days.length} dias</span>
-                    </div>
-                  );
-                })}
-                <div className="border-t border-blue-300 pt-2 mt-2 flex items-center justify-between font-bold">
-                  <span>Total:</span>
-                  <span>{getTotalPlanned()} conteúdos</span>
-                </div>
-              </div>
+          {/* Header */}
+          <header className="h-16 sm:h-20 flex items-center justify-between px-4 sm:px-8 border-b border-black/5 flex-shrink-0 backdrop-blur-md z-10 sticky top-0">
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-slate-500" />
+                Planejamento Semanal
+              </h1>
+              <p className="text-sm text-slate-500 font-medium mt-0.5">
+                {format(weekStart, 'd MMM', { locale: ptBR })} - {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: ptBR })}
+              </p>
             </div>
-          )}
+          </header>
+
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8">
+
+            {/* Cards de Tipos de Conteúdo */}
+            {plans.map((plan) => {
+              const config = contentTypeConfig[plan.content_type];
+              const IconComponent = config.icon;
+
+              return (
+                <div
+                  key={plan.content_type}
+                  className="bg-white/60 backdrop-blur-xl border border-white/60 rounded-3xl p-4 sm:p-6 shadow-sm transition-all hover:shadow-md group"
+                >
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-2xl ${config.iconBg} flex items-center justify-center ${config.iconColor}`}>
+                        <IconComponent className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">{config.label}</h3>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{config.subtitle}</p>
+                      </div>
+                    </div>
+                    <QuantityStepper
+                      value={plan.quantity}
+                      onChange={(v) => handleQuantityChange(plan.content_type, v)}
+                      colorBase={config.stepperBg}
+                    />
+                  </div>
+
+                  {/* Grid de Dias */}
+                  {plan.quantity > 0 ? (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider pl-1">
+                        Selecione {plan.quantity} {plan.quantity === 1 ? 'dia' : 'dias'}:
+                      </p>
+                      <div className="grid grid-cols-7 gap-2 sm:gap-3">
+                        {weekDays.map((day) => (
+                          <DaySelector
+                            key={`${plan.content_type}-${day.index}`}
+                            day={day.label}
+                            date={format(day.date, 'd')}
+                            isSelected={plan.days.includes(day.index)}
+                            colorClass={config.selectedClass}
+                            onClick={() => handleDayToggle(plan.content_type, day.index)}
+                            disabled={plan.days.length >= plan.quantity}
+                          />
+                        ))}
+                      </div>
+                      {/* Mensagem de Feedback */}
+                      {plan.days.length === plan.quantity && plan.quantity > 0 && (
+                        <div className={`flex items-center gap-2 text-xs font-medium p-2 rounded-lg border ${config.feedbackBg}`}>
+                          <Check className="w-3 h-3" />
+                          Limite atingido: {plan.quantity} dia(s) selecionado(s)
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className={`p-4 rounded-xl border border-dashed text-center ${config.emptyBg}`}>
+                      <span className="text-sm font-medium">Nenhum {config.label.toLowerCase()} planejado para esta semana</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+          </div>
         </div>
 
-        {/* Footer FIXO */}
-        <div className="flex-shrink-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3 rounded-b-lg">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={getTotalPlanned() === 0 || plans.some(p => p.quantity > 0 && p.days.length === 0)}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {existingContents.length > 0 ? 'Editar e Salvar' : `Criar ${getTotalPlanned()} Conteúdos`}
-          </button>
+        {/* LADO DIREITO: Sidebar de Resumo */}
+        <div className="
+          w-full lg:w-[320px] flex-shrink-0 bg-slate-50/80 backdrop-blur-2xl border-t lg:border-t-0 lg:border-l border-white/50
+          flex flex-col shadow-[-10px_0_30px_-10px_rgba(0,0,0,0.02)]
+        ">
+
+          <header className="h-16 sm:h-20 flex items-center justify-between px-6 border-b border-black/5 flex-shrink-0">
+            <div className="flex items-center gap-2 text-slate-800">
+              <BarChart2 className="w-5 h-5 text-slate-500" />
+              <span className="font-semibold text-sm">Resumo</span>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-200/50 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </header>
+
+          <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+
+            {/* Cartões de Resumo */}
+            <div className="space-y-4">
+              {plans.map(plan => {
+                const config = contentTypeConfig[plan.content_type];
+                const dotColor = plan.content_type === 'reels' ? 'bg-green-500'
+                  : plan.content_type === 'story' ? 'bg-amber-500' : 'bg-blue-500';
+
+                return (
+                  <div key={`summary-${plan.content_type}`} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
+                      <span className="text-sm font-medium text-slate-600">{config.label}</span>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg font-bold text-slate-900">{plan.quantity}</span>
+                      <span className="text-xs text-slate-400 font-medium">un</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Divisor de Total */}
+            <div className="my-4 border-t border-dashed border-slate-200"></div>
+
+            <div className="flex items-center justify-between px-2">
+              <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Total Semanal</span>
+              <span className="text-2xl font-bold text-slate-900">
+                {getTotalPlanned()}
+              </span>
+            </div>
+
+            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex gap-3 items-start">
+              <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-blue-700/80 leading-relaxed">
+                {getTotalPlanned() >= 3
+                  ? 'Você está dentro da meta recomendada de 3 conteúdos semanais para crescimento orgânico.'
+                  : 'Recomendamos pelo menos 3 conteúdos semanais para crescimento orgânico.'}
+              </p>
+            </div>
+
+          </div>
+
+          {/* Ações de Rodapé */}
+          <div className="p-6 bg-white/40 border-t border-white/50 backdrop-blur-xl space-y-3">
+            <button
+              onClick={handleSave}
+              disabled={getTotalPlanned() === 0 || plans.some(p => p.quantity > 0 && p.days.length === 0)}
+              className="w-full py-3.5 rounded-2xl bg-[#007AFF] hover:bg-[#006ee6] text-white text-sm font-bold shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              <Check className="w-4 h-4 stroke-[3]" />
+              {existingContents.length > 0 ? 'Salvar Alterações' : 'Salvar Planejamento'}
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-3 rounded-2xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 text-sm font-medium transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+
         </div>
+
       </div>
     </div>
   );

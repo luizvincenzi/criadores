@@ -8,7 +8,8 @@ import ContentWeekView from './BusinessContentWeekView';
 import ContentMonthView from './BusinessContentMonthView';
 import ContentModal from '../BusinessContentModal';
 import ContentStatsWidget from './BusinessContentStatsWidget';
-import WeeklyPlanningModal from './WeeklyPlanningModal';
+import WeeklyPlanningModal from '../business-content/BusinessWeeklyPlanningModal';
+import WeeklyReportModal from './WeeklyReportModal';
 import { ContentTypeIcon } from '@/components/icons/ContentTypeIcons';
 import BusinessSelector from './BusinessSelector';
 import MobileStrategistContentView from './MobileStrategistContentView';
@@ -44,6 +45,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWeeklyPlanningOpen, setIsWeeklyPlanningOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<SocialContent | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -455,12 +457,28 @@ export default function StrategistContentPlanningView({ businesses, strategistId
             </div>
           </div>
 
-          {/* Right: View Switcher (Dynamic Island style) */}
-          <div className="self-center md:self-auto bg-gray-200/80 p-1 rounded-full w-full md:w-auto flex justify-center max-w-[280px] md:max-w-none">
-            <div className="flex relative w-full md:w-auto">
+          {/* Report Button + View Switcher */}
+          <div className="flex items-center gap-2 self-center md:self-auto">
+            {/* Botão de Relatório */}
+            <button
+              onClick={() => setIsReportModalOpen(true)}
+              className="px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-300 bg-[#1d1d1f] text-white hover:bg-black shadow-sm"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span>Relatório</span>
+            </button>
+
+            {/* View Switcher (Dynamic Island style) */}
+            <div className="bg-gray-200/80 p-1 rounded-full flex">
               <button
                 onClick={() => setViewMode('week')}
-                className={`flex-1 md:flex-none px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-300 ${
+                className={`px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-300 ${
                   viewMode === 'week'
                     ? 'bg-white text-[#1d1d1f] shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
@@ -474,7 +492,7 @@ export default function StrategistContentPlanningView({ businesses, strategistId
               </button>
               <button
                 onClick={() => setViewMode('month')}
-                className={`flex-1 md:flex-none px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-300 ${
+                className={`px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium flex items-center justify-center gap-1.5 transition-all duration-300 ${
                   viewMode === 'month'
                     ? 'bg-white text-[#1d1d1f] shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
@@ -537,6 +555,19 @@ export default function StrategistContentPlanningView({ businesses, strategistId
           weekStart={currentWeekStart}
           onSave={handleSaveWeeklyPlanning}
           existingContents={contents}
+        />
+      )}
+
+      {/* Modal de Relatório Semanal/Mensal */}
+      {isReportModalOpen && selectedBusiness && (
+        <WeeklyReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          weekStart={currentWeekStart}
+          monthStart={currentMonthStart}
+          contents={contents}
+          businessName={selectedBusiness.name}
+          viewMode={viewMode}
         />
       )}
     </div>

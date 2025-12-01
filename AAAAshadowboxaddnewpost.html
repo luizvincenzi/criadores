@@ -1,0 +1,346 @@
+import React, { useState } from 'react';
+import { 
+  X, 
+  Calendar, 
+  Clock, 
+  User, 
+  Instagram, 
+  Youtube, 
+  Globe, 
+  Video, 
+  Image as ImageIcon, 
+  Disc, 
+  Check, 
+  Trash2,
+  MoreHorizontal
+} from 'lucide-react';
+
+// Componente de Ícone do TikTok (Custom SVG para lucide-feel)
+const TikTokIcon = ({ className }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
+export default function App() {
+  const [formData, setFormData] = useState({
+    contentType: 'post',
+    title: 'Lançamento da Coleção de Verão',
+    date: '2025-11-27',
+    time: '',
+    responsible: '',
+    platforms: ['instagram'],
+    briefing: '',
+    executed: false
+  });
+
+  const togglePlatform = (platform) => {
+    setFormData(prev => {
+      if (prev.platforms.includes(platform)) {
+        return { ...prev, platforms: prev.platforms.filter(p => p !== platform) };
+      }
+      return { ...prev, platforms: [...prev.platforms, platform] };
+    });
+  };
+
+  const setType = (type) => {
+    setFormData({ ...formData, contentType: type });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center p-4 font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+      
+      {/* Overlay Context - Simulating depth */}
+      <div className="relative w-full max-w-4xl perspective-1000">
+        
+        {/* Main Modal Card */}
+        <div className="
+          relative overflow-hidden
+          bg-white/70 backdrop-blur-2xl 
+          border border-white/40 
+          shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] 
+          rounded-[2rem]
+          transition-all duration-300 ease-out
+        ">
+          
+          {/* Header */}
+          <header className="flex items-center justify-between px-8 py-6 border-b border-black/5">
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900">
+              Novo Conteúdo
+            </h1>
+            <button className="
+              group p-2 rounded-full bg-slate-100/50 hover:bg-slate-200/80 
+              transition-colors duration-200 outline-none focus:ring-2 focus:ring-blue-500/30
+            ">
+              <X className="w-5 h-5 text-slate-500 group-hover:text-slate-800" />
+            </button>
+          </header>
+
+          <div className="p-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
+            
+            {/* Left Column */}
+            <div className="lg:col-span-7 space-y-8">
+              
+              {/* Content Type - iOS Segmented Control Style */}
+              <div className="space-y-3">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                  Tipo de Conteúdo
+                </label>
+                <div className="flex p-1 bg-slate-100/80 rounded-2xl w-full relative">
+                  {/* Sliding Background could be implemented here for animation, sticking to static for simplicity */}
+                  {[
+                    { id: 'post', label: 'Post', icon: ImageIcon },
+                    { id: 'reels', label: 'Reels', icon: Video },
+                    { id: 'story', label: 'Story', icon: Disc }
+                  ].map((type) => {
+                    const isActive = formData.contentType === type.id;
+                    const Icon = type.icon;
+                    return (
+                      <button
+                        key={type.id}
+                        onClick={() => setType(type.id)}
+                        className={`
+                          flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium
+                          transition-all duration-200 ease-spring
+                          ${isActive 
+                            ? 'bg-white text-slate-900 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.08)] scale-[1.02]' 
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-black/5'}
+                        `}
+                      >
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'opacity-70'}`} />
+                        {type.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Title Input */}
+              <div className="space-y-3">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                  Título
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  className="
+                    w-full px-5 py-4 bg-white/50 border border-slate-200/60 rounded-2xl
+                    text-base font-medium text-slate-900 placeholder-slate-400
+                    outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50
+                    transition-all shadow-sm
+                  "
+                  placeholder="Ex: Lançamento de produto"
+                />
+              </div>
+
+              {/* Date & Time Row */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                    Data
+                  </label>
+                  <div className="relative group">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                    <input 
+                      type="date" 
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      className="
+                        w-full pl-12 pr-4 py-4 bg-white/50 border border-slate-200/60 rounded-2xl
+                        text-sm font-medium text-slate-900
+                        outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50
+                        transition-all shadow-sm
+                      "
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                    Horário
+                  </label>
+                  <div className="relative group">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                    <input 
+                      type="time" 
+                      value={formData.time}
+                      onChange={(e) => setFormData({...formData, time: e.target.value})}
+                      className="
+                        w-full pl-12 pr-4 py-4 bg-white/50 border border-slate-200/60 rounded-2xl
+                        text-sm font-medium text-slate-900
+                        outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50
+                        transition-all shadow-sm
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Responsible Select */}
+              <div className="space-y-3">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                  Responsável
+                </label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
+                  <select 
+                    className="
+                      w-full pl-12 pr-10 py-4 bg-white/50 border border-slate-200/60 rounded-2xl
+                      text-sm font-medium text-slate-900 appearance-none
+                      outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50
+                      transition-all shadow-sm cursor-pointer hover:bg-white/80
+                    "
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Selecione um responsável...</option>
+                    <option value="john">João Silva (Design)</option>
+                    <option value="maria">Maria Souza (Copy)</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                    <MoreHorizontal className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Column */}
+            <div className="lg:col-span-5 space-y-8 flex flex-col h-full">
+              
+              {/* Platforms */}
+              <div className="space-y-3">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                  Plataformas
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: 'instagram', label: 'Instagram', icon: Instagram },
+                    { id: 'tiktok', label: 'TikTok', icon: TikTokIcon },
+                    { id: 'youtube', label: 'YouTube', icon: Youtube },
+                    { id: 'web', label: 'Web / Blog', icon: Globe },
+                  ].map((plat) => {
+                    const isSelected = formData.platforms.includes(plat.id);
+                    const Icon = plat.icon;
+                    return (
+                      <button
+                        key={plat.id}
+                        onClick={() => togglePlatform(plat.id)}
+                        className={`
+                          group relative flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-200
+                          ${isSelected 
+                            ? 'bg-blue-50/50 border-blue-200 shadow-inner' 
+                            : 'bg-white/30 border-slate-200/50 hover:bg-white/60'}
+                        `}
+                      >
+                        <div className={`
+                          w-8 h-8 rounded-full flex items-center justify-center transition-colors
+                          ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'}
+                        `}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-slate-600'}`}>
+                          {plat.label}
+                        </span>
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Briefing Textarea */}
+              <div className="space-y-3 flex-grow flex flex-col">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 pl-1">
+                  Briefing / Instruções
+                </label>
+                <textarea 
+                  className="
+                    flex-grow w-full px-5 py-4 bg-white/50 border border-slate-200/60 rounded-2xl
+                    text-sm text-slate-700 leading-relaxed placeholder-slate-400
+                    outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50
+                    transition-all shadow-inner resize-none min-h-[160px]
+                  "
+                  placeholder="Descreva os detalhes da criação, referências visuais, tom de voz e requisitos obrigatórios..."
+                ></textarea>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Footer / Actions */}
+          <div className="
+            px-8 py-6 bg-slate-50/50 border-t border-slate-100 
+            flex flex-col sm:flex-row items-center justify-between gap-6
+          ">
+            
+            {/* Toggle Executed - iOS Switch Style */}
+            <label className="flex items-center gap-3 cursor-pointer group select-none">
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={formData.executed}
+                  onChange={(e) => setFormData({...formData, executed: e.target.checked})}
+                  className="sr-only"
+                />
+                <div className={`
+                  w-12 h-7 rounded-full transition-colors duration-300 ease-in-out
+                  ${formData.executed ? 'bg-green-500' : 'bg-slate-200 group-hover:bg-slate-300'}
+                `}></div>
+                <div className={`
+                  absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-300 ease-spring
+                  ${formData.executed ? 'translate-x-5' : 'translate-x-0'}
+                `}></div>
+              </div>
+              <span className={`text-sm font-medium transition-colors ${formData.executed ? 'text-green-700' : 'text-slate-500'}`}>
+                Marcar como executado
+              </span>
+            </label>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button className="
+                flex items-center justify-center gap-2 px-6 py-3 rounded-2xl
+                text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100/80
+                transition-all duration-200 active:scale-95
+              ">
+                <Trash2 className="w-4 h-4" />
+                <span>Deletar</span>
+              </button>
+              
+              <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+              
+              <button className="
+                flex-1 sm:flex-none px-6 py-3 rounded-2xl text-sm font-medium text-slate-600 hover:text-slate-900
+                hover:bg-slate-100 transition-all duration-200
+              ">
+                Cancelar
+              </button>
+              
+              <button className="
+                flex-1 sm:flex-none px-8 py-3 rounded-2xl text-sm font-semibold text-white
+                bg-[#007AFF] hover:bg-[#006ee6] shadow-lg shadow-blue-500/20
+                transition-all duration-200 active:scale-95 hover:-translate-y-0.5
+              ">
+                Salvar Alterações
+              </button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  );
+}
