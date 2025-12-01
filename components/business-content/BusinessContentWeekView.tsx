@@ -134,7 +134,7 @@ export default function ContentWeekView({
             <div
               key={dayId}
               ref={isCurrentDay ? todayColumnRef : null}
-              className="snap-center flex-shrink-0 w-[85vw] md:w-[220px] flex flex-col group"
+              className="snap-center flex-shrink-0 w-[85vw] md:w-[160px] flex flex-col group"
             >
               {/* Floating Date Header - Apple Style */}
               <div className={`mb-3 flex-shrink-0 flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 ${
