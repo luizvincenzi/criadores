@@ -140,11 +140,8 @@ export default function ContentCard({
           }}
           className="w-full mt-3 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5 opacity-0 group-hover/card:opacity-100"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          Ver detalhes
+          
+          Detalhes
         </button>
       </div>
     </div>

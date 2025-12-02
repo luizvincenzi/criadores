@@ -214,7 +214,7 @@ export default function WeeklyPlanningModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-8 font-sans text-[#1D1D1F]">
       {/* Backdrop com blur */}
       <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-[#f5f5f5]/95 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
