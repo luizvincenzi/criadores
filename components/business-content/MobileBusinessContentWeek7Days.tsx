@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
-import { format, addDays, isSameDay, isToday } from 'date-fns';
+import React, { useRef, useEffect, useState } from 'react';
+import { format, addDays, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SocialContent } from './BusinessContentPlanningView';
 import { ContentTypeIcon, contentTypeConfig } from '@/components/icons/ContentTypeIcons';
-import { PlatformIcon } from '@/components/icons/PlatformIcons';
 
 interface MobileBusinessContentWeek7DaysProps {
   weekStart: Date;
@@ -32,17 +31,11 @@ export default function MobileBusinessContentWeek7Days({
     if (todayColumnRef.current && scrollContainerRef.current) {
       const container = scrollContainerRef.current;
       const todayColumn = todayColumnRef.current;
-
       const containerWidth = container.offsetWidth;
       const columnLeft = todayColumn.offsetLeft;
       const columnWidth = todayColumn.offsetWidth;
-
       const scrollPosition = columnLeft - (containerWidth / 2) + (columnWidth / 2);
-
-      container.scrollTo({
-        left: Math.max(0, scrollPosition),
-        behavior: 'smooth'
-      });
+      container.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
     }
   }, [weekStart]);
 
@@ -79,13 +72,13 @@ export default function MobileBusinessContentWeek7Days({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Scroll horizontal de 7 dias - SEM PADDING LATERAL */}
+      {/* Scroll horizontal dos dias */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-x-auto overflow-y-hidden px-1 py-2"
+        className="overflow-x-auto overflow-y-hidden"
         style={{ scrollSnapType: 'x mandatory' }}
       >
-        <div className="flex gap-1 h-full" style={{ minWidth: 'max-content' }}>
+        <div className="flex" style={{ minWidth: 'max-content' }}>
           {weekDays.map((day, index) => {
             const dayContents = getContentsForDay(day);
             const isCurrentDay = isToday(day);
@@ -97,140 +90,127 @@ export default function MobileBusinessContentWeek7Days({
                 key={index}
                 ref={isCurrentDay ? todayColumnRef : null}
                 className="flex flex-col flex-shrink-0"
-                style={{ width: '100px', scrollSnapAlign: 'start' }}
+                style={{ width: 'calc(50vw - 8px)', scrollSnapAlign: 'start' }}
               >
                 {/* Header do dia */}
-                <div
-                  className={`text-center py-2 rounded-t-lg border-b-2 ${
-                    isCurrentDay
-                      ? 'bg-blue-600 text-white border-blue-700'
-                      : 'bg-gray-100 text-gray-700 border-gray-200'
-                  }`}
-                >
-                  <div className="text-xs font-semibold">{dayName}</div>
-                  <div className="text-lg font-bold">{dayNumber}</div>
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                  <span className="text-xs font-semibold text-gray-400 tracking-wider">{dayName}</span>
+                  <span className={`text-2xl font-bold ${isCurrentDay ? 'text-blue-600' : 'text-gray-900'}`}>
+                    {dayNumber}
+                  </span>
                 </div>
 
-                {/* Conteúdos do dia */}
-                <div
-                  className={`flex-1 border-l border-r border-b rounded-b-lg p-1.5 space-y-1.5 overflow-y-auto ${
-                    isCurrentDay ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
-                  }`}
-                  onClick={() => onAddContent(day)}
-                  style={{ minHeight: '400px' }}
-                >
-                  {dayContents.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-xs">
-                      Vazio
-                    </div>
-                  ) : (
-                    dayContents.map(content => (
-                      <MobileContentCard7Days
-                        key={content.id}
-                        content={content}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditContent(content);
-                        }}
-                        onToggleExecuted={onToggleExecuted}
-                      />
-                    ))
-                  )}
+                {/* Área de conteúdos do dia */}
+                <div className="flex-1 px-3 py-3 space-y-3 min-h-[400px]">
+                  {/* Botão Adicionar */}
+                  <button
+                    onClick={() => onAddContent(day)}
+                    className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-gray-300 hover:text-gray-500 active:bg-gray-50 transition-colors flex items-center justify-center"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+
+                  {/* Cards de conteúdo */}
+                  {dayContents.map(content => (
+                    <MobileContentCard
+                      key={content.id}
+                      content={content}
+                      onClick={() => onEditContent(content)}
+                      onToggleExecuted={onToggleExecuted}
+                    />
+                  ))}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-
-      {/* Indicador de scroll */}
-      <div className="px-4 py-2 bg-gray-50 border-t text-center text-xs text-gray-500">
-        Deslize para ver mais dias
-      </div>
     </div>
   );
 }
 
-// Card de conteúdo ultra-compacto para 7 dias
-function MobileContentCard7Days({
+// Card de conteúdo no estilo da screenshot
+function MobileContentCard({
   content,
   onClick,
   onToggleExecuted
 }: {
   content: SocialContent;
-  onClick: (e: React.MouseEvent) => void;
+  onClick: () => void;
   onToggleExecuted?: (contentId: string, isExecuted: boolean) => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const typeConfig = contentTypeConfig[content.content_type];
 
-  const handleCheckmarkClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    if (onToggleExecuted) {
-      onToggleExecuted(content.id, !content.is_executed);
-    }
+  // Cores para os badges
+  const badgeColors: Record<string, { bg: string; text: string; icon: string }> = {
+    reels: { bg: 'bg-green-100', text: 'text-green-700', icon: '🎬' },
+    post: { bg: 'bg-blue-100', text: 'text-blue-700', icon: '📷' },
+    story: { bg: 'bg-purple-100', text: 'text-purple-700', icon: '⏳' },
   };
+
+  const badge = badgeColors[content.content_type] || badgeColors.post;
 
   return (
     <div
       onClick={onClick}
-      className={`relative ${typeConfig.bg} ${typeConfig.border} border rounded-lg p-1.5 cursor-pointer active:scale-95 transition-transform ${
+      className={`bg-white rounded-xl border border-gray-200 p-4 cursor-pointer active:scale-[0.98] transition-transform shadow-sm ${
         content.is_executed ? 'opacity-60' : ''
       }`}
     >
-      {/* Checkmark - Canto superior direito */}
-      <button
-        onClick={handleCheckmarkClick}
-        className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-md transition-all z-10 ${
-          content.is_executed
-            ? 'bg-green-500 text-white'
-            : 'bg-white text-gray-400 border border-gray-300 hover:border-green-500 hover:text-green-500'
-        }`}
-        aria-label={content.is_executed ? 'Marcar como não executado' : 'Marcar como executado'}
-      >
-        {content.is_executed ? (
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-        ) : (
-          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
-        )}
-      </button>
+      {/* Header: Badge + Menu */}
+      <div className="flex items-start justify-between mb-3">
+        {/* Badge de tipo */}
+        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${badge.bg}`}>
+          <ContentTypeIcon type={content.content_type} size={14} />
+          <span className={`text-xs font-semibold ${badge.text} uppercase`}>
+            {content.content_type === 'reels' ? 'Reels' : content.content_type === 'story' ? 'Story' : 'Post'}
+          </span>
+        </div>
 
-      {/* Tipo */}
-      <div className="flex items-center justify-center mb-1">
-        <ContentTypeIcon type={content.content_type} size={14} />
+        {/* Menu 3 pontos */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen(!menuOpen);
+          }}
+          className="p-1 text-gray-400 hover:text-gray-600 active:bg-gray-100 rounded-full transition-colors"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="5" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+            <circle cx="12" cy="19" r="1.5" />
+          </svg>
+        </button>
       </div>
+
+      {/* Título */}
+      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+        {content.title || 'Sem título'}
+      </h3>
 
       {/* Horário */}
       {content.scheduled_time && (
-        <div className="text-xs text-center text-gray-600 font-medium mb-1">
-          {content.scheduled_time.substring(0, 5)}
+        <div className="flex items-center gap-1.5 text-gray-500">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
+            <path strokeLinecap="round" strokeWidth={1.5} d="M12 6v6l4 2" />
+          </svg>
+          <span className="text-sm">{content.scheduled_time.substring(0, 5)}</span>
         </div>
       )}
 
-      {/* Plataformas */}
-      <div className="flex items-center justify-center gap-0.5 flex-wrap">
-        {content.platforms.slice(0, 2).map(platform => (
-          <span
-            key={platform}
-            className="inline-flex items-center"
-            title={platform}
-          >
-            <PlatformIcon platform={platform} size={8} className="text-gray-500" />
-          </span>
-        ))}
-        {content.platforms.length > 2 && (
-          <span className="text-xs text-gray-500">+</span>
-        )}
-      </div>
-
       {/* Status executado */}
       {content.is_executed && (
-        <div className="mt-1 pt-1 border-t border-gray-200 text-center">
-          <div className="w-2 h-2 bg-green-500 rounded-full mx-auto"></div>
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            Executado
+          </span>
         </div>
       )}
     </div>

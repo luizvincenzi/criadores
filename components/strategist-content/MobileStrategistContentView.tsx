@@ -1,15 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format, startOfWeek, addWeeks, subWeeks, startOfMonth, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SocialContent } from './StrategistContentPlanningView';
-import MobileStrategistContentWeek3Days from './MobileStrategistContentWeek3Days';
 import MobileStrategistContentWeek7Days from './MobileStrategistContentWeek7Days';
 import MobileStrategistContentMonth from './MobileStrategistContentMonth';
 import MobileStrategistContentSheet from './MobileStrategistContentSheet';
 import MobileStrategistWeeklyPlanningSheet from './MobileStrategistWeeklyPlanningSheet';
-import MobileStrategistContentSummary from './MobileStrategistContentSummary';
 import BusinessSelector from './BusinessSelector';
 import { Business } from './BusinessSelector';
 
@@ -26,7 +24,7 @@ interface MobileStrategistContentViewProps {
   strategistId: string;
 }
 
-type ViewMode = '3days' | '7days' | 'month';
+type ViewMode = 'week' | 'month';
 
 export default function MobileStrategistContentView({
   contents,
@@ -40,8 +38,7 @@ export default function MobileStrategistContentView({
   businessId,
   strategistId
 }: MobileStrategistContentViewProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('3days');
-  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
@@ -52,6 +49,9 @@ export default function MobileStrategistContentView({
   const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<SocialContent | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Contar rascunhos (conteúdos sem data)
+  const draftCount = contents.filter(c => !c.scheduled_date).length;
 
   // Navegação
   const handlePrevious = () => {
@@ -67,14 +67,6 @@ export default function MobileStrategistContentView({
       setCurrentMonthStart(addMonths(currentMonthStart, 1));
     } else {
       setCurrentWeekStart(addWeeks(currentWeekStart, 1));
-    }
-  };
-
-  const handleToday = () => {
-    if (viewMode === 'month') {
-      setCurrentMonthStart(startOfMonth(new Date()));
-    } else {
-      setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
     }
   };
 
@@ -102,33 +94,25 @@ export default function MobileStrategistContentView({
     handleCloseSheet();
   };
 
-  // Labels de período
-  const getperiodLabel = () => {
+  // Label do período
+  const getPeriodLabel = () => {
     if (viewMode === 'month') {
-      return format(currentMonthStart, 'MMMM yyyy', { locale: ptBR });
+      const month = format(currentMonthStart, 'MMMM yyyy', { locale: ptBR });
+      return month.charAt(0).toUpperCase() + month.slice(1);
     } else {
-      const weekEnd = addWeeks(currentWeekStart, 1);
-      weekEnd.setDate(weekEnd.getDate() - 1);
-      return `${format(currentWeekStart, 'd MMM', { locale: ptBR })} - ${format(weekEnd, 'd MMM yyyy', { locale: ptBR })}`;
-    }
-  };
-
-  const getViewModeLabel = () => {
-    switch (viewMode) {
-      case '3days': return '3 Dias';
-      case '7days': return '7 Dias';
-      case 'month': return 'Mês';
+      const month = format(currentWeekStart, 'MMMM yyyy', { locale: ptBR });
+      return month.charAt(0).toUpperCase() + month.slice(1);
     }
   };
 
   const selectedBusiness = businesses.find(b => b.id === selectedBusinessId);
 
   return (
-    <div className="md:hidden flex flex-col min-h-screen">
-      {/* Header Sticky - OTIMIZADO */}
-      <div className="sticky top-0 left-0 right-0 z-30 bg-white shadow-sm">
+    <div className="md:hidden flex flex-col min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="sticky top-0 left-0 right-0 z-30 bg-white">
         {/* Business Selector */}
-        <div className="px-3 py-2 border-b border-gray-200">
+        <div className="px-4 pt-3 pb-2 border-b border-gray-100">
           <BusinessSelector
             businesses={businesses}
             selectedBusinessId={selectedBusinessId}
@@ -136,128 +120,74 @@ export default function MobileStrategistContentView({
           />
         </div>
 
-        {/* Linha única: Título + Navegação + Visualização */}
-        <div className="px-3 py-2 flex items-center justify-between gap-2">
-          {/* Período */}
-          <div className="text-sm font-semibold text-gray-900">
-            {getperiodLabel()}
-          </div>
-
-          {/* Navegação compacta */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handlePrevious}
-              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Período anterior"
-            >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <button
-              onClick={handleToday}
-              className="px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Hoje
-            </button>
-
-            <button
-              onClick={handleNext}
-              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Próximo período"
-            >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Dropdown de Visualização compacto */}
-          <div className="relative">
-            <button
-              onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
-              className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1"
-            >
-              <span>{getViewModeLabel()}</span>
-              <svg
-                className={`w-3 h-3 transition-transform ${isViewDropdownOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {isViewDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsViewDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-28 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+        {/* Top bar: CALENDÁRIO + Título + Navegação + Menu */}
+        <div className="px-4 pt-3 pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 tracking-wider mb-0.5">CALENDÁRIO</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-gray-900">{getPeriodLabel()}</h1>
+                <div className="flex items-center">
                   <button
-                    onClick={() => {
-                      setViewMode('3days');
-                      setIsViewDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                      viewMode === '3days' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                    onClick={handlePrevious}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 active:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Período anterior"
                   >
-                    3 Dias
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
                   </button>
                   <button
-                    onClick={() => {
-                      setViewMode('7days');
-                      setIsViewDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                      viewMode === '7days' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                    onClick={handleNext}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 active:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Próximo período"
                   >
-                    7 Dias
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('month');
-                      setIsViewDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                      viewMode === 'month' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    Mês
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </div>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Toggle Semana/Mês */}
+        <div className="px-4 pb-3">
+          <div className="flex bg-gray-100 rounded-full p-1">
+            <button
+              onClick={() => setViewMode('week')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-sm font-medium transition-all ${
+                viewMode === 'week'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+              Semana
+            </button>
+            <button
+              onClick={() => setViewMode('month')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-sm font-medium transition-all ${
+                viewMode === 'month'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Mês
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* Resumo Expansível - TODAS as visualizações */}
-      <MobileStrategistContentSummary
-        contents={contents}
-        weekStart={viewMode === 'month' ? currentMonthStart : currentWeekStart}
-        viewMode={viewMode}
-      />
 
       {/* Área de Conteúdo - com padding bottom para footer fixo */}
       <div className="flex-1 pb-20">
-        {viewMode === '3days' && (
-          <MobileStrategistContentWeek3Days
-            weekStart={currentWeekStart}
-            contents={contents}
-            loading={loading}
-            onAddContent={handleAddContent}
-            onEditContent={handleEditContent}
-          />
-        )}
-
-        {viewMode === '7days' && (
+        {viewMode === 'week' && (
           <MobileStrategistContentWeek7Days
             weekStart={currentWeekStart}
             contents={contents}
@@ -278,30 +208,45 @@ export default function MobileStrategistContentView({
         )}
       </div>
 
-      {/* Footer Fixo - 2 BOTÕES */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-2 shadow-lg">
-        <div className="grid grid-cols-2 gap-2">
-          {/* Botão Planejamento */}
-          <button
-            onClick={() => setIsPlanningModalOpen(true)}
-            className="py-2.5 px-2 bg-gray-100 text-gray-700 rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>Planejar</span>
-          </button>
+      {/* Footer Fixo - Design igual à screenshot */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 safe-area-inset-bottom">
+        <div className="flex items-center justify-between">
+          {/* Lado esquerdo: Sync + Rascunhos */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-sm text-gray-600">Sync</span>
+            </div>
+            {draftCount > 0 && (
+              <>
+                <div className="w-px h-4 bg-gray-200"></div>
+                <span className="text-sm text-gray-600">{draftCount} Rascunhos</span>
+              </>
+            )}
+          </div>
 
-          {/* Botão Adicionar */}
-          <button
-            onClick={() => handleAddContent()}
-            className="py-2.5 px-2 bg-blue-600 text-white rounded-xl font-medium text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform shadow-lg"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Adicionar</span>
-          </button>
+          {/* Lado direito: Planejar + Botão Adicionar */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsPlanningModalOpen(true)}
+              className="flex items-center gap-1.5 text-blue-600 active:text-blue-700 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span className="text-sm font-medium">Planejar</span>
+            </button>
+
+            <button
+              onClick={() => handleAddContent()}
+              className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+              aria-label="Adicionar conteúdo"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 

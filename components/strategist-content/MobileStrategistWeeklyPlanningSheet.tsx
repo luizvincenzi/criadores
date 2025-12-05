@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { format, addDays } from 'date-fns';
+import { format, addDays, getWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import BottomSheet from '../BottomSheet';
 
@@ -27,10 +27,13 @@ export default function MobileStrategistWeeklyPlanningSheet({
   existingContents = []
 }: MobileStrategistWeeklyPlanningSheetProps) {
   const [plans, setPlans] = useState<WeeklyPlan[]>([
-    { content_type: 'reels', quantity: 2, days: [] },
-    { content_type: 'story', quantity: 2, days: [] },
-    { content_type: 'post', quantity: 3, days: [] }
+    { content_type: 'reels', quantity: 1, days: [] },
+    { content_type: 'story', quantity: 0, days: [] },
+    { content_type: 'post', quantity: 2, days: [] }
   ]);
+
+  const weekNumber = getWeek(weekStart);
+  const monthName = format(weekStart, 'MMM', { locale: ptBR }).toUpperCase();
 
   const weekDays = Array.from({ length: 7 }, (_, i) => ({
     date: addDays(weekStart, i),
@@ -47,7 +50,6 @@ export default function MobileStrategistWeeklyPlanningSheet({
         ? plan.days.filter(d => d !== dayIndex)
         : [...plan.days, dayIndex].sort();
 
-      // Limitar ao máximo da quantidade
       if (newDays.length > plan.quantity) {
         return plan;
       }
@@ -59,10 +61,9 @@ export default function MobileStrategistWeeklyPlanningSheet({
   const updateQuantity = (contentType: 'post' | 'reels' | 'story', delta: number) => {
     setPlans(prev => prev.map(plan => {
       if (plan.content_type !== contentType) return plan;
-      
+
       const newQuantity = Math.max(0, Math.min(14, plan.quantity + delta));
-      
-      // Ajustar dias selecionados se necessário
+
       const newDays = plan.days.length > newQuantity
         ? plan.days.slice(0, newQuantity)
         : plan.days;
@@ -76,10 +77,51 @@ export default function MobileStrategistWeeklyPlanningSheet({
     onClose();
   };
 
+  // Calcula total de dias definidos e porcentagem
+  const totalDaysDefined = plans.reduce((acc, plan) => acc + plan.days.length, 0);
+  const totalDaysRequired = plans.reduce((acc, plan) => acc + plan.quantity, 0);
+  const progressPercentage = totalDaysRequired > 0 ? Math.round((totalDaysDefined / totalDaysRequired) * 100) : 0;
+
   const typeConfig = {
-    reels: { label: 'Reels', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-    story: { label: 'Stories', color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' },
-    post: { label: 'Posts', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' }
+    reels: {
+      label: 'Reels',
+      subtitle: 'VÍDEO CURTO',
+      icon: (
+        <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </div>
+      ),
+      selectedBg: 'bg-green-500',
+      selectedText: 'text-white'
+    },
+    story: {
+      label: 'Stories',
+      subtitle: '24H',
+      icon: (
+        <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      ),
+      selectedBg: 'bg-orange-500',
+      selectedText: 'text-white'
+    },
+    post: {
+      label: 'Posts',
+      subtitle: 'FEED',
+      icon: (
+        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+      ),
+      selectedBg: 'bg-blue-600',
+      selectedText: 'text-white'
+    }
   };
 
   return (
@@ -89,143 +131,169 @@ export default function MobileStrategistWeeklyPlanningSheet({
       snapPoints={[90, 95]}
       defaultSnap={1}
     >
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+      {/* iOS 26 Glass Background */}
+      <div className="flex flex-col h-full bg-gradient-to-b from-blue-50/80 via-white/90 to-white backdrop-blur-xl">
+        {/* Header - iOS Style */}
+        <div className="px-5 pt-4 pb-3 flex items-center justify-between flex-shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Planejamento Semanal</h2>
-            <p className="text-sm text-gray-600">
-              {format(weekStart, 'd MMM', { locale: ptBR })} - {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: ptBR })}
-            </p>
+            <p className="text-xs font-semibold text-gray-400 tracking-wider">SEMANA {weekNumber}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <h2 className="text-2xl font-bold text-gray-900">Planejamento</h2>
+              <span className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs font-semibold rounded-full">
+                {monthName}
+              </span>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="6" r="1.5" />
+              <circle cx="12" cy="12" r="1.5" />
+              <circle cx="12" cy="18" r="1.5" />
             </svg>
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {/* Status Card - Glass Effect */}
+          <div className="rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 tracking-wider">STATUS DA SEMANA</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {totalDaysDefined} <span className="text-base font-normal text-gray-500">/ {totalDaysRequired} dias definidos</span>
+                </p>
+              </div>
+              <div className="relative w-14 h-14">
+                <svg className="w-14 h-14 transform -rotate-90">
+                  <circle cx="28" cy="28" r="24" stroke="#E5E7EB" strokeWidth="4" fill="none" />
+                  <circle
+                    cx="28" cy="28" r="24"
+                    stroke="#3B82F6"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray={`${progressPercentage * 1.5} 150`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xs font-bold text-blue-600">{progressPercentage}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Type Cards */}
           {plans.map((plan) => {
             const config = typeConfig[plan.content_type];
             const selectedCount = plan.days.length;
-            const isComplete = selectedCount === plan.quantity;
+            const isComplete = selectedCount === plan.quantity && plan.quantity > 0;
 
             return (
-              <div key={plan.content_type} className={`border-b border-gray-200 p-4 ${config.bg}`}>
-                {/* Header do tipo */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-lg font-bold ${config.color}`}>
-                      {config.label}
-                    </span>
-                    {isComplete && (
-                      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    )}
+              <div key={plan.content_type} className="rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm overflow-hidden">
+                {/* Type Header */}
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {config.icon}
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{config.label}</h3>
+                      <p className="text-xs text-gray-500 font-medium">{config.subtitle}</p>
+                    </div>
                   </div>
 
-                  {/* Controle de quantidade */}
-                  <div className="flex items-center gap-2">
+                  {/* Quantity Controls */}
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => updateQuantity(plan.content_type, -1)}
-                      className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-lg font-bold text-gray-700 active:scale-95 transition-transform"
+                      className="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-xl text-gray-600 font-bold active:scale-95 transition-all"
                     >
-                      -
+                      −
                     </button>
-                    <span className="text-lg font-bold text-gray-900 min-w-[2rem] text-center">
+                    <span className="w-8 text-center text-lg font-bold text-gray-900">
                       {plan.quantity}
                     </span>
                     <button
                       onClick={() => updateQuantity(plan.content_type, 1)}
-                      className="w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-lg font-bold text-gray-700 active:scale-95 transition-transform"
+                      className="w-9 h-9 flex items-center justify-center bg-blue-500 rounded-xl text-white font-bold active:scale-95 transition-all"
                     >
                       +
                     </button>
                   </div>
                 </div>
 
-                {/* Contador de seleção */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      Selecione {plan.quantity} {plan.quantity === 1 ? 'dia' : 'dias'}
-                    </span>
-                    <span className={`font-semibold ${selectedCount === plan.quantity ? 'text-green-600' : 'text-gray-900'}`}>
-                      {selectedCount}/{plan.quantity}
-                    </span>
-                  </div>
-                  {/* Barra de progresso */}
-                  <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all ${selectedCount === plan.quantity ? 'bg-green-500' : 'bg-blue-500'}`}
-                      style={{ width: `${(selectedCount / plan.quantity) * 100}%` }}
-                    />
-                  </div>
-                </div>
+                {/* Days Selection */}
+                {plan.quantity > 0 && (
+                  <div className="px-4 pb-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold text-gray-400 tracking-wider">
+                        SELECIONE {plan.quantity} {plan.quantity === 1 ? 'DIA' : 'DIAS'}
+                      </p>
+                      {isComplete && (
+                        <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                          Completo
+                        </span>
+                      )}
+                    </div>
 
-                {/* Grid de dias - SEM PADDING LATERAL */}
-                <div className="grid grid-cols-7 gap-1">
-                  {weekDays.map((day) => {
-                    const isSelected = plan.days.includes(day.dayOfWeek);
-                    const canSelect = !isSelected && selectedCount < plan.quantity;
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {weekDays.map((day) => {
+                        const isSelected = plan.days.includes(day.dayOfWeek);
+                        const canSelect = !isSelected && selectedCount < plan.quantity;
 
-                    return (
-                      <button
-                        key={day.dayOfWeek}
-                        onClick={() => toggleDay(plan.content_type, day.dayOfWeek)}
-                        disabled={!isSelected && !canSelect}
-                        className={`
-                          aspect-square rounded-lg border-2 flex flex-col items-center justify-center
-                          transition-all active:scale-95
-                          ${isSelected
-                            ? `${config.border} bg-white shadow-md`
-                            : canSelect
-                            ? 'border-gray-200 bg-white hover:border-gray-300'
-                            : 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                          }
-                        `}
-                      >
-                        <div className={`text-xs font-semibold ${isSelected ? config.color : 'text-gray-500'}`}>
-                          {day.label}
-                        </div>
-                        <div className={`text-lg font-bold ${isSelected ? config.color : 'text-gray-400'}`}>
-                          {day.number}
-                        </div>
-                        {isSelected && (
-                          <div className="absolute top-1 right-1">
-                            <svg className={`w-4 h-4 ${config.color}`} fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                        return (
+                          <button
+                            key={day.dayOfWeek}
+                            onClick={() => toggleDay(plan.content_type, day.dayOfWeek)}
+                            disabled={!isSelected && !canSelect}
+                            className={`
+                              aspect-square rounded-xl flex flex-col items-center justify-center transition-all active:scale-95
+                              ${isSelected
+                                ? `${config.selectedBg} shadow-lg`
+                                : canSelect
+                                ? 'bg-gray-100 hover:bg-gray-200'
+                                : 'bg-gray-50 opacity-40'
+                              }
+                            `}
+                          >
+                            <span className={`text-[10px] font-semibold ${isSelected ? config.selectedText : 'text-gray-500'}`}>
+                              {day.label}
+                            </span>
+                            <span className={`text-lg font-bold ${isSelected ? config.selectedText : 'text-gray-700'}`}>
+                              {day.number}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {plan.quantity === 0 && (
+                  <div className="px-4 pb-4">
+                    <div className="py-3 text-center text-sm text-gray-400 bg-gray-50 rounded-xl">
+                      Nenhum {plan.content_type === 'story' ? 'story planejado' : `${config.label.toLowerCase().slice(0, -1)} planejado`}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
 
-        {/* Footer */}
-        <div className="px-4 py-4 border-t border-gray-200 space-y-2 flex-shrink-0">
+        {/* Footer - iOS Style */}
+        <div className="px-4 pb-6 pt-2 flex-shrink-0 bg-gradient-to-t from-white via-white to-transparent">
           <button
             onClick={handleSave}
-            className="w-full py-3 px-4 bg-blue-600 text-white rounded-xl font-semibold text-base active:scale-95 transition-transform shadow-lg"
+            className="w-full py-4 bg-blue-500 text-white rounded-2xl font-semibold text-base active:scale-[0.98] transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
           >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
             Salvar Planejamento
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full py-3 px-4 bg-gray-100 text-gray-700 rounded-xl font-medium text-base active:scale-95 transition-transform"
-          >
-            Cancelar
           </button>
         </div>
       </div>
