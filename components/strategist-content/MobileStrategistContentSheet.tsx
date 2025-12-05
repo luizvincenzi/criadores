@@ -287,7 +287,8 @@ export default function MobileStrategistContentSheet({
 
             {/* Date and Time - Glass Cards Side by Side */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="relative rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 overflow-hidden">
+              {/* Date Card - usando label como wrapper para tornar clicável */}
+              <label className="block rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 cursor-pointer active:bg-white/90 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,28 +296,23 @@ export default function MobileStrategistContentSheet({
                     </svg>
                   </div>
                 </div>
-                <label className="block text-xs font-semibold text-gray-400 tracking-wider mb-1">
+                <span className="block text-xs font-semibold text-gray-400 tracking-wider mb-1">
                   DATA
-                </label>
+                </span>
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-semibold text-gray-900">
-                    {formatDisplayDate(formData.scheduled_date) || 'Selecionar'}
-                  </span>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <input
+                    type="date"
+                    value={formData.scheduled_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, scheduled_date: e.target.value }))}
+                    className="text-base font-semibold text-gray-900 bg-transparent border-none outline-none w-full cursor-pointer"
+                    style={{ WebkitAppearance: 'none', colorScheme: 'light' }}
+                    required
+                  />
                 </div>
-                {/* Input invisível clicável sobre todo o card */}
-                <input
-                  type="date"
-                  value={formData.scheduled_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, scheduled_date: e.target.value }))}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  required
-                />
-              </div>
+              </label>
 
-              <div className="relative rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 overflow-hidden">
+              {/* Time Card - usando label como wrapper para tornar clicável */}
+              <label className="block rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 cursor-pointer active:bg-white/90 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,25 +320,19 @@ export default function MobileStrategistContentSheet({
                     </svg>
                   </div>
                 </div>
-                <label className="block text-xs font-semibold text-gray-400 tracking-wider mb-1">
+                <span className="block text-xs font-semibold text-gray-400 tracking-wider mb-1">
                   HORÁRIO
-                </label>
+                </span>
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-semibold text-gray-900">
-                    {formData.scheduled_time || '00:00'}
-                  </span>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <input
+                    type="time"
+                    value={formData.scheduled_time}
+                    onChange={(e) => setFormData(prev => ({ ...prev, scheduled_time: e.target.value }))}
+                    className="text-base font-semibold text-gray-900 bg-transparent border-none outline-none w-full cursor-pointer"
+                    style={{ WebkitAppearance: 'none', colorScheme: 'light' }}
+                  />
                 </div>
-                {/* Input invisível clicável sobre todo o card */}
-                <input
-                  type="time"
-                  value={formData.scheduled_time}
-                  onChange={(e) => setFormData(prev => ({ ...prev, scheduled_time: e.target.value }))}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                />
-              </div>
+              </label>
             </div>
 
             {/* Platforms - iOS Style Grid */}
