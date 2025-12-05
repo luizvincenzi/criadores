@@ -373,9 +373,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 )}
               </div>
             </div>
-
           </div>
-        </div>
 
         {/* Mobile Menu Dropdown - Com background sólido */}
         {isMobileMenuOpen && (
