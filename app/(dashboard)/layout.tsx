@@ -234,7 +234,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="h-screen overflow-hidden" style={{ backgroundColor: '#f5f5f5' }}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white shadow border-b border-gray-200">
-        <div className="h-full px-6 flex items-stretch">
+        <div className="h-full px-6 flex items-center justify-between">
           {/* Logo - centralizado verticalmente */}
           <div className="flex items-center flex-shrink-0">
             <span className="text-2xl font-onest tracking-tight">
@@ -243,6 +243,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <span className="text-gray-600 font-light">dores</span>
             </span>
           </div>
+
+          {/* Mobile Menu Button - À direita no mobile */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors ml-auto"
+            title="Menu"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
 
           {/* Desktop Navigation - Centralizada - Estilo Facebook */}
           <nav className="hidden md:flex items-stretch gap-1 flex-1 justify-center mx-8">
@@ -361,23 +374,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              title="Menu"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
           </div>
+        </div>
 
-          {/* Mobile Menu Dropdown */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden mt-4 py-4 border-t border-gray-100">
+        {/* Mobile Menu Dropdown - Com background sólido */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg py-4 px-4">
               <div className="space-y-2">
                 {navigationItems.map((item) => (
                   <Link
@@ -438,8 +440,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+          </div>
+        )}
       </header>
 
       {/* Main Content */}

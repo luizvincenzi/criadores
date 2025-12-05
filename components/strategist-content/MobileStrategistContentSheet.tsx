@@ -287,7 +287,7 @@ export default function MobileStrategistContentSheet({
 
             {/* Date and Time - Glass Cards Side by Side */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4">
+              <div className="relative rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 overflow-hidden">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,21 +302,21 @@ export default function MobileStrategistContentSheet({
                   <span className="text-base font-semibold text-gray-900">
                     {formatDisplayDate(formData.scheduled_date) || 'Selecionar'}
                   </span>
-                  <input
-                    type="date"
-                    value={formData.scheduled_date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, scheduled_date: e.target.value }))}
-                    className="absolute opacity-0 w-full h-full cursor-pointer"
-                    style={{ position: 'absolute', inset: 0 }}
-                    required
-                  />
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
+                {/* Input invisível clicável sobre todo o card */}
+                <input
+                  type="date"
+                  value={formData.scheduled_date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, scheduled_date: e.target.value }))}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  required
+                />
               </div>
 
-              <div className="rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4">
+              <div className="relative rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 overflow-hidden">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,16 +328,20 @@ export default function MobileStrategistContentSheet({
                   HORÁRIO
                 </label>
                 <div className="flex items-center justify-between">
-                  <input
-                    type="time"
-                    value={formData.scheduled_time}
-                    onChange={(e) => setFormData(prev => ({ ...prev, scheduled_time: e.target.value }))}
-                    className="bg-transparent text-base font-semibold text-gray-900 focus:outline-none"
-                  />
+                  <span className="text-base font-semibold text-gray-900">
+                    {formData.scheduled_time || '00:00'}
+                  </span>
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
+                {/* Input invisível clicável sobre todo o card */}
+                <input
+                  type="time"
+                  value={formData.scheduled_time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, scheduled_time: e.target.value }))}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
               </div>
             </div>
 

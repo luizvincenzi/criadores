@@ -73,7 +73,34 @@ export default function MobileStrategistWeeklyPlanningSheet({
   };
 
   const handleSave = () => {
-    onSave(plans);
+    // Converter planos em conteúdos para criar
+    const contentsToCreate: any[] = [];
+
+    plans.forEach(plan => {
+      if (plan.quantity === 0 || plan.days.length === 0) return;
+
+      // Distribuir a quantidade pelos dias selecionados
+      const contentsPerDay = Math.floor(plan.quantity / plan.days.length);
+      const remainder = plan.quantity % plan.days.length;
+
+      plan.days.forEach((dayIndex, idx) => {
+        const date = addDays(weekStart, dayIndex);
+        const count = contentsPerDay + (idx < remainder ? 1 : 0);
+
+        for (let i = 0; i < count; i++) {
+          contentsToCreate.push({
+            title: `${plan.content_type === 'reels' ? 'Reels' : plan.content_type === 'story' ? 'Story' : 'Post'} - ${format(date, 'dd/MM')}`,
+            content_type: plan.content_type,
+            platforms: plan.content_type === 'story' ? ['instagram'] : ['instagram', 'tiktok'],
+            scheduled_date: format(date, 'yyyy-MM-dd'),
+            status: 'planned',
+            is_executed: false
+          });
+        }
+      });
+    });
+
+    onSave(contentsToCreate);
     onClose();
   };
 
@@ -146,12 +173,10 @@ export default function MobileStrategistWeeklyPlanningSheet({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+            className="w-8 h-8 flex items-center justify-center bg-gray-200/60 rounded-full text-gray-600"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="6" r="1.5" />
-              <circle cx="12" cy="12" r="1.5" />
-              <circle cx="12" cy="18" r="1.5" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
