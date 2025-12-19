@@ -470,7 +470,7 @@ export default function Home() {
             className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-8 pb-10"
           >
             <motion.button
-              onClick={() => window.location.href = 'http://localhost:3001/chatcriadores-home'}
+              onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'}
               whileHover={{
                 scale: 1.02,
                 // Sombra ajustada para cinza
@@ -525,9 +525,7 @@ export default function Home() {
           {/* Card 1: Large Feature - Com Imagem de Social Media */}
           <div className="md:col-span-2 bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-center">
             <div className="relative z-10">
-              <div className="bg-[#0071e3] w-12 h-12 rounded-2xl flex items-center justify-center mb-6 text-white">
-                <Camera size={24} />
-              </div>
+              
               <h3 className="text-3xl font-semibold mb-3 text-white">Presença Semanal.</h3>
               <p className="text-white/90 text-lg max-w-md leading-relaxed drop-shadow-sm">
                 Um social media vai até sua empresa toda semana para captar fotos e vídeos profissionais. Nada de banco de imagens.
@@ -563,11 +561,7 @@ export default function Home() {
 
           {/* Card 3: Stories */}
           <div className="bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-full border-2 border-[#E1306C] p-0.5 mb-6">
-                <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?auto=format&fit=crop&q=80&w=100" alt="Profile" className="w-full h-full object-cover" />
-                </div>
-            </div>
+            
             <h3 className="text-2xl font-semibold mb-2">Stories Diários.</h3>
             <p className="text-[#86868b]">2 stories por dia para manter sua marca sempre presente na mente do cliente.</p>
           </div>
@@ -1385,13 +1379,7 @@ export default function Home() {
               <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6 max-w-md mx-auto">
                 Junte-se a centenas de empresas que já transformaram seu marketing local
               </p>
-              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
-                <span className="hidden sm:inline">📈 Ver Mais Cases de Sucesso</span>
-                <span className="sm:hidden">📈 Cases</span>
-                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                </svg>
-              </button>
+              
             </div>
           </div>
         </div>
@@ -1650,7 +1638,7 @@ export default function Home() {
                     </li>
                 </ul>
 
-                <button className="w-full py-4 rounded-full border border-[#0071e3] text-[#0071e3] font-medium hover:bg-[#0071e3]/5 transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="w-full py-4 rounded-full border border-[#0071e3] text-[#0071e3] font-medium hover:bg-[#0071e3]/5 transition-colors flex items-center justify-center gap-2">
                     Consultar Plano Mensal <ChevronRight size={16} />
                 </button>
             </div>
@@ -1684,7 +1672,7 @@ export default function Home() {
                     </li>
                 </ul>
 
-                <button className="w-full py-4 rounded-full bg-[#0071e3] text-white font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 flex items-center justify-center gap-2 hover:scale-[1.02]">
+                <button onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="w-full py-4 rounded-full bg-[#0071e3] text-white font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 flex items-center justify-center gap-2 hover:scale-[1.02]">
                     <MessageCircle size={18} /> Falar com Especialista
                 </button>
                 <p className="text-center text-xs text-[#86868b] mt-4">Poucas vagas disponíveis para este mês.</p>
@@ -1715,7 +1703,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Mentoria */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Mentoria Estratégica</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
                         Acompanhamento exclusivo para empresários que desejam dominar a estratégia por trás do seu próprio marketing.
@@ -1726,21 +1714,21 @@ export default function Home() {
                 </div>
 
                 {/* Influenciadores */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Influenciadores Locais</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
                         Conectamos sua marca às vozes mais relevantes e autênticas da sua região para campanhas de alto impacto.
                     </p>
                     <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
-                        Conhecer casting <ArrowRight size={14} />
+                        Conhecer o plano <ArrowRight size={14} />
                     </span>
                 </div>
 
                 {/* Área de Membros */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Comunidade crIAdores</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
-                        Acesso vitalício a templates, aulas práticas e networking com outros empresários que crescem no digital.
+                        Acesso a templates, aulas práticas e networking com outros empresários que crescem no digital.
                     </p>
                     <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
                         Acessar agora <ArrowRight size={14} />
