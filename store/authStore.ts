@@ -148,12 +148,28 @@ export const useAuthStore = create<AuthStore>()(
             ? userData.business_id
             : clientBusinessId;
 
+          // Garantir que roles seja um array (às vezes vem como string do banco)
+          let parsedRoles: string[] = [userData.role];
+          if (userData.roles) {
+            if (typeof userData.roles === 'string') {
+              try {
+                parsedRoles = JSON.parse(userData.roles);
+              } catch {
+                console.warn('⚠️ Falha ao parsear roles como JSON:', userData.roles);
+                parsedRoles = [userData.role];
+              }
+            } else if (Array.isArray(userData.roles)) {
+              parsedRoles = userData.roles;
+            }
+          }
+          console.log('📋 [AuthStore] Parsed roles:', parsedRoles);
+
           const user: User = {
             ...userData,
             status: 'active' as UserStatus,
             business_id: finalBusinessId,
             creator_id: userData.creator_id || undefined,
-            roles: userData.roles || [userData.role], // Incluir array de roles
+            roles: parsedRoles,
             permissions: userData.permissions || []
           };
 

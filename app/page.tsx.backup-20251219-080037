@@ -1,173 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Play, Check, ChevronRight, Star, Instagram, Camera, TrendingUp, Calendar, ArrowRight, User, X, MessageCircle, Quote, Zap, Users, GraduationCap } from 'lucide-react';
-
-// --- Utility for classes ---
-const cn = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(" ");
-
-// --- DotGlobeHero Component Implementation ---
-const DotGlobeHero = ({
-  children,
-  className,
-  rotationSpeed = 0.002,
-  particleSize = 1.5,
-  particleColor = "#94a3b8", // slate-400 (Cinza prateado)
-  globeRadius = 240,
-  connectionDistance = 45
-}: {
-  children: React.ReactNode;
-  className?: string;
-  rotationSpeed?: number;
-  particleSize?: number;
-  particleColor?: string;
-  globeRadius?: number;
-  connectionDistance?: number;
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // Create sphere points (Fibonacci Sphere algorithm)
-  const points = useMemo(() => {
-    const pts: Array<{x: number; y: number; z: number; originalX: number; originalZ: number}> = [];
-    const count = 600;
-    const goldenRatio = (1 + 5 ** 0.5) / 2;
-
-    for (let i = 0; i < count; i++) {
-      const theta = 2 * Math.PI * i / goldenRatio;
-      const phi = Math.acos(1 - 2 * (i + 0.5) / count);
-
-      pts.push({
-        x: Math.cos(theta) * Math.sin(phi) * globeRadius,
-        y: Math.cos(phi) * globeRadius,
-        z: Math.sin(theta) * Math.sin(phi) * globeRadius,
-        originalX: Math.cos(theta) * Math.sin(phi) * globeRadius,
-        originalZ: Math.sin(theta) * Math.sin(phi) * globeRadius,
-      });
-    }
-    return pts;
-  }, [globeRadius]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let rotation = 0;
-
-    // Handle resize
-    const resizeCanvas = () => {
-      if (canvas.parentElement) {
-        canvas.width = canvas.parentElement.offsetWidth;
-        canvas.height = canvas.parentElement.offsetHeight;
-      }
-    };
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    const render = () => {
-      if (!canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-
-      rotation += rotationSpeed;
-
-      // Update and project points
-      const projectedPoints = points.map(point => {
-        // Rotate around Y axis
-        const rotatedX = point.x * Math.cos(rotation) - point.z * Math.sin(rotation);
-        const rotatedZ = point.x * Math.sin(rotation) + point.z * Math.cos(rotation);
-
-        // Simple perspective projection
-        // We assume camera is at z = globeRadius * 2.5
-        const perspective = globeRadius * 2.5 / (globeRadius * 2.5 + rotatedZ);
-
-        return {
-          x: rotatedX * perspective + centerX,
-          y: point.y * perspective + centerY,
-          z: rotatedZ, // Keep Z for depth sorting/opacity
-          opacity: (rotatedZ + globeRadius) / (globeRadius * 2) // Fade back points
-        };
-      });
-
-      // Draw Connections (only for front-facing points to save performance)
-      ctx.lineWidth = 0.5;
-      projectedPoints.forEach((p1, i) => {
-        if (p1.z < -globeRadius / 2) return; // Skip back points for lines
-
-        // Only check a subset of points for connections to keep FPS up
-        for (let j = i + 1; j < projectedPoints.length; j++) {
-           const p2 = projectedPoints[j];
-           if (p2.z < -globeRadius / 2) continue;
-
-           const dx = p1.x - p2.x;
-           const dy = p1.y - p2.y;
-           const dist = Math.sqrt(dx*dx + dy*dy);
-
-           if (dist < connectionDistance) {
-             const opacity = (1 - dist / connectionDistance) * 0.25 * p1.opacity;
-             // Cor das linhas: Cinza Slate
-             ctx.strokeStyle = `rgba(148, 163, 184, ${opacity})`; // slate-400
-             ctx.beginPath();
-             ctx.moveTo(p1.x, p1.y);
-             ctx.lineTo(p2.x, p2.y);
-             ctx.stroke();
-           }
-        }
-      });
-
-      // Draw Particles
-      projectedPoints.forEach(p => {
-        // Scale opacity to make back dots very dim
-        const alpha = Math.max(0.1, Math.min(1, (p.z + globeRadius) / (globeRadius * 1.5)));
-
-        ctx.beginPath();
-        // Scale size slightly by perspective
-        const radius = Math.max(0.5, particleSize * (p.z + globeRadius * 2) / (globeRadius * 2.5));
-
-        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-        // Cor dos pontos: Cinza Slate levemente mais escuro para contraste
-        ctx.fillStyle = `rgba(100, 116, 139, ${alpha})`; // slate-500
-        ctx.fill();
-      });
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [points, rotationSpeed, particleSize, globeRadius, connectionDistance]);
-
-  return (
-    <div className={cn("relative w-full overflow-hidden min-h-[600px] flex flex-col justify-center", className)}>
-      {/* Globe Background Layer */}
-      <div className="absolute inset-0 z-0">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full opacity-60"
-        />
-      </div>
-
-      {/* Content Layer */}
-      <div className="relative z-10 w-full h-full pointer-events-none">
-        <div className="pointer-events-auto">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Componente FAQ com collapse
 function FAQItem({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
@@ -197,46 +31,6 @@ export default function Home() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-
-  // Dados dos depoimentos separados para facilitar a edição dos links do YouTube
-  const testimonials = [
-    {
-        name: 'Karina Algarte',
-        role: 'Gestora, Bread King Londrina',
-        quote: 'Mudou completamente a percepção da minha marca. Antes era amador, hoje meus clientes elogiam a qualidade dos vídeos.',
-        highlight: 'Percepção de Marca',
-        videoId: '4vP_9bYok24'
-    },
-    {
-        name: 'Roberson Gomes',
-        role: 'Proprietário, Escritório de Consórcios',
-        quote: 'Finalmente tenho constância sem precisar parar de trabalhar para gravar stories. A equipe chega e resolve tudo.',
-        highlight: 'Liberdade & Constância',
-        videoId: 'iL2E96OJ6DQ'
-    },
-    {
-        name: 'Dra. Natalia Pinceli',
-        role: 'Vert Odontologia',
-        quote: 'O atendimento presencial faz toda a diferença. Eles entendem a rotina da clínica e captam momentos que eu não veria.',
-        highlight: 'Atendimento Personalizado',
-        videoId: 'Z2k16wTZ2pQ'
-    },
-    {
-        name: 'Cristiane Pereira',
-        role: 'Boussolé Gastrobar',
-        quote: 'O engajamento dobrou no primeiro mês. A qualidade visual trouxe um público muito mais qualificado para a casa.',
-        highlight: 'Resultado em Vendas',
-        videoId: 'hc22IaB_cVo'
-    },
-  ];
-
-  const scrollToPlanos = () => {
-    document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const scrollToWork = () => {
-    document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   // Detectar convite e redirecionar para onboarding
   useEffect(() => {
@@ -283,30 +77,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-slate-300/50">
-      <style>{`
-        :root {
-          /* #f5f5f5 converted to HSL is 0 0% 96% */
-          --background: 0 0% 97%; /* um pouco mais claro */
-          --foreground: 222.2 84% 4.9%;
-          --primary: 215 25% 27%; /* Slate escuro */
-          --primary-foreground: 210 40% 98%;
-          --muted: 210 40% 96.1%;
-          --muted-foreground: 215.4 16.3% 46.9%;
-          --accent: 210 40% 96.1%;
-          --border: 214.3 31.8% 91.4%;
-        }
-        .bg-background { background-color: hsl(var(--background)); }
-        .text-foreground { color: hsl(var(--foreground)); }
-        .text-muted-foreground { color: hsl(var(--muted-foreground)); }
-        .bg-primary { background-color: hsl(var(--primary)); }
-        .text-primary { color: hsl(var(--primary)); }
-        .border-primary\\/30 { border-color: hsl(var(--primary) / 0.3); }
-        .from-primary\\/20 { --tw-gradient-from: hsl(var(--primary) / 0.2); }
-        .to-primary\\/20 { --tw-gradient-to: hsl(var(--primary) / 0.2); }
-        .bg-primary\\/5 { background-color: hsl(var(--primary) / 0.05); }
-      `}</style>
-
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md fixed w-full top-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -322,7 +93,19 @@ export default function Home() {
               <button onClick={() => scrollToSection('about')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Sobre
               </button>
-              {/* HIDDEN - Serviços, Missão, Por que, Processo */}
+              <button onClick={() => scrollToSection('services')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
+                Serviços
+              </button>
+              <button onClick={() => scrollToSection('mission')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
+                Missão
+              </button>
+
+              <button onClick={() => scrollToSection('why')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
+                Por que
+              </button>
+              <button onClick={() => scrollToSection('process')} className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
+                Processo
+              </button>
               <a href="/blog" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Blog
               </a>
@@ -361,7 +144,18 @@ export default function Home() {
                 <button onClick={() => scrollToSection('about')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
                   Sobre
                 </button>
-                {/* HIDDEN - Serviços, Missão, Por que, Processo */}
+                <button onClick={() => scrollToSection('services')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
+                  Serviços
+                </button>
+                <button onClick={() => scrollToSection('mission')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
+                  Missão
+                </button>
+                <button onClick={() => scrollToSection('why')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
+                  Por que
+                </button>
+                <button onClick={() => scrollToSection('process')} className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
+                  Processo
+                </button>
                 <a href="/blog" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
                   Blog
                 </a>
@@ -380,218 +174,125 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section - UPDATED with 3D Globe */}
-      <DotGlobeHero
-        rotationSpeed={0.003}
-        globeRadius={320}
-        className="min-h-screen bg-gradient-to-br from-background via-slate-50 to-slate-200/50 relative overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
+      {/* Hero Section - Premium Visual */}
+      <section className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-white min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden pt-20 sm:pt-16 lg:pt-0">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-600 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-blue-400 rounded-full blur-2xl"></div>
+        </div>
 
-        {/* Glow Effects - Trocado de Azul para Prata/Cinza */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-slate-400/5 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-zinc-400/5 rounded-full blur-[100px] animate-pulse delay-700" />
-
-        <div className="relative z-10 text-center space-y-12 max-w-5xl mx-auto px-6 py-20 lg:py-32">
-
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="flex justify-center"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/80 border border-slate-200/60 backdrop-blur-md shadow-xl hover:border-slate-400/30 transition-colors"
-            >
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-slate-400/5 via-transparent to-slate-400/5 animate-pulse" />
-              <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-ping" />
-              <span className="relative z-10 text-xs font-bold text-slate-600 tracking-[0.2em] uppercase">Novo Modelo de Marketing</span>
-              <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-ping delay-500" />
-            </motion.div>
-          </motion.div>
-
-          {/* Main Heading */}
-          <div className="space-y-6">
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-tighter leading-[0.85] select-none"
-            >
-              <span className="block font-light text-slate-400 mb-2 text-3xl md:text-5xl lg:text-6xl tracking-tight">
-                Tenha um Social Media Estratégico na sua empresa.
-              </span>
-              <span className="block relative inline-block mt-2">
-                {/* Texto Principal em Gradiente Metálico */}
-                <span className="bg-gradient-to-b from-slate-800 via-slate-700 to-slate-500 bg-clip-text text-transparent font-black relative z-10 pb-2">
-                  Toda semana.
-                </span>
-                {/* Sombra/Blur atrás para dar efeito de brilho prateado */}
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-300 via-slate-400 to-gray-500 bg-clip-text text-transparent font-black blur-2xl opacity-10 scale-105">
-                  Toda semana.
-                </div>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1.5, delay: 1.2, ease: "easeOut" }}
-                  // Linha sublinhada agora em tons de cinza/prata
-                  className="absolute -bottom-2 md:-bottom-4 left-0 h-1 md:h-2 bg-gradient-to-r from-slate-600 via-slate-400 to-transparent rounded-full opacity-30"
-                />
-              </span>
-            </motion.h1>
-          </div>
-
-          {/* Subtext */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="max-w-2xl mx-auto space-y-6"
-          >
-            <p className="text-lg md:text-2xl text-slate-600 leading-relaxed font-light">
-              Marketing moderno e acessível trabalhando junto com você.{" "}
-              <span className="text-slate-900 font-medium relative inline-block">
-                Fotos, vídeos e estratégias
-                <span className="absolute bottom-0 left-0 w-full h-[1px] bg-slate-400/40"></span>
-              </span>
-              {" "}reais gravados direto no seu negócio.
+        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10 mt-8 sm:mt-4 lg:mt-0">
+          <div className="text-center lg:text-left order-1 lg:order-1 px-2 sm:px-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-onest font-bold text-gray-900 leading-tight mb-6">
+              Conectamos <span className="text-[#0b3553]">empresas locais</span> com <span className="text-[#0b3553]">criadores locais</span>
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8 font-onest font-normal">
+              Criamos conexões reais que geram engajamento real para seus clientes na sua cidade. Unindo negócios locais aos criadores da comunidade para <strong className="text-[#0b3553]">acelerar resultados e otimizar potencializando o negócio</strong> das empresas que trabalham com a gente.
             </p>
-          </motion.div>
+            <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <span className="hidden sm:inline">Conectar Agora</span>
+              <span className="sm:hidden">Conectar</span>
+            </button>
+          </div>
 
-          {/* Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1 }}
-            className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-8 pb-10"
-          >
-            <motion.button
-              onClick={() => window.location.href = 'http://localhost:3001/chatcriadores-home'}
-              whileHover={{
-                scale: 1.02,
-                // Sombra ajustada para cinza
-                boxShadow: "0 10px 30px -10px rgba(100, 116, 139, 0.5)",
-              }}
-              whileTap={{ scale: 0.98 }}
-              className="group relative inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-lg shadow-xl shadow-slate-200 transition-all duration-300 overflow-hidden cursor-pointer"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <span className="relative z-10">Fale Conosco</span>
-              <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-            </motion.button>
+          {/* Visual Interactive - Circular Design with Radial Shadow */}
+          <div className="relative h-[500px] sm:h-[600px] lg:h-[700px] flex items-center justify-center order-2 lg:order-2">
+            {/* Background with improved radial gradient and smoother transition */}
+            <div className="absolute inset-0 bg-gradient-radial from-blue-100/40 via-blue-50/30 via-gray-50/20 to-transparent rounded-full shadow-[0_0_200px_rgba(59,130,246,0.15)] animate-pulse" style={{animationDuration: '6s'}}></div>
 
-            <motion.button
-              onClick={scrollToWork}
-              whileHover={{
-                scale: 1.02,
-                backgroundColor: "rgba(255,255,255,0.8)",
-                borderColor: "rgba(148, 163, 184, 0.8)"
-              }}
-              whileTap={{ scale: 0.98 }}
-              className="group relative inline-flex items-center gap-3 px-8 py-4 border border-slate-300 rounded-full font-semibold text-lg text-slate-600 hover:text-slate-900 transition-colors duration-300 backdrop-blur-sm bg-white/50 cursor-pointer"
-            >
-              {/* Ícone agora em um tom dourado/amarelo mais sóbrio para contrastar com o cinza */}
-              <span className="tracking-wide">Ver Como Funciona</span>
-            </motion.button>
-          </motion.div>
+            {/* Connection lines between empresas and criadores */}
+            <div className="absolute inset-0">
+              <svg className="w-full h-full opacity-30" viewBox="0 0 400 400">
+                <defs>
+                  <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.6"/>
+                    <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.6"/>
+                  </linearGradient>
+                </defs>
+                {/* Animated connection lines */}
+                <path d="M100 150 Q200 200 300 150" stroke="url(#connectionGradient)" strokeWidth="3" fill="none" className="animate-pulse" style={{animationDelay: '1s', animationDuration: '4s'}}/>
+                <path d="M100 250 Q200 200 300 250" stroke="url(#connectionGradient)" strokeWidth="3" fill="none" className="animate-pulse" style={{animationDelay: '2s', animationDuration: '4s'}}/>
+                <path d="M150 100 Q200 200 250 300" stroke="url(#connectionGradient)" strokeWidth="2" fill="none" className="animate-pulse" style={{animationDelay: '3s', animationDuration: '4s'}}/>
+              </svg>
+            </div>
 
-        </div>
-      </DotGlobeHero>
+            <div className="relative w-full h-full flex items-center justify-center">
 
-      {/* Problem Section - Minimalist Text */}
-      <section className="py-24 bg-white">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-5xl font-semibold mb-8 text-[#1d1d1f]">
-            O modelo tradicional quebrou.
-          </h2>
-          <p className="text-xl text-[#86868b] leading-relaxed">
-            Fazer sozinho é exaustivo. Freelancers somem.
-            <br className="hidden md:block"/>
-            Nós criamos o caminho do meio: <strong className="text-[#1d1d1f]">Profissional, Presencial e Constante.</strong>
-          </p>
-        </div>
-      </section>
-
-      {/* Deliverables - The "Bento Grid" Layout */}
-      <section id="entregaveis" className="py-24 px-6 max-w-6xl mx-auto">
-        <h2 className="text-4xl font-semibold mb-12 text-center">Tudo o que seu negócio precisa.</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(300px,auto)]">
-
-          {/* Card 1: Large Feature - Com Imagem de Social Media */}
-          <div className="md:col-span-2 bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-center">
-            <div className="relative z-10">
-              <div className="bg-[#0071e3] w-12 h-12 rounded-2xl flex items-center justify-center mb-6 text-white">
-                <Camera size={24} />
+              {/* Center - Conexão (Larger and Central) */}
+              <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-white via-blue-50/90 to-blue-100/70 rounded-full flex flex-col items-center justify-center shadow-2xl z-20 border-4 border-white/90 backdrop-blur-sm transform hover:scale-105 transition-all duration-500 ring-2 ring-blue-200/50">
+                <div className="text-3xl sm:text-4xl lg:text-5xl mb-2 lg:mb-3">🤝</div>
+                <div className="text-sm sm:text-base lg:text-lg font-bold text-[#0b3553] mb-2 text-center">CONEXÃO</div>
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="text-xs sm:text-sm text-[#0b3553] text-center font-medium">Empresas ↔ Criadores</div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                  </div>
+                  <div className="text-xs sm:text-sm text-[#0b3553] text-center font-medium">na sua cidade</div>
+                </div>
               </div>
-              <h3 className="text-3xl font-semibold mb-3 text-white">Presença Semanal.</h3>
-              <p className="text-white/90 text-lg max-w-md leading-relaxed drop-shadow-sm">
-                Um social media vai até sua empresa toda semana para captar fotos e vídeos profissionais. Nada de banco de imagens.
-              </p>
+
+              {/* Empresas Locais - Circular Arrangement */}
+              {/* Top Left */}
+              <div className="absolute top-[15%] left-[25%] flex flex-col items-center gap-2">
+                <div className="text-xs sm:text-sm font-bold text-gray-700 text-center mb-2">EMPRESAS<br/>LOCAIS</div>
+                <div className="w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-110 animate-pulse border-4 border-white z-10" style={{animationDelay: '0s', animationDuration: '4s'}}>
+                  🏪
+                </div>
+              </div>
+
+              {/* Left */}
+              <div className="absolute top-[45%] left-[8%] transform -translate-y-1/2">
+                <div className="w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-gradient-to-br from-green-50 to-green-100 rounded-full flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-110 animate-pulse border-4 border-white z-10" style={{animationDelay: '1s', animationDuration: '4s'}}>
+                  🍽️
+                </div>
+              </div>
+
+              {/* Bottom Left */}
+              <div className="absolute bottom-[15%] left-[25%]">
+                <div className="w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-gradient-to-br from-orange-50 to-orange-100 rounded-full flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-110 animate-pulse border-4 border-white z-10" style={{animationDelay: '2s', animationDuration: '4s'}}>
+                  💪
+                </div>
+              </div>
+
+              {/* Criadores Locais - Circular Arrangement */}
+              {/* Top Right */}
+              <div className="absolute top-[15%] right-[25%] flex flex-col items-center gap-2">
+                <div className="text-xs sm:text-sm font-bold text-gray-700 text-center mb-2">CRIADORES<br/>LOCAIS</div>
+                <div className="w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-110 animate-pulse border-4 border-white z-10" style={{animationDelay: '0.5s', animationDuration: '4s'}}>
+                  📸
+                </div>
+              </div>
+
+              {/* Right */}
+              <div className="absolute top-[45%] right-[8%] transform -translate-y-1/2">
+                <div className="w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-gradient-to-br from-pink-50 to-pink-100 rounded-full flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-110 animate-pulse border-4 border-white z-10" style={{animationDelay: '1.5s', animationDuration: '4s'}}>
+                  🦷
+                </div>
+              </div>
+
+              {/* Bottom Right */}
+              <div className="absolute bottom-[15%] right-[25%]">
+                <div className="w-18 h-18 sm:w-22 sm:h-22 lg:w-26 lg:h-26 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full flex items-center justify-center text-xl sm:text-2xl lg:text-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-110 animate-pulse border-4 border-white z-10" style={{animationDelay: '2.5s', animationDuration: '4s'}}>
+                  🎤
+                </div>
+              </div>
+
+              {/* Floating Connection Dots */}
+              <div className="absolute top-[30%] left-[35%] w-3 h-3 bg-blue-400 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute top-[70%] right-[35%] w-3 h-3 bg-purple-400 rounded-full animate-ping opacity-75" style={{animationDelay: '1s'}}></div>
+              <div className="absolute top-[25%] right-[40%] w-2 h-2 bg-green-400 rounded-full animate-ping opacity-60" style={{animationDelay: '2s'}}></div>
+              <div className="absolute bottom-[25%] left-[40%] w-2 h-2 bg-orange-400 rounded-full animate-ping opacity-60" style={{animationDelay: '3s'}}></div>
             </div>
-            <img
-              src="https://images.unsplash.com/photo-1542744095-291d1f67b221?q=80&w=2000&auto=format&fit=crop"
-              alt="Social media profissional criando conteúdo presencialmente na empresa"
-              className="absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
           </div>
-
-          {/* Card 2: Vertical */}
-          <div className="bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between overflow-hidden">
-             <div>
-                <h3 className="text-4xl font-bold text-[#1d1d1f] mb-2 tracking-tight">Postagem Semanal</h3>
-                <p className="text-[#86868b] font-medium">Temos planos para todo o tipo de empresa.</p>
-             </div>
-             <div className="mt-8 relative h-40 w-full bg-gray-100 rounded-2xl overflow-hidden border border-gray-200">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                   <Play size={40} fill="currentColor" className="opacity-50" />
-                </div>
-                {/* Simulated Reel UI */}
-                <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-                    <div className="w-6 h-6 bg-white/50 rounded-full"></div>
-                    <div className="w-6 h-6 bg-white/50 rounded-full"></div>
-                    <div className="w-6 h-6 bg-white/50 rounded-full"></div>
-                </div>
-             </div>
-             <p className="mt-6 text-sm text-[#86868b]">Vídeos editados e orientados a vendas.</p>
-          </div>
-
-          {/* Card 3: Stories */}
-          <div className="bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-full border-2 border-[#E1306C] p-0.5 mb-6">
-                <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?auto=format&fit=crop&q=80&w=100" alt="Profile" className="w-full h-full object-cover" />
-                </div>
-            </div>
-            <h3 className="text-2xl font-semibold mb-2">Stories Diários.</h3>
-            <p className="text-[#86868b]">2 stories por dia para manter sua marca sempre presente na mente do cliente.</p>
-          </div>
-
-          {/* Card 4: Strategy */}
-          <div className="md:col-span-2 bg-[#1d1d1f] rounded-[30px] p-10 shadow-sm text-white relative overflow-hidden">
-            <div className="relative z-10">
-                <h3 className="text-2xl font-semibold mb-2 text-[#f5f5f7]">Estratégia de Dados.</h3>
-                <p className="text-gray-400 max-w-lg mb-6">
-                    Não postamos por postar. Entregamos calendário editorial, roteiros e uma reunião mensal com estrategista para analisar métricas.
-                </p>
-                <div className="flex gap-4">
-                    <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-medium border border-white/10">Análise 360º</div>
-                    <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-medium border border-white/10">Reunião Mensal</div>
-                </div>
-            </div>
-            <TrendingUp className="absolute -bottom-6 -right-6 text-white/5 w-64 h-64" />
-          </div>
-
         </div>
       </section>
 
-      {/* About Section - Premium - HIDDEN */}
-      <section id="about" className="py-20 bg-white hidden">
+      {/* About Section - Premium */}
+      <section id="about" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
@@ -667,8 +368,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services Section - Premium - HIDDEN */}
-      <section id="services" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 hidden">
+      {/* Services Section - Premium */}
+      <section id="services" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
@@ -755,8 +456,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section 1 - Conecte-se com Criadores - HIDDEN */}
-      <section className="py-20 bg-gradient-to-br from-blue-600 to-blue-800 hidden">
+      {/* CTA Section 1 - Conecte-se com Criadores */}
+      <section className="py-20 bg-gradient-to-br from-blue-600 to-blue-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-medium mb-6">
             <span className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
@@ -778,8 +479,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TL;DR Section para GEO - HIDDEN */}
-      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 hidden">
+      {/* TL;DR Section para GEO */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-blue-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -804,8 +505,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Section - HIDDEN */}
-      <section id="why" className="py-20 bg-white hidden">
+      {/* Why Section */}
+      <section id="why" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
@@ -917,8 +618,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Process Section - HIDDEN */}
-      <section id="process" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50 hidden">
+      {/* Process Section */}
+      <section id="process" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-onest font-bold text-gray-900 mb-4">
@@ -1013,8 +714,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section 2 - Garantia de Resultados - Full Width - HIDDEN */}
-      <section className="py-0 bg-gradient-to-r from-green-500 to-emerald-600 relative overflow-hidden hidden">
+      {/* CTA Section 2 - Garantia de Resultados - Full Width */}
+      <section className="py-0 bg-gradient-to-r from-green-500 to-emerald-600 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full" style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")"}}></div>
@@ -1077,8 +778,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Clients Section - HIDDEN */}
-      <section className="py-20 bg-white hidden">
+      {/* Clients Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
@@ -1132,51 +833,6 @@ export default function Home() {
               <span className="text-lg font-bold text-gray-700">+Muitos</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Testimonials with Video */}
-      <section className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-5xl font-semibold mb-4 text-[#1d1d1f]">O que nossos parceiros dizem.</h2>
-                <p className="text-xl text-[#86868b]">Resultados reais de quem vive o novo modelo de marketing.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {testimonials.map((testi, i) => (
-                    <div key={i} className="bg-[#f5f5f7] p-8 rounded-[30px] border border-transparent hover:border-gray-200 hover:bg-white hover:shadow-lg transition-all duration-300 relative group flex flex-col">
-
-                        {/* Video Container */}
-                        <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black mb-6 shadow-sm relative z-10">
-                             <iframe
-                                className="w-full h-full"
-                                src={`https://www.youtube.com/embed/${testi.videoId}?rel=0&modestbranding=1`}
-                                title={`Depoimento ${testi.name}`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                loading="lazy"
-                             ></iframe>
-                        </div>
-
-                        <div className="flex text-[#ffb400] mb-4">
-                            {[...Array(5)].map((_, j) => <Star key={j} size={16} fill="currentColor" className="mr-0.5" />)}
-                        </div>
-
-                        <p className="text-lg text-[#1d1d1f] font-medium mb-6 leading-relaxed italic">&quot;{testi.quote}&quot;</p>
-
-                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200/50">
-                            <div>
-                                <div className="font-bold text-[#1d1d1f] text-base">{testi.name}</div>
-                                <div className="text-[#86868b] text-xs uppercase tracking-wide font-medium">{testi.role}</div>
-                            </div>
-                            <div className="hidden sm:block px-3 py-1 bg-white border border-gray-100 rounded-full text-[10px] font-bold text-[#0071e3] shadow-sm uppercase tracking-wider">
-                                {testi.highlight}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
         </div>
       </section>
 
@@ -1397,8 +1053,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Blog Section - HIDDEN */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50/30 hidden">
+      {/* Blog Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
@@ -1496,8 +1152,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Mission & Vision Section - HIDDEN */}
-      <section className="py-20 bg-white hidden">
+      {/* Mission & Vision Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Mission */}
@@ -1539,8 +1195,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Values Section - HIDDEN */}
-      <section className="py-20 hidden" style={{backgroundColor: '#f5f5f5'}}>
+      {/* Values Section */}
+      <section className="py-20" style={{backgroundColor: '#f5f5f5'}}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0b3553] text-sm font-medium mb-6">
@@ -1616,137 +1272,6 @@ export default function Home() {
               <p className="text-gray-600">Antes de agir, pense: <span className="font-bold">como a IA e os dados</span> podem te ajudar?</p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Pricing - Sales Focused (No Prices) */}
-      <section id="planos" className="py-32 px-6 max-w-5xl mx-auto">
-        <h2 className="text-4xl md:text-5xl font-semibold text-center mb-4">Investimento Inteligente.</h2>
-        <p className="text-center text-[#86868b] text-xl mb-16 max-w-2xl mx-auto">
-          Custo menor que um estagiário, entrega de uma agência completa. Descubra o plano ideal para o seu momento.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-
-            {/* Monthly Plan */}
-            <div className="bg-white p-10 rounded-[30px] border border-transparent hover:border-gray-300 transition-colors flex flex-col">
-                <h3 className="text-2xl font-semibold mb-2">Start Mensal</h3>
-                <p className="text-[#86868b] mb-8 text-sm">Para quem quer começar rápido e validar o modelo.</p>
-
-                <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 text-center">
-                    <span className="text-lg font-medium text-[#1d1d1f]">Ideal para testar</span>
-                    <p className="text-sm text-[#86868b] mt-1">Sem fidelidade de longo prazo.</p>
-                </div>
-
-                <ul className="space-y-4 mb-10 flex-grow">
-                    <li className="flex items-center gap-3 text-sm text-[#1d1d1f]">
-                        <Check size={18} className="text-[#0071e3]" /> Equipe presencial
-                    </li>
-                    <li className="flex items-center gap-3 text-sm text-[#1d1d1f]">
-                        <Check size={18} className="text-[#0071e3]" /> Cancelamento flexível
-                    </li>
-                    <li className="flex items-center gap-3 text-sm text-[#1d1d1f]">
-                        <Check size={18} className="text-[#0071e3]" /> Estratégia completa
-                    </li>
-                </ul>
-
-                <button className="w-full py-4 rounded-full border border-[#0071e3] text-[#0071e3] font-medium hover:bg-[#0071e3]/5 transition-colors flex items-center justify-center gap-2">
-                    Consultar Plano Mensal <ChevronRight size={16} />
-                </button>
-            </div>
-
-            {/* Semester Plan - Sales Driven */}
-            <div className="bg-white p-10 rounded-[30px] border-2 border-[#0071e3] shadow-xl relative transform md:-translate-y-4 flex flex-col">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#0071e3] text-white px-4 py-1 rounded-full text-xs font-bold tracking-wide uppercase shadow-lg shadow-[#0071e3]/40">
-                    Oportunidade Exclusiva
-                </div>
-
-                <h3 className="text-2xl font-semibold mb-2">Parceria Semestral</h3>
-                <p className="text-[#86868b] mb-8 text-sm">Para quem busca crescimento consistente.</p>
-
-                <div className="mb-8 p-6 bg-[#0071e3]/5 rounded-2xl border border-[#0071e3]/20 text-center">
-                    <span className="text-2xl font-bold text-[#0071e3] block mb-1">Condição Especial</span>
-                    <p className="text-sm text-[#86868b]">Garanta o melhor valor do mercado travando seu contrato hoje.</p>
-                </div>
-
-                <ul className="space-y-4 mb-10 flex-grow">
-                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
-                        <Check size={18} className="text-[#0071e3]" /> <strong>Economia agressiva</strong> no valor mensal
-                    </li>
-                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
-                        <Check size={18} className="text-[#0071e3]" /> Prioridade na agenda da equipe
-                    </li>
-                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
-                        <Check size={18} className="text-[#0071e3]" /> Planejamento de longo prazo
-                    </li>
-                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
-                        <Check size={18} className="text-[#0071e3]" /> Consultoria estratégica inclusa
-                    </li>
-                </ul>
-
-                <button className="w-full py-4 rounded-full bg-[#0071e3] text-white font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 flex items-center justify-center gap-2 hover:scale-[1.02]">
-                    <MessageCircle size={18} /> Falar com Especialista
-                </button>
-                <p className="text-center text-xs text-[#86868b] mt-4">Poucas vagas disponíveis para este mês.</p>
-            </div>
-        </div>
-
-        {/* Guarantee */}
-        <div className="mt-16 bg-white rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between shadow-sm">
-            <div className="flex items-center gap-6 mb-4 md:mb-0">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                    <User size={24} />
-                </div>
-                <div>
-                    <h4 className="font-semibold text-lg">Garantia Vitalícia de Satisfação</h4>
-                    <p className="text-[#86868b] text-sm">Não gostou do social media? Trocamos em até 30 dias. Sem custo.</p>
-                </div>
-            </div>
-        </div>
-      </section>
-
-      {/* Outras Soluções (Moved before FAQ, Icons Removed) */}
-      <section className="py-24 bg-[#f5f5f7]">
-        <div className="max-w-6xl mx-auto px-6">
-            <div className="mb-12">
-                <h2 className="text-3xl font-semibold mb-4 text-[#1d1d1f]">Outras Soluções.</h2>
-                <p className="text-[#86868b] text-lg">Para diferentes estágios do seu negócio.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Mentoria */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
-                    <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Mentoria Estratégica</h3>
-                    <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
-                        Acompanhamento exclusivo para empresários que desejam dominar a estratégia por trás do seu próprio marketing.
-                    </p>
-                    <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
-                        Saber mais <ArrowRight size={14} />
-                    </span>
-                </div>
-
-                {/* Influenciadores */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
-                    <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Influenciadores Locais</h3>
-                    <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
-                        Conectamos sua marca às vozes mais relevantes e autênticas da sua região para campanhas de alto impacto.
-                    </p>
-                    <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
-                        Conhecer casting <ArrowRight size={14} />
-                    </span>
-                </div>
-
-                {/* Área de Membros */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
-                    <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Comunidade crIAdores</h3>
-                    <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
-                        Acesso vitalício a templates, aulas práticas e networking com outros empresários que crescem no digital.
-                    </p>
-                    <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
-                        Acessar agora <ArrowRight size={14} />
-                    </span>
-                </div>
-            </div>
         </div>
       </section>
 

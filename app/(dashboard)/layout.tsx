@@ -224,10 +224,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   });
 
   // DEBUG: Log para verificar o que está acontecendo
+  console.log('🔍 [Layout] User email:', user?.email);
   console.log('🔍 [Layout] User role:', user?.role);
   console.log('🔍 [Layout] CORRECTED User role:', correctedUser?.role);
   console.log('🔍 [Layout] User roles:', user?.roles);
+  console.log('🔍 [Layout] User roles type:', typeof user?.roles);
+  console.log('🔍 [Layout] User roles isArray:', Array.isArray(user?.roles));
   console.log('🔍 [Layout] Navigation items before filter:', allNavigationItems.length);
+  console.log('🔍 [Layout] Navigation items after filter:', navigationItems.map(i => i.label));
 
   return (
     <NotificationProvider>
