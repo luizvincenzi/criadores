@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
   title: 'criAvoz - Conecte-se com crIAdores',
@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/faviconcriadoresA3.png',
   },
+};
+
+export const viewport: Viewport = {
   themeColor: '#0b3553',
 };
 
