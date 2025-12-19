@@ -5,10 +5,10 @@ const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const businessId = params.id;
+    const { id: businessId } = await params;
 
     if (!businessId) {
       return NextResponse.json(
@@ -136,10 +136,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const businessId = params.id;
+    const { id: businessId } = await params;
     const updates = await request.json();
 
     if (!businessId) {

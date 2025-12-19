@@ -261,9 +261,9 @@ export async function GET(request: NextRequest) {
  * GET /api/client/creators/[id]
  * 🎯 Buscar criador específico (apenas se estiver em campanhas da empresa)
  */
-export async function GET_BY_ID(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET_BY_ID(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const creatorId = params.id;
+    const { id: creatorId } = await params;
     
     // 🔒 VALIDAÇÃO DE SEGURANÇA OBRIGATÓRIA
     const validation = await validateCreatorAccess(request);

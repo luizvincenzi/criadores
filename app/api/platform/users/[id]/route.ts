@@ -5,10 +5,10 @@ const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    const { id: userId } = await params;
 
     console.log('🔍 [Platform API] Buscando usuário por ID:', userId);
 

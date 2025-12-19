@@ -237,7 +237,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <NotificationProvider>
       <div className="h-screen overflow-hidden" style={{ backgroundColor: '#f5f5f5' }}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white shadow border-b border-gray-200">
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white  border-b border-gray-200">
         <div className="h-full px-6 flex items-center justify-between">
           {/* Logo - centralizado verticalmente */}
           <div className="flex items-center flex-shrink-0">

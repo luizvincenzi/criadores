@@ -8,10 +8,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sectionId = params.id;
+    const { id: sectionId } = await params;
     const body = await request.json();
     const { content, change_description } = body;
 
@@ -65,10 +65,10 @@ export async function PATCH(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sectionId = params.id;
+    const { id: sectionId } = await params;
 
     if (!sectionId) {
       return NextResponse.json(

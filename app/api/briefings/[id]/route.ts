@@ -3,10 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const briefingId = params.id;
+    const { id: briefingId } = await params;
 
     console.log('📋 [BRIEFING DETAIL] Buscando briefing:', briefingId);
 
@@ -176,10 +176,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const briefingId = params.id;
+    const { id: briefingId } = await params;
     const updates = await request.json();
 
     console.log('📝 [BRIEFING UPDATE] Atualizando briefing:', briefingId);
@@ -228,10 +228,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const briefingId = params.id;
+    const { id: briefingId } = await params;
 
     console.log('🗑️ [BRIEFING DELETE] Deletando briefing:', briefingId);
 
