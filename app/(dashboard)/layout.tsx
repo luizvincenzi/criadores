@@ -262,7 +262,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </button>
 
           {/* Desktop Navigation - Centralizada - Estilo Facebook */}
-          <nav className="hidden md:flex items-stretch gap-1 flex-1 justify-center mx-8">
+          <nav className="hidden md:flex items-stretch h-full flex-1 justify-center mx-8">
             {navigationItems.map((item) => {
               // Verificar se está ativo - suporta rotas aninhadas (ex: /dashboard/empresa)
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -271,7 +271,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`relative px-6 text-sm font-medium transition-all flex items-center justify-center ${
+                  className={`relative px-6 text-sm font-medium transition-all flex items-center justify-center h-full ${
                     isActive
                       ? 'text-gray-900'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -281,7 +281,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                   {/* Borda inferior para aba ativa - estilo Facebook */}
                   {isActive && (
-                    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gray-900"></div>
+                    <div className="absolute inset-x-0 -bottom-[1px] h-0.5 bg-gray-900"></div>
                   )}
                 </Link>
               );

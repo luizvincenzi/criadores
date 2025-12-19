@@ -1,0 +1,683 @@
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { Play, Check, ChevronRight, Star, Instagram, Camera, TrendingUp, Calendar, ArrowRight, User, X, MessageCircle, Quote, Zap, Users, GraduationCap } from 'lucide-react';
+
+// --- Utility for classes ---
+const cn = (...classes) => classes.filter(Boolean).join(" ");
+
+// --- DotGlobeHero Component Implementation ---
+const DotGlobeHero = ({ 
+  children, 
+  className, 
+  rotationSpeed = 0.002,
+  particleSize = 1.5,
+  particleColor = "#94a3b8", // slate-400 (Cinza prateado)
+  globeRadius = 240,
+  connectionDistance = 45
+}) => {
+  const canvasRef = useRef(null);
+  
+  // Create sphere points (Fibonacci Sphere algorithm)
+  const points = useMemo(() => {
+    const pts = [];
+    const count = 600; 
+    const goldenRatio = (1 + 5 ** 0.5) / 2;
+    
+    for (let i = 0; i < count; i++) {
+      const theta = 2 * Math.PI * i / goldenRatio;
+      const phi = Math.acos(1 - 2 * (i + 0.5) / count);
+      
+      pts.push({
+        x: Math.cos(theta) * Math.sin(phi) * globeRadius,
+        y: Math.cos(phi) * globeRadius,
+        z: Math.sin(theta) * Math.sin(phi) * globeRadius,
+        originalX: Math.cos(theta) * Math.sin(phi) * globeRadius,
+        originalZ: Math.sin(theta) * Math.sin(phi) * globeRadius,
+      });
+    }
+    return pts;
+  }, [globeRadius]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let rotation = 0;
+    
+    // Handle resize
+    const resizeCanvas = () => {
+      if (canvas.parentElement) {
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+      }
+    };
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    const render = () => {
+      if (!canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      
+      rotation += rotationSpeed;
+      
+      // Update and project points
+      const projectedPoints = points.map(point => {
+        // Rotate around Y axis
+        const rotatedX = point.x * Math.cos(rotation) - point.z * Math.sin(rotation);
+        const rotatedZ = point.x * Math.sin(rotation) + point.z * Math.cos(rotation);
+        
+        // Simple perspective projection
+        // We assume camera is at z = globeRadius * 2.5
+        const perspective = globeRadius * 2.5 / (globeRadius * 2.5 + rotatedZ);
+        
+        return {
+          x: rotatedX * perspective + centerX,
+          y: point.y * perspective + centerY,
+          z: rotatedZ, // Keep Z for depth sorting/opacity
+          opacity: (rotatedZ + globeRadius) / (globeRadius * 2) // Fade back points
+        };
+      });
+      
+      // Draw Connections (only for front-facing points to save performance)
+      ctx.lineWidth = 0.5;
+      projectedPoints.forEach((p1, i) => {
+        if (p1.z < -globeRadius / 2) return; // Skip back points for lines
+        
+        // Only check a subset of points for connections to keep FPS up
+        for (let j = i + 1; j < projectedPoints.length; j++) {
+           const p2 = projectedPoints[j];
+           if (p2.z < -globeRadius / 2) continue;
+
+           const dx = p1.x - p2.x;
+           const dy = p1.y - p2.y;
+           const dist = Math.sqrt(dx*dx + dy*dy);
+           
+           if (dist < connectionDistance) {
+             const opacity = (1 - dist / connectionDistance) * 0.25 * p1.opacity; 
+             // Cor das linhas: Cinza Slate
+             ctx.strokeStyle = `rgba(148, 163, 184, ${opacity})`; // slate-400
+             ctx.beginPath();
+             ctx.moveTo(p1.x, p1.y);
+             ctx.lineTo(p2.x, p2.y);
+             ctx.stroke();
+           }
+        }
+      });
+      
+      // Draw Particles
+      projectedPoints.forEach(p => {
+        // Scale opacity to make back dots very dim
+        const alpha = Math.max(0.1, Math.min(1, (p.z + globeRadius) / (globeRadius * 1.5)));
+        
+        ctx.beginPath();
+        // Scale size slightly by perspective
+        const radius = Math.max(0.5, particleSize * (p.z + globeRadius * 2) / (globeRadius * 2.5));
+        
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        // Cor dos pontos: Cinza Slate levemente mais escuro para contraste
+        ctx.fillStyle = `rgba(100, 116, 139, ${alpha})`; // slate-500
+        ctx.fill();
+      });
+      
+      animationFrameId = requestAnimationFrame(render);
+    };
+    
+    render();
+    
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [points, rotationSpeed, particleSize, globeRadius, connectionDistance]);
+
+  return (
+    <div className={cn("relative w-full overflow-hidden min-h-[600px] flex flex-col justify-center", className)}>
+      {/* Globe Background Layer */}
+      <div className="absolute inset-0 z-0">
+        <canvas 
+          ref={canvasRef}
+          className="w-full h-full opacity-60"
+        />
+      </div>
+      
+      {/* Content Layer */}
+      <div className="relative z-10 w-full h-full pointer-events-none">
+        <div className="pointer-events-auto">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
+  const scrollToPlanos = () => {
+    document.getElementById('planos').scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  const scrollToWork = () => {
+    document.getElementById('como-funciona').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Dados dos depoimentos separados para facilitar a edição dos links do YouTube
+  const testimonials = [
+    { 
+        name: 'Karina Algarte', 
+        role: 'Gestora, BR Consórcios', 
+        quote: 'Mudou completamente a percepção da minha marca. Antes era amador, hoje meus clientes elogiam a qualidade dos vídeos.',
+        highlight: 'Percepção de Marca',
+        videoId: 'INSIRA_O_ID_AQUI_1' // Ex: se o link for youtube.com/watch?v=dQw4w9WgXcQ, coloque 'dQw4w9WgXcQ'
+    },
+    { 
+        name: 'Roberson Gomes', 
+        role: 'Proprietário, Rezendog', 
+        quote: 'Finalmente tenho constância sem precisar parar de trabalhar para gravar stories. A equipe chega e resolve tudo.',
+        highlight: 'Liberdade & Constância',
+        videoId: 'INSIRA_O_ID_AQUI_2'
+    },
+    { 
+        name: 'Dra. Amanda', 
+        role: 'Vert Odontologia', 
+        quote: 'O atendimento presencial faz toda a diferença. Eles entendem a rotina da clínica e captam momentos que eu não veria.',
+        highlight: 'Atendimento Personalizado',
+        videoId: 'INSIRA_O_ID_AQUI_3'
+    },
+    { 
+        name: 'Equipe Boussolé', 
+        role: 'Gastrobar', 
+        quote: 'O engajamento dobrou no primeiro mês. A qualidade visual trouxe um público muito mais qualificado para a casa.',
+        highlight: 'Resultado em Vendas',
+        videoId: 'INSIRA_O_ID_AQUI_4'
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-slate-300/50">
+      <style>{`
+        :root {
+          /* #f5f5f5 converted to HSL is 0 0% 96% */
+          --background: 0 0% 97%; /* um pouco mais claro */
+          --foreground: 222.2 84% 4.9%;
+          --primary: 215 25% 27%; /* Slate escuro */
+          --primary-foreground: 210 40% 98%;
+          --muted: 210 40% 96.1%;
+          --muted-foreground: 215.4 16.3% 46.9%;
+          --accent: 210 40% 96.1%;
+          --border: 214.3 31.8% 91.4%;
+        }
+        .bg-background { background-color: hsl(var(--background)); }
+        .text-foreground { color: hsl(var(--foreground)); }
+        .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+        .bg-primary { background-color: hsl(var(--primary)); }
+        .text-primary { color: hsl(var(--primary)); }
+        .border-primary\\/30 { border-color: hsl(var(--primary) / 0.3); }
+        .from-primary\\/20 { --tw-gradient-from: hsl(var(--primary) / 0.2); }
+        .to-primary\\/20 { --tw-gradient-to: hsl(var(--primary) / 0.2); }
+        .bg-primary\\/5 { background-color: hsl(var(--primary) / 0.05); }
+      `}</style>
+
+      {/* Hero Section - UPDATED */}
+      <DotGlobeHero
+        rotationSpeed={0.003}
+        globeRadius={320}
+        className="min-h-screen bg-gradient-to-br from-background via-slate-50 to-slate-200/50 relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
+        
+        {/* Glow Effects - Trocado de Azul para Prata/Cinza */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-slate-400/5 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-zinc-400/5 rounded-full blur-[100px] animate-pulse delay-700" />
+        
+        <div className="relative z-10 text-center space-y-12 max-w-5xl mx-auto px-6 py-20 lg:py-32">
+          
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex justify-center"
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="relative inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/80 border border-slate-200/60 backdrop-blur-md shadow-xl hover:border-slate-400/30 transition-colors"
+            >
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-slate-400/5 via-transparent to-slate-400/5 animate-pulse" />
+              <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-ping" />
+              <span className="relative z-10 text-xs font-bold text-slate-600 tracking-[0.2em] uppercase">Novo Modelo de Marketing</span>
+              <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-ping delay-500" />
+            </motion.div>
+          </motion.div>
+          
+          {/* Main Heading */}
+          <div className="space-y-6">
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-tighter leading-[0.85] select-none"
+            >
+              <span className="block font-light text-slate-400 mb-2 text-3xl md:text-5xl lg:text-6xl tracking-tight">
+                Um Social Media na sua empresa.
+              </span>
+              <span className="block relative inline-block mt-2">
+                {/* Texto Principal em Gradiente Metálico */}
+                <span className="bg-gradient-to-b from-slate-800 via-slate-700 to-slate-500 bg-clip-text text-transparent font-black relative z-10 pb-2">
+                  Toda semana.
+                </span>
+                {/* Sombra/Blur atrás para dar efeito de brilho prateado */}
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-300 via-slate-400 to-gray-500 bg-clip-text text-transparent font-black blur-2xl opacity-10 scale-105">
+                  Toda semana.
+                </div>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.5, delay: 1.2, ease: "easeOut" }}
+                  // Linha sublinhada agora em tons de cinza/prata
+                  className="absolute -bottom-2 md:-bottom-4 left-0 h-1 md:h-2 bg-gradient-to-r from-slate-600 via-slate-400 to-transparent rounded-full opacity-30"
+                />
+              </span>
+            </motion.h1>
+          </div>
+          
+          {/* Subtext */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="max-w-2xl mx-auto space-y-6"
+          >
+            <p className="text-lg md:text-2xl text-slate-600 leading-relaxed font-light">
+              Marketing moderno, acessível e sem agências distantes.{" "}
+              <span className="text-slate-900 font-medium relative inline-block">
+                Fotos, vídeos e estratégias
+                <span className="absolute bottom-0 left-0 w-full h-[1px] bg-slate-400/40"></span>
+              </span>
+              {" "}reais gravados direto no seu negócio.
+            </p>
+          </motion.div>
+
+          {/* Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1 }}
+            className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-8 pb-10"
+          >
+            <motion.button
+              onClick={scrollToPlanos}
+              whileHover={{ 
+                scale: 1.02, 
+                // Sombra ajustada para cinza
+                boxShadow: "0 10px 30px -10px rgba(100, 116, 139, 0.5)",
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-lg shadow-xl shadow-slate-200 transition-all duration-300 overflow-hidden cursor-pointer"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <span className="relative z-10">Fale Conosco</span>
+              <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+            </motion.button>
+            
+            <motion.button
+              onClick={scrollToWork}
+              whileHover={{ 
+                scale: 1.02,
+                backgroundColor: "rgba(255,255,255,0.8)",
+                borderColor: "rgba(148, 163, 184, 0.8)" 
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative inline-flex items-center gap-3 px-8 py-4 border border-slate-300 rounded-full font-semibold text-lg text-slate-600 hover:text-slate-900 transition-colors duration-300 backdrop-blur-sm bg-white/50 cursor-pointer"
+            >
+              {/* Ícone agora em um tom dourado/amarelo mais sóbrio para contrastar com o cinza */}
+              <Zap className="w-5 h-5 text-amber-500/80 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+              <span className="tracking-wide">Ver Como Funciona</span>
+            </motion.button>
+          </motion.div>
+
+        </div>
+      </DotGlobeHero>
+
+      {/* Problem Section - Minimalist Text */}
+      <section className="py-24 bg-white">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <h2 className="text-3xl md:text-5xl font-semibold mb-8 text-[#1d1d1f]">
+            O modelo tradicional quebrou.
+          </h2>
+          <p className="text-xl text-[#86868b] leading-relaxed">
+            Fazer sozinho é exaustivo. Freelancers somem.
+            <br className="hidden md:block"/>
+            Nós criamos o caminho do meio: <strong className="text-[#1d1d1f]">Profissional, Presencial e Constante.</strong>
+          </p>
+        </div>
+      </section>
+
+      {/* Deliverables - The "Bento Grid" Layout */}
+      <section id="entregaveis" className="py-24 px-6 max-w-6xl mx-auto">
+        <h2 className="text-4xl font-semibold mb-12 text-center">Tudo o que seu negócio precisa.</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(300px,auto)]">
+          
+          {/* Card 1: Large Feature - Com Imagem de Social Media CORRIGIDA */}
+          <div className="md:col-span-2 bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-center">
+            <div className="relative z-10">
+              <div className="bg-[#0071e3] w-12 h-12 rounded-2xl flex items-center justify-center mb-6 text-white">
+                <Camera size={24} />
+              </div>
+              <h3 className="text-3xl font-semibold mb-3 text-white">Presença Semanal.</h3>
+              <p className="text-white/90 text-lg max-w-md leading-relaxed drop-shadow-sm">
+                Um social media vai até sua empresa toda semana para captar fotos e vídeos profissionais. Nada de banco de imagens.
+              </p>
+            </div>
+            {/* IMAGEM CORRIGIDA PARA SOCIAL MEDIA NO LOCAL */}
+            <img 
+              src="https://images.unsplash.com/photo-1542744095-291d1f67b221?q=80&w=2000&auto=format&fit=crop"
+              alt="Social media profissional criando conteúdo presencialmente na empresa" 
+              className="absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+          </div>
+
+          {/* Card 2: Vertical */}
+          <div className="bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between overflow-hidden">
+             <div>
+                <h3 className="text-4xl font-bold text-[#1d1d1f] mb-2 tracking-tight">Postagem Semanal</h3>
+                <p className="text-[#86868b] font-medium">Temos planos para todo o tipo de empresa.</p>
+             </div>
+             <div className="mt-8 relative h-40 w-full bg-gray-100 rounded-2xl overflow-hidden border border-gray-200">
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                   <Play size={40} fill="currentColor" className="opacity-50" />
+                </div>
+                {/* Simulated Reel UI */}
+                <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+                    <div className="w-6 h-6 bg-white/50 rounded-full"></div>
+                    <div className="w-6 h-6 bg-white/50 rounded-full"></div>
+                </div>
+             </div>
+             <p className="mt-6 text-sm text-[#86868b]">Vídeos editados e orientados a vendas.</p>
+          </div>
+
+          {/* Card 3: Stories */}
+          <div className="bg-white rounded-[30px] p-10 shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-full border-2 border-[#E1306C] p-0.5 mb-6">
+                <div className="w-full h-full bg-gray-200 rounded-full overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?auto=format&fit=crop&q=80&w=100" className="w-full h-full object-cover" />
+                </div>
+            </div>
+            <h3 className="text-2xl font-semibold mb-2">Stories Diários.</h3>
+            <p className="text-[#86868b]">2 stories por dia para manter sua marca sempre presente na mente do cliente.</p>
+          </div>
+
+          {/* Card 4: Strategy */}
+          <div className="md:col-span-2 bg-[#1d1d1f] rounded-[30px] p-10 shadow-sm text-white relative overflow-hidden">
+            <div className="relative z-10">
+                <h3 className="text-2xl font-semibold mb-2 text-[#f5f5f7]">Estratégia de Dados.</h3>
+                <p className="text-gray-400 max-w-lg mb-6">
+                    Não postamos por postar. Entregamos calendário editorial, roteiros e uma reunião mensal com estrategista para analisar métricas.
+                </p>
+                <div className="flex gap-4">
+                    <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-medium border border-white/10">Análise 360º</div>
+                    <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg text-xs font-medium border border-white/10">Reunião Mensal</div>
+                </div>
+            </div>
+            <TrendingUp className="absolute -bottom-6 -right-6 text-white/5 w-64 h-64" />
+          </div>
+
+        </div>
+      </section>
+
+      {/* How it Works - Step by Step */}
+      <section id="como-funciona" className="py-24 bg-white border-t border-gray-100">
+         <div className="max-w-4xl mx-auto px-6">
+            <h2 className="text-4xl font-semibold mb-16 text-center">Simples como deve ser.</h2>
+            
+            <div className="space-y-12">
+                {[
+                    { num: '01', title: 'Match Perfeito', desc: 'Selecionamos o melhor social media para o seu nicho. Você aprova o perfil.' },
+                    { num: '02', title: 'Análise 360º', desc: 'Estudamos sua presença digital, concorrência e desenhamos a estratégia.' },
+                    { num: '03', title: 'Execução Semanal', desc: 'Começamos a produzir conteúdo real no seu negócio imediatamente.' }
+                ].map((step, idx) => (
+                    <div key={idx} className="flex gap-8 items-start group">
+                        <div className="text-5xl font-bold text-gray-200 group-hover:text-[#0071e3] transition-colors duration-300">
+                            {step.num}
+                        </div>
+                        <div className="pt-2">
+                            <h3 className="text-2xl font-semibold mb-2 text-[#1d1d1f]">{step.title}</h3>
+                            <p className="text-[#86868b] text-lg leading-relaxed">{step.desc}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+         </div>
+      </section>
+
+      {/* Social Proof (Logos Only) */}
+      <section id="resultados" className="py-20 bg-[#f5f5f5] text-center overflow-hidden border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-6">
+            <p className="text-sm font-semibold text-[#86868b] uppercase tracking-wider mb-10">
+                Empresas que crescem com a crIAdores
+            </p>
+            
+            {/* Mock Logos - Replace with actual SVGs if available */}
+            <div className="flex flex-wrap justify-center gap-12 md:gap-20 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                {['Folks', 'Boussolé', 'Rezendog', 'Vert Odontologia', 'John O\'Groats'].map((brand) => (
+                    <span key={brand} className="text-xl md:text-2xl font-bold font-serif text-[#1d1d1f]">{brand}</span>
+                ))}
+            </div>
+        </div>
+      </section>
+
+      {/* Testimonials with Video */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-semibold mb-4 text-[#1d1d1f]">O que nossos parceiros dizem.</h2>
+                <p className="text-xl text-[#86868b]">Resultados reais de quem vive o novo modelo de marketing.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {testimonials.map((testi, i) => (
+                    <div key={i} className="bg-[#f5f5f7] p-8 rounded-[30px] border border-transparent hover:border-gray-200 hover:bg-white hover:shadow-lg transition-all duration-300 relative group flex flex-col">
+                        
+                        {/* Video Container */}
+                        <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black mb-6 shadow-sm relative z-10">
+                             <iframe 
+                                className="w-full h-full"
+                                src={`https://www.youtube.com/embed/${testi.videoId}?rel=0&modestbranding=1`}
+                                title={`Depoimento ${testi.name}`}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowFullScreen
+                                loading="lazy"
+                             ></iframe>
+                        </div>
+
+                        <div className="flex text-[#ffb400] mb-4">
+                            {[...Array(5)].map((_, j) => <Star key={j} size={16} fill="currentColor" className="mr-0.5" />)}
+                        </div>
+                        
+                        {/* Removed Quote Icon */}
+                        
+                        <p className="text-lg text-[#1d1d1f] font-medium mb-6 leading-relaxed italic">"{testi.quote}"</p>
+                        
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200/50">
+                            <div>
+                                <div className="font-bold text-[#1d1d1f] text-base">{testi.name}</div>
+                                <div className="text-[#86868b] text-xs uppercase tracking-wide font-medium">{testi.role}</div>
+                            </div>
+                            <div className="hidden sm:block px-3 py-1 bg-white border border-gray-100 rounded-full text-[10px] font-bold text-[#0071e3] shadow-sm uppercase tracking-wider">
+                                {testi.highlight}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+      </section>
+
+      {/* Outras Soluções (Moved before FAQ, Icons Removed) */}
+      <section className="py-24 bg-[#f5f5f7]">
+        <div className="max-w-6xl mx-auto px-6">
+            <div className="mb-12">
+                <h2 className="text-3xl font-semibold mb-4 text-[#1d1d1f]">Outras Soluções.</h2>
+                <p className="text-[#86868b] text-lg">Para diferentes estágios do seu negócio.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Mentoria */}
+                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                    <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Mentoria Estratégica</h3>
+                    <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
+                        Acompanhamento exclusivo para empresários que desejam dominar a estratégia por trás do seu próprio marketing.
+                    </p>
+                    <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+                        Saber mais <ArrowRight size={14} />
+                    </span>
+                </div>
+
+                {/* Influenciadores */}
+                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                    <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Influenciadores Locais</h3>
+                    <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
+                        Conectamos sua marca às vozes mais relevantes e autênticas da sua região para campanhas de alto impacto.
+                    </p>
+                    <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+                        Conhecer casting <ArrowRight size={14} />
+                    </span>
+                </div>
+
+                {/* Área de Membros */}
+                <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                    <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Comunidade crIAdores</h3>
+                    <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
+                        Acesso vitalício a templates, aulas práticas e networking com outros empresários que crescem no digital.
+                    </p>
+                    <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+                        Acessar agora <ArrowRight size={14} />
+                    </span>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      {/* Pricing - Sales Focused (No Prices) */}
+      <section id="planos" className="py-32 px-6 max-w-5xl mx-auto">
+        <h2 className="text-4xl md:text-5xl font-semibold text-center mb-4">Investimento Inteligente.</h2>
+        <p className="text-center text-[#86868b] text-xl mb-16 max-w-2xl mx-auto">
+          Custo menor que um estagiário, entrega de uma agência completa. Descubra o plano ideal para o seu momento.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            
+            {/* Monthly Plan */}
+            <div className="bg-white p-10 rounded-[30px] border border-transparent hover:border-gray-300 transition-colors flex flex-col">
+                <h3 className="text-2xl font-semibold mb-2">Start Mensal</h3>
+                <p className="text-[#86868b] mb-8 text-sm">Para quem quer começar rápido e validar o modelo.</p>
+                
+                <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 text-center">
+                    <span className="text-lg font-medium text-[#1d1d1f]">Ideal para testar</span>
+                    <p className="text-sm text-[#86868b] mt-1">Sem fidelidade de longo prazo.</p>
+                </div>
+
+                <ul className="space-y-4 mb-10 flex-grow">
+                    <li className="flex items-center gap-3 text-sm text-[#1d1d1f]">
+                        <Check size={18} className="text-[#0071e3]" /> Equipe presencial
+                    </li>
+                    <li className="flex items-center gap-3 text-sm text-[#1d1d1f]">
+                        <Check size={18} className="text-[#0071e3]" /> Cancelamento flexível
+                    </li>
+                    <li className="flex items-center gap-3 text-sm text-[#1d1d1f]">
+                        <Check size={18} className="text-[#0071e3]" /> Estratégia completa
+                    </li>
+                </ul>
+
+                <button className="w-full py-4 rounded-full border border-[#0071e3] text-[#0071e3] font-medium hover:bg-[#0071e3]/5 transition-colors flex items-center justify-center gap-2">
+                    Consultar Plano Mensal <ChevronRight size={16} />
+                </button>
+            </div>
+
+            {/* Semester Plan - Sales Driven */}
+            <div className="bg-white p-10 rounded-[30px] border-2 border-[#0071e3] shadow-xl relative transform md:-translate-y-4 flex flex-col">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#0071e3] text-white px-4 py-1 rounded-full text-xs font-bold tracking-wide uppercase shadow-lg shadow-[#0071e3]/40">
+                    Oportunidade Exclusiva
+                </div>
+                
+                <h3 className="text-2xl font-semibold mb-2">Parceria Semestral</h3>
+                <p className="text-[#86868b] mb-8 text-sm">Para quem busca crescimento consistente.</p>
+                
+                <div className="mb-8 p-6 bg-[#0071e3]/5 rounded-2xl border border-[#0071e3]/20 text-center">
+                    <span className="text-2xl font-bold text-[#0071e3] block mb-1">Condição Especial</span>
+                    <p className="text-sm text-[#86868b]">Garanta o melhor valor do mercado travando seu contrato hoje.</p>
+                </div>
+
+                <ul className="space-y-4 mb-10 flex-grow">
+                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
+                        <Check size={18} className="text-[#0071e3]" /> <strong>Economia agressiva</strong> no valor mensal
+                    </li>
+                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
+                        <Check size={18} className="text-[#0071e3]" /> Prioridade na agenda da equipe
+                    </li>
+                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
+                        <Check size={18} className="text-[#0071e3]" /> Planejamento de longo prazo
+                    </li>
+                    <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]">
+                        <Check size={18} className="text-[#0071e3]" /> Consultoria estratégica inclusa
+                    </li>
+                </ul>
+
+                <button className="w-full py-4 rounded-full bg-[#0071e3] text-white font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 flex items-center justify-center gap-2 hover:scale-[1.02]">
+                    <MessageCircle size={18} /> Falar com Especialista
+                </button>
+                <p className="text-center text-xs text-[#86868b] mt-4">Poucas vagas disponíveis para este mês.</p>
+            </div>
+        </div>
+
+        {/* Guarantee */}
+        <div className="mt-16 bg-white rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between shadow-sm">
+            <div className="flex items-center gap-6 mb-4 md:mb-0">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                    <User size={24} />
+                </div>
+                <div>
+                    <h4 className="font-semibold text-lg">Garantia Vitalícia de Satisfação</h4>
+                    <p className="text-[#86868b] text-sm">Não gostou do social media? Trocamos em até 30 dias. Sem custo.</p>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-white border-t border-gray-100">
+          <div className="max-w-3xl mx-auto px-6">
+              <h2 className="text-3xl font-semibold mb-12">Perguntas Frequentes</h2>
+              <div className="space-y-8">
+                  {[
+                      { q: "Funciona para o meu negócio?", a: "Sim. Atendemos restaurantes, clínicas, lojas, estúdios e prestadores de serviço." },
+                      { q: "E se eu não gostar do social media?", a: "Trocamos o profissional em até 30 dias. Queremos relações duradouras." },
+                      { q: "Quando vejo resultado?", a: "30-60 dias para melhora de presença e engajamento. 60-90 dias para impacto direto em vendas." }
+                  ].map((item, i) => (
+                      <div key={i} className="border-b border-gray-100 pb-8">
+                          <h4 className="font-medium text-lg mb-2 text-[#1d1d1f]">{item.q}</h4>
+                          <p className="text-[#86868b]">{item.a}</p>
+                      </div>
+                  ))}
+              </div>
+          </div>
+          
+          <div className="mt-20 pt-8 border-t border-gray-100 text-center text-xs text-gray-400 max-w-6xl mx-auto px-6">
+                &copy; 2025 crIAdores. Todos os direitos reservados.
+          </div>
+      </section>
+
+      {/* Footer removed as requested */}
+    </div>
+  );
+};
+
+
