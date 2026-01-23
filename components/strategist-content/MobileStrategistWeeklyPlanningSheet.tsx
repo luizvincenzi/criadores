@@ -158,8 +158,8 @@ export default function MobileStrategistWeeklyPlanningSheet({
       snapPoints={[90, 95]}
       defaultSnap={1}
     >
-      {/* iOS 26 Glass Background */}
-      <div className="flex flex-col h-full bg-gradient-to-b from-blue-50/80 via-white/90 to-white backdrop-blur-xl">
+      {/* iOS Glass Background - Estrutura corrigida para mobile */}
+      <div className="flex flex-col min-h-full bg-gradient-to-b from-blue-50/80 via-white/90 to-white backdrop-blur-xl">
         {/* Header - iOS Style */}
         <div className="px-5 pt-4 pb-3 flex items-center justify-between flex-shrink-0">
           <div>
@@ -309,11 +309,14 @@ export default function MobileStrategistWeeklyPlanningSheet({
           })}
         </div>
 
-        {/* Footer - iOS Style */}
-        <div className="px-4 pb-6 pt-2 flex-shrink-0 bg-gradient-to-t from-white via-white to-transparent">
+        {/* Footer - iOS Style com safe-area */}
+        <div
+          className="px-4 pt-3 flex-shrink-0 bg-gradient-to-t from-white via-white to-transparent"
+          style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 1.5rem))' }}
+        >
           <button
             onClick={handleSave}
-            className="w-full py-4 bg-blue-500 text-white rounded-2xl font-semibold text-base active:scale-[0.98] transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
+            className="w-full py-4 bg-blue-500 text-white rounded-2xl font-semibold text-base active:scale-[0.98] transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 min-h-[56px]"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

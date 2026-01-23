@@ -183,7 +183,7 @@ export default function MobileStrategistContentMonth({
                 <div className="text-gray-400 text-sm mb-3">Nenhum conteúdo planejado</div>
                 <button
                   onClick={() => onAddContent(selectedDay)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium min-h-[48px] active:scale-95 transition-transform"
                 >
                   Adicionar Conteúdo
                 </button>

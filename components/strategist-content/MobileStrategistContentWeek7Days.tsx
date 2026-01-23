@@ -100,12 +100,12 @@ export default function MobileStrategistContentWeek7Days({
 
                 {/* Área de conteúdos do dia */}
                 <div className="flex-1 px-3 py-3 space-y-3 min-h-[400px]">
-                  {/* Botão Adicionar */}
+                  {/* Botão Adicionar - aumentado para melhor toque em mobile */}
                   <button
                     onClick={() => onAddContent(day)}
-                    className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-gray-300 hover:text-gray-500 active:bg-gray-50 transition-colors flex items-center justify-center"
+                    className="w-full py-4 min-h-[52px] border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-gray-300 hover:text-gray-500 active:bg-gray-100 transition-colors flex items-center justify-center"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                   </button>

@@ -821,3 +821,64 @@ body {
     display: none;
   }
 }
+
+/* Safe Area Inset Utilities para iOS */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Mobile Touch Target - Tamanho mínimo recomendado 44px x 44px */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Prevenir zoom em inputs no iOS */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="time"],
+  input[type="number"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Bottom Sheet animations melhoradas */
+@keyframes bottomSheetSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bottomSheetSlideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.bottom-sheet-enter {
+  animation: bottomSheetSlideUp 0.3s ease-out forwards;
+}
+
+.bottom-sheet-exit {
+  animation: bottomSheetSlideDown 0.3s ease-out forwards;
+}

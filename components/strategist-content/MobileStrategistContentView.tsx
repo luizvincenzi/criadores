@@ -186,7 +186,7 @@ export default function MobileStrategistContentView({
       </div>
 
       {/* Área de Conteúdo - com padding bottom para footer fixo */}
-      <div className="flex-1 pb-20">
+      <div className="flex-1 pb-24">
         {viewMode === 'week' && (
           <MobileStrategistContentWeek7Days
             weekStart={currentWeekStart}
@@ -209,7 +209,10 @@ export default function MobileStrategistContentView({
       </div>
 
       {/* Footer Fixo - Design igual à screenshot */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 py-3 safe-area-inset-bottom">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 pt-3"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))' }}
+      >
         <div className="flex items-center justify-between">
           {/* Lado esquerdo: Sync + Rascunhos */}
           <div className="flex items-center gap-3">
@@ -229,7 +232,7 @@ export default function MobileStrategistContentView({
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsPlanningModalOpen(true)}
-              className="flex items-center gap-1.5 text-blue-600 active:text-blue-700 transition-colors"
+              className="flex items-center gap-1.5 text-blue-600 active:text-blue-700 transition-colors min-h-[44px]"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -239,10 +242,10 @@ export default function MobileStrategistContentView({
 
             <button
               onClick={() => handleAddContent()}
-              className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+              className="w-14 h-14 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform"
               aria-label="Adicionar conteúdo"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </button>

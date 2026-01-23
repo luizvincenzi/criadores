@@ -225,9 +225,9 @@ export default function MobileStrategistContentSheet({
       snapPoints={[85, 95]}
       defaultSnap={1}
     >
-      {/* iOS 26 Glass Background */}
-      <div className="flex flex-col h-full bg-gradient-to-b from-blue-100/60 via-purple-50/40 to-white backdrop-blur-xl">
-        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+      {/* iOS Glass Background - Estrutura corrigida para mobile */}
+      <div className="flex flex-col min-h-full bg-gradient-to-b from-blue-100/60 via-purple-50/40 to-white backdrop-blur-xl">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           {/* Header - iOS Style */}
           <div className="flex-shrink-0 px-5 pt-4 pb-3 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900">
@@ -278,7 +278,8 @@ export default function MobileStrategistContentSheet({
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full bg-transparent text-gray-900 text-base placeholder-gray-400 focus:outline-none"
+                className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none min-h-[44px]"
+                style={{ fontSize: '16px' }} // Previne zoom no iOS
                 placeholder="Ex: Lançamento Verão..."
                 required
                 autoComplete="off"
@@ -287,8 +288,8 @@ export default function MobileStrategistContentSheet({
 
             {/* Date and Time - Glass Cards Side by Side */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Date Card - usando label como wrapper para tornar clicável */}
-              <label className="block rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 cursor-pointer active:bg-white/90 transition-colors">
+              {/* Date Card - Input nativo melhorado para iOS */}
+              <div className="relative rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 active:bg-white/90 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,20 +300,25 @@ export default function MobileStrategistContentSheet({
                 <span className="block text-xs font-semibold text-gray-400 tracking-wider mb-1">
                   DATA
                 </span>
-                <div className="flex items-center justify-between">
+                <div className="relative">
                   <input
                     type="date"
                     value={formData.scheduled_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, scheduled_date: e.target.value }))}
-                    className="text-base font-semibold text-gray-900 bg-transparent border-none outline-none w-full cursor-pointer"
-                    style={{ WebkitAppearance: 'none', colorScheme: 'light' }}
+                    className="text-base font-semibold text-gray-900 bg-transparent border-none outline-none w-full cursor-pointer min-h-[44px]"
+                    style={{
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      colorScheme: 'light',
+                      fontSize: '16px' // Previne zoom no iOS
+                    }}
                     required
                   />
                 </div>
-              </label>
+              </div>
 
-              {/* Time Card - usando label como wrapper para tornar clicável */}
-              <label className="block rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 cursor-pointer active:bg-white/90 transition-colors">
+              {/* Time Card - Input nativo melhorado para iOS */}
+              <div className="relative rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-sm p-4 active:bg-white/90 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,16 +329,21 @@ export default function MobileStrategistContentSheet({
                 <span className="block text-xs font-semibold text-gray-400 tracking-wider mb-1">
                   HORÁRIO
                 </span>
-                <div className="flex items-center justify-between">
+                <div className="relative">
                   <input
                     type="time"
                     value={formData.scheduled_time}
                     onChange={(e) => setFormData(prev => ({ ...prev, scheduled_time: e.target.value }))}
-                    className="text-base font-semibold text-gray-900 bg-transparent border-none outline-none w-full cursor-pointer"
-                    style={{ WebkitAppearance: 'none', colorScheme: 'light' }}
+                    className="text-base font-semibold text-gray-900 bg-transparent border-none outline-none w-full cursor-pointer min-h-[44px]"
+                    style={{
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      colorScheme: 'light',
+                      fontSize: '16px' // Previne zoom no iOS
+                    }}
                   />
                 </div>
-              </label>
+              </div>
             </div>
 
             {/* Platforms - iOS Style Grid */}
@@ -378,7 +389,8 @@ export default function MobileStrategistContentSheet({
                 <textarea
                   value={formData.briefing}
                   onChange={(e) => setFormData(prev => ({ ...prev, briefing: e.target.value }))}
-                  className="w-full bg-transparent text-gray-900 text-base placeholder-gray-400 focus:outline-none resize-none"
+                  className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none resize-none"
+                  style={{ fontSize: '16px' }} // Previne zoom no iOS
                   placeholder="Escreva o briefing aqui..."
                   rows={4}
                 />
@@ -389,8 +401,11 @@ export default function MobileStrategistContentSheet({
             <div className="h-4" />
           </div>
 
-          {/* Footer - iOS Style */}
-          <div className="flex-shrink-0 px-5 pb-6 pt-2 bg-gradient-to-t from-white via-white to-transparent">
+          {/* Footer - iOS Style com safe-area */}
+          <div
+            className="flex-shrink-0 px-5 pt-3 bg-gradient-to-t from-white via-white to-transparent"
+            style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 1.5rem))' }}
+          >
             <div className="flex items-center gap-3">
               {content && (
                 <button

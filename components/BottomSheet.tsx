@@ -25,6 +25,7 @@ export default function BottomSheet({
   const sheetRef = useRef<HTMLDivElement>(null);
   const [sheetHeight, setSheetHeight] = useState<number>(90);
   const [isDragging, setIsDragging] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const startY = useRef(0);
   const startHeight = useRef(0);
 
@@ -36,29 +37,40 @@ export default function BottomSheet({
     }
   }, [isOpen, snapPoints, defaultSnap]);
 
-  // Prevenir scroll do body quando o sheet está aberto
+  // Prevenir scroll do body quando o sheet está aberto - versão melhorada para iOS
   useEffect(() => {
     if (isOpen) {
+      // Salvar posição atual do scroll
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+
+      // Método mais seguro para iOS: usar overflow hidden sem position fixed
       document.body.style.overflow = 'hidden';
-      // Também previne o bounce scroll no iOS
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.touchAction = 'none';
+
+      // Apenas para iOS, prevenir bounce
+      const preventScroll = (e: TouchEvent) => {
+        const target = e.target as HTMLElement;
+        // Permitir scroll dentro do sheet
+        if (sheetRef.current && sheetRef.current.contains(target)) {
+          return;
+        }
+        e.preventDefault();
+      };
+
+      document.addEventListener('touchmove', preventScroll, { passive: false });
+
+      return () => {
+        document.removeEventListener('touchmove', preventScroll);
+      };
     } else {
-      const scrollY = document.body.style.top;
-      document.body.style.overflow = 'unset';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     }
+
     return () => {
-      document.body.style.overflow = 'unset';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.top = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     };
   }, [isOpen]);
 
@@ -137,12 +149,12 @@ export default function BottomSheet({
       {/* Sheet */}
       <div
         ref={sheetRef}
-        className={`fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl transform transition-all ${heightClass}`}
+        className={`fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl transform transition-all flex flex-col ${heightClass}`}
         style={dynamicStyle}
       >
         {/* Header com Handle arrastável */}
         <div
-          className="sticky top-0 z-10 bg-white rounded-t-2xl touch-none"
+          className="flex-shrink-0 z-10 bg-white rounded-t-2xl touch-none"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -179,13 +191,10 @@ export default function BottomSheet({
           )}
         </div>
 
-        {/* Content */}
+        {/* Content - usa flex-1 para preencher espaço disponível */}
         <div
-          className="overflow-y-auto overscroll-contain"
+          className="flex-1 overflow-y-auto overscroll-contain min-h-0"
           style={{
-            maxHeight: useSnapPoints
-              ? `calc(${sheetHeight}vh - 60px)`
-              : 'calc(100vh - 80px)',
             WebkitOverflowScrolling: 'touch'
           }}
         >
