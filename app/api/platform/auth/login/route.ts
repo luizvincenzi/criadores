@@ -16,32 +16,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🔐 [Platform] Tentativa de login para:', email);
+    console.log('[platform-login] Tentativa de login para:', email);
 
-    // Primeiro, buscar TODOS os usuários com este email (sem filtro de is_active)
-    const { data: allUsers, error: allUsersError } = await supabase
-      .from('platform_users')
-      .select('id, email, is_active, password_hash, role')
-      .eq('email', email.toLowerCase())
-      .eq('organization_id', DEFAULT_ORG_ID);
-
-    console.log('📊 [Platform] Todos os usuários encontrados:', allUsers);
-    console.log('📊 [Platform] Total de usuários:', allUsers?.length || 0);
-
-    if (allUsers && allUsers.length > 0) {
-      allUsers.forEach((u, i) => {
-        console.log(`📋 [Platform] Usuário ${i + 1}:`, {
-          id: u.id,
-          email: u.email,
-          is_active: u.is_active,
-          has_password: !!u.password_hash,
-          hash_length: u.password_hash?.length,
-          role: u.role
-        });
-      });
-    }
-
-    // Buscar usuário em platform_users (sem JOIN com organizations)
+    // Buscar usuario ativo em platform_users
     const { data: platformUser, error } = await supabase
       .from('platform_users')
       .select('*')
@@ -51,28 +28,20 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !platformUser) {
-      console.log('❌ [Platform] Usuário ativo não encontrado:', email);
-      console.log('❌ [Platform] Erro do Supabase:', error);
-      console.log('❌ [Platform] Código do erro:', error?.code);
+      console.log('[platform-login] Usuario ativo nao encontrado:', email, error?.code);
       return NextResponse.json(
         { success: false, error: 'Email ou senha incorretos' },
         { status: 401 }
       );
     }
 
-    console.log('✅ [Platform] Usuário encontrado:', {
-      email: platformUser.email,
-      has_password_hash: !!platformUser.password_hash,
-      hash_length: platformUser.password_hash?.length,
-      is_active: platformUser.is_active,
-      role: platformUser.role
-    });
+    console.log('[platform-login] Usuario encontrado:', platformUser.email, platformUser.role);
 
     // Validar senha
     const isValidPassword = await validatePassword(email, password, platformUser);
 
     if (!isValidPassword) {
-      console.log('❌ [Platform] Senha incorreta para:', email);
+      console.log('[platform-login] Senha incorreta para:', email);
       return NextResponse.json(
         { success: false, error: 'Email ou senha incorretos' },
         { status: 401 }
@@ -85,13 +54,7 @@ export async function POST(request: NextRequest) {
       .update({ last_login: new Date().toISOString() })
       .eq('id', platformUser.id);
 
-    console.log('✅ [Platform] Login realizado com sucesso:', {
-      email,
-      role: platformUser.role,
-      roles: platformUser.roles,
-      business_id: platformUser.business_id,
-      creator_id: platformUser.creator_id
-    });
+    console.log('[platform-login] Login ok:', email, platformUser.role);
 
     // Retornar dados do usuário (formato compatível com authStore)
     return NextResponse.json({
@@ -114,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ [Platform] Erro na API de login:', error);
+    console.error('[platform-login] Erro na API de login:', error);
     return NextResponse.json(
       { success: false, error: 'Erro interno do servidor' },
       { status: 500 }
@@ -123,54 +86,20 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Validação de senha com suporte a bcrypt e fallback para hardcoded
+ * Validacao de senha via bcrypt
  */
 async function validatePassword(email: string, password: string, user: any): Promise<boolean> {
   try {
-    // Se o usuário tem password_hash, usar bcrypt para validar
-    if (user.password_hash) {
-      console.log(`🔐 [Platform] Validando senha com bcrypt para: ${email}`);
-      console.log(`🔐 [Platform] Hash length: ${user.password_hash.length}`);
-      console.log(`🔐 [Platform] Password length: ${password.length}`);
-
-      const isValid = await verifyPassword(password, user.password_hash);
-      console.log(`${isValid ? '✅' : '❌'} [Platform] Validação de senha com bcrypt para usuário: ${email}`);
-
-      if (!isValid) {
-        console.log(`❌ [Platform] Senha fornecida não corresponde ao hash armazenado`);
-      }
-
-      return isValid;
+    if (!user.password_hash) {
+      console.log(`[platform-login] Usuario sem password_hash: ${email}`);
+      return false;
     }
 
-    // Fallback: Credenciais conhecidas (temporário)
-    const userCredentials = [
-      // Admin
-      { email: 'luizvincenzi@gmail.com', password: '2#Todoscria' },
-
-      // Operações
-      { email: 'criadores.ops@gmail.com', password: '1#Criamudar' },
-
-      // Criadores e Estrategistas
-      { email: 'pietramantovani98@gmail.com', password: '2#Todoscria' },
-      { email: 'marilia12cavalheiro@gmail.com', password: '2#Todoscria' },
-      { email: 'juliacarolinasan83@gmail.com', password: '2#Todoscria' },
-      { email: 'comercial@criadores.app', password: '2#Todoscria' }
-    ];
-
-    // Verificar se é um usuário conhecido com credenciais específicas
-    const knownUser = userCredentials.find(cred => cred.email === email.toLowerCase());
-    if (knownUser) {
-      const isValidPassword = password === knownUser.password;
-      console.log(`${isValidPassword ? '✅' : '❌'} [Platform] Validação de senha para: ${email}`);
-      return isValidPassword;
-    }
-
-    // Se não é usuário conhecido e não tem password_hash, rejeitar
-    console.log(`❌ [Platform] Usuário não autorizado: ${email}`);
-    return false;
+    const isValid = await verifyPassword(password, user.password_hash);
+    console.log(`[platform-login] Validacao bcrypt para ${email}: ${isValid ? 'ok' : 'falhou'}`);
+    return isValid;
   } catch (error) {
-    console.error(`❌ [Platform] Erro ao validar senha para ${email}:`, error);
+    console.error(`[platform-login] Erro ao validar senha para ${email}:`, error);
     return false;
   }
 }
