@@ -15,6 +15,7 @@ function ConteudoEstrategistaPageContent() {
   const [strategistId, setStrategistId] = useState<string | null>(null);
 
   // 🔒 VERIFICAR ACESSO - Apenas marketing strategists relacionados a um business
+  // Usa 3 fontes: managed_businesses[], platform_user_id, creator_id (legacy)
   useEffect(() => {
     async function checkStrategistAccess() {
       if (!user) {
@@ -32,17 +33,37 @@ function ConteudoEstrategistaPageContent() {
         return;
       }
 
-      // Verificar se tem creator_id (strategist é um creator)
-      if (!user.creator_id) {
-        console.log('❌ Marketing strategist sem creator_id');
+      // Precisa de pelo menos um identificador para buscar businesses
+      const hasCreatorId = !!user.creator_id;
+      const hasManagedBusinesses = user.managed_businesses && user.managed_businesses.length > 0;
+      const hasPlatformUserId = !!user.id;
+
+      if (!hasCreatorId && !hasManagedBusinesses && !hasPlatformUserId) {
+        console.log('❌ Marketing strategist sem nenhum identificador válido');
         setHasAccess(false);
         setIsLoading(false);
         return;
       }
 
-      // Buscar businesses gerenciados pelo strategist
-      console.log('🔍 Buscando businesses para strategist:', user.creator_id);
-      const response = await fetch(`/api/strategist/businesses?strategist_id=${user.creator_id}`);
+      // Construir URL com todos os identificadores disponíveis
+      const params = new URLSearchParams();
+      if (user.creator_id) {
+        params.set('strategist_id', user.creator_id);
+      }
+      if (user.id) {
+        params.set('platform_user_id', user.id);
+      }
+      if (user.managed_businesses && user.managed_businesses.length > 0) {
+        params.set('managed_businesses', JSON.stringify(user.managed_businesses));
+      }
+
+      console.log('🔍 Buscando businesses para strategist:', {
+        creator_id: user.creator_id,
+        platform_user_id: user.id,
+        managed_businesses: user.managed_businesses
+      });
+
+      const response = await fetch(`/api/strategist/businesses?${params.toString()}`);
       const data = await response.json();
 
       console.log('📦 Resposta da API:', data);
@@ -57,7 +78,9 @@ function ConteudoEstrategistaPageContent() {
 
       console.log(`✅ Acesso concedido a ${data.businesses.length} business(es):`, data.businesses);
       setBusinesses(data.businesses);
-      setStrategistId(user.creator_id);
+      // Para criação de conteúdo, manter creator_id quando disponível (compatibilidade)
+      // Se não tiver creator_id, usar user.id como fallback
+      setStrategistId(user.creator_id || user.id);
       setHasAccess(true);
       setIsLoading(false);
     }

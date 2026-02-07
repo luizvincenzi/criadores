@@ -22,8 +22,8 @@ interface Business {
   id: string;
   name: string;
   is_active: boolean;
-  has_strategist: boolean;
-  strategist_id: string;
+  has_strategist?: boolean;
+  strategist_id?: string;
 }
 
 interface StrategistContentPlanningViewProps {
