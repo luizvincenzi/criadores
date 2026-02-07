@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Building2, Clock, CheckCircle, CircleDot, PauseCircle, XCircle, ChevronRight, ExternalLink, Megaphone } from 'lucide-react';
+import { Building2, ChevronRight, ExternalLink, Megaphone } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -22,7 +22,6 @@ interface Campaign {
   };
   created_at: string;
   creator_role?: string;
-  creator_status?: string;
   video_instagram_link?: string;
   video_tiktok_link?: string;
 }
@@ -63,7 +62,6 @@ export default function CampaignsCreatorPage() {
         .select(`
           campaign_id,
           role,
-          status,
           video_instagram_link,
           video_tiktok_link,
           campaigns:campaign_id (
@@ -105,7 +103,6 @@ export default function CampaignsCreatorPage() {
             business: campaign.businesses,
             created_at: campaign.created_at,
             creator_role: cc.role,
-            creator_status: cc.status,
             video_instagram_link: cc.video_instagram_link,
             video_tiktok_link: cc.video_tiktok_link
           };
@@ -120,39 +117,6 @@ export default function CampaignsCreatorPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      'active': 'bg-green-50/80 text-green-700 border-green-200/60',
-      'completed': 'bg-blue-50/80 text-blue-700 border-blue-200/60',
-      'planning': 'bg-amber-50/80 text-amber-700 border-amber-200/60',
-      'paused': 'bg-amber-50/80 text-amber-600 border-amber-200/60',
-      'cancelled': 'bg-red-50/80 text-red-600 border-red-200/60',
-    };
-    return colors[status] || 'bg-slate-100 text-slate-600 border-slate-200/60';
-  };
-
-  const getStatusIcon = (status: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      'active': <CheckCircle className="w-3 h-3" />,
-      'completed': <CircleDot className="w-3 h-3" />,
-      'planning': <Clock className="w-3 h-3" />,
-      'paused': <PauseCircle className="w-3 h-3" />,
-      'cancelled': <XCircle className="w-3 h-3" />,
-    };
-    return icons[status] || null;
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      'active': 'Ativa',
-      'completed': 'Concluida',
-      'planning': 'Planejamento',
-      'paused': 'Pausada',
-      'cancelled': 'Cancelada',
-    };
-    return labels[status] || status;
   };
 
   const formatDate = (dateString: string) => {
@@ -183,13 +147,6 @@ export default function CampaignsCreatorPage() {
 
     return grouped;
   };
-
-  const stats = useMemo(() => {
-    const ativas = campaigns.filter(c => c.status === 'active').length;
-    const concluidas = campaigns.filter(c => c.status === 'completed').length;
-    const planejamento = campaigns.filter(c => c.status === 'planning').length;
-    return { ativas, concluidas, planejamento };
-  }, [campaigns]);
 
   if (isLoading) {
     return (
@@ -239,25 +196,6 @@ export default function CampaignsCreatorPage() {
             </p>
           </div>
 
-          {campaigns.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {stats.ativas > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-50/80 text-green-700 text-[11px] font-medium">
-                  {stats.ativas} {stats.ativas === 1 ? 'ativa' : 'ativas'}
-                </span>
-              )}
-              {stats.concluidas > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50/80 text-blue-700 text-[11px] font-medium">
-                  {stats.concluidas} {stats.concluidas === 1 ? 'concluida' : 'concluidas'}
-                </span>
-              )}
-              {stats.planejamento > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50/80 text-amber-700 text-[11px] font-medium">
-                  {stats.planejamento} planejamento
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -293,15 +231,11 @@ export default function CampaignsCreatorPage() {
                       key={campaign.id}
                       className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200"
                     >
-                      {/* Top row: name + status */}
-                      <div className="flex items-start justify-between gap-3 mb-2">
+                      {/* Campaign name */}
+                      <div className="mb-2">
                         <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate">
                           {campaign.name}
                         </h3>
-                        <span className={`flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${getStatusColor(campaign.status)}`}>
-                          {getStatusIcon(campaign.status)}
-                          {getStatusLabel(campaign.status)}
-                        </span>
                       </div>
 
                       {/* Description */}
