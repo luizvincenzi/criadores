@@ -10,7 +10,7 @@ const supabase = createClient(
  * GET /api/strategist/businesses
  * Buscar todos os businesses gerenciados por um estrategista
  *
- * Usa 3 fontes com deduplicação:
+ * Usa 3 fontes com deduplicacao:
  *   1. managed_businesses[] enviado via query param (array direto do client)
  *   2. platform_users.managed_businesses[] buscado pelo platform_user_id
  *   3. businesses.strategist_id = strategist_id (fallback legacy via creator_id)
@@ -25,12 +25,12 @@ export async function GET(request: NextRequest) {
     // Precisa de pelo menos um identificador
     if (!strategistId && !platformUserId && !managedBusinessesParam) {
       return NextResponse.json(
-        { success: false, error: 'Pelo menos um identificador é obrigatório (strategist_id, platform_user_id ou managed_businesses)' },
+        { success: false, error: 'Pelo menos um identificador e obrigatorio (strategist_id, platform_user_id ou managed_businesses)' },
         { status: 400 }
       );
     }
 
-    console.log('🔍 [API] Buscando businesses do estrategista:', {
+    console.log('[strategist-businesses] Buscando businesses:', {
       strategistId,
       platformUserId,
       hasManagedBusinesses: !!managedBusinessesParam
@@ -47,10 +47,10 @@ export async function GET(request: NextRequest) {
           parsed.forEach((id: string) => {
             if (id && typeof id === 'string') businessIds.add(id);
           });
-          console.log(`📦 [Fonte 1] managed_businesses do client: ${parsed.length} IDs`);
+          console.log(`[strategist-businesses] [Fonte 1] managed_businesses do client: ${parsed.length} IDs`);
         }
       } catch {
-        console.warn('⚠️ [Fonte 1] Falha ao parsear managed_businesses:', managedBusinessesParam);
+        console.warn('[strategist-businesses] [Fonte 1] Falha ao parsear managed_businesses:', managedBusinessesParam);
       }
     }
 
@@ -63,12 +63,12 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (puError) {
-        console.warn('⚠️ [Fonte 2] Erro ao buscar platform_user:', puError.message);
+        console.warn('[strategist-businesses] [Fonte 2] Erro ao buscar platform_user:', puError.message);
       } else if (platformUser?.managed_businesses && Array.isArray(platformUser.managed_businesses)) {
         platformUser.managed_businesses.forEach((id: string) => {
           if (id) businessIds.add(id);
         });
-        console.log(`📦 [Fonte 2] managed_businesses do platform_user: ${platformUser.managed_businesses.length} IDs`);
+        console.log(`[strategist-businesses] [Fonte 2] managed_businesses do platform_user: ${platformUser.managed_businesses.length} IDs`);
       }
     }
 
@@ -77,22 +77,22 @@ export async function GET(request: NextRequest) {
     if (strategistId) {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, logo_url, is_active, has_strategist, strategist_id')
+        .select('id, name, is_active, has_strategist, strategist_id')
         .eq('strategist_id', strategistId)
         .eq('has_strategist', true);
 
       if (error) {
-        console.warn('⚠️ [Fonte 3] Erro ao buscar businesses legacy:', error.message);
+        console.warn('[strategist-businesses] [Fonte 3] Erro ao buscar businesses legacy:', error.message);
       } else if (data) {
         legacyBusinesses = data;
         data.forEach(b => businessIds.add(b.id));
-        console.log(`📦 [Fonte 3] businesses legacy (strategist_id): ${data.length}`);
+        console.log(`[strategist-businesses] [Fonte 3] businesses legacy (strategist_id): ${data.length}`);
       }
     }
 
-    console.log(`🔢 Total de business IDs únicos: ${businessIds.size}`);
+    console.log(`[strategist-businesses] Total de business IDs unicos: ${businessIds.size}`);
 
-    // Se não encontrou nenhum business, retornar vazio
+    // Se nao encontrou nenhum business, retornar vazio
     if (businessIds.size === 0) {
       return NextResponse.json({
         success: true,
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar dados completos dos businesses por ID (para Fontes 1 e 2)
-    // Excluir os que já vieram do legacy para evitar consulta duplicada
+    // Excluir os que ja vieram do legacy para evitar consulta duplicada
     const legacyIds = new Set(legacyBusinesses.map(b => b.id));
     const idsToFetch = [...businessIds].filter(id => !legacyIds.has(id));
 
@@ -109,11 +109,11 @@ export async function GET(request: NextRequest) {
     if (idsToFetch.length > 0) {
       const { data, error } = await supabase
         .from('businesses')
-        .select('id, name, logo_url, is_active, has_strategist, strategist_id')
+        .select('id, name, is_active, has_strategist, strategist_id')
         .in('id', idsToFetch);
 
       if (error) {
-        console.error('❌ Erro ao buscar businesses por ID:', error.message);
+        console.error('[strategist-businesses] Erro ao buscar businesses por ID:', error.message);
       } else if (data) {
         fetchedBusinesses = data;
       }
@@ -131,9 +131,9 @@ export async function GET(request: NextRequest) {
       (a.name || '').localeCompare(b.name || '')
     );
 
-    console.log(`✅ Total de businesses encontrados: ${allBusinesses.length}`);
+    console.log(`[strategist-businesses] Total de businesses encontrados: ${allBusinesses.length}`);
 
-    // Para cada business, buscar estatísticas de conteúdo
+    // Para cada business, buscar estatisticas de conteudo
     const businessesWithStats = await Promise.all(
       allBusinesses.map(async (business) => {
         const { data: contents, error: contentsError } = await supabase
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
           .is('deleted_at', null);
 
         if (contentsError) {
-          console.error(`❌ Erro ao buscar conteúdos do business ${business.id}:`, contentsError);
+          console.error(`[strategist-businesses] Erro ao buscar conteudos do business ${business.id}:`, contentsError);
           return {
             ...business,
             content_stats: { total: 0, executed: 0, pending: 0 }
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('❌ Erro ao buscar businesses:', error);
+    console.error('[strategist-businesses] Erro ao buscar businesses:', error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

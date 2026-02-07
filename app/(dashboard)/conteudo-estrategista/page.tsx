@@ -14,7 +14,7 @@ function ConteudoEstrategistaPageContent() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [strategistId, setStrategistId] = useState<string | null>(null);
 
-  // 🔒 VERIFICAR ACESSO - Apenas marketing strategists relacionados a um business
+  // VERIFICAR ACESSO - Apenas marketing strategists relacionados a um business
   // Usa 3 fontes: managed_businesses[], platform_user_id, creator_id (legacy)
   useEffect(() => {
     async function checkStrategistAccess() {
@@ -28,7 +28,7 @@ function ConteudoEstrategistaPageContent() {
         (user.roles && user.roles.includes('marketing_strategist'));
 
       if (!isStrategist) {
-        console.log('❌ Usuário não é marketing strategist');
+        console.log('[conteudo-estrategista] Usuario nao e marketing strategist');
         router.push('/dashboard');
         return;
       }
@@ -39,7 +39,7 @@ function ConteudoEstrategistaPageContent() {
       const hasPlatformUserId = !!user.id;
 
       if (!hasCreatorId && !hasManagedBusinesses && !hasPlatformUserId) {
-        console.log('❌ Marketing strategist sem nenhum identificador válido');
+        console.log('[conteudo-estrategista] Marketing strategist sem nenhum identificador valido');
         setHasAccess(false);
         setIsLoading(false);
         return;
@@ -57,7 +57,7 @@ function ConteudoEstrategistaPageContent() {
         params.set('managed_businesses', JSON.stringify(user.managed_businesses));
       }
 
-      console.log('🔍 Buscando businesses para strategist:', {
+      console.log('[conteudo-estrategista] Buscando businesses para strategist:', {
         creator_id: user.creator_id,
         platform_user_id: user.id,
         managed_businesses: user.managed_businesses
@@ -66,17 +66,17 @@ function ConteudoEstrategistaPageContent() {
       const response = await fetch(`/api/strategist/businesses?${params.toString()}`);
       const data = await response.json();
 
-      console.log('📦 Resposta da API:', data);
+      console.log('[conteudo-estrategista] Resposta da API:', data);
 
       if (!data.success || !data.businesses || data.businesses.length === 0) {
-        console.log('❌ Strategist não está relacionado a nenhum business');
-        console.log('❌ Dados recebidos:', data);
+        console.log('[conteudo-estrategista] Strategist nao esta relacionado a nenhum business');
+        console.log('[conteudo-estrategista] Dados recebidos:', data);
         setHasAccess(false);
         setIsLoading(false);
         return;
       }
 
-      console.log(`✅ Acesso concedido a ${data.businesses.length} business(es):`, data.businesses);
+      console.log(`[conteudo-estrategista] Acesso concedido a ${data.businesses.length} business(es):`, data.businesses);
       setBusinesses(data.businesses);
       // Para criação de conteúdo, manter creator_id quando disponível (compatibilidade)
       // Se não tiver creator_id, usar user.id como fallback
