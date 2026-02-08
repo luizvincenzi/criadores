@@ -44,7 +44,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
             title: 'Quer implementar essa estratégia na sua empresa?',
             description: 'Nossa equipe oferece consultoria gratuita de 30 minutos para empresas que querem crescer no digital.',
             buttonText: 'Agendar Consultoria Gratuita',
-            link: '/chatcriadores-home',
+            link: '/chatcriadores-social-media',
             bgColor: 'bg-white'
           };
         } else if (audience_target === 'CRIADORES') {
@@ -53,7 +53,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
             title: 'Pronto para monetizar seu conteúdo?',
             description: 'Conecte-se com empresas locais e transforme sua paixão em uma fonte de renda consistente.',
             buttonText: 'Começar Agora',
-            link: '/chatcriadores-home',
+            link: '/chatcriadores-social-media',
             bgColor: 'bg-white'
           };
         } else {
@@ -62,7 +62,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
             title: 'Quer colocar essas dicas em prática?',
             description: 'Nossa plataforma conecta empresas e criadores para parcerias que realmente funcionam.',
             buttonText: 'Conhecer a Plataforma',
-            link: '/chatcriadores-home',
+            link: '/chatcriadores-social-media',
             bgColor: 'bg-white'
           };
         }
@@ -83,7 +83,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
           title: 'Tem dúvidas sobre implementação?',
           description: 'Nossa equipe está pronta para ajudar você a colocar essas estratégias em prática.',
           buttonText: 'Falar com Especialista',
-          link: '/chatcriadores-home',
+          link: '/chatcriadores-social-media',
           bgColor: 'bg-white'
         };
 
@@ -93,7 +93,7 @@ const PostCTA: React.FC<PostCTAProps> = ({
           title: 'Pronto para o próximo passo?',
           description: 'Descubra como nossa plataforma pode ajudar você a alcançar seus objetivos.',
           buttonText: 'Saiba Mais',
-          link: '/chatcriadores-home',
+          link: '/chatcriadores-social-media',
           bgColor: 'bg-white'
         };
     }

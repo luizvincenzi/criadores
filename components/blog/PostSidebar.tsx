@@ -179,7 +179,7 @@ const PostSidebar: React.FC<PostSidebarProps> = ({
           Nossa equipe oferece consultoria gratuita para empresas e criadores.
         </p>
         <a
-          href="/chatcriadores-home"
+          href="/chatcriadores-social-media"
           className="inline-block bg-gray-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors text-sm"
         >
           Falar com Especialista

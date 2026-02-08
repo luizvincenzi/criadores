@@ -338,7 +338,7 @@ export default function Home() {
               <button onClick={() => window.location.href = '/login'} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-black transition-colors duration-200 border border-gray-300 rounded-full hover:border-gray-400">
                 Entrar
               </button>
-              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -375,7 +375,7 @@ export default function Home() {
                   <button onClick={() => window.location.href = '/login'} className="w-full px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-full">
                     Entrar
                   </button>
-                  <button onClick={() => window.location.href = '/chatcriadores-home'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+                  <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                     <span className="hidden sm:inline">Começar Agora</span>
                     <span className="sm:hidden">Começar</span>
                   </button>
@@ -476,7 +476,7 @@ export default function Home() {
             className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-8 pb-10"
           >
             <motion.button
-              onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'}
+              onClick={() => window.location.href = '/chatcriadores-social-media'}
               whileHover={{
                 scale: 1.02,
                 // Sombra ajustada para cinza
@@ -658,7 +658,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6">
                 Conecte seu negócio aos melhores criadores da sua região e veja seus resultados crescerem.
               </p>
-              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-6 py-3 text-sm rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -746,7 +746,7 @@ export default function Home() {
               <p className="text-gray-600 mb-6 font-onest">
                 Junte-se a centenas de empresas que já transformaram seu marketing com influenciadores locais
               </p>
-              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-8 py-4 text-base rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -770,7 +770,7 @@ export default function Home() {
             com criadores locais que <strong className="text-white">realmente engajam</strong> com seu público-alvo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
+            <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-4 text-lg rounded-full shadow-md hover:shadow-lg">
               <span className="hidden sm:inline">🚀 Começar Agora</span>
               <span className="sm:hidden">🚀 Começar</span>
             </button>
@@ -1045,7 +1045,7 @@ export default function Home() {
               </div>
             </div>
 
-            <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:bg-gray-100 text-green-600 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:bg-gray-100 text-green-600 px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105">
               <span className="hidden sm:inline">🛡️ Garantir Meus Criadores Agora</span>
               <span className="sm:hidden">🛡️ Garantir</span>
             </button>
@@ -1620,7 +1620,7 @@ export default function Home() {
                     </li>
                 </ul>
 
-                <button onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="w-full py-4 rounded-full border border-[#0071e3] text-[#0071e3] font-medium hover:bg-[#0071e3]/5 transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="w-full py-4 rounded-full border border-[#0071e3] text-[#0071e3] font-medium hover:bg-[#0071e3]/5 transition-colors flex items-center justify-center gap-2">
                     Consultar Plano Mensal <ChevronRight size={16} />
                 </button>
             </div>
@@ -1654,7 +1654,7 @@ export default function Home() {
                     </li>
                 </ul>
 
-                <button onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="w-full py-4 rounded-full bg-[#0071e3] text-white font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 flex items-center justify-center gap-2 hover:scale-[1.02]">
+                <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="w-full py-4 rounded-full bg-[#0071e3] text-white font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 flex items-center justify-center gap-2 hover:scale-[1.02]">
                     <MessageCircle size={18} /> Falar com Especialista
                 </button>
                 <p className="text-center text-xs text-[#86868b] mt-4">Poucas vagas disponíveis para este mês.</p>
@@ -1685,7 +1685,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Mentoria */}
-                <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                <div onClick={() => window.location.href = '/chatcriadores-social-media'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Mentoria Estratégica</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
                         Ideal para quem quer <strong>aprender a gerenciar o próprio marketing</strong>. Acompanhamento exclusivo para dominar estratégias de conteúdo e redes sociais.
@@ -1696,7 +1696,7 @@ export default function Home() {
                 </div>
 
                 {/* Influenciadores */}
-                <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                <div onClick={() => window.location.href = '/chatcriadores-social-media'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Influenciadores Locais</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
                         Ideal para <strong>amplificar o alcance da sua marca</strong>. Campanhas com criadores de conteúdo e micro influenciadores autênticos da sua região.
@@ -1707,7 +1707,7 @@ export default function Home() {
                 </div>
 
                 {/* Área de Membros */}
-                <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
+                <div onClick={() => window.location.href = '/chatcriadores-social-media'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Comunidade crIAdores</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
                         Acesso a templates, aulas práticas e networking com outros empresários que crescem no digital.
@@ -1881,7 +1881,7 @@ export default function Home() {
 
               {/* CTA Principal */}
               <div className="pt-6">
-                <button onClick={() => window.location.href = '/chatcriadores-home'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                   Começar Agora
                 </button>
               </div>

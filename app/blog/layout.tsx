@@ -43,7 +43,7 @@ export default function BlogLayout({
 
             {/* CTA - Apenas botão principal */}
             <div className="hidden md:flex items-center">
-              <button onClick={() => window.location.href = '/chatcriadores-home'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+              <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                 <span className="hidden sm:inline">Começar Agora</span>
                 <span className="sm:hidden">Começar</span>
               </button>
@@ -66,7 +66,7 @@ export default function BlogLayout({
               <div className="md:hidden absolute top-14 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
                 <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                   <div className="px-3 py-2">
-                    <button onClick={() => window.location.href = '/chatcriadores-home'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
+                    <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="w-full inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed btn-primary px-4 py-2 text-xs rounded-full">
                       <span className="hidden sm:inline">Começar Agora</span>
                       <span className="sm:hidden">Começar</span>
                     </button>
@@ -206,7 +206,7 @@ export default function BlogLayout({
               </div>
 
               <div className="pt-6">
-                <button onClick={() => window.location.href = '/chatcriadores-home'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                <button onClick={() => window.location.href = '/chatcriadores-social-media'} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold w-full py-4 rounded-xl transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
                   Começar Agora
                 </button>
               </div>

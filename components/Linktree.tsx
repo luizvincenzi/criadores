@@ -24,7 +24,7 @@ const Linktree = () => {
       id: 'chatbot',
       title: 'Comece agora!',
       description: 'Descubra como podemos potencializar seu negócio',
-      url: '/chatcriadores-home',
+      url: '/chatcriadores-social-media',
       icon: 'check',
       color: 'primary',
       isExternal: false
