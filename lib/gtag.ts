@@ -133,6 +133,50 @@ export const gtmEvent = (eventName: string, parameters: Record<string, any> = {}
   });
 };
 
+// ============================================================
+// CHATBOT TRACKING (GA4 + GTM)
+// ============================================================
+
+export const trackChatbotStep = (source: string, stepId: string, stepNumber: number) => {
+  event({
+    action: 'chatbot_step_completed',
+    category: 'Chatbot',
+    label: `${source} - ${stepId} (step ${stepNumber})`,
+    value: stepNumber,
+  });
+  gtmEvent('chatbot_step', {
+    chatbot_source: source,
+    step_id: stepId,
+    step_number: stepNumber,
+  });
+};
+
+export const trackChatbotConversion = (source: string, userType: string) => {
+  event({
+    action: 'chatbot_conversion',
+    category: 'Chatbot',
+    label: `${source} - ${userType}`,
+  });
+  gtmEvent('chatbot_conversion', {
+    chatbot_source: source,
+    user_type: userType,
+  });
+};
+
+export const trackChatbotAbandonment = (source: string, lastStepId: string, stepNumber: number) => {
+  event({
+    action: 'chatbot_abandonment',
+    category: 'Chatbot',
+    label: `${source} - abandoned at ${lastStepId} (step ${stepNumber})`,
+    value: stepNumber,
+  });
+  gtmEvent('chatbot_abandonment', {
+    chatbot_source: source,
+    last_step_id: lastStepId,
+    step_number: stepNumber,
+  });
+};
+
 // Declare gtag function and dataLayer for TypeScript
 declare global {
   interface Window {

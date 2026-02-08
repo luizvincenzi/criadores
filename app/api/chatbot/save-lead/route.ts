@@ -8,6 +8,12 @@ function mapSourceToLeadSource(source: string): string {
   const sourceMapping: { [key: string]: string } = {
     'chatcriadores-home': 'chatcriadores-home',
     'chatcriadores-novo': 'chatcriadores-novo',
+    'chatcriadores-empresas': 'chatcriadores-empresas',
+    'chatcriadores-criadores': 'chatcriadores-criadores',
+    'chatcriadores-medicos': 'chatcriadores-medicos',
+    'chatcriadores-advogados': 'chatcriadores-advogados',
+    'chatcriadores-social-media': 'chatcriadores-social-media',
+    'chatcriadores-mentoria': 'chatcriadores-mentoria',
     'criavoz-chatbot': 'proprio',
     'criavoz-homepage': 'proprio',
     'criavoz-novo': 'proprio',
@@ -40,10 +46,8 @@ export async function POST(request: NextRequest) {
     leadId = generateLeadId();
     const userData = await request.json();
 
-    // Determinar a fonte baseada nos dados
-    const source = userData.source === 'criavoz-novo' ? 'criavoz-novo' :
-                   userData.source === 'criavoz-instagram' ? 'criavoz-instagram' :
-                   'criavoz-chatbot';
+    // Determinar a fonte baseada nos dados enviados pelo chatbot
+    const source = userData.source || 'criavoz-chatbot';
 
     // 🔍 LOG DETALHADO - Dados recebidos
     console.log('🔍 [CHATBOT API] Dados recebidos:', JSON.stringify(userData, null, 2));

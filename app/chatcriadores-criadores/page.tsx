@@ -12,6 +12,7 @@ export default function ChatCriadoresCriadoresPage() {
       title={<span className="inline-block"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span>}
       welcomeMessage="Olá! 👋 Quer conectar seu negócio a criadores locais que vendem de verdade? Vamos descobrir como podemos ajudar!"
       onComplete={handleComplete}
+      source="chatcriadores-criadores"
     />
   );
 }

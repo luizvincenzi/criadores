@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { generateSessionId, trackChatbotEvent, flushChatbotEvents, setupUnloadHandlers } from '@/lib/chatbot-tracking';
+import { trackChatbotStep, trackChatbotConversion, trackChatbotAbandonment } from '@/lib/gtag';
 
 interface Message {
   id: string;
@@ -62,7 +64,16 @@ export default function ChatbotHomepage({
   const [currentOptions, setCurrentOptions] = useState<Array<{ text: string; value: string }>>([]);
   const [progress, setProgress] = useState(0);
   const [messageIdCounter, setMessageIdCounter] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Tracking refs (não causam re-render)
+  const sessionIdRef = useRef<string>('');
+  const sessionStartRef = useRef<number>(0);
+  const stepStartTimeRef = useRef<number>(0);
+  const userDataRef = useRef<UserData>({});
+  const isCompletedRef = useRef<boolean>(false);
+  const currentStepRef = useRef<number>(0);
 
   const defaultSteps: ChatStep[] = [
     {
@@ -231,12 +242,44 @@ export default function ChatbotHomepage({
 
   const steps = customSteps || defaultSteps;
 
+  // Manter refs sincronizados com state
+  useEffect(() => { userDataRef.current = userData; }, [userData]);
+  useEffect(() => { currentStepRef.current = currentStep; }, [currentStep]);
+  useEffect(() => { isCompletedRef.current = isCompleted; }, [isCompleted]);
+
   useEffect(() => {
     // Iniciar conversa apenas uma vez
     if (messages.length === 0) {
+      // Inicializar tracking
+      sessionIdRef.current = generateSessionId();
+      sessionStartRef.current = Date.now();
+      stepStartTimeRef.current = Date.now();
+
+      // Enviar evento session_start
+      trackChatbotEvent({
+        session_id: sessionIdRef.current,
+        source,
+        event_type: 'session_start',
+        step_id: 'welcome',
+        step_number: 0,
+      });
+
+      // Setup unload handlers para tracking de abandono
+      const cleanup = setupUnloadHandlers(
+        sessionIdRef.current,
+        source,
+        () => steps[currentStepRef.current]?.id,
+        () => currentStepRef.current,
+        () => Date.now() - sessionStartRef.current,
+        () => userDataRef.current.userType,
+        () => isCompletedRef.current
+      );
+
       setTimeout(() => {
         processStep();
       }, 1000);
+
+      return cleanup;
     }
   }, []);
 
@@ -345,6 +388,22 @@ export default function ChatbotHomepage({
     addMessage(inputValue, 'user');
     setUserData(prev => ({ ...prev, [step.field!]: processedValue }));
 
+    // Tracking: step_completed para input
+    const timeOnStep = Date.now() - stepStartTimeRef.current;
+    trackChatbotEvent({
+      session_id: sessionIdRef.current,
+      source,
+      event_type: 'step_completed',
+      step_id: step.id,
+      step_number: currentStep,
+      step_value: processedValue,
+      user_type: userData.userType,
+      time_on_step_ms: timeOnStep,
+      session_duration_ms: Date.now() - sessionStartRef.current,
+    });
+    trackChatbotStep(source, step.id, currentStep);
+    stepStartTimeRef.current = Date.now();
+
     setInputValue('');
     setShowInput(false);
 
@@ -371,6 +430,14 @@ export default function ChatbotHomepage({
     // Se for uma ação final, executar a ação
     if (step.final) {
       if (value === 'whatsapp') {
+        // Tracking: whatsapp_click
+        trackChatbotEvent({
+          session_id: sessionIdRef.current,
+          source,
+          event_type: 'whatsapp_click',
+          session_duration_ms: Date.now() - sessionStartRef.current,
+          user_type: userData.userType,
+        });
         const whatsappMessage = generateWhatsAppMessage(userData);
         window.open(`https://wa.me/5543999520526?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
       } else if (value === 'home') {
@@ -381,6 +448,22 @@ export default function ChatbotHomepage({
 
     setUserData(prev => ({ ...prev, [step.field!]: value }));
     setCurrentOptions([]);
+
+    // Tracking: step_completed para option
+    const timeOnStep = Date.now() - stepStartTimeRef.current;
+    trackChatbotEvent({
+      session_id: sessionIdRef.current,
+      source,
+      event_type: 'step_completed',
+      step_id: step.id,
+      step_number: currentStep,
+      step_value: value,
+      user_type: step.field === 'userType' ? value as any : userData.userType,
+      time_on_step_ms: timeOnStep,
+      session_duration_ms: Date.now() - sessionStartRef.current,
+    });
+    trackChatbotStep(source, step.id, currentStep);
+    stepStartTimeRef.current = Date.now();
 
     setTimeout(() => {
       const nextStepIndex = getNextStepIndex(step, value);
@@ -417,6 +500,21 @@ export default function ChatbotHomepage({
 
       if (result.success) {
         console.log('Lead salvo com sucesso:', result.data);
+
+        // Tracking: form_submitted (conversão!)
+        setIsCompleted(true);
+        trackChatbotEvent({
+          session_id: sessionIdRef.current,
+          source,
+          event_type: 'form_submitted',
+          step_id: 'final',
+          step_number: currentStep,
+          user_type: userData.userType,
+          session_duration_ms: Date.now() - sessionStartRef.current,
+        });
+        trackChatbotConversion(source, userData.userType || 'unknown');
+        flushChatbotEvents();
+
         if (onComplete) {
           onComplete(userData);
         }
