@@ -323,6 +323,9 @@ export default function Home() {
                 Sobre
               </button>
               {/* HIDDEN - Serviços, Missão, Por que, Processo */}
+              <a href="/social-media-estrategico" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
+                Social Media
+              </a>
               <a href="/blog" className="text-sm text-gray-600 hover:text-black font-medium transition-colors duration-200">
                 Blog
               </a>
@@ -362,6 +365,9 @@ export default function Home() {
                   Sobre
                 </button>
                 {/* HIDDEN - Serviços, Missão, Por que, Processo */}
+                <a href="/social-media-estrategico" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
+                  Social Media
+                </a>
                 <a href="/blog" className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-black">
                   Blog
                 </a>
