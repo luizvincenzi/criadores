@@ -5,11 +5,11 @@ import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/JsonLd'
 
 export const metadata: Metadata = {
   title: 'Blog | crIAdores',
-  description: 'Insights, tendencias e estrategias para empresas locais e criadores de conteudo. Marketing digital, micro-influenciadores e mais.',
-  keywords: 'blog marketing, criadores de conteudo, marketing local, micro influenciadores, social media empresas',
+  description: 'Estratégias de social media, gestão de redes sociais e marketing digital para empresas. Aprenda como criar conteúdo, crescer no Instagram, TikTok e muito mais.',
+  keywords: 'blog social media, estratégias de redes sociais, marketing digital empresas, gestão de redes sociais, social media estratégico, conteúdo para Instagram, crescer no TikTok, criadores de conteúdo',
   openGraph: {
-    title: 'Blog crIAdores - Marketing para Negocios Locais',
-    description: 'Estrategias de marketing digital para empresas locais e criadores de conteudo.',
+    title: 'Blog crIAdores - Social Media e Marketing Digital Para Empresas',
+    description: 'Estratégias de social media, gestão de redes sociais e crescimento digital para empresas locais.',
     url: 'https://www.criadores.app/blog',
     siteName: 'crIAdores',
     locale: 'pt_BR',

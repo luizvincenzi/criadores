@@ -254,23 +254,23 @@ export default function Home() {
   const faqs = [
     {
       question: "O que é o crIAdores?",
-      answer: "O crIAdores é uma plataforma que conecta negócios locais a criadores de conteúdo autênticos da região. Facilitamos campanhas de marketing com micro influenciadores que geram resultados reais para pequenas e médias empresas."
+      answer: "O crIAdores oferece social media estratégico para empresas: um estrategista de marketing dedicado que vai presencialmente ao seu negócio toda semana para produzir conteúdo profissional (fotos, vídeos, reels), planejar estratégias de crescimento e gerenciar suas redes sociais. Também oferecemos mentoria de marketing e campanhas com criadores de conteúdo locais."
     },
     {
-      question: "Como funciona o processo de campanha?",
-      answer: "O processo é simples: 1) Você define seus objetivos e orçamento, 2) Selecionamos criadores alinhados com sua marca e região, 3) Os criadores produzem conteúdo autêntico, 4) Acompanhamos os resultados e métricas em tempo real."
+      question: "Como funciona o social media estratégico?",
+      answer: "Funciona assim: 1) Um estrategista é designado exclusivamente para seu negócio, 2) Ele vai presencialmente ao seu estabelecimento toda semana, 3) Produz todo o conteúdo necessário (fotos, vídeos, stories, reels), 4) Planeja a estratégia de postagens, 5) Gerencia suas redes sociais e analisa métricas para melhorar os resultados continuamente."
     },
     {
-      question: "Como vocês selecionam os criadores?",
-      answer: "Selecionamos criadores baseado em: localização geográfica, alinhamento com valores da marca, engajamento autêntico da audiência, qualidade do conteúdo e histórico de parcerias bem-sucedidas."
+      question: "Qual a diferença entre social media e agência de marketing?",
+      answer: "O social media estratégico do crIAdores oferece atendimento presencial semanal e um profissional dedicado exclusivamente ao seu negócio. Agências tradicionais trabalham com múltiplos clientes simultaneamente e raramente visitam presencialmente. Nosso modelo garante conteúdo autêntico, conhecimento profundo do negócio e resultados mais rápidos."
     },
     {
-      question: "Posso escolher os criadores para minha campanha?",
-      answer: "Sim! Apresentamos uma seleção de criadores pré-qualificados e você pode escolher aqueles que mais se alinham com sua marca. Também consideramos suas preferências e feedback."
+      question: "Quanto custa ter um social media estratégico?",
+      answer: "O plano de Social Media Estratégico começa em R$ 997/mês e inclui: visitas presenciais semanais, produção ilimitada de conteúdo (fotos, vídeos, reels), planejamento estratégico, gestão completa das redes sociais e análise de métricas. É o investimento de uma agência com a dedicação de um funcionário interno."
     },
     {
-      question: "Vocês trabalham com que tipos de negócio?",
-      answer: "Trabalhamos com diversos segmentos: restaurantes, lojas, salões de beleza, academias, clínicas, escolas, eventos e qualquer negócio que queira aumentar sua presença local."
+      question: "Que resultados posso esperar?",
+      answer: "Nossos clientes veem em média 40% de aumento no faturamento, maior reconhecimento da marca na região, crescimento significativo de seguidores e engajamento, e redução de até 70% no tempo gasto com redes sociais. Os resultados variam conforme o setor e consistência da estratégia."
     }
   ];
 
@@ -772,26 +772,42 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TL;DR Section para GEO - HIDDEN */}
-      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 hidden">
+      {/* TL;DR Section para GEO - Otimizado para AI engines */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 tldr-section">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-blue-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
               <span className="mr-3">📋</span>
-              Resumo Rápido
+              Resumo Rápido (TL;DR)
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Quem somos:</h3>
-                <p className="text-gray-700">Plataforma que conecta negócios locais a criadores de conteúdo autênticos da região usando IA.</p>
+                <p className="text-gray-700">Especialistas em social media estratégico para empresas. Oferecemos estrategistas dedicados que vão presencialmente ao seu negócio toda semana.</p>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">O que fazemos:</h3>
-                <p className="text-gray-700">Criamos campanhas de marketing com micro influenciadores que geram resultados reais e mensuráveis.</p>
+                <p className="text-gray-700">Gestão completa de redes sociais com visitas presenciais semanais: produção de conteúdo (fotos, vídeos, reels), planejamento estratégico e análise de resultados.</p>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Como funciona:</h3>
-                <p className="text-gray-700">Selecionamos criadores alinhados com sua marca, eles produzem conteúdo autêntico e acompanhamos os resultados.</p>
+                <p className="text-gray-700">Um estrategista é designado para seu negócio, vai presencialmente toda semana, produz todo o conteúdo e gerencia suas redes sociais profissionalmente.</p>
+              </div>
+            </div>
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Investimento:</h3>
+                  <p className="text-gray-700">A partir de R$ 997/mês com visitas presenciais semanais incluídas.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Resultados típicos:</h3>
+                  <p className="text-gray-700">40% de aumento no faturamento, maior reconhecimento local e crescimento sustentável nas redes sociais.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Outras soluções:</h3>
+                  <p className="text-gray-700">Mentoria de marketing para empresários e campanhas com criadores de conteúdo locais.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -1698,7 +1714,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6">
             <div className="mb-12">
                 <h2 className="text-3xl font-semibold mb-4 text-[#1d1d1f]">Outras Soluções.</h2>
-                <p className="text-[#86868b] text-lg">Para diferentes estágios do seu negócio.</p>
+                <p className="text-[#86868b] text-lg">Soluções complementares para quem busca mais autonomia ou amplificação.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -1706,7 +1722,7 @@ export default function Home() {
                 <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Mentoria Estratégica</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
-                        Acompanhamento exclusivo para empresários que desejam dominar a estratégia por trás do seu próprio marketing.
+                        Ideal para quem quer <strong>aprender a gerenciar o próprio marketing</strong>. Acompanhamento exclusivo para dominar estratégias de conteúdo e redes sociais.
                     </p>
                     <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
                         Saber mais <ArrowRight size={14} />
@@ -1717,7 +1733,7 @@ export default function Home() {
                 <div onClick={() => window.location.href = 'https://www.criadores.app/chatcriadores-home'} className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition-all group cursor-pointer border border-transparent hover:border-gray-200 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2 text-[#1d1d1f]">Influenciadores Locais</h3>
                     <p className="text-[#86868b] text-sm mb-6 leading-relaxed flex-grow">
-                        Conectamos sua marca às vozes mais relevantes e autênticas da sua região para campanhas de alto impacto.
+                        Ideal para <strong>amplificar o alcance da sua marca</strong>. Campanhas com criadores de conteúdo e micro influenciadores autênticos da sua região.
                     </p>
                     <span className="text-[#0071e3] text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
                         Conhecer o plano <ArrowRight size={14} />
@@ -1787,8 +1803,8 @@ export default function Home() {
                   </span>
                 </div>
                 <p className="text-blue-100 leading-relaxed text-lg max-w-lg">
-                  Especialistas em conectar <strong className="text-white">negócios locais aos melhores criadores</strong> da região.
-                  Criamos campanhas autênticas que geram <strong className="text-white">resultados reais e mensuráveis.</strong>
+                  Especialistas em <strong className="text-white">social media estratégico para empresas</strong>.
+                  Oferecemos estrategistas dedicados que vão <strong className="text-white">presencialmente ao seu negócio toda semana</strong> para produzir conteúdo profissional e gerenciar suas redes sociais com planejamento estratégico.
                 </p>
               </div>
 

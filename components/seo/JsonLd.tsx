@@ -37,7 +37,7 @@ export function OrganizationSchema() {
       width: 512,
       height: 512,
     },
-    description: 'Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais.',
+    description: 'Estrategistas de social media dedicados para empresas. Oferecemos gestão profissional de redes sociais com atendimento presencial semanal, produção de conteúdo estratégico e crescimento real para negócios locais. Também oferecemos mentoria de marketing e campanhas com criadores de conteúdo.',
     foundingDate: '2024',
     sameAs: [
       'https://www.instagram.com/criadores.app',
@@ -55,14 +55,32 @@ export function OrganizationSchema() {
       name: 'Brazil',
     },
     knowsAbout: [
+      // Primary - Social Media Estratégico
+      'Social Media Estratégico',
+      'Gestão de Redes Sociais',
+      'Gerenciamento de Redes Sociais',
+      'Estrategista de Marketing Digital',
+      'Social Media Presencial',
+      'Conteúdo para Redes Sociais',
+      'Marketing Digital para Empresas',
+      // Nicho
+      'Social Media para Médicos',
+      'Social Media para Advogados',
+      'Marketing para Clínicas',
+      'Marketing para Restaurantes',
+      // Terciário
+      'Mentoria de Marketing',
       'Marketing de Influência',
       'Criadores de Conteúdo',
-      'Marketing Local',
       'Micro Influenciadores',
+      'Marketing Local',
       'Campanhas de Marketing',
-      'Negócios Locais',
-      'Marketing Digital',
-      'Redes Sociais',
+      // Suporte
+      'Instagram Business',
+      'TikTok Business',
+      'Planejamento de Conteúdo',
+      'Análise de Métricas',
+      'Crescimento Digital',
     ],
   };
 
@@ -79,7 +97,7 @@ export function WebSiteSchema() {
     name: 'crIAdores',
     alternateName: 'Criadores',
     url: 'https://www.criadores.app',
-    description: 'Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais.',
+    description: 'Social media estratégico para empresas. Estrategistas dedicados que vão presencialmente ao seu negócio toda semana para produzir conteúdo e gerenciar suas redes sociais com planejamento profissional.',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
@@ -385,7 +403,7 @@ export function SoftwareApplicationSchema() {
     '@type': 'SoftwareApplication',
     name: 'crIAdores',
     alternateName: 'Criadores App',
-    description: 'Plataforma que conecta negocios locais a criadores de conteudo autenticos. Gerencie campanhas de marketing com micro influenciadores que geram resultados reais.',
+    description: 'Plataforma de gestão de social media estratégico para empresas. Conecta negócios locais a estrategistas de marketing dedicados para gerenciamento profissional de redes sociais, produção de conteúdo presencial e crescimento digital sustentável.',
     url: 'https://www.criadores.app',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
@@ -397,9 +415,11 @@ export function SoftwareApplicationSchema() {
       offers: [
         {
           '@type': 'Offer',
-          name: 'Social Media Estrategico',
-          description: 'Estrategista de social media dedicado ao seu negocio com conteudo presencial e semanal.',
+          name: 'Social Media Estratégico',
+          description: 'Estrategista de social media dedicado ao seu negócio com produção de conteúdo presencial e planejamento semanal. Inclui visitas presenciais, criação de posts, stories, reels e gestão completa das redes sociais.',
           priceCurrency: 'BRL',
+          price: '997',
+          priceValidUntil: '2026-12-31',
         },
         {
           '@type': 'Offer',

@@ -23,22 +23,37 @@ const onest = {
 
 export const metadata: Metadata = {
   title: {
-    default: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo",
+    default: "crIAdores - Social Media Estratégico Para Empresas | Conteúdo Presencial Toda Semana",
     template: "%s | crIAdores"
   },
-  description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais para pequenas e médias empresas.",
+  description: "Tenha um estrategista de social media dedicado ao seu negócio. Produção de conteúdo presencial toda semana, planejamento estratégico e crescimento real nas redes sociais. A partir de R$ 997/mês.",
   keywords: [
+    // Primary - Social Media Estratégico
+    "social media estratégico",
+    "social media estrategico",
+    "social media para empresas",
+    "gestão de redes sociais",
+    "gerenciamento de redes sociais",
+    "estrategista de marketing digital",
+    "social media presencial",
+    "agência de social media",
+    // Nicho
+    "social media para médicos",
+    "social media para advogados",
+    "social media para restaurantes",
+    "social media para clínicas",
+    // Terciário
+    "mentoria de marketing",
+    "criadores de conteúdo",
     "micro influenciadores",
     "marketing local",
-    "criadores de conteúdo",
-    "campanhas de marketing",
-    "influencer marketing",
-    "negócios locais",
-    "pequenas empresas",
-    "marketing digital",
-    "redes sociais",
-    "Instagram",
-    "TikTok",
+    // Suporte
+    "contratar social media",
+    "quanto custa social media",
+    "marketing digital para pequenas empresas",
+    "conteúdo para redes sociais",
+    "Instagram empresas",
+    "TikTok empresas",
     "Brasil"
   ],
   authors: [{ name: "crIAdores", url: "https://www.criadores.app" }],
@@ -73,8 +88,8 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo",
-    description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos. Campanhas de marketing com micro influenciadores que geram resultados reais.",
+    title: "crIAdores - Social Media Estratégico Para Empresas",
+    description: "Estrategista de social media dedicado ao seu negócio. Conteúdo presencial toda semana com planejamento estratégico e resultados reais.",
     type: "website",
     locale: "pt_BR",
     url: "https://www.criadores.app",
@@ -82,11 +97,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo",
-    description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos.",
-  },
-  alternates: {
-    canonical: "https://www.criadores.app"
+    title: "crIAdores - Social Media Estratégico Para Empresas",
+    description: "Tenha um estrategista de social media dedicado ao seu negócio. Conteúdo presencial toda semana.",
   },
   metadataBase: new URL("https://www.criadores.app")
 };
