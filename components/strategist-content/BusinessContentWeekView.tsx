@@ -105,8 +105,8 @@ export default function ContentWeekView({
     return (
       <div className="flex items-center justify-center h-full bg-[#f5f5f5]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">Carregando...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto mb-4"></div>
+          <p className="text-slate-500 text-sm">Carregando...</p>
         </div>
       </div>
     );
@@ -139,11 +139,11 @@ export default function ContentWeekView({
               {/* Floating Date Header - Apple Style */}
               <div className={`mb-3 flex-shrink-0 flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 ${
                 isCurrentDay
-                  ? 'bg-blue-600 shadow-md shadow-blue-500/20 translate-y-1'
+                  ? 'bg-slate-800 shadow-sm translate-y-1'
                   : 'bg-transparent'
               }`}>
                 <span className={`text-xs font-bold uppercase tracking-widest ${
-                  isCurrentDay ? 'text-white/80' : 'text-gray-500'
+                  isCurrentDay ? 'text-white' : 'text-slate-500'
                 }`}>
                   {dayShort}
                 </span>

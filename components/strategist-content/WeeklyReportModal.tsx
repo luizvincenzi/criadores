@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
-import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
+import { format, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   X, Download, Share2, Calendar,
   Video, Image as ImageIcon, Disc,
-  Quote, CheckCircle2, Layout, Layers, Info, MessageCircle
+  Quote, CheckCircle2, Layout, Layers, MessageCircle
 } from 'lucide-react';
 
 interface SocialContent {
@@ -39,114 +39,23 @@ const TypeIcon = ({ type }: { type: string }) => {
   };
   const Icon = icons[type] || Layout;
 
-  const styles: Record<string, { bg: string; text: string; printBg: string }> = {
-    reels: { bg: "bg-slate-100", text: "text-slate-900", printBg: "#f1f5f9" },
-    story: { bg: "bg-slate-100", text: "text-slate-600", printBg: "#f1f5f9" },
-    post: { bg: "bg-slate-100", text: "text-slate-500", printBg: "#f1f5f9" }
+  const styles: Record<string, { bg: string; text: string }> = {
+    reels: { bg: "bg-slate-100", text: "text-slate-900" },
+    story: { bg: "bg-slate-100", text: "text-slate-600" },
+    post: { bg: "bg-slate-100", text: "text-slate-500" }
   };
 
   const style = styles[type] || styles.post;
 
   return (
     <div
-      className={`w-8 h-8 rounded-full flex items-center justify-center ${style.bg} ${style.text} print:!bg-slate-100`}
-      style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}
+      className={`w-8 h-8 rounded-full flex items-center justify-center ${style.bg} ${style.text}`}
     >
       <Icon className="w-4 h-4" />
     </div>
   );
 };
 
-// CSS de impressão para garantir cores exatas
-const PrintStyles = () => (
-  <style dangerouslySetInnerHTML={{ __html: `
-    @media print {
-      @page {
-        size: A4;
-        margin: 0;
-      }
-
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        color-adjust: exact !important;
-      }
-
-      body {
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-
-      .print-container {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        overflow: visible !important;
-        background: white !important;
-      }
-
-      .print-paper {
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        page-break-inside: avoid;
-      }
-
-      .print-header {
-        padding: 40px 50px 30px !important;
-      }
-
-      .print-content {
-        padding: 40px 50px !important;
-      }
-
-      .print-footer {
-        padding: 30px 50px !important;
-        page-break-inside: avoid;
-      }
-
-      .print-metrics {
-        display: grid !important;
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 16px !important;
-      }
-
-      .print-metric-card {
-        background: #f5f5f7 !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        height: 100px !important;
-      }
-
-      .print-day-section {
-        page-break-inside: avoid;
-        margin-bottom: 30px !important;
-      }
-
-      .no-print {
-        display: none !important;
-      }
-
-      .print-timeline-dot {
-        background: white !important;
-        border: 2px solid #e2e8f0 !important;
-      }
-
-      .print-bg-slate-100 {
-        background-color: #f1f5f9 !important;
-      }
-
-      .print-caption-box {
-        background-color: #f9fafb !important;
-        border: 1px solid #e5e7eb !important;
-      }
-    }
-  `}} />
-);
 
 export default function WeeklyReportModal({
   isOpen,
@@ -250,11 +159,57 @@ export default function WeeklyReportModal({
     return text;
   };
 
-  if (!isOpen) return null;
+  const [isExporting, setIsExporting] = useState(false);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handleExportPDF = useCallback(async () => {
+    const element = printRef.current;
+    if (!element || isExporting) return;
+
+    setIsExporting(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
+      // Capturar o paper interno (o conteudo branco)
+      const paperElement = element.querySelector('.pdf-paper') as HTMLElement || element;
+
+      const canvas = await html2canvas(paperElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 900,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      let heightLeft = pdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const fileName = `relatorio-${businessName.toLowerCase().replace(/\s+/g, '-')}-${format(periodStart, 'yyyy-MM-dd')}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error('[WeeklyReportModal] Erro ao exportar PDF:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [isExporting, businessName, periodStart]);
+
+  if (!isOpen) return null;
 
   const handleWhatsApp = () => {
     const text = generateWhatsAppText();
@@ -277,16 +232,15 @@ export default function WeeklyReportModal({
 
   return (
     <>
-      <PrintStyles />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-8 no-print">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-8">
         {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm no-print" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
         {/* Modal Container */}
         <div className="relative w-full max-w-5xl h-[95vh] bg-[#F5F5F7] rounded-[24px] shadow-2xl overflow-hidden z-10 flex flex-col">
 
           {/* Top Bar - não imprime */}
-          <div className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 no-print">
+          <div className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white rounded-lg shadow-sm border border-slate-200 flex items-center justify-center">
                 <Layers className="w-4 h-4 text-slate-600" />
@@ -331,11 +285,21 @@ export default function WeeklyReportModal({
                 Copiar
               </button>
               <button
-                onClick={handlePrint}
-                className="h-9 px-5 rounded-full bg-[#1d1d1f] text-xs font-semibold text-white hover:bg-black transition-transform active:scale-95 shadow-md flex items-center gap-2"
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="h-9 px-5 rounded-full bg-[#1d1d1f] text-xs font-semibold text-white hover:bg-black transition-transform active:scale-95 shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Download className="w-3.5 h-3.5" />
-                Exportar PDF
+                {isExporting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-3.5 h-3.5" />
+                    Exportar PDF
+                  </>
+                )}
               </button>
               <button
                 onClick={onClose}
@@ -346,26 +310,26 @@ export default function WeeklyReportModal({
             </div>
           </div>
 
-          {/* Paper Container - Scrollable e imprimível */}
-          <div ref={printRef} className="flex-1 overflow-y-auto p-6 lg:p-10 print-container print:p-0 print:overflow-visible" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-            <div className="max-w-4xl mx-auto bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] rounded-[20px] overflow-hidden min-h-[1000px] flex flex-col print-paper print:max-w-none print:shadow-none print:rounded-none">
+          {/* Paper Container - Scrollable */}
+          <div ref={printRef} className="flex-1 overflow-y-auto p-6 lg:p-10">
+            <div className="pdf-paper max-w-4xl mx-auto bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] rounded-[20px] overflow-hidden min-h-[1000px] flex flex-col">
 
               {/* Modern Header */}
-              <header className="px-12 pt-16 pb-8 border-b border-slate-50 print-header print:pt-10 print:pb-6" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-                <div className="flex justify-between items-start mb-12 print:mb-8">
+              <header className="px-12 pt-16 pb-8 border-b border-slate-50">
+                <div className="flex justify-between items-start mb-12">
                   <div>
-                    <p className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-4 print:mb-2">
+                    <p className="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">
                       Relatório {reportType === 'week' ? 'Semanal' : 'Mensal'}
                     </p>
-                    <h1 className="text-5xl font-bold tracking-tight text-[#1d1d1f] mb-2 print:text-4xl">{businessName}.</h1>
-                    <p className="text-lg text-slate-500 font-medium print:text-base">
+                    <h1 className="text-5xl font-bold tracking-tight text-[#1d1d1f] mb-2">{businessName}.</h1>
+                    <p className="text-lg text-slate-500 font-medium">
                       {reportType === 'week' ? `Semana ${weekNumber}` : format(monthStart, 'MMMM yyyy', { locale: ptBR })}
                     </p>
                   </div>
 
-                <div className="bg-[#F5F5F7] px-4 py-2 rounded-xl flex items-center gap-3 print-bg-slate-100" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#F5F5F7' }}>
+                <div className="bg-[#F5F5F7] px-4 py-2 rounded-xl flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 bg-green-500 rounded-full print:animate-none" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#22c55e' }}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Ativo</span>
                   </div>
                   <div className="w-px h-4 bg-slate-300"></div>
@@ -377,37 +341,37 @@ export default function WeeklyReportModal({
               </div>
 
               {/* Metrics - Apple Fitness Style */}
-              <div className="grid grid-cols-3 gap-6 print-metrics print:gap-4">
-                <div className="bg-[#F5F5F7] rounded-2xl p-6 flex flex-col items-start justify-between h-32 group hover:bg-[#1d1d1f] hover:text-white transition-colors duration-300 print-metric-card print:hover:bg-[#F5F5F7] print:hover:text-inherit" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#F5F5F7' }}>
-                  <Video className="w-6 h-6 text-slate-400 group-hover:text-white/60 print:group-hover:text-slate-400" />
+              <div className="grid grid-cols-3 gap-6">
+                <div className="bg-[#F5F5F7] rounded-2xl p-6 flex flex-col items-start justify-between h-32">
+                  <Video className="w-6 h-6 text-slate-400" />
                   <div>
-                    <span className="text-3xl font-bold block mb-1 print:text-2xl" style={{ color: '#1d1d1f' }}>{summary.reels}</span>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-white/60 print:group-hover:text-slate-500">Reels</span>
+                    <span className="text-3xl font-bold block mb-1 text-[#1d1d1f]">{summary.reels}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Reels</span>
                   </div>
                 </div>
-                <div className="bg-[#F5F5F7] rounded-2xl p-6 flex flex-col items-start justify-between h-32 group hover:bg-[#1d1d1f] hover:text-white transition-colors duration-300 print-metric-card print:hover:bg-[#F5F5F7] print:hover:text-inherit" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#F5F5F7' }}>
-                  <Disc className="w-6 h-6 text-slate-400 group-hover:text-white/60 print:group-hover:text-slate-400" />
+                <div className="bg-[#F5F5F7] rounded-2xl p-6 flex flex-col items-start justify-between h-32">
+                  <Disc className="w-6 h-6 text-slate-400" />
                   <div>
-                    <span className="text-3xl font-bold block mb-1 print:text-2xl" style={{ color: '#1d1d1f' }}>{summary.stories}</span>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-white/60 print:group-hover:text-slate-500">Stories</span>
+                    <span className="text-3xl font-bold block mb-1 text-[#1d1d1f]">{summary.stories}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Stories</span>
                   </div>
                 </div>
-                <div className="bg-[#F5F5F7] rounded-2xl p-6 flex flex-col items-start justify-between h-32 group hover:bg-[#1d1d1f] hover:text-white transition-colors duration-300 print-metric-card print:hover:bg-[#F5F5F7] print:hover:text-inherit" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#F5F5F7' }}>
-                  <ImageIcon className="w-6 h-6 text-slate-400 group-hover:text-white/60 print:group-hover:text-slate-400" />
+                <div className="bg-[#F5F5F7] rounded-2xl p-6 flex flex-col items-start justify-between h-32">
+                  <ImageIcon className="w-6 h-6 text-slate-400" />
                   <div>
-                    <span className="text-3xl font-bold block mb-1 print:text-2xl" style={{ color: '#1d1d1f' }}>{summary.posts}</span>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-white/60 print:group-hover:text-slate-500">Posts</span>
+                    <span className="text-3xl font-bold block mb-1 text-[#1d1d1f]">{summary.posts}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Posts</span>
                   </div>
                 </div>
               </div>
             </header>
 
             {/* Content Body */}
-            <div className="flex-1 px-12 py-12 space-y-16 print-content print:py-8 print:space-y-10">
+            <div className="flex-1 px-12 py-12 space-y-16">
 
               {contentsByDay.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#f1f5f9' }}>
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                     <Calendar className="w-8 h-8 text-slate-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-2">Nenhum conteúdo planejado</h3>
@@ -417,46 +381,46 @@ export default function WeeklyReportModal({
                 </div>
               ) : (
                 contentsByDay.map((day) => (
-                  <div key={day.date.toISOString()} className="relative print-day-section" style={{ pageBreakInside: 'avoid' }}>
+                  <div key={day.date.toISOString()} className="relative">
                     {/* Day Marker */}
-                    <div className="flex items-baseline gap-4 mb-8 border-b border-slate-100 pb-4 print:mb-4 print:pb-2">
-                      <h3 className="text-2xl font-bold text-[#1d1d1f] capitalize print:text-xl">{day.dayName}</h3>
+                    <div className="flex items-baseline gap-4 mb-8 border-b border-slate-100 pb-4">
+                      <h3 className="text-2xl font-bold text-[#1d1d1f] capitalize">{day.dayName}</h3>
                       <span className="text-sm font-medium text-slate-400">{day.dayFormatted}</span>
                     </div>
 
                     {/* Items List */}
-                    <div className="space-y-8 print:space-y-4">
+                    <div className="space-y-8">
                       {day.items.map((item, itemIdx) => (
-                        <div key={item.id} className="group relative pl-8 border-l-2 border-slate-100 hover:border-slate-300 transition-colors print:hover:border-slate-100" style={{ pageBreakInside: 'avoid' }}>
+                        <div key={item.id} className="relative pl-8 border-l-2 border-slate-100">
 
                           {/* Glass Dot */}
-                          <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-slate-200 group-hover:border-slate-400 group-hover:scale-110 transition-all shadow-sm print-timeline-dot print:group-hover:border-slate-200 print:group-hover:scale-100" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                          <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-2 border-slate-200 shadow-sm"></div>
 
-                          <div className="flex items-start justify-between mb-3 print:mb-2">
+                          <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-3">
                               <TypeIcon type={item.content_type} />
-                              <h4 className="text-lg font-semibold text-slate-900 print:text-base">
+                              <h4 className="text-lg font-semibold text-slate-900">
                                 {item.title || `${item.content_type === 'reels' ? 'Reels' : item.content_type === 'story' ? 'Story' : 'Post'} #${itemIdx + 1}`}
                               </h4>
                             </div>
-                            <span className="text-[10px] font-mono text-slate-300 uppercase bg-slate-50 px-2 py-1 rounded print-bg-slate-100" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#f8fafc' }}>
+                            <span className="text-[10px] font-mono text-slate-300 uppercase bg-slate-50 px-2 py-1 rounded">
                               {item.content_type}
                             </span>
                           </div>
 
-                          <div className="pl-11 space-y-4 print:space-y-2">
+                          <div className="pl-11 space-y-4">
                             {item.description && (
-                              <p className="text-sm text-slate-600 leading-relaxed font-medium print:text-xs">
+                              <p className="text-sm text-slate-600 leading-relaxed font-medium">
                                 {item.description}
                               </p>
                             )}
 
                             {item.caption && (
-                              <div className="bg-[#F9F9FB] rounded-xl p-5 border border-slate-100 relative mt-4 print-caption-box print:p-3 print:mt-2" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#F9F9FB' }}>
-                                <Quote className="absolute top-4 left-4 w-4 h-4 text-slate-300 print:top-3 print:left-3 print:w-3 print:h-3" />
-                                <div className="pl-6 print:pl-4">
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 print:mb-1">Legenda</p>
-                                  <p className="text-xs text-slate-600 font-mono whitespace-pre-wrap leading-relaxed print:text-[10px]">
+                              <div className="bg-[#F9F9FB] rounded-xl p-5 border border-slate-100 relative mt-4">
+                                <Quote className="absolute top-4 left-4 w-4 h-4 text-slate-300" />
+                                <div className="pl-6">
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Legenda</p>
+                                  <p className="text-xs text-slate-600 font-mono whitespace-pre-wrap leading-relaxed">
                                     {item.caption}
                                   </p>
                                 </div>
@@ -464,7 +428,7 @@ export default function WeeklyReportModal({
                             )}
 
                             {item.is_executed && (
-                              <div className="flex items-center gap-2 text-xs text-green-600 font-medium" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', color: '#16a34a' }}>
+                              <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
                                 <CheckCircle2 className="w-4 h-4" />
                                 <span>Publicado</span>
                               </div>
@@ -480,23 +444,23 @@ export default function WeeklyReportModal({
             </div>
 
             {/* Footer com Branding */}
-            <footer className="bg-[#F9F9FB] border-t border-slate-100 p-12 mt-auto print-footer print:p-8" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', backgroundColor: '#F9F9FB', pageBreakInside: 'avoid' }}>
+            <footer className="bg-[#F9F9FB] border-t border-slate-100 p-12 mt-auto">
               <div className="flex flex-col items-center justify-center gap-4 text-center">
 
-                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent max-w-xs mb-4" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent max-w-xs mb-4"></div>
 
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-[0.2em]">Relatório criado através da plataforma</p>
 
                 {/* Logo crIAdores */}
-                <div className="flex items-baseline justify-center select-none cursor-default print:opacity-100">
-                  <span className="text-3xl font-sans tracking-tight leading-none print:text-2xl">
-                    <span className="text-slate-500 font-light" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', color: '#64748b' }}>cr</span>
-                    <span className="text-[#1d1d1f] font-bold" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', color: '#1d1d1f' }}>IA</span>
-                    <span className="text-slate-500 font-light" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', color: '#64748b' }}>dores</span>
+                <div className="flex items-baseline justify-center select-none cursor-default">
+                  <span className="text-3xl font-sans tracking-tight leading-none">
+                    <span className="text-slate-500 font-light">cr</span>
+                    <span className="text-[#1d1d1f] font-bold">IA</span>
+                    <span className="text-slate-500 font-light">dores</span>
                   </span>
                 </div>
 
-                <div className="mt-6 flex items-center gap-2 text-[10px] text-slate-400 print:mt-4">
+                <div className="mt-6 flex items-center gap-2 text-[10px] text-slate-400">
                   <span>Doc ID: {Math.random().toString(36).substring(2, 8).toUpperCase()}</span>
                   <span>•</span>
                   <span>Gerado em {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>

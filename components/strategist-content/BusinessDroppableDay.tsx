@@ -37,9 +37,9 @@ export default function DroppableDay({
       className={`
         h-full min-h-[300px] rounded-[30px] p-2 flex flex-col transition-all relative
         ${isToday
-          ? 'bg-white border-2 border-blue-500/20 shadow-xl shadow-blue-500/5'
+          ? 'bg-white border border-slate-200 shadow-md'
           : 'bg-white border border-white/50 shadow-sm hover:shadow-md'}
-        ${isOver ? 'ring-2 ring-blue-400 ring-opacity-50 bg-blue-50/30' : ''}
+        ${isOver ? 'ring-2 ring-slate-400 ring-opacity-50 bg-slate-50/30' : ''}
       `}
     >
       {/* Ghost Add Button - Always visible on today or hover on others */}
@@ -48,8 +48,8 @@ export default function DroppableDay({
         className={`
           absolute inset-x-4 top-2 h-10 border border-dashed rounded-xl flex items-center justify-center transition-all z-10
           ${isToday
-            ? 'border-blue-200 text-blue-400 hover:bg-blue-50'
-            : 'border-gray-200 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-gray-50'}
+            ? 'border-slate-300 text-slate-400 hover:bg-slate-50'
+            : 'border-slate-200 text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-slate-50'}
         `}
       >
         <Plus className="w-4 h-4" />
@@ -69,7 +69,7 @@ export default function DroppableDay({
         {/* Empty State for Today */}
         {isToday && contents.length === 0 && (
           <div className="flex flex-col items-center justify-center py-8 text-center opacity-40">
-            <span className="text-sm text-gray-400 font-medium">Nada por enquanto</span>
+            <span className="text-sm text-slate-400 font-medium">Nada por enquanto</span>
           </div>
         )}
       </div>

@@ -42,8 +42,8 @@ export default function ContentCard({
   // Apple-style type colors
   const typeColors = {
     reels: { bg: 'bg-green-500/10', text: 'text-green-700', icon: Video },
-    story: { bg: 'bg-purple-500/10', text: 'text-purple-700', icon: ImageIcon },
-    post: { bg: 'bg-blue-500/10', text: 'text-blue-700', icon: ImageIcon },
+    story: { bg: 'bg-amber-500/10', text: 'text-amber-700', icon: ImageIcon },
+    post: { bg: 'bg-slate-500/10', text: 'text-slate-700', icon: ImageIcon },
   };
 
   const currentType = typeColors[content.content_type] || typeColors.post;
@@ -53,14 +53,15 @@ export default function ContentCard({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className="relative group/card"
+      {...listeners}
+      className="relative group/card cursor-grab active:cursor-grabbing"
     >
       <div
         className={`
           p-3 md:p-4 rounded-[24px] border transition-all duration-300
           ${isExecuted
-            ? 'bg-gray-50 border-gray-100 opacity-60'
-            : 'bg-white border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1'}
+            ? 'bg-slate-50 border-slate-100 opacity-60'
+            : 'bg-white border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1'}
           ${isDraggingActive ? 'opacity-40 scale-95' : ''}
           ${isDragging ? 'shadow-xl scale-105 opacity-90' : ''}
         `}
@@ -68,8 +69,7 @@ export default function ContentCard({
         {/* Header: Tag + Check Button */}
         <div className="flex justify-between items-start mb-3">
           <div
-            {...listeners}
-            className={`px-2 md:px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 cursor-grab active:cursor-grabbing ${currentType.bg} ${currentType.text}`}
+            className={`px-2 md:px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 ${currentType.bg} ${currentType.text}`}
           >
             {content.content_type === 'reels' ? (
               <Video className="w-3 h-3" />
@@ -85,7 +85,8 @@ export default function ContentCard({
               e.stopPropagation();
               onToggleExecuted(!isExecuted);
             }}
-            className="text-gray-300 hover:text-green-500 transition-colors focus:outline-none"
+            onPointerDown={(e) => e.stopPropagation()}
+            className="text-slate-300 hover:text-green-500 transition-colors focus:outline-none"
             title={isExecuted ? 'Marcar como pendente' : 'Marcar como executado'}
           >
             {isExecuted ? (
@@ -96,11 +97,10 @@ export default function ContentCard({
           </button>
         </div>
 
-        {/* Title - Draggable Area */}
+        {/* Title */}
         <h4
-          {...listeners}
-          className={`text-sm md:text-[15px] font-medium text-[#1d1d1f] mb-2 leading-snug transition-all cursor-grab active:cursor-grabbing line-clamp-2 ${
-            isExecuted ? 'line-through text-gray-400' : ''
+          className={`text-sm md:text-[15px] font-medium text-[#1d1d1f] mb-2 leading-snug transition-all line-clamp-2 ${
+            isExecuted ? 'line-through text-slate-400' : ''
           }`}
         >
           {content.title}
@@ -108,8 +108,7 @@ export default function ContentCard({
 
         {/* Footer: Time + Platforms */}
         <div
-          {...listeners}
-          className="flex items-center gap-2 text-xs text-gray-500 font-medium pt-2 border-t border-gray-100 cursor-grab active:cursor-grabbing"
+          className="flex items-center gap-2 text-xs text-slate-500 font-medium pt-2 border-t border-slate-100"
         >
           {content.scheduled_time && (
             <div className="flex items-center gap-1">
@@ -121,12 +120,12 @@ export default function ContentCard({
           {/* Platform Icons */}
           <div className="flex items-center gap-1 ml-auto">
             {content.platforms.slice(0, 2).map(platform => (
-              <span key={platform} className="text-gray-400">
+              <span key={platform} className="text-slate-400">
                 <PlatformIcon platform={platform} size={12} />
               </span>
             ))}
             {content.platforms.length > 2 && (
-              <span className="text-[10px] text-gray-400">+{content.platforms.length - 2}</span>
+              <span className="text-[10px] text-slate-400">+{content.platforms.length - 2}</span>
             )}
           </div>
         </div>
@@ -138,9 +137,9 @@ export default function ContentCard({
             e.preventDefault();
             onEdit();
           }}
-          className="w-full mt-3 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5 opacity-0 group-hover/card:opacity-100"
+          onPointerDown={(e) => e.stopPropagation()}
+          className="w-full mt-3 py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5 opacity-0 group-hover/card:opacity-100"
         >
-          
           Detalhes
         </button>
       </div>
