@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ProfessionalServiceSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Marketing Juridico para Advogados e Escritorios',
@@ -22,5 +23,20 @@ export default function ChatCriadoresAdvogadosLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Marketing Juridico', url: 'https://www.criadores.app/chatcriadores-advogados' },
+      ]} />
+      <ProfessionalServiceSchema
+        name="Marketing Juridico para Advogados e Escritorios"
+        description="Marketing juridico estrategico para construir autoridade e atrair clientes qualificados. Conteudo profissional para advogados."
+        url="https://www.criadores.app/chatcriadores-advogados"
+        serviceType="Marketing Juridico"
+        audience="Advogados e Escritorios de Advocacia"
+      />
+      {children}
+    </>
+  );
 }

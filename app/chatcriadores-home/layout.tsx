@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { ServiceSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Fale com a crIAdores - Consultoria Gratuita',
@@ -34,6 +35,17 @@ export default function CriavozLayout({
         fontFamily: 'Onest, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Consultoria Gratuita', url: 'https://www.criadores.app/chatcriadores-home' },
+      ]} />
+      <ServiceSchema
+        name="Consultoria de Marketing Digital Gratuita"
+        description="Descubra como potencializar seu negocio com criadores de conteudo locais. Responda algumas perguntas e receba uma proposta personalizada."
+        url="https://www.criadores.app/chatcriadores-home"
+        category="Consultoria de Marketing"
+        priceRange="Gratuito"
+      />
       {children}
     </div>
   );

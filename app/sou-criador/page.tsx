@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Sou crIAdor | Conecte-se com Empresas Locais',
@@ -30,6 +31,16 @@ export const metadata: Metadata = {
 export default function SouCriador() {
   return (
     <div className="min-h-screen bg-white">
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Sou Criador', url: 'https://www.criadores.app/sou-criador' },
+      ]} />
+      <ServiceSchema
+        name="Plataforma para Criadores de Conteudo"
+        description="Junte-se a maior comunidade de criadores de conteudo local do Brasil. Conecte-se com empresas e monetize seu talento."
+        url="https://www.criadores.app/sou-criador"
+        category="Plataforma de Criadores"
+      />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md fixed w-full top-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ServiceSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Marketing Digital para Empresas Locais',
@@ -22,5 +23,19 @@ export default function ChatCriadoresEmpresasLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Marketing para Empresas', url: 'https://www.criadores.app/chatcriadores-empresas' },
+      ]} />
+      <ServiceSchema
+        name="Marketing Digital para Empresas Locais"
+        description="Estrategias de marketing digital presencial com criadores de conteudo locais. Resultados reais para empresas da sua regiao."
+        url="https://www.criadores.app/chatcriadores-empresas"
+        category="Marketing Digital"
+      />
+      {children}
+    </>
+  );
 }

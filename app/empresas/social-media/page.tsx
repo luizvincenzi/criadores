@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { landingPagesService } from '@/lib/services/landingPagesService';
 import DynamicLP from '../components/DynamicLP';
 import { notFound } from 'next/navigation';
+import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/JsonLd';
 
 // ⚡ IMPORTANTE: Desabilitar cache para sempre buscar dados frescos do banco
 export const dynamic = 'force-dynamic';
@@ -61,6 +62,21 @@ export default async function SocialMediaPage() {
     notFound();
   }
 
-  return <DynamicLP lp={lp} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Para Empresas', url: 'https://www.criadores.app/empresas' },
+        { name: 'Social Media', url: 'https://www.criadores.app/empresas/social-media' },
+      ]} />
+      <ServiceSchema
+        name={lp.seo.title || 'Social Media para Empresas'}
+        description={lp.seo.description || 'Gestao profissional de redes sociais para empresas locais.'}
+        url="https://www.criadores.app/empresas/social-media"
+        category="Gestao de Redes Sociais"
+      />
+      <DynamicLP lp={lp} />
+    </>
+  );
 }
 

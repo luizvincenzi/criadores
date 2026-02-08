@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ServiceSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Seja um Criador de Conteudo Local',
@@ -22,5 +23,19 @@ export default function ChatCriadoresCriadoresLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Seja um Criador', url: 'https://www.criadores.app/chatcriadores-criadores' },
+      ]} />
+      <ServiceSchema
+        name="Plataforma para Criadores de Conteudo Local"
+        description="Junte-se a maior comunidade de criadores de conteudo local. Conecte-se com empresas e monetize seu talento."
+        url="https://www.criadores.app/chatcriadores-criadores"
+        category="Plataforma de Criadores"
+      />
+      {children}
+    </>
+  );
 }

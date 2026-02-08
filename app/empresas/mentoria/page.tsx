@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { landingPagesService } from '@/lib/services/landingPagesService';
 import DynamicLP from '../components/DynamicLP';
 import { notFound } from 'next/navigation';
+import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/JsonLd';
 
 // ⚡ IMPORTANTE: Desabilitar cache para sempre buscar dados frescos do banco
 export const dynamic = 'force-dynamic';
@@ -61,6 +62,21 @@ export default async function MentoriaPage() {
     notFound();
   }
 
-  return <DynamicLP lp={lp} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Para Empresas', url: 'https://www.criadores.app/empresas' },
+        { name: 'Mentoria', url: 'https://www.criadores.app/empresas/mentoria' },
+      ]} />
+      <ServiceSchema
+        name={lp.seo.title || 'Mentoria Estrategica de Marketing'}
+        description={lp.seo.description || 'Mentoria personalizada para dominar o marketing do seu negocio.'}
+        url="https://www.criadores.app/empresas/mentoria"
+        category="Mentoria e Consultoria"
+      />
+      <DynamicLP lp={lp} />
+    </>
+  );
 }
 

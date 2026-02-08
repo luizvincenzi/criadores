@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ServiceSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Social Media Estrategico para Empresas',
@@ -22,5 +23,19 @@ export default function ChatCriadoresSocialMediaLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Social Media', url: 'https://www.criadores.app/chatcriadores-social-media' },
+      ]} />
+      <ServiceSchema
+        name="Social Media Estrategico para Empresas"
+        description="Estrategista de social media dedicado ao seu negocio. Conteudo profissional, presencial e semanal para suas redes sociais."
+        url="https://www.criadores.app/chatcriadores-social-media"
+        category="Gestao de Redes Sociais"
+      />
+      {children}
+    </>
+  );
 }

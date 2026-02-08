@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { landingPagesService } from '@/lib/services/landingPagesService';
 import DynamicLP from './components/DynamicLP';
 import { notFound } from 'next/navigation';
+import { BreadcrumbSchema, ServiceSchema } from '@/components/seo/JsonLd';
 
 // ⚡ IMPORTANTE: Desabilitar cache para sempre buscar dados frescos do banco
 export const dynamic = 'force-dynamic';
@@ -68,6 +69,20 @@ export default async function EmpresasPage() {
     notFound();
   }
 
-  return <DynamicLP lp={lp} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Para Empresas', url: 'https://www.criadores.app/empresas' },
+      ]} />
+      <ServiceSchema
+        name={lp.seo.title || 'Marketing Digital para Empresas'}
+        description={lp.seo.description || 'Conecte seu negocio a criadores de conteudo locais.'}
+        url="https://www.criadores.app/empresas"
+        category="Marketing Digital"
+      />
+      <DynamicLP lp={lp} />
+    </>
+  );
 }
 

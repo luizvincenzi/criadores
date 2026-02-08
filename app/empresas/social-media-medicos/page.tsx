@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { landingPagesService } from '@/lib/services/landingPagesService';
 import DynamicLP from '../components/DynamicLP';
 import { notFound } from 'next/navigation';
+import { BreadcrumbSchema, ProfessionalServiceSchema } from '@/components/seo/JsonLd';
 
 // ⚡ IMPORTANTE: Desabilitar cache para sempre buscar dados frescos do banco
 export const dynamic = 'force-dynamic';
@@ -68,6 +69,22 @@ export default async function SocialMediaMedicosPage() {
     notFound();
   }
 
-  return <DynamicLP lp={lp} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Para Empresas', url: 'https://www.criadores.app/empresas' },
+        { name: 'Social Media Medicos', url: 'https://www.criadores.app/empresas/social-media-medicos' },
+      ]} />
+      <ProfessionalServiceSchema
+        name={lp.seo.title || 'Social Media para Medicos'}
+        description={lp.seo.description || 'Marketing digital etico para clinicas e profissionais da saude.'}
+        url="https://www.criadores.app/empresas/social-media-medicos"
+        serviceType="Marketing Medico"
+        audience="Medicos, Clinicas e Profissionais da Saude"
+      />
+      <DynamicLP lp={lp} />
+    </>
+  );
 }
 

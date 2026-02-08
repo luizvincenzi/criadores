@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ProfessionalServiceSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Marketing Digital para Medicos e Clinicas',
@@ -22,5 +23,20 @@ export default function ChatCriadoresMedicosLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Marketing para Medicos', url: 'https://www.criadores.app/chatcriadores-medicos' },
+      ]} />
+      <ProfessionalServiceSchema
+        name="Marketing Digital para Medicos e Clinicas"
+        description="Marketing digital etico e profissional para atrair pacientes. Estrategias de conteudo para clinicas e consultorios."
+        url="https://www.criadores.app/chatcriadores-medicos"
+        serviceType="Marketing Medico"
+        audience="Medicos, Clinicas e Profissionais da Saude"
+      />
+      {children}
+    </>
+  );
 }

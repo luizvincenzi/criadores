@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { landingPagesService } from '@/lib/services/landingPagesService';
 import DynamicLPv2 from '../components/DynamicLPv2';
 import { notFound } from 'next/navigation';
+import { BreadcrumbSchema, ProfessionalServiceSchema } from '@/components/seo/JsonLd';
 
 // ⚡ IMPORTANTE: Desabilitar cache para sempre buscar dados frescos do banco
 export const dynamic = 'force-dynamic';
@@ -76,5 +77,21 @@ export default async function SocialMediaAdvogadosPage() {
     hero_title: lp.variables?.hero?.title?.substring(0, 50),
   });
 
-  return <DynamicLPv2 lp={lp} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Para Empresas', url: 'https://www.criadores.app/empresas' },
+        { name: 'Social Media Advogados', url: 'https://www.criadores.app/empresas/social-media-advogados' },
+      ]} />
+      <ProfessionalServiceSchema
+        name={lp.seo.title || 'Social Media para Advogados'}
+        description={lp.seo.description || 'Marketing juridico estrategico para escritorios de advocacia.'}
+        url="https://www.criadores.app/empresas/social-media-advogados"
+        serviceType="Marketing Juridico"
+        audience="Advogados e Escritorios de Advocacia"
+      />
+      <DynamicLPv2 lp={lp} />
+    </>
+  );
 }

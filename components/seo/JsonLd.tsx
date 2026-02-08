@@ -164,7 +164,7 @@ export function BlogPostSchema({
     '@type': 'BlogPosting',
     headline: title,
     description,
-    image: image || 'https://www.criadores.app/og-image.jpg',
+    image: image || 'https://www.criadores.app/opengraph-image',
     datePublished,
     dateModified: dateModified || datePublished,
     author: {
@@ -234,4 +234,143 @@ export function FAQPageSchema({ faqs }: FAQPageSchemaProps) {
   };
 
   return <JsonLd data={data} id="faq-schema" />;
+}
+
+/**
+ * Schema.org Service para páginas de serviço
+ * Usado nas landing pages de cada vertical (social media, mentoria, criadores, etc.)
+ */
+interface ServiceSchemaProps {
+  name: string;
+  description: string;
+  url: string;
+  category?: string;
+  areaServed?: string;
+  priceRange?: string;
+}
+
+export function ServiceSchema({
+  name,
+  description,
+  url,
+  category = 'Marketing Digital',
+  areaServed = 'Brazil',
+  priceRange,
+}: ServiceSchemaProps) {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name,
+    description,
+    url,
+    serviceType: category,
+    provider: {
+      '@type': 'Organization',
+      name: 'crIAdores',
+      url: 'https://www.criadores.app',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.criadores.app/faviconcriadoresA3.png',
+        width: 512,
+        height: 512,
+      },
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: areaServed,
+    },
+    ...(priceRange && { priceRange }),
+    availableChannel: {
+      '@type': 'ServiceChannel',
+      serviceUrl: url,
+      serviceType: 'Online',
+    },
+  };
+
+  return <JsonLd data={data} id={`service-schema-${name.toLowerCase().replace(/\s+/g, '-')}`} />;
+}
+
+/**
+ * Schema.org ProfessionalService para verticais específicas
+ * (médicos, advogados, etc.)
+ */
+interface ProfessionalServiceSchemaProps {
+  name: string;
+  description: string;
+  url: string;
+  serviceType: string;
+  audience: string;
+}
+
+export function ProfessionalServiceSchema({
+  name,
+  description,
+  url,
+  serviceType,
+  audience,
+}: ProfessionalServiceSchemaProps) {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    name,
+    description,
+    url,
+    serviceType,
+    provider: {
+      '@type': 'Organization',
+      name: 'crIAdores',
+      url: 'https://www.criadores.app',
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'Brazil',
+    },
+    audience: {
+      '@type': 'Audience',
+      audienceType: audience,
+    },
+    availableChannel: {
+      '@type': 'ServiceChannel',
+      serviceUrl: url,
+      serviceType: 'Online',
+    },
+  };
+
+  return <JsonLd data={data} id={`professional-service-schema-${serviceType.toLowerCase().replace(/\s+/g, '-')}`} />;
+}
+
+/**
+ * Schema.org CollectionPage para páginas de listagem (blog index, etc.)
+ */
+interface CollectionPageSchemaProps {
+  name: string;
+  description: string;
+  url: string;
+  itemCount?: number;
+}
+
+export function CollectionPageSchema({
+  name,
+  description,
+  url,
+  itemCount,
+}: CollectionPageSchemaProps) {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    description,
+    url,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'crIAdores',
+      url: 'https://www.criadores.app',
+    },
+    ...(itemCount !== undefined && {
+      numberOfItems: itemCount,
+    }),
+    inLanguage: 'pt-BR',
+  };
+
+  return <JsonLd data={data} id="collection-page-schema" />;
 }

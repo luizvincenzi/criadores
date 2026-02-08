@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { blogService } from '@/lib/supabase';
 import BlogFilteredList from '@/components/blog/BlogFilteredList';
+import { BreadcrumbSchema, CollectionPageSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Blog | crIAdores',
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function BlogPage() {
-  let posts = [];
+  let posts: any[] = [];
 
   try {
     posts = await blogService.getAllPosts();
@@ -34,6 +35,16 @@ export default async function BlogPage() {
 
   return (
     <div className="pt-20 min-h-screen bg-white">
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Blog', url: 'https://www.criadores.app/blog' },
+      ]} />
+      <CollectionPageSchema
+        name="Blog crIAdores"
+        description="Insights, tendencias e estrategias para empresas locais e criadores de conteudo."
+        url="https://www.criadores.app/blog"
+        itemCount={posts.length}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
         <div className="text-center mb-20 py-16">

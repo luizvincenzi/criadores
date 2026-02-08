@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ServiceSchema, BreadcrumbSchema } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Mentoria de Marketing Digital',
@@ -22,5 +23,19 @@ export default function ChatCriadoresMentoriaLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://www.criadores.app' },
+        { name: 'Mentoria', url: 'https://www.criadores.app/chatcriadores-mentoria' },
+      ]} />
+      <ServiceSchema
+        name="Mentoria de Marketing Digital"
+        description="Mentoria estrategica personalizada para dominar o marketing do seu negocio. Aprenda a criar conteudo e atrair clientes."
+        url="https://www.criadores.app/chatcriadores-mentoria"
+        category="Mentoria e Consultoria"
+      />
+      {children}
+    </>
+  );
 }
