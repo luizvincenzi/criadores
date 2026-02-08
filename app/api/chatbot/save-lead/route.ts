@@ -211,6 +211,8 @@ export async function POST(request: NextRequest) {
     // 3. CRIAR DEAL NA TABELA DEALS (para aparecer no Kanban do CRM)
     console.log('🔍 [CHATBOT API] Criando deal na tabela deals...');
 
+    const CHATBOT_USER_ID = "c0000000-0000-0000-0000-000000000c07"; // User "Chatbot" na tabela users do CRM
+
     const dealData = {
       organization_id: "00000000-0000-0000-0000-000000000001",
       business_id: businessId,
@@ -222,6 +224,9 @@ export async function POST(request: NextRequest) {
       is_won: false,
       is_lost: false,
       current_stage_since: new Date().toISOString(),
+      sales_rep_id: CHATBOT_USER_ID,
+      lead_source: mapSourceToLeadSource(source),
+      acquisition_channel: "chatbot",
       custom_fields: JSON.stringify({
         fonte: source,
         protocolo: leadId,
