@@ -208,7 +208,42 @@ export async function POST(request: NextRequest) {
       console.log('✅ [CHATBOT API] Lead criado com sucesso:', leadResult[0]?.id);
     }
 
-    // 3. ENVIAR NOTIFICAÇÕES
+    // 3. CRIAR DEAL NA TABELA DEALS (para aparecer no Kanban do CRM)
+    console.log('🔍 [CHATBOT API] Criando deal na tabela deals...');
+
+    const dealData = {
+      organization_id: "00000000-0000-0000-0000-000000000001",
+      business_id: businessId,
+      name: `Primeira Oportunidade - ${userData.businessName || userData.name}`,
+      stage: "01_PROSPECT",
+      priority: "Média",
+      estimated_value: "0.00",
+      is_active: true,
+      is_won: false,
+      is_lost: false,
+      current_stage_since: new Date().toISOString(),
+      custom_fields: JSON.stringify({
+        fonte: source,
+        protocolo: leadId,
+        whatsapp: userData.whatsapp || null,
+        instagram: userData.instagram || null,
+        desafioSocialMedia: userData.socialMediaPain || null,
+      }),
+    };
+
+    const { data: dealResult, error: dealError } = await supabase
+      .from('deals')
+      .insert([dealData])
+      .select();
+
+    if (dealError) {
+      console.error('❌ [CHATBOT API] Erro ao criar deal:', dealError);
+      // Não falhar a operação por causa do deal, mas logar
+    } else {
+      console.log('✅ [CHATBOT API] Deal criado com sucesso:', dealResult[0]?.id);
+    }
+
+    // 4. ENVIAR NOTIFICAÇÕES
     console.log('🔍 [CHATBOT API] Enviando notificações...');
 
     try {
@@ -218,7 +253,7 @@ export async function POST(request: NextRequest) {
       // Não falhar a operação por causa das notificações
     }
 
-    // 4. Verificar se realmente foi salvo
+    // 5. Verificar se realmente foi salvo
     const { data: verification, error: verifyError } = await supabase
       .from('businesses')
       .select('id, name, contact_info, custom_fields')
@@ -236,6 +271,7 @@ export async function POST(request: NextRequest) {
       data: data[0],
       leadId,
       leadData: leadResult?.[0] || null,
+      dealData: dealResult?.[0] || null,
       verification: verification || null
     });
 
