@@ -5,17 +5,13 @@ import { motion } from 'framer-motion';
 import {
   ArrowRight,
   Check,
-  ChevronRight,
   ChevronDown,
-  Star,
   Camera,
   TrendingUp,
-  Calendar,
   MessageCircle,
   User,
   X,
   Play,
-  Instagram,
   Search,
   Users,
   BarChart3,
@@ -297,7 +293,7 @@ export default function SocialMediaEstrategicoClient({ faqs }: { faqs: FAQ[] }) 
               </div>
               <h3 className="text-xl font-semibold mb-3 text-[#1d1d1f]">Contratar agência</h3>
               <p className="text-[#86868b] leading-relaxed text-sm">
-                Caro (R$ 2 mil a R$ 5 mil/mês), conteúdo genérico feito por quem nunca pisou no seu negócio. Zero presencialidade, zero autenticidade.
+                Investimento alto, conteúdo genérico feito por quem nunca pisou no seu negócio. Zero presencialidade, zero autenticidade.
               </p>
             </div>
 
@@ -426,183 +422,26 @@ export default function SocialMediaEstrategicoClient({ faqs }: { faqs: FAQ[] }) 
       </section>
 
       {/* ============================================ */}
-      {/* S6: RESULTADOS / NÚMEROS */}
+      {/* GARANTIA + CTA INTERMEDIÁRIO */}
       {/* ============================================ */}
-      <section className="py-24 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-semibold text-center mb-4 text-[#1d1d1f]">Resultados que falam por si.</h2>
-          <p className="text-center text-[#86868b] text-lg mb-16 max-w-2xl mx-auto">
-            Baseado nos resultados reais dos nossos clientes.
-          </p>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { value: '+40%', label: 'Aumento no faturamento', sub: 'em média' },
-              { value: '200-500%', label: 'Crescimento de seguidores', sub: 'em 6 meses' },
-              { value: '+300%', label: 'Aumento de engajamento', sub: 'nas redes sociais' },
-              { value: '30-45', label: 'Dias para primeiros resultados', sub: 'percepção de marca' },
-            ].map((metric, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="text-center p-6"
-              >
-                <div className="text-4xl md:text-5xl font-black bg-gradient-to-b from-slate-800 to-slate-500 bg-clip-text text-transparent mb-2">
-                  {metric.value}
-                </div>
-                <div className="text-sm font-semibold text-[#1d1d1f] mb-1">{metric.label}</div>
-                <div className="text-xs text-[#86868b]">{metric.sub}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* S7: COMPARATIVO */}
-      {/* ============================================ */}
-      <section className="py-24 bg-[#f5f5f7]">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-semibold text-center mb-4 text-[#1d1d1f]">Compare e decida.</h2>
-          <p className="text-center text-[#86868b] text-lg mb-16 max-w-2xl mx-auto">
-            Veja por que o social media estratégico é o melhor custo-benefício do mercado.
-          </p>
-
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-hidden rounded-[30px] bg-white shadow-sm">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="p-6 text-left text-sm font-medium text-[#86868b]"></th>
-                  <th className="p-6 text-center">
-                    <div className="inline-flex flex-col items-center gap-1 bg-[#0071e3]/5 px-6 py-3 rounded-2xl border border-[#0071e3]/20">
-                      <span className="text-lg font-bold text-[#0071e3]">crIAdores</span>
-                      <span className="text-xs text-[#0071e3]/70">Recomendado</span>
-                    </div>
-                  </th>
-                  <th className="p-6 text-center text-sm font-semibold text-[#1d1d1f]">Agência</th>
-                  <th className="p-6 text-center text-sm font-semibold text-[#1d1d1f]">Freelancer</th>
-                  <th className="p-6 text-center text-sm font-semibold text-[#1d1d1f]">CLT</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { label: 'Investimento', criadores: 'R$ 997/mês', agencia: 'R$ 2k-5k/mês', freelancer: 'R$ 800-1.5k/mês', clt: 'R$ 3.5k+/mês' },
-                  { label: 'Presencial', criadores: 'Sim, semanal', agencia: 'Não', freelancer: 'Raro', clt: 'Sim' },
-                  { label: 'Constância', criadores: 'Garantida', agencia: 'Média', freelancer: 'Baixa', clt: 'Alta' },
-                  { label: 'Estratégia', criadores: 'Inclusa', agencia: 'Inclusa', freelancer: 'Raro', clt: 'Depende' },
-                  { label: 'Cancelamento', criadores: 'Flexível', agencia: 'Contrato', freelancer: 'N/A', clt: 'CLT' },
-                  { label: 'Conteúdo autêntico', criadores: 'Sim', agencia: 'Genérico', freelancer: 'Variável', clt: 'Depende' },
-                ].map((row, i) => (
-                  <tr key={i} className="border-b border-gray-50 last:border-0">
-                    <td className="p-5 text-sm font-medium text-[#1d1d1f]">{row.label}</td>
-                    <td className="p-5 text-center text-sm font-semibold text-[#0071e3] bg-[#0071e3]/[0.02]">{row.criadores}</td>
-                    <td className="p-5 text-center text-sm text-[#86868b]">{row.agencia}</td>
-                    <td className="p-5 text-center text-sm text-[#86868b]">{row.freelancer}</td>
-                    <td className="p-5 text-center text-sm text-[#86868b]">{row.clt}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-4">
-            {[
-              { label: 'Investimento', value: 'R$ 997/mês', compare: 'vs R$ 2k-5k (agência) ou R$ 3.5k+ (CLT)' },
-              { label: 'Presencial', value: 'Sim, toda semana', compare: 'Agências e freelancers: remoto ou raro' },
-              { label: 'Constância', value: 'Garantida', compare: 'Freelancers: baixa. Agências: média' },
-              { label: 'Cancelamento', value: 'Flexível', compare: 'Sem contrato de fidelidade' },
-            ].map((item, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-[#0071e3]/10">
-                <div className="text-xs text-[#86868b] uppercase tracking-wide mb-1">{item.label}</div>
-                <div className="text-lg font-bold text-[#0071e3] mb-1">{item.value}</div>
-                <div className="text-xs text-[#86868b]">{item.compare}</div>
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="bg-[#f5f5f7] rounded-[30px] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex items-center gap-6">
+              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
+                <Shield size={28} />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* S8: PRICING */}
-      {/* ============================================ */}
-      <section className="py-32 px-6 max-w-5xl mx-auto">
-        <h2 className="text-4xl md:text-5xl font-semibold text-center mb-4 text-[#1d1d1f]">Investimento Inteligente.</h2>
-        <p className="text-center text-[#86868b] text-xl mb-16 max-w-2xl mx-auto">
-          Custo menor que um estagiário, entrega de uma agência completa.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-          {/* Monthly Plan */}
-          <div className="bg-white p-10 rounded-[30px] border border-transparent hover:border-gray-300 transition-colors flex flex-col">
-            <h3 className="text-2xl font-semibold mb-2">Start Mensal</h3>
-            <p className="text-[#86868b] mb-8 text-sm">Para quem quer começar rápido e validar o modelo.</p>
-
-            <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 text-center">
-              <span className="text-lg font-medium text-[#1d1d1f]">Ideal para testar</span>
-              <p className="text-sm text-[#86868b] mt-1">Sem fidelidade de longo prazo.</p>
+              <div>
+                <h3 className="font-semibold text-xl text-[#1d1d1f] mb-1">Garantia de Satisfação</h3>
+                <p className="text-[#86868b] text-sm">Não gostou do social media? Trocamos em até 30 dias. Sem custo adicional.</p>
+              </div>
             </div>
-
-            <ul className="space-y-4 mb-10 flex-grow">
-              <li className="flex items-center gap-3 text-sm text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> Estrategista presencial semanal</li>
-              <li className="flex items-center gap-3 text-sm text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> Cancelamento flexível</li>
-              <li className="flex items-center gap-3 text-sm text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> Estratégia completa</li>
-              <li className="flex items-center gap-3 text-sm text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> Gestão de até 3 redes</li>
-            </ul>
-
             <button
               onClick={() => window.location.href = '/chatcriadores-social-media'}
-              className="w-full py-4 rounded-full border border-[#0071e3] text-[#0071e3] font-medium hover:bg-[#0071e3]/5 transition-colors flex items-center justify-center gap-2"
-            >
-              Consultar Plano Mensal <ChevronRight size={16} />
-            </button>
-          </div>
-
-          {/* Semester Plan */}
-          <div className="bg-white p-10 rounded-[30px] border-2 border-[#0071e3] shadow-xl relative transform md:-translate-y-4 flex flex-col">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#0071e3] text-white px-4 py-1 rounded-full text-xs font-bold tracking-wide uppercase shadow-lg shadow-[#0071e3]/40">
-              Oportunidade Exclusiva
-            </div>
-
-            <h3 className="text-2xl font-semibold mb-2">Parceria Semestral</h3>
-            <p className="text-[#86868b] mb-8 text-sm">Para quem busca crescimento consistente.</p>
-
-            <div className="mb-8 p-6 bg-[#0071e3]/5 rounded-2xl border border-[#0071e3]/20 text-center">
-              <span className="text-2xl font-bold text-[#0071e3] block mb-1">Condição Especial</span>
-              <p className="text-sm text-[#86868b]">Garanta o melhor valor do mercado travando seu contrato hoje.</p>
-            </div>
-
-            <ul className="space-y-4 mb-10 flex-grow">
-              <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> <strong>Economia agressiva</strong> no valor mensal</li>
-              <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> Prioridade na agenda da equipe</li>
-              <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> Planejamento de longo prazo</li>
-              <li className="flex items-center gap-3 text-sm font-medium text-[#1d1d1f]"><Check size={18} className="text-[#0071e3]" /> Consultoria estratégica inclusa</li>
-            </ul>
-
-            <button
-              onClick={() => window.location.href = '/chatcriadores-social-media'}
-              className="w-full py-4 rounded-full bg-[#0071e3] text-white font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 flex items-center justify-center gap-2 hover:scale-[1.02]"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#0071e3] text-white rounded-full font-medium hover:bg-[#0077ED] transition-all shadow-lg shadow-[#0071e3]/30 hover:scale-[1.02] whitespace-nowrap"
             >
               <MessageCircle size={18} /> Falar com Especialista
             </button>
-            <p className="text-center text-xs text-[#86868b] mt-4">Poucas vagas disponíveis para este mês.</p>
-          </div>
-        </div>
-
-        {/* Guarantee */}
-        <div className="mt-16 bg-white rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between shadow-sm">
-          <div className="flex items-center gap-6 mb-4 md:mb-0">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-              <Shield size={24} />
-            </div>
-            <div>
-              <h4 className="font-semibold text-lg">Garantia de Satisfação</h4>
-              <p className="text-[#86868b] text-sm">Não gostou do social media? Trocamos em até 30 dias. Sem custo.</p>
-            </div>
           </div>
         </div>
       </section>
@@ -646,51 +485,7 @@ export default function SocialMediaEstrategicoClient({ faqs }: { faqs: FAQ[] }) 
       </section>
 
       {/* ============================================ */}
-      {/* S10: TL;DR (GEO) */}
-      {/* ============================================ */}
-      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 tldr-section">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-blue-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <span className="mr-3">📋</span>
-              Resumo: Social Media Estratégico (TL;DR)
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">O serviço:</h3>
-                <p className="text-gray-700">Social media estratégico com visitas presenciais semanais ao seu negócio. Um estrategista dedicado produz todo o conteúdo e gerencia suas redes sociais profissionalmente.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Diferencial:</h3>
-                <p className="text-gray-700">Única empresa com estrategistas que vão fisicamente ao negócio toda semana para produzir conteúdo autêntico. Não é agência remota, não é freelancer — é um profissional presencial e constante.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Investimento:</h3>
-                <p className="text-gray-700">A partir de R$ 997/mês. Sem fidelidade, com garantia de satisfação de 30 dias. Inclui visitas presenciais semanais, gestão de até 3 redes sociais e reunião mensal de resultados.</p>
-              </div>
-            </div>
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Entregáveis:</h3>
-                  <p className="text-gray-700">2 reels por semana, stories diários, calendário editorial, roteiros, reunião mensal de métricas e ajustes estratégicos contínuos.</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Resultados:</h3>
-                  <p className="text-gray-700">Média de 40% de aumento no faturamento, 200-500% de crescimento em seguidores e primeiros resultados visíveis em 30-45 dias.</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Como contratar:</h3>
-                  <p className="text-gray-700">Agende um diagnóstico gratuito pelo chat no site criadores.app ou pelo WhatsApp (43) 9193-6400. Início imediato após contratação.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* S11: CTA FINAL + FOOTER */}
+      {/* CTA FINAL + FOOTER */}
       {/* ============================================ */}
       <section className="bg-gradient-to-b from-[#0b3553] via-[#082940] to-[#041220] py-24">
         <div className="max-w-4xl mx-auto px-6 text-center">

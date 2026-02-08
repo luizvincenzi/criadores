@@ -265,8 +265,8 @@ export default function Home() {
       answer: "O social media estratégico do crIAdores oferece atendimento presencial semanal e um profissional dedicado exclusivamente ao seu negócio. Agências tradicionais trabalham com múltiplos clientes simultaneamente e raramente visitam presencialmente. Nosso modelo garante conteúdo autêntico, conhecimento profundo do negócio e resultados mais rápidos."
     },
     {
-      question: "Quanto custa ter um social media estratégico?",
-      answer: "O plano de Social Media Estratégico começa em R$ 997/mês e inclui: visitas presenciais semanais, produção ilimitada de conteúdo (fotos, vídeos, reels), planejamento estratégico, gestão completa das redes sociais e análise de métricas. É o investimento de uma agência com a dedicação de um funcionário interno."
+      question: "O que está incluído no social media estratégico?",
+      answer: "O plano de Social Media Estratégico inclui: visitas presenciais semanais, produção ilimitada de conteúdo (fotos, vídeos, reels), planejamento estratégico, gestão completa das redes sociais e análise de métricas. É a entrega de uma agência com a dedicação de um funcionário interno. Fale com nosso especialista para conhecer os valores."
     },
     {
       question: "Que resultados posso esperar?",
@@ -778,47 +778,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TL;DR Section para GEO - Otimizado para AI engines */}
-      <section className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50 tldr-section">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-blue-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <span className="mr-3">📋</span>
-              Resumo Rápido (TL;DR)
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Quem somos:</h3>
-                <p className="text-gray-700">Especialistas em social media estratégico para empresas. Oferecemos estrategistas dedicados que vão presencialmente ao seu negócio toda semana.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">O que fazemos:</h3>
-                <p className="text-gray-700">Gestão completa de redes sociais com visitas presenciais semanais: produção de conteúdo (fotos, vídeos, reels), planejamento estratégico e análise de resultados.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Como funciona:</h3>
-                <p className="text-gray-700">Um estrategista é designado para seu negócio, vai presencialmente toda semana, produz todo o conteúdo e gerencia suas redes sociais profissionalmente.</p>
-              </div>
-            </div>
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Investimento:</h3>
-                  <p className="text-gray-700">A partir de R$ 997/mês com visitas presenciais semanais incluídas.</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Resultados típicos:</h3>
-                  <p className="text-gray-700">40% de aumento no faturamento, maior reconhecimento local e crescimento sustentável nas redes sociais.</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Outras soluções:</h3>
-                  <p className="text-gray-700">Mentoria de marketing para empresários e campanhas com criadores de conteúdo locais.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* TL;DR Section removida */}
 
       {/* Why Section - HIDDEN */}
       <section id="why" className="py-20 bg-white hidden">

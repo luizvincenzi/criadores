@@ -47,7 +47,7 @@ const faqs = [
   },
   {
     question: 'Quanto custa ter um social media estratégico?',
-    answer: 'O plano de Social Media Estratégico começa em R$ 997/mês e inclui: visitas presenciais semanais ao seu estabelecimento, produção ilimitada de conteúdo (fotos, vídeos, reels, stories), planejamento estratégico personalizado, gestão completa de todas as suas redes sociais (Instagram, Facebook, TikTok), análise de métricas e relatórios mensais de desempenho.',
+    answer: 'O plano de Social Media Estratégico inclui: visitas presenciais semanais ao seu estabelecimento, produção ilimitada de conteúdo (fotos, vídeos, reels, stories), planejamento estratégico personalizado, gestão completa de todas as suas redes sociais (Instagram, Facebook, TikTok), análise de métricas e relatórios mensais de desempenho. Para valores atualizados, fale com nosso especialista.',
   },
   {
     question: 'Qual a diferença entre social media e agência de marketing?',
@@ -74,7 +74,7 @@ const faqs = [
     answer: 'Atendemos qualquer tipo de negócio local que queira crescer nas redes sociais: restaurantes, bares, cafeterias, lojas de roupas, salões de beleza, barbearias, academias, clínicas médicas e odontológicas, escritórios de advocacia, contabilidade, arquitetura, pet shops, escolas, eventos e muito mais. Temos estrategistas especializados em diferentes segmentos.',
   },
   {
-    question: 'O que está incluído no plano de R$ 997/mês?',
+    question: 'O que está incluído no plano de Social Media Estratégico?',
     answer: 'Está incluído: 1 visita presencial semanal ao seu estabelecimento (4-5 visitas por mês), produção ilimitada de conteúdo (fotos, vídeos, reels, stories), planejamento estratégico mensal, gestão completa de até 3 redes sociais (Instagram, Facebook, TikTok), publicação diária de conteúdo, resposta a comentários e mensagens, análise de métricas, relatório mensal de desempenho e suporte via WhatsApp.',
   },
   {
@@ -133,7 +133,7 @@ const faqsSocialMedia = [
   },
   {
     question: 'Social media estratégico ou contratar funcionário interno?',
-    answer: 'O social media estratégico oferece vantagens sobre contratar CLT: custo menor (sem encargos trabalhistas), expertise especializada em marketing digital e criação de conteúdo, equipamento profissional incluído, visão externa e estratégica do negócio, e flexibilidade para cancelar se não funcionar. Um funcionário interno custa em média R$ 3.500/mês (salário + encargos) sem garantia de expertise, enquanto o crIAdores oferece um profissional especializado por R$ 997/mês.',
+    answer: 'O social media estratégico oferece vantagens sobre contratar CLT: custo menor (sem encargos trabalhistas), expertise especializada em marketing digital e criação de conteúdo, equipamento profissional incluído, visão externa e estratégica do negócio, e flexibilidade para cancelar se não funcionar. Um funcionário interno tem custo de salário mais encargos sem garantia de expertise em marketing digital, enquanto o crIAdores oferece um profissional especializado com custo significativamente menor.',
   },
   {
     question: 'Preciso estar presente durante as visitas do estrategista?',
@@ -145,7 +145,7 @@ const faqsSocialMedia = [
   },
   {
     question: 'Quanto custa contratar um social media para minha empresa?',
-    answer: 'No crIAdores, o social media estratégico com visitas presenciais semanais custa R$ 997/mês. Agências tradicionais cobram entre R$ 2.000 e R$ 5.000/mês sem visitas presenciais. Freelancers cobram R$ 800-1.500/mês mas geralmente têm menos experiência e atendem muitos clientes ao mesmo tempo. Nosso modelo oferece o melhor custo-benefício: profissional especializado, visitas presenciais e dedicação exclusiva.',
+    answer: 'No crIAdores, o social media estratégico inclui visitas presenciais semanais, gestão completa e produção de conteúdo profissional. Nosso modelo oferece o melhor custo-benefício do mercado: profissional especializado, visitas presenciais e dedicação exclusiva — com investimento significativamente menor que agências tradicionais ou contratação CLT. Fale com nosso especialista para conhecer os valores atualizados.',
   },
   {
     question: 'Social media estratégico funciona para pequenas empresas?',
@@ -252,8 +252,8 @@ export default function PerguntasFrequentesPage() {
                 <p className="text-gray-700">40% de aumento no faturamento, crescimento de 200-500% em seguidores qualificados e maior reconhecimento local.</p>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Investimento:</h3>
-                <p className="text-gray-700">R$ 997/mês com visitas presenciais semanais, produção ilimitada de conteúdo e gestão completa incluídos.</p>
+                <h3 className="font-semibold text-gray-900 mb-2">Diferencial:</h3>
+                <p className="text-gray-700">Visitas presenciais semanais, produção ilimitada de conteúdo autêntico e gestão completa das redes sociais.</p>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Como funciona:</h3>

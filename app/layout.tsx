@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     default: "crIAdores - Social Media Estratégico Para Empresas | Conteúdo Presencial Toda Semana",
     template: "%s | crIAdores"
   },
-  description: "Tenha um estrategista de social media dedicado ao seu negócio. Produção de conteúdo presencial toda semana, planejamento estratégico e crescimento real nas redes sociais. A partir de R$ 997/mês.",
+  description: "Tenha um estrategista de social media dedicado ao seu negócio. Produção de conteúdo presencial toda semana, planejamento estratégico e crescimento real nas redes sociais.",
   keywords: [
     // Primary - Social Media Estratégico
     "social media estratégico",

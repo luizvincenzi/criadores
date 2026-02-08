@@ -418,8 +418,6 @@ export function SoftwareApplicationSchema() {
           name: 'Social Media Estratégico',
           description: 'Estrategista de social media dedicado ao seu negócio com produção de conteúdo presencial e planejamento semanal. Inclui visitas presenciais, criação de posts, stories, reels e gestão completa das redes sociais.',
           priceCurrency: 'BRL',
-          price: '997',
-          priceValidUntil: '2026-12-31',
         },
         {
           '@type': 'Offer',

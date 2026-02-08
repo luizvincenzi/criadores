@@ -5,7 +5,7 @@ import SocialMediaEstrategicoClient from './SocialMediaEstrategicoClient';
 // --- SEO Metadata (Server-side) ---
 export const metadata: Metadata = {
   title: 'Social Media Estratégico Para Empresas | Conteúdo Presencial Semanal',
-  description: 'Contrate um estrategista de social media dedicado ao seu negócio. Visitas presenciais semanais, produção de conteúdo profissional e gestão completa das redes sociais. A partir de R$ 997/mês.',
+  description: 'Contrate um estrategista de social media dedicado ao seu negócio. Visitas presenciais semanais, produção de conteúdo profissional e gestão completa das redes sociais.',
   keywords: [
     'social media estratégico', 'social media para empresas', 'contratar social media',
     'gestão de redes sociais', 'social media presencial', 'estrategista de marketing digital',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Social Media Estratégico | crIAdores',
-    description: 'Estrategista dedicado ao seu negócio. Visitas presenciais semanais, conteúdo profissional e gestão completa. A partir de R$ 997/mês.',
+    description: 'Estrategista dedicado ao seu negócio. Visitas presenciais semanais, conteúdo profissional e gestão completa das redes sociais.',
     url: 'https://www.criadores.app/social-media-estrategico',
     siteName: 'crIAdores',
     type: 'website',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Social Media Estratégico Para Empresas | crIAdores',
-    description: 'Estrategista dedicado com visitas presenciais semanais. Gestão completa das redes sociais a partir de R$ 997/mês.',
+    description: 'Estrategista dedicado com visitas presenciais semanais. Gestão completa das redes sociais para seu negócio.',
   },
   alternates: {
     canonical: 'https://www.criadores.app/social-media-estrategico',
@@ -75,7 +75,7 @@ export const pageFaqs = [
   },
   {
     question: 'Quantas redes sociais estão incluídas no plano?',
-    answer: 'O plano inclui gestão de até 3 redes sociais (Instagram, TikTok, Facebook, LinkedIn ou Google Meu Negócio). O conteúdo é adaptado para cada plataforma, respeitando os formatos e melhores práticas de cada uma.'
+    answer: 'O plano inclui gestão de até 3 redes sociais (Instagram, TikTok, Facebook, LinkedIn ou Google Meu Negócio). O conteúdo é adaptado para cada plataforma, respeitando os formatos e melhores práticas de cada uma. Para saber os valores, fale com nosso especialista.'
   },
   {
     question: 'O estrategista também responde comentários e DMs?',
@@ -107,11 +107,10 @@ export default function SocialMediaEstrategicoPage() {
       />
       <ServiceSchema
         name="Social Media Estratégico"
-        description="Estrategista de social media dedicado ao seu negócio com visitas presenciais semanais. Inclui produção de conteúdo profissional (fotos, vídeos, reels, stories), planejamento estratégico, calendário editorial, gestão de até 3 redes sociais e relatórios mensais de performance. A partir de R$ 997/mês."
+        description="Estrategista de social media dedicado ao seu negócio com visitas presenciais semanais. Inclui produção de conteúdo profissional (fotos, vídeos, reels, stories), planejamento estratégico, calendário editorial, gestão de até 3 redes sociais e relatórios mensais de performance."
         url="https://www.criadores.app/social-media-estrategico"
         category="Gestão de Redes Sociais"
         areaServed="Brazil"
-        priceRange="A partir de R$ 997/mês"
       />
       <FAQPageSchema faqs={pageFaqs} />
 
