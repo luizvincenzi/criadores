@@ -206,6 +206,9 @@ interface Business {
 - Deletar registros (usar soft delete com `deleted_at`)
 - Confundir `creator_id` (FK para `creators`) com `platform_users.id`
 - Assumir que `strategist_business_access.strategist_user_id` = `platform_users.id` (referencia `users`)
+- Incluir preços, valores monetários ou faixas de investimento em páginas públicas, metadata ou schemas (preço é discutido apenas em consulta privada)
+- Usar dados inventados/estimados em páginas públicas (ex: "+40% faturamento", "200-500% crescimento")
+- Criar seções TL;DR (conceito não familiar ao público brasileiro)
 
 ## Agentes Disponíveis
 
@@ -218,7 +221,7 @@ Use agentes específicos para tarefas especializadas (`.claude/agents/`):
 | `database` | Queries, migrations, schema, índices, platform_users |
 | `supabase-mcp` | Operações diretas no banco via MCP (debug, queries, migrations) |
 | `onboarding` | Fluxo completo de convite, ativacao, criacao de senha, liberacao de acesso (cross-project CRM + Plataforma) |
-| `seo` | SEO/AEO/GEO: metadata, schemas JSON-LD, sitemap, keywords, conversao, audit de paginas publicas |
+| `seo` | SEO/AEO/GEO completo: metadata, 8 schemas JSON-LD, sitemap, keywords, OG images, RSS, robots.txt, FAQ schemas, GEO para LLMs, audit de paginas publicas. REGRA: nunca incluir precos. Foco: social media estrategico presencial |
 
 ## Referências Cruzadas com CRM
 
