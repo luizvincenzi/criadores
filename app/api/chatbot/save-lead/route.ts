@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         active_campaigns: 0
       }),
       is_active: true,
-      business_stage: "Leads próprios quentes",
+      business_stage: "01_PROSPECT",
       lead_source: mapSourceToLeadSource(source), // Mapear source para valores aceitos
       estimated_value: "0.00",
       contract_creators_count: 0,
@@ -183,7 +183,6 @@ export async function POST(request: NextRequest) {
       phone: userData.whatsapp,
       company: userData.businessName || null,
       source: source,
-      lead_source: '1 prospect', // SEMPRE 1 prospect para leads dos chatbots
       status: 'new',
       score: userData.userType === 'empresa' ? 80 : 60, // Empresas têm score maior
       contact_info: JSON.stringify({
