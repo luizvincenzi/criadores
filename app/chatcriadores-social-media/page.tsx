@@ -1,6 +1,6 @@
 'use client';
 
-import ChatbotHomepage from '@/components/chatbot/ChatbotHomepage';
+import ChatbotSocialMedia from '@/components/chatbot/ChatbotSocialMedia';
 
 export default function ChatCriadoresSocialMediaPage() {
   const handleComplete = (userData: any) => {
@@ -8,12 +8,9 @@ export default function ChatCriadoresSocialMediaPage() {
   };
 
   return (
-    <ChatbotHomepage
-      title={<span className="inline-block"><span className="text-gray-600 font-light">cr</span><span className="text-black font-bold">IA</span><span className="text-gray-600 font-light">dores</span></span>}
-      welcomeMessage="Olá! 👋 Quer ter um estrategista dedicado cuidando do seu marketing digital? Vamos conversar sobre como podemos ajudar!"
-      onComplete={handleComplete}
+    <ChatbotSocialMedia
       source="chatcriadores-social-media"
+      onComplete={handleComplete}
     />
   );
 }
-

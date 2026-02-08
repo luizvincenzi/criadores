@@ -55,11 +55,11 @@ export async function POST(request: NextRequest) {
     console.log('🔍 [CHATBOT API] Fonte identificada:', source);
     console.log('🔍 [CHATBOT API] Timestamp:', new Date().toISOString());
 
-    // Validar dados obrigatórios
-    if (!userData.name || !userData.email) {
-      console.error('❌ [CHATBOT API] Dados obrigatórios faltando:', { name: userData.name, email: userData.email });
+    // Validar dados obrigatórios (email OU whatsapp como contato)
+    if (!userData.name || (!userData.email && !userData.whatsapp)) {
+      console.error('❌ [CHATBOT API] Dados obrigatórios faltando:', { name: userData.name, email: userData.email, whatsapp: userData.whatsapp });
       return NextResponse.json(
-        { success: false, error: 'Nome e email são obrigatórios' },
+        { success: false, error: 'Nome e pelo menos um contato (email ou WhatsApp) são obrigatórios' },
         { status: 400 }
       );
     }
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
     // Preparar dados para a tabela businesses do Supabase
     const businessData = {
       organization_id: "00000000-0000-0000-0000-000000000001",
-      name: userData.userType === 'empresa' ? userData.businessName : userData.name,
-      slug: generateSlug(userData.userType === 'empresa' ? userData.businessName : userData.name),
+      name: userData.businessName || userData.name,
+      slug: generateSlug(userData.businessName || userData.name),
       contact_info: JSON.stringify({
         email: userData.email,
         phone: userData.whatsapp,
@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
         segmento: userData.userType === 'empresa' ? userData.businessSegment : userData.creatorNiche,
         objetivo: userData.userType === 'empresa' ? userData.businessGoal : 'criacao_conteudo',
         experienciaAnterior: userData.userType === 'empresa' ? userData.hasWorkedWithInfluencers : userData.hasWorkedWithBrands,
+        desafioSocialMedia: userData.socialMediaPain || null,
         quantidadeSeguidores: userData.userType === 'criador' ? userData.followersCount : null,
         // Dados específicos do Instagram (se aplicável)
         instagramHandle: userData.instagramHandle || null,
@@ -178,9 +179,9 @@ export async function POST(request: NextRequest) {
     const leadData = {
       organization_id: "00000000-0000-0000-0000-000000000001",
       name: userData.name,
-      email: userData.email,
+      email: userData.email || null,
       phone: userData.whatsapp,
-      company: userData.userType === 'empresa' ? userData.businessName : null,
+      company: userData.businessName || null,
       source: source,
       lead_source: '1 prospect', // SEMPRE 1 prospect para leads dos chatbots
       status: 'new',
