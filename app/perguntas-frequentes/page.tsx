@@ -12,6 +12,10 @@ export const metadata: Metadata = {
     'campanhas',
     'preços',
     'resultados',
+    'marketing medico',
+    'marketing advogados',
+    'social media empresas',
+    'mentoria marketing digital',
   ],
   alternates: {
     canonical: 'https://www.criadores.app/perguntas-frequentes',
@@ -71,6 +75,51 @@ const faqs = [
   },
 ];
 
+// FAQs segmentadas por vertical (AEO - featured snippets por segmento)
+const faqsMedicos = [
+  {
+    question: 'Como funciona o marketing digital para medicos?',
+    answer: 'O marketing medico no crIAdores segue as normas eticas do CFM. Criamos conteudo educativo e profissional que posiciona o medico como autoridade, atrai pacientes qualificados e fortalece a presenca digital da clinica ou consultorio.',
+  },
+  {
+    question: 'O marketing para clinicas e etico?',
+    answer: 'Sim, todo conteudo e criado seguindo as diretrizes do Conselho Federal de Medicina. Focamos em conteudo educativo, informativo e de autoridade, sem promessas de resultados ou comparacoes com outros profissionais.',
+  },
+];
+
+const faqsAdvogados = [
+  {
+    question: 'Advogados podem fazer marketing digital?',
+    answer: 'Sim, dentro das normas da OAB. O crIAdores cria conteudo que constroi autoridade juridica sem publicidade direta. Focamos em educacao juridica, artigos de opiniao e presenca profissional nas redes sociais.',
+  },
+  {
+    question: 'Como atrair clientes para escritorio de advocacia?',
+    answer: 'Atraves de marketing de conteudo estrategico: artigos sobre temas juridicos relevantes, presenca no Google com SEO local, conteudo educativo nas redes sociais e posicionamento como autoridade na area de atuacao.',
+  },
+];
+
+const faqsSocialMedia = [
+  {
+    question: 'O que faz um social media estrategico?',
+    answer: 'O social media estrategico do crIAdores vai alem de publicar posts. Ele planeja conteudo semanal presencialmente, define estrategia de crescimento, analisa metricas e ajusta a abordagem para maximizar resultados do negocio.',
+  },
+  {
+    question: 'Qual a diferenca entre social media e marketing de influencia?',
+    answer: 'Social media e a gestao profissional das redes sociais do negocio (posts, stories, reels). Marketing de influencia conecta a marca a criadores externos que promovem seus produtos. No crIAdores oferecemos ambos os servicos.',
+  },
+];
+
+const faqsMentoria = [
+  {
+    question: 'O que e a mentoria de marketing do crIAdores?',
+    answer: 'A mentoria e um acompanhamento personalizado onde um estrategista ensina o empreendedor a gerenciar seu proprio marketing. Inclui planejamento de conteudo, estrategia de redes sociais e analise de resultados.',
+  },
+  {
+    question: 'Mentoria ou contratar social media: qual escolher?',
+    answer: 'Se voce tem tempo e quer aprender, a mentoria e ideal. Se prefere delegar, o social media estrategico e a melhor opcao. Tambem oferecemos um combo com desconto de 22% que combina os dois servicos.',
+  },
+];
+
 const breadcrumbs = [
   { name: 'Home', url: 'https://www.criadores.app/' },
   { name: 'Perguntas Frequentes', url: 'https://www.criadores.app/perguntas-frequentes' },
@@ -79,8 +128,8 @@ const breadcrumbs = [
 export default function PerguntasFrequentesPage() {
   return (
     <>
-      {/* Dados Estruturados para SEO/AEO */}
-      <FAQPageSchema faqs={faqs} />
+      {/* Dados Estruturados para SEO/AEO - inclui FAQs gerais + segmentadas */}
+      <FAQPageSchema faqs={[...faqs, ...faqsMedicos, ...faqsAdvogados, ...faqsSocialMedia, ...faqsMentoria]} />
       <BreadcrumbSchema items={breadcrumbs} />
 
       {/* Header */}
@@ -169,6 +218,80 @@ export default function PerguntasFrequentesPage() {
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* FAQs por Segmento - AEO (featured snippets por vertical) */}
+          <div className="mt-20 space-y-16">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
+              Perguntas por Segmento
+            </h2>
+            <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">
+              Respostas especificas para cada area de atuacao
+            </p>
+
+            {/* Medicos */}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-lg">🏥</span>
+                Para Medicos e Clinicas
+              </h3>
+              <div className="space-y-6">
+                {faqsMedicos.map((faq, index) => (
+                  <div key={`med-${index}`} className="bg-white border border-green-200 rounded-xl p-8 hover:shadow-lg transition-shadow">
+                    <h4 className="text-lg font-bold text-gray-900 mb-3">{faq.question}</h4>
+                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Advogados */}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-lg">⚖️</span>
+                Para Advogados e Escritorios
+              </h3>
+              <div className="space-y-6">
+                {faqsAdvogados.map((faq, index) => (
+                  <div key={`adv-${index}`} className="bg-white border border-blue-200 rounded-xl p-8 hover:shadow-lg transition-shadow">
+                    <h4 className="text-lg font-bold text-gray-900 mb-3">{faq.question}</h4>
+                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Social Media */}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-lg">📱</span>
+                Sobre Social Media
+              </h3>
+              <div className="space-y-6">
+                {faqsSocialMedia.map((faq, index) => (
+                  <div key={`sm-${index}`} className="bg-white border border-purple-200 rounded-xl p-8 hover:shadow-lg transition-shadow">
+                    <h4 className="text-lg font-bold text-gray-900 mb-3">{faq.question}</h4>
+                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mentoria */}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-lg">🎯</span>
+                Sobre Mentoria
+              </h3>
+              <div className="space-y-6">
+                {faqsMentoria.map((faq, index) => (
+                  <div key={`ment-${index}`} className="bg-white border border-amber-200 rounded-xl p-8 hover:shadow-lg transition-shadow">
+                    <h4 className="text-lg font-bold text-gray-900 mb-3">{faq.question}</h4>
+                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* CTA Section */}

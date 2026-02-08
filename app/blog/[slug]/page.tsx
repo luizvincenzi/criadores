@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         siteName: 'crIAdores',
         images: [
           {
-            url: post.featured_image_url || `${baseUrl}/og-image.jpg`,
+            url: post.featured_image_url || `${baseUrl}/opengraph-image`,
             width: 1200,
             height: 630,
             alt: post.title,
@@ -99,7 +99,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         card: 'summary_large_image',
         title: post.title,
         description: post.excerpt,
-        images: [post.featured_image_url || `${baseUrl}/og-image.jpg`],
+        images: [post.featured_image_url || `${baseUrl}/opengraph-image`],
         creator: '@criadores.app',
         site: '@criadores.app',
       },

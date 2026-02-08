@@ -374,3 +374,59 @@ export function CollectionPageSchema({
 
   return <JsonLd data={data} id="collection-page-schema" />;
 }
+
+/**
+ * Schema.org SoftwareApplication para a plataforma
+ * GEO: Reforça identidade de entidade para motores generativos (ChatGPT, Gemini, etc.)
+ */
+export function SoftwareApplicationSchema() {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'crIAdores',
+    alternateName: 'Criadores App',
+    description: 'Plataforma que conecta negocios locais a criadores de conteudo autenticos. Gerencie campanhas de marketing com micro influenciadores que geram resultados reais.',
+    url: 'https://www.criadores.app',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'BRL',
+      lowPrice: '500',
+      offerCount: '3',
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Social Media Estrategico',
+          description: 'Estrategista de social media dedicado ao seu negocio com conteudo presencial e semanal.',
+          priceCurrency: 'BRL',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Mentoria de Marketing',
+          description: 'Mentoria personalizada para dominar o marketing digital do seu negocio.',
+          priceCurrency: 'BRL',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Campanhas com Criadores',
+          description: 'Campanhas de marketing com criadores de conteudo locais da sua regiao.',
+          priceCurrency: 'BRL',
+        },
+      ],
+    },
+    author: {
+      '@type': 'Organization',
+      name: 'crIAdores',
+      url: 'https://www.criadores.app',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '50',
+      bestRating: '5',
+    },
+  };
+
+  return <JsonLd data={data} id="software-application-schema" />;
+}

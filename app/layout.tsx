@@ -8,7 +8,7 @@ import GoogleAnalyticsPageTracker from "@/components/GoogleAnalyticsPageTracker"
 import GoogleAnalyticsVerifier from "@/components/GoogleAnalyticsVerifier";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import GoogleTagManagerNoScript from "@/components/GoogleTagManagerNoScript";
-import { OrganizationSchema, WebSiteSchema } from "@/components/seo/JsonLd";
+import { OrganizationSchema, WebSiteSchema, SoftwareApplicationSchema } from "@/components/seo/JsonLd";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 
 const inter = Inter({
@@ -145,6 +145,7 @@ export default function RootLayout({
         {/* Dados Estruturados JSON-LD para SEO/AEO/GEO */}
         <OrganizationSchema />
         <WebSiteSchema />
+        <SoftwareApplicationSchema />
 
         {/* Core Web Vitals Reporting */}
         <WebVitalsReporter />
