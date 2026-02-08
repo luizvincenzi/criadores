@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
-  title: 'criAvoz - Conecte-se com crIAdores',
-  description: 'Conecte seu negócio aos melhores criadores da sua região',
-  icons: {
-    icon: '/faviconcriadoresA3.png',
+  title: 'Fale com a crIAdores - Consultoria Gratuita',
+  description: 'Descubra como potencializar seu negocio com criadores de conteudo locais. Responda algumas perguntas e receba uma proposta personalizada em ate 24h.',
+  keywords: 'consultoria marketing gratuita, marketing digital empresas, criadores de conteudo, influenciadores locais, proposta marketing',
+  openGraph: {
+    title: 'Fale com a crIAdores - Consultoria Gratuita',
+    description: 'Descubra como potencializar seu negocio com criadores de conteudo locais.',
+    url: 'https://www.criadores.app/chatcriadores-home',
+    siteName: 'crIAdores',
+    locale: 'pt_BR',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://www.criadores.app/chatcriadores-home',
   },
 };
 
@@ -18,11 +27,11 @@ export default function CriavozLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div 
-      style={{ 
-        backgroundColor: '#f5f5f5', 
-        minHeight: '100vh', 
-        fontFamily: 'Onest, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' 
+    <div
+      style={{
+        backgroundColor: '#f5f5f5',
+        minHeight: '100vh',
+        fontFamily: 'Onest, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
       {children}

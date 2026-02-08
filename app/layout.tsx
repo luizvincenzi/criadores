@@ -79,20 +79,11 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     url: "https://www.criadores.app",
     siteName: "crIAdores",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo"
-      }
-    ]
   },
   twitter: {
     card: "summary_large_image",
     title: "crIAdores - Conectando Negócios Locais a Criadores de Conteúdo",
     description: "Plataforma que conecta negócios locais a criadores de conteúdo autênticos.",
-    images: ["/og-image.jpg"]
   },
   alternates: {
     canonical: "https://www.criadores.app"

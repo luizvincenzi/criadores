@@ -1,0 +1,38 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a2d47;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0b3553;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" />
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.03">
+    <line x1="0" y1="0" x2="1200" y2="630" stroke="white" stroke-width="0.5" />
+    <line x1="400" y1="0" x2="1200" y2="530" stroke="white" stroke-width="0.5" />
+    <line x1="800" y1="0" x2="1200" y2="430" stroke="white" stroke-width="0.5" />
+    <line x1="0" y1="200" x2="1000" y2="630" stroke="white" stroke-width="0.5" />
+    <line x1="0" y1="400" x2="600" y2="630" stroke="white" stroke-width="0.5" />
+  </g>
+
+  <!-- Logo text: crIAdores -->
+  <text x="600" y="280" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="88">
+    <tspan fill="#94a3b8" font-weight="300">cr</tspan><tspan fill="#ffffff" font-weight="700">IA</tspan><tspan fill="#94a3b8" font-weight="300">dores</tspan>
+  </text>
+
+  <!-- Divider line -->
+  <rect x="540" y="310" width="120" height="2" rx="1" fill="#94a3b8" opacity="0.3" />
+
+  <!-- Tagline -->
+  <text x="600" y="370" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="26" fill="#94a3b8" font-weight="300" letter-spacing="0.5">
+    Conectando empresas locais a criadores de conteudo
+  </text>
+
+  <!-- URL -->
+  <text x="600" y="540" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="18" fill="#64748b" font-weight="400" letter-spacing="1">
+    criadores.app
+  </text>
+</svg>

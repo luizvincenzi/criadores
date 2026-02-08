@@ -218,6 +218,7 @@ Use agentes específicos para tarefas especializadas (`.claude/agents/`):
 | `database` | Queries, migrations, schema, índices, platform_users |
 | `supabase-mcp` | Operações diretas no banco via MCP (debug, queries, migrations) |
 | `onboarding` | Fluxo completo de convite, ativacao, criacao de senha, liberacao de acesso (cross-project CRM + Plataforma) |
+| `seo` | SEO/AEO/GEO: metadata, schemas JSON-LD, sitemap, keywords, conversao, audit de paginas publicas |
 
 ## Referências Cruzadas com CRM
 

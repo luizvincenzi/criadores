@@ -1,0 +1,165 @@
+'use client';
+
+import { useState } from 'react';
+import { BlogPost } from '@/lib/supabase';
+
+interface BlogFilteredListProps {
+  posts: BlogPost[];
+  featuredPost: BlogPost | undefined;
+}
+
+const categories = [
+  { id: 'all', name: 'Todos os Posts', color: 'bg-gray-100 text-gray-800' },
+  { id: 'empresas', name: 'Para Empresas', color: 'bg-blue-100 text-[#0b3553]' },
+  { id: 'criadores', name: 'Para Criadores', color: 'bg-purple-100 text-purple-800' },
+  { id: 'ambos', name: 'Geral', color: 'bg-green-100 text-green-800' }
+];
+
+// Funcao para formatar data
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+};
+
+// Funcao para obter cor da categoria baseada no audience_target
+const getCategoryColor = (audience: string) => {
+  const colors: Record<string, string> = {
+    'EMPRESAS': 'bg-blue-100 text-[#0b3553]',
+    'CRIADORES': 'bg-purple-100 text-purple-800',
+    'AMBOS': 'bg-green-100 text-green-800'
+  };
+  return colors[audience] || 'bg-gray-100 text-gray-800';
+};
+
+// Funcao para obter nome da categoria
+const getCategoryName = (audience: string) => {
+  const names: Record<string, string> = {
+    'EMPRESAS': 'Para Empresas',
+    'CRIADORES': 'Para Criadores',
+    'AMBOS': 'Geral'
+  };
+  return names[audience] || 'Geral';
+};
+
+export default function BlogFilteredList({ posts, featuredPost }: BlogFilteredListProps) {
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const filteredPosts = selectedCategory === 'all'
+    ? posts
+    : posts.filter(post => {
+        if (selectedCategory === 'empresas') return post.audience_target === 'EMPRESAS' || post.audience_target === 'AMBOS';
+        if (selectedCategory === 'criadores') return post.audience_target === 'CRIADORES' || post.audience_target === 'AMBOS';
+        if (selectedCategory === 'ambos') return post.audience_target === 'AMBOS';
+        return false;
+      });
+
+  return (
+    <>
+      {/* Featured Post */}
+      {featuredPost && (
+        <div className="mb-16">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <div className="md:flex">
+              <div className="md:w-1/2">
+                <img
+                  src={featuredPost.featured_image_url || '/blog/default-image.jpg'}
+                  alt={featuredPost.featured_image_alt || featuredPost.title}
+                  className="w-full h-64 md:h-full object-cover"
+                />
+              </div>
+              <div className="md:w-1/2 p-8">
+                <div className="flex items-center mb-4">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(featuredPost.audience_target)}`}>
+                    {getCategoryName(featuredPost.audience_target)}
+                  </span>
+                  <span className="mx-2 text-gray-400">&bull;</span>
+                  <span className="text-gray-500 text-sm">{formatDate(featuredPost.published_at || '')}</span>
+                  <span className="mx-2 text-gray-400">&bull;</span>
+                  <span className="text-gray-500 text-sm">{featuredPost.read_time_minutes} min</span>
+                </div>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  {featuredPost.title}
+                </h2>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  {featuredPost.excerpt}
+                </p>
+                <a
+                  href={`/blog/${featuredPost.slug}`}
+                  className="inline-flex items-center text-[#0b3553] font-semibold hover:text-[#0d4a6b] transition-colors"
+                >
+                  Ler artigo completo
+                  <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Category Filter */}
+      <div className="mb-8">
+        <div className="flex flex-wrap gap-3 justify-center">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category.id)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                selectedCategory === category.id
+                  ? 'bg-[#0b3553] text-white'
+                  : `${category.color} hover:opacity-80`
+              }`}
+            >
+              {category.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Posts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredPosts.map((post) => (
+          <article key={post.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <img
+              src={post.featured_image_url || '/blog/default-image.jpg'}
+              alt={post.featured_image_alt || post.title}
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-6">
+              <div className="flex items-center mb-3">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.audience_target)}`}>
+                  {getCategoryName(post.audience_target)}
+                </span>
+                <span className="mx-2 text-gray-400">&bull;</span>
+                <span className="text-gray-500 text-xs">{formatDate(post.published_at || '')}</span>
+                <span className="mx-2 text-gray-400">&bull;</span>
+                <span className="text-gray-500 text-xs">{post.read_time_minutes} min</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
+                {post.title}
+              </h3>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                {post.excerpt}
+              </p>
+              <a
+                href={`/blog/${post.slug}`}
+                className="inline-flex items-center text-[#0b3553] font-medium hover:text-[#0d4a6b] transition-colors text-sm"
+              >
+                Ler mais
+                <svg className="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </>
+  );
+}
