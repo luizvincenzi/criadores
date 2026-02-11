@@ -97,31 +97,64 @@ export async function POST(request: NextRequest) {
     // Verificar se o usuário tem senha definida (já completou onboarding)
     if (!platformUser.password_hash) {
       console.log('[Forgot Password] Usuário sem senha (nunca fez onboarding):', normalizedEmail);
-      // Retornar mensagem genérica por segurança
       return NextResponse.json({
         success: true,
         message: 'Se o email estiver cadastrado, você receberá um link para redefinir sua senha.'
       });
     }
 
-    // Verificar se existe um auth user no Supabase para esse email
-    const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1
-    });
+    // Garantir que existe um auth user no Supabase para esse email
+    // (necessário para que resetPasswordForEmail funcione)
+    let authUserExists = false;
 
-    // Buscar o auth user pelo email
-    let authUser = null;
-    if (!authError && authUsers?.users) {
-      authUser = authUsers.users.find(u => u.email?.toLowerCase() === normalizedEmail);
+    try {
+      // Buscar auth users (listUsers com perPage 1000 para buscar o email)
+      // NOTE: listUsers com page/perPage não filtra por email, então usamos um approach diferente
+      const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(
+        platformUser.id // Tentar com o ID do platform_user (pode não ser o mesmo)
+      );
+
+      if (getUserError || !userData?.user) {
+        // Tentar buscar por email via listUsers
+        console.log('[Forgot Password] Buscando auth user por email...');
+
+        // Usar a API admin para listar e filtrar
+        let page = 1;
+        let found = false;
+
+        while (!found && page <= 10) {
+          const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+            page,
+            perPage: 100
+          });
+
+          if (listError || !listData?.users?.length) break;
+
+          const matchingUser = listData.users.find(
+            u => u.email?.toLowerCase() === normalizedEmail
+          );
+
+          if (matchingUser) {
+            found = true;
+            authUserExists = true;
+            console.log('[Forgot Password] Auth user encontrado:', matchingUser.id);
+          }
+
+          if (listData.users.length < 100) break; // Última página
+          page++;
+        }
+      } else {
+        authUserExists = true;
+      }
+    } catch (err) {
+      console.warn('[Forgot Password] Erro ao buscar auth user:', err);
     }
 
-    // Se não tiver auth user, criar um via invite (para poder usar resetPasswordForEmail)
-    if (!authUser) {
+    // Se não tiver auth user, criar um para poder enviar o email de recuperação
+    if (!authUserExists) {
       console.log('[Forgot Password] Criando auth user para:', normalizedEmail);
 
-      // Usar signUp para criar o auth user (com senha temporária)
-      const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
+      const { error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: normalizedEmail,
         email_confirm: true,
         user_metadata: {
@@ -130,47 +163,66 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      if (signUpError) {
-        // Se o usuário já existe no auth, é ok
-        if (!signUpError.message?.includes('already been registered')) {
-          console.error('[Forgot Password] Erro ao criar auth user:', signUpError);
+      if (createError) {
+        // "User already registered" é ok - significa que o auth user existe
+        if (createError.message?.includes('already been registered') ||
+            createError.message?.includes('already exists')) {
+          console.log('[Forgot Password] Auth user já existe (ok)');
+        } else {
+          console.error('[Forgot Password] Erro ao criar auth user:', createError);
         }
+      } else {
+        console.log('[Forgot Password] Auth user criado com sucesso');
       }
     }
 
-    // Enviar email de recuperação via Supabase Auth
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.criadores.app';
+    // CORREÇÃO CRÍTICA: Usar resetPasswordForEmail() que REALMENTE ENVIA o email
+    // (generateLink() apenas gera o link mas NÃO envia email)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://criadores.app';
+    const redirectUrl = `${appUrl}/auth/callback`;
 
-    const { error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
-      email: normalizedEmail,
-      options: {
-        redirectTo: `${appUrl}/auth/callback`
+    console.log('[Forgot Password] Enviando email de recuperação via resetPasswordForEmail...');
+    console.log('[Forgot Password] Redirect URL:', redirectUrl);
+
+    const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
+      normalizedEmail,
+      {
+        redirectTo: redirectUrl
       }
-    });
+    );
 
     if (resetError) {
-      console.error('[Forgot Password] Erro ao gerar link de recuperação:', resetError);
+      console.error('[Forgot Password] Erro ao enviar email de recuperação:', resetError);
+      console.error('[Forgot Password] Error details:', JSON.stringify(resetError));
 
-      // Fallback: tentar resetPasswordForEmail
-      const { error: fallbackError } = await supabaseAdmin.auth.resetPasswordForEmail(
-        normalizedEmail,
-        {
-          redirectTo: `${appUrl}/auth/callback`
+      // Tentar novamente sem service_role (usando anon key)
+      // Alguns projetos Supabase bloqueiam resetPasswordForEmail via service_role
+      try {
+        const supabaseAnon = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+
+        console.log('[Forgot Password] Tentando fallback com anon key...');
+
+        const { error: fallbackError } = await supabaseAnon.auth.resetPasswordForEmail(
+          normalizedEmail,
+          {
+            redirectTo: redirectUrl
+          }
+        );
+
+        if (fallbackError) {
+          console.error('[Forgot Password] Fallback também falhou:', fallbackError);
+        } else {
+          console.log('[Forgot Password] Email enviado com sucesso via fallback (anon key)');
         }
-      );
-
-      if (fallbackError) {
-        console.error('[Forgot Password] Erro no fallback:', fallbackError);
-        // Ainda assim retornar sucesso por segurança
-        return NextResponse.json({
-          success: true,
-          message: 'Se o email estiver cadastrado, você receberá um link para redefinir sua senha.'
-        });
+      } catch (fallbackErr) {
+        console.error('[Forgot Password] Erro no fallback:', fallbackErr);
       }
+    } else {
+      console.log('[Forgot Password] Email de recuperação enviado com sucesso para:', normalizedEmail);
     }
-
-    console.log('[Forgot Password] Link de recuperação enviado para:', normalizedEmail);
 
     return NextResponse.json({
       success: true,
