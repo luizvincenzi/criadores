@@ -141,12 +141,14 @@ export default function SetPasswordPage() {
         }
       });
 
-      // 3. Atualizar platform_users via API
+      // 3. Criar ou atualizar platform_users via API
+      // IMPORTANTE: Esta API agora cria o registro se não existir,
+      // usando os dados do Supabase Auth (user_metadata)
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session?.user?.email) {
-        console.log('💾 [Senha] Atualizando platform_users...');
-        
+        console.log('💾 [Senha] Sincronizando platform_users (criar ou atualizar)...');
+
         try {
           const response = await fetch('/api/platform/auth/update-password-hash', {
             method: 'POST',
@@ -157,13 +159,17 @@ export default function SetPasswordPage() {
             })
           });
 
+          const responseData = await response.json();
+
           if (response.ok) {
-            console.log('✅ [Senha] platform_users atualizado!');
+            console.log('✅ [Senha] platform_users sincronizado!', responseData.message);
           } else {
-            console.warn('⚠️ [Senha] Erro ao atualizar platform_users (não crítico)');
+            console.error('❌ [Senha] Erro ao sincronizar platform_users:', responseData.error);
+            // Não bloquear o fluxo - senha já foi salva no Supabase Auth
+            // O usuário pode solicitar ajuda ao admin se o login falhar
           }
         } catch (err) {
-          console.warn('⚠️ [Senha] Erro ao atualizar platform_users:', err);
+          console.error('❌ [Senha] Erro ao sincronizar platform_users:', err);
         }
       }
 
