@@ -41,18 +41,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. PRIMEIRO: Obter o ID do usuário do token
-    console.log('🔐 [Set Password] Decodificando token para obter user ID...');
+    // 1. PRIMEIRO: Validar o token via Supabase Auth (verifica assinatura JWT)
+    console.log('🔐 [Set Password] Validando token via Supabase Auth...');
 
     let userId: string;
     try {
-      const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      userId = payload.sub;
-      console.log('📋 [Set Password] User ID do token:', userId);
+      // SEGURANCA: Usar getUser() que VERIFICA a assinatura JWT no servidor
+      // NÃO usar atob() pois não verifica a assinatura
+      const { data: { user: tokenUser }, error: tokenError } = await supabaseAdmin.auth.getUser(accessToken);
+
+      if (tokenError || !tokenUser) {
+        console.error('❌ [Set Password] Token inválido ou expirado:', tokenError?.message);
+        return NextResponse.json(
+          { success: false, error: 'Token inválido ou expirado. Solicite um novo convite.' },
+          { status: 401 }
+        );
+      }
+
+      userId = tokenUser.id;
+
+      // Verificar que o email do token corresponde ao email fornecido
+      if (tokenUser.email?.toLowerCase() !== email.toLowerCase()) {
+        console.error('❌ [Set Password] Email do token não corresponde:', {
+          tokenEmail: tokenUser.email,
+          requestEmail: email
+        });
+        return NextResponse.json(
+          { success: false, error: 'Token não corresponde ao email fornecido' },
+          { status: 403 }
+        );
+      }
+
+      console.log('✅ [Set Password] Token validado com sucesso. User ID:', userId);
     } catch (err) {
-      console.error('❌ [Set Password] Erro ao decodificar token:', err);
+      console.error('❌ [Set Password] Erro ao validar token:', err);
       return NextResponse.json(
-        { success: false, error: 'Token inválido' },
+        { success: false, error: 'Erro ao validar token' },
         { status: 400 }
       );
     }

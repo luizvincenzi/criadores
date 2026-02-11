@@ -4,6 +4,13 @@ import { verifyPassword } from '@/lib/auth';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
+/**
+ * Endpoint de login para usuários da tabela `users` (CRM interno).
+ *
+ * SEGURANCA: Apenas autenticação via bcrypt password_hash.
+ * Senhas hardcoded foram REMOVIDAS em Fev/2026 por vulnerabilidade crítica.
+ * Todos os usuários devem ter password_hash definido.
+ */
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
@@ -16,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🔐 Tentativa de login para:', email);
+    console.log('🔐 [Users Login] Tentativa de login para:', email);
 
     // Buscar usuário no Supabase
     const { data: user, error } = await supabase
@@ -31,18 +38,27 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !user) {
-      console.log('❌ Usuário não encontrado:', email);
+      console.log('❌ [Users Login] Usuário não encontrado:', email);
       return NextResponse.json(
         { error: 'Email ou senha incorretos' },
         { status: 401 }
       );
     }
 
-    // Para o usuário admin criado na migração, usar senha padrão
-    const isValidPassword = await validatePassword(email, password, user);
+    // SEGURANCA: Apenas validação via bcrypt password_hash
+    if (!user.password_hash) {
+      console.warn('⚠️ [Users Login] Usuário sem password_hash:', email);
+      return NextResponse.json(
+        { error: 'Conta não configurada. Solicite um novo convite ao administrador.' },
+        { status: 401 }
+      );
+    }
 
-    if (!isValidPassword) {
-      console.log('❌ Senha incorreta para:', email);
+    console.log(`🔐 [Users Login] Validando senha com bcrypt para: ${email}`);
+    const isValid = await verifyPassword(password, user.password_hash);
+
+    if (!isValid) {
+      console.log('❌ [Users Login] Senha incorreta para:', email);
       return NextResponse.json(
         { error: 'Email ou senha incorretos' },
         { status: 401 }
@@ -55,12 +71,7 @@ export async function POST(request: NextRequest) {
       .update({ last_login: new Date().toISOString() })
       .eq('id', user.id);
 
-    console.log('✅ Login realizado com sucesso:', email);
-
-    // CORREÇÃO: Forçar role correto baseado no email
-    const correctedRole = user.email === 'comercial@criadores.app' ? 'creator' : user.role;
-
-    console.log('🔍 [Supabase Login] Role original:', user.role, 'Role corrigido:', correctedRole);
+    console.log('✅ [Users Login] Login realizado com sucesso:', email);
 
     // Retornar dados do usuário (sem senha)
     return NextResponse.json({
@@ -69,8 +80,8 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        role: correctedRole, // Usar role corrigido
-        roles: user.roles || [correctedRole], // Incluir array de roles
+        role: user.role,
+        roles: user.roles || [user.role],
         business_id: user.business_id,
         creator_id: user.creator_id,
         managed_businesses: user.managed_businesses,
@@ -81,56 +92,10 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Erro na API de login:', error);
+    console.error('❌ [Users Login] Erro na API de login:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
     );
-  }
-}
-
-async function validatePassword(email: string, password: string, user: any): Promise<boolean> {
-  try {
-    // Se o usuário tem password_hash, usar bcrypt para validar
-    if (user.password_hash) {
-      console.log(`🔐 Validando senha com bcrypt para: ${email}`);
-      const isValid = await verifyPassword(password, user.password_hash);
-      console.log(`${isValid ? '✅' : '❌'} Validação de senha com bcrypt para usuário: ${email}`);
-      return isValid;
-    }
-
-    // Fallback: Credenciais específicas dos usuários (para compatibilidade com usuários antigos)
-    const userCredentials = [
-      // Usuários admin originais
-      { email: 'luizvincenzi@gmail.com', password: 'admin123' },
-      { email: 'connectcityops@gmail.com', password: 'admin2345' },
-      { email: 'pgabrieldavila@gmail.com', password: 'admin2345' },
-      { email: 'marloncpascoal@gmail.com', password: 'admin2345' },
-      // Novos usuários do sistema
-      { email: 'comercial@criadores.app', password: '2#Todoscria' },
-      { email: 'criadores.ops@gmail.com', password: '1#Criamudar' },
-      { email: 'test.ops@criadores.app', password: 'TestOps2024!' },
-      // Usuários business_owner
-      { email: 'financeiro.brooftop@gmail.com', password: '1#Boussolecria' },
-      // Criadores e Estrategistas
-      { email: 'pietramantovani98@gmail.com', password: '2#Todoscria' },
-      { email: 'marilia12cavalheiro@gmail.com', password: '2#Todoscria' },
-      { email: 'juliacarolinasan83@gmail.com', password: '2#Todoscria' }
-    ];
-
-    // Verificar se é um usuário conhecido com credenciais específicas
-    const knownUser = userCredentials.find(cred => cred.email === email.toLowerCase());
-    if (knownUser) {
-      const isValidPassword = password === knownUser.password;
-      console.log(`${isValidPassword ? '✅' : '❌'} Validação de senha para usuário: ${email}`);
-      return isValidPassword;
-    }
-
-    // Se não é usuário conhecido e não tem password_hash, rejeitar
-    console.log(`❌ Usuário não autorizado: ${email}`);
-    return false;
-  } catch (error) {
-    console.error(`❌ Erro ao validar senha para ${email}:`, error);
-    return false;
   }
 }

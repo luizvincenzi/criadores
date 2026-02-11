@@ -13,6 +13,26 @@ const supabaseAdmin = createClient(
   }
 );
 
+// Rate limiting simples para resend-invite (max 3 por email por hora)
+const resendLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function checkResendLimit(email: string): boolean {
+  const now = Date.now();
+  const record = resendLimitMap.get(email);
+
+  if (!record || now > record.resetTime) {
+    resendLimitMap.set(email, { count: 1, resetTime: now + 60 * 60 * 1000 }); // 1h
+    return true;
+  }
+
+  if (record.count >= 3) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json();
@@ -21,6 +41,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Email é obrigatório' },
         { status: 400 }
+      );
+    }
+
+    // Rate limiting: máximo 3 reenvios por email por hora
+    if (!checkResendLimit(email.toLowerCase())) {
+      console.warn('⚠️ [Resend Invite] Rate limit excedido para:', email);
+      return NextResponse.json(
+        { success: false, error: 'Muitas tentativas. Aguarde 1 hora antes de tentar novamente.' },
+        { status: 429 }
       );
     }
 

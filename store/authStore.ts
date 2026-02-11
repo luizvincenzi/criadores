@@ -3,6 +3,27 @@ import { persist } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase';
 import { UserRole, UserStatus, AuthSession, canAccessBusiness } from '@/lib/auth-types';
 
+// Helper: Sincronizar sessão com cookie HTTP para que o middleware possa verificar
+function syncSessionCookie(user: { email: string; role: string } | null, expiresAt?: string) {
+  if (typeof document === 'undefined') return; // SSR guard
+
+  if (user) {
+    const sessionData = JSON.stringify({
+      authenticated: true,
+      email: user.email,
+      role: user.role,
+      expires_at: expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    });
+    // Cookie httpOnly=false para que o JS possa escrevê-lo, mas o middleware pode lê-lo
+    // Secure=true em produção, SameSite=Lax para navegação normal
+    const isSecure = window.location.protocol === 'https:';
+    document.cookie = `criadores-session=${encodeURIComponent(sessionData)}; path=/; max-age=${24 * 60 * 60}${isSecure ? '; Secure' : ''}; SameSite=Lax`;
+  } else {
+    // Remover cookie
+    document.cookie = 'criadores-session=; path=/; max-age=0';
+  }
+}
+
 // Definir interface User aqui para evitar dependência circular
 interface User {
   id: string;
@@ -69,9 +90,9 @@ export const useAuthStore = create<AuthStore>()(
 
           let loginData = await response.json();
 
-          // Se falhar em platform_users, tentar em users (fallback)
+          // Se falhar em platform_users, tentar em users (tabela de CRM interno - apenas bcrypt)
           if (!loginData.success) {
-            console.log('⚠️ [crIAdores] Não encontrado em platform_users, tentando users...');
+            console.log('⚠️ [crIAdores] Não encontrado em platform_users, tentando users (CRM)...');
             response = await fetch('/api/supabase/auth/login', {
               method: 'POST',
               headers: {
@@ -210,6 +231,9 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
 
+          // Sincronizar cookie de sessão para o middleware
+          syncSessionCookie(user, session.expires_at);
+
           return { success: true };
 
         } catch (error) {
@@ -225,6 +249,9 @@ export const useAuthStore = create<AuthStore>()(
       // 🚪 LOGOUT
       logout: async () => {
         console.log('🚪 [crIAdores] Fazendo logout...');
+
+        // Remover cookie de sessão
+        syncSessionCookie(null);
 
         set({
           user: null,
@@ -258,6 +285,9 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: true,
           error: null,
         });
+
+        // Sincronizar cookie de sessão para o middleware
+        syncSessionCookie(user, session.expires_at);
       },
 
       // 🔐 SET IS AUTHENTICATED

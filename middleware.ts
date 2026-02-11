@@ -246,28 +246,37 @@ export function middleware(request: NextRequest) {
   }
 
   if (isProtectedRoute) {
-    // Temporariamente desabilitar verificação do middleware para debug
-    console.log('🔒 Middleware: Rota protegida detectada, mas verificação desabilitada para debug:', pathname);
-    // TODO: Reabilitar após corrigir o problema de persistência
-    /*
-    const authCookie = request.cookies.get('auth-storage');
+    // Verificar autenticação via cookie 'criadores-session'
+    // Este cookie é sincronizado pelo authStore após login/logout
+    const sessionCookie = request.cookies.get('criadores-session');
 
-    if (!authCookie) {
-      console.log('🔒 Middleware: Rota protegida sem autenticação, redirecionando para login');
+    if (!sessionCookie?.value) {
+      console.log('🔒 Middleware: Rota protegida sem sessão, redirecionando para login:', pathname);
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
     try {
-      const authData = JSON.parse(authCookie.value);
-      if (!authData.state?.isAuthenticated || !authData.state?.user) {
-        console.log('🔒 Middleware: Dados de autenticação inválidos, redirecionando para login');
+      const sessionData = JSON.parse(sessionCookie.value);
+
+      if (!sessionData.authenticated || !sessionData.email) {
+        console.log('🔒 Middleware: Sessão inválida, redirecionando para login');
         return NextResponse.redirect(new URL('/login', request.url));
       }
+
+      // Verificar se a sessão expirou
+      if (sessionData.expires_at) {
+        const expiresAt = new Date(sessionData.expires_at);
+        if (new Date() > expiresAt) {
+          console.log('🔒 Middleware: Sessão expirada, redirecionando para login');
+          return NextResponse.redirect(new URL('/login', request.url));
+        }
+      }
+
+      console.log('✅ Middleware: Sessão válida para:', sessionData.email, 'Rota:', pathname);
     } catch (error) {
-      console.log('🔒 Middleware: Erro ao parsear dados de autenticação, redirecionando para login');
+      console.log('🔒 Middleware: Erro ao parsear sessão, redirecionando para login');
       return NextResponse.redirect(new URL('/login', request.url));
     }
-    */
   }
 
   // Rate limiting para login

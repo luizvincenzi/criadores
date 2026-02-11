@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Configuração direta do Supabase
-const supabaseUrl = 'https://ecbhcalmulaiszslwhqz.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjYmhjYWxtdWxhaXN6c2x3aHF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1ODAyNTYsImV4cCI6MjA2ODE1NjI1Nn0.5GBfnOQjb64Qhw0UF5HtTNROlu4fpJzbWSZmeACcjMA';
+// SEGURANCA: Usar variáveis de ambiente (nunca hardcodar chaves)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ [SUPABASE] NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY são obrigatórios');
+}
 
 console.log('🔧 [SUPABASE] Configurando cliente Supabase...');
 

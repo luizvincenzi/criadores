@@ -8,13 +8,28 @@ import {
 /**
  * API para limpeza e otimização de dados
  * Remove entradas sem IDs e consolida dados baseado em IDs únicos
+ *
+ * SEGURANCA: Requer CRON_SECRET no header Authorization.
+ * Apenas chamadas autenticadas (admin/cron) podem executar.
  */
 export async function POST(request: NextRequest) {
   try {
+    // SEGURANCA: Verificar autorização via CRON_SECRET
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret || !authHeader || authHeader !== `Bearer ${cronSecret}`) {
+      console.warn('⚠️ [cleanup-data] Tentativa não autorizada de limpeza de dados');
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { action, dryRun = true } = body;
 
-    console.log(`🧹 Iniciando limpeza de dados: ${action}, DryRun: ${dryRun}`);
+    console.log(`🧹 Iniciando limpeza de dados (autorizado): ${action}, DryRun: ${dryRun}`);
 
     const sheets = await createGoogleSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
