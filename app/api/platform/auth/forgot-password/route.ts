@@ -13,7 +13,16 @@ const supabaseAdmin = createClient(
   }
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy init: Resend só é instanciado na primeira chamada (evita erro no build sem env var)
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error('RESEND_API_KEY não configurada');
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -193,7 +202,7 @@ export async function POST(request: NextRequest) {
     // Enviar email via Resend (mesmo serviço usado para convites - funciona!)
     const userName = platformUser.full_name || normalizedEmail.split('@')[0];
 
-    const { data: emailData, error: emailError } = await resend.emails.send({
+    const { data: emailData, error: emailError } = await getResend().emails.send({
       from: 'crIAdores <noreply@criadores.digital>',
       to: [normalizedEmail],
       subject: 'Redefinição de senha - crIAdores',
