@@ -220,8 +220,32 @@ Use agentes específicos para tarefas especializadas (`.claude/agents/`):
 | `frontend` | Componentes React, UI/UX, páginas, responsividade |
 | `database` | Queries, migrations, schema, índices, platform_users |
 | `supabase-mcp` | Operações diretas no banco via MCP (debug, queries, migrations) |
+| `client-access-manager` | **Acesso cross-platform**: managed_businesses[], sync auth↔platform_users, convites, login, diagnostico de acesso |
 | `onboarding` | Fluxo completo de convite, ativacao, criacao de senha, liberacao de acesso (cross-project CRM + Plataforma) |
 | `seo` | SEO/AEO/GEO completo: metadata, 8 schemas JSON-LD, sitemap, keywords, OG images, RSS, robots.txt, FAQ schemas, GEO para LLMs, audit de paginas publicas. REGRA: nunca incluir precos. Foco: social media estrategico presencial |
+
+## REGRA CRITICA: managed_businesses[] (Fev/2026)
+
+O campo `platform_users.managed_businesses` (UUID[]) é a **fonte de verdade** para definir quais businesses um strategist pode ver no portal.
+
+**Se este array estiver vazio, o strategist faz login mas NAO ve nenhum business!**
+
+### Quando Preencher
+SEMPRE que um strategist for vinculado a um business no CRM:
+1. Ao atribuir `businesses.strategist_id = creator_id`
+2. Ao criar `strategist_contracts` com status `active`
+3. Ao enviar convite para creator/strategist
+
+### API de Diagnóstico (no CRM)
+```bash
+# Verificar estado completo de acesso
+curl "https://criadores.digital/api/debug/creator-access?creatorId=UUID&businessId=UUID"
+
+# Corrigir managed_businesses automaticamente
+curl -X POST https://criadores.digital/api/debug/fix-creator-access \
+  -H "Content-Type: application/json" \
+  -d '{"creatorId": "UUID"}'
+```
 
 ## Referências Cruzadas com CRM
 

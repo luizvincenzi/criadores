@@ -15,13 +15,13 @@ Agente especialista no sistema de liberacao de acesso de clientes externos (busi
 
 ## ARQUITETURA DOS DOIS PROJETOS
 
-### CRM (criadores.digital) - Repositorio: `/Users/luizvincenzi/Documents/Criadores/crmcriadores/`
+### CRM (criadores.digital) - Este repositorio
 - Gerencia convites, permissoes, status de acesso
 - Envia emails de convite via Resend
 - Pagina `/senha` onde cliente cria a senha
 - APIs que o portal consome (update-access-status, sync-password)
 
-### Portal (criadores.app) - Este repositorio
+### Portal (criadores.app) - Repositorio separado: `/Users/luizvincenzi/Documents/Criadores/criadores/`
 - Login proprio usando `platform_users` (bcrypt) - NAO usa Supabase Auth para login
 - Fallback para tabela `users` (SOMENTE bcrypt - senhas hardcoded REMOVIDAS em Fev/2026)
 - AuthStore (Zustand) persiste sessao em localStorage (`criadores-auth-storage`)
@@ -104,7 +104,7 @@ null ──→ pending (convite enviado)
 |----------|--------|------|--------|--------|
 | `/api/platform/sync-password` | POST | Verificacao userId+timestamp | ATIVO | Sincroniza senha para platform_users.password_hash |
 
-## ENDPOINTS DO PORTAL (criadores.app) - Este repo
+## ENDPOINTS DO PORTAL (criadores.app)
 
 | Endpoint | Auth | Funcao |
 |----------|------|--------|
@@ -168,7 +168,7 @@ Origens permitidas: criadores.app, criadores.digital, localhost:3000
 7. Cliente faz login em criadores.app:
    a. POST /api/platform/auth/login → busca platform_users → bcrypt.compare
    b. Retorna: user.business_id, user.role, user.email
-   c. AuthStore salva em localStorage (criadores-auth-storage) + cookie (criadores-session)
+   c. AuthStore salva em localStorage (criadores-auth-storage)
    d. Dashboard carrega dados filtrados por business_id
 ```
 
@@ -281,9 +281,9 @@ created_at       TIMESTAMP
 1. **Rate limiting in-memory** (reseta no cold start da Vercel)
    - Solucao: Migrar para Redis/Upstash
 
-2. **Email do creator usa template padrao Supabase** (deveria usar Resend customizado)
+3. **Email do creator usa template padrao Supabase** (deveria usar Resend customizado)
 
-3. **localStorage nunca expira** (sessao de 24h so checada client-side + middleware)
+4. **localStorage nunca expira** (sessao de 24h so checada client-side + middleware)
 
 ## SCRIPTS DE MANUTENCAO
 
@@ -345,40 +345,40 @@ FROM creators WHERE platform_auth_user_id = 'uuid-do-auth-user';
 
 ## ARQUIVOS-CHAVE
 
-### CRM (criadores.digital) - Repo separado
+### CRM (criadores.digital) - Este repo
 ```
-/crmcriadores/app/api/businesses/send-custom-invitation/route.ts  -- Envio de convite principal
-/crmcriadores/app/api/businesses/update-access-status/route.ts     -- Dual auth (CRM + portal)
-/crmcriadores/app/api/businesses/revoke-access/route.ts            -- Revogacao de acesso
-/crmcriadores/app/api/businesses/reset-password/route.ts           -- Reset de senha
-/crmcriadores/app/api/businesses/check-invitation-status/route.ts  -- Status do convite
-/crmcriadores/app/api/businesses/cancel-invitation/route.ts        -- Cancelar convite
-/crmcriadores/app/api/businesses/[id]/team/route.ts                -- Multi-user
-/crmcriadores/app/api/creators/send-invitation/route.ts            -- Convite creator (requireAdmin)
-/crmcriadores/app/api/platform/sync-password/route.ts              -- Sync senha → platform_users
-/crmcriadores/app/senha/page.tsx                                   -- Pagina criacao de senha
-/crmcriadores/app/auth/create-password/page.tsx                    -- Duplicata (deprecated)
-/crmcriadores/components/InvitationManagementPanel.tsx              -- Painel de gestao
-/crmcriadores/components/TeamManagementPanel.tsx                    -- Gestao multi-user
-/crmcriadores/lib/auth/middleware.ts                               -- requireAdmin, requireAuth
-/crmcriadores/hooks/useAuthenticatedFetch.ts                       -- Adiciona x-user-email
-/crmcriadores/lib/utils/rate-limit.ts                              -- Rate limiting in-memory
-/crmcriadores/scripts/delete-user-by-email.ts                      -- Cleanup script
-/crmcriadores/scripts/force-delete-user.ts                         -- Force cleanup script
+/app/api/businesses/send-custom-invitation/route.ts  -- Envio de convite principal
+/app/api/businesses/update-access-status/route.ts     -- Dual auth (CRM + portal)
+/app/api/businesses/revoke-access/route.ts            -- Revogacao de acesso
+/app/api/businesses/reset-password/route.ts           -- Reset de senha
+/app/api/businesses/check-invitation-status/route.ts  -- Status do convite
+/app/api/businesses/cancel-invitation/route.ts        -- Cancelar convite
+/app/api/businesses/[id]/team/route.ts                -- Multi-user
+/app/api/creators/send-invitation/route.ts            -- Convite creator (requireAdmin)
+/app/api/platform/sync-password/route.ts              -- Sync senha → platform_users
+/app/senha/page.tsx                                   -- Pagina criacao de senha
+/app/auth/create-password/page.tsx                    -- Duplicata (deprecated)
+/components/InvitationManagementPanel.tsx              -- Painel de gestao
+/components/TeamManagementPanel.tsx                    -- Gestao multi-user
+/lib/auth/middleware.ts                               -- requireAdmin, requireAuth
+/hooks/useAuthenticatedFetch.ts                       -- Adiciona x-user-email
+/lib/utils/rate-limit.ts                              -- Rate limiting in-memory
+/scripts/delete-user-by-email.ts                      -- Cleanup script
+/scripts/force-delete-user.ts                         -- Force cleanup script
 ```
 
-### Portal (criadores.app) - Este repo
+### Portal (criadores.app) - Repo separado
 ```
-/app/login/page.tsx                         -- Login page
-/app/onboarding/page.tsx                    -- Onboarding creators
-/app/api/platform/auth/login/route.ts       -- Login via platform_users (bcrypt)
-/app/api/supabase/auth/login/route.ts       -- Fallback (SOMENTE bcrypt, sem hardcoded)
-/app/api/platform/auth/set-password/route.ts -- Define senha onboarding (JWT verificado)
-/store/authStore.ts                         -- Zustand auth store + cookie sync
-/lib/auth.ts                                -- hashPassword, verifyPassword (bcrypt 12)
-/lib/auth-types.ts                          -- Roles e permissoes
-/lib/client-config.ts                       -- Config do modo cliente
-/middleware.ts                              -- Rate limiting + security headers + auth check
+/criadores/app/login/page.tsx                         -- Login page
+/criadores/app/onboarding/page.tsx                    -- Onboarding creators
+/criadores/app/api/platform/auth/login/route.ts       -- Login via platform_users (bcrypt)
+/criadores/app/api/supabase/auth/login/route.ts       -- Fallback (SOMENTE bcrypt, sem hardcoded)
+/criadores/app/api/platform/auth/set-password/route.ts -- Define senha onboarding (JWT verificado)
+/criadores/store/authStore.ts                         -- Zustand auth store + cookie sync
+/criadores/lib/auth.ts                                -- hashPassword, verifyPassword (bcrypt 12)
+/criadores/lib/auth-types.ts                          -- Roles e permissoes
+/criadores/lib/client-config.ts                       -- Config do modo cliente
+/criadores/middleware.ts                              -- Rate limiting + security headers
 ```
 
 ### PRD e Docs
@@ -387,13 +387,85 @@ FROM creators WHERE platform_auth_user_id = 'uuid-do-auth-user';
 /docs/USER_ROLES.md                                   -- Sistema de roles
 ```
 
+## REGRA CRITICA: managed_businesses[] (Fev/2026)
+
+O campo `platform_users.managed_businesses` (UUID[]) define quais businesses um strategist pode ver no portal criadores.app. **Se este array estiver vazio, o strategist faz login mas NAO ve nenhum business.**
+
+### Como Funciona
+
+```
+platform_users.managed_businesses = ['uuid-business-1', 'uuid-business-2']
+                                        ↓
+Portal criadores.app → GET /api/strategist/businesses
+                                        ↓
+Busca businesses por 3 fontes (dedup):
+  1. managed_businesses[] do query param (client-sent)
+  2. platform_users.managed_businesses[] do banco
+  3. businesses.strategist_id = creator_id (legacy fallback)
+```
+
+### Quando Preencher managed_businesses
+
+SEMPRE que um strategist for vinculado a um business:
+1. **Ao atribuir strategist a business** (`businesses.strategist_id = creator_id`)
+2. **Ao criar strategist_contract** com status `active`
+3. **Ao enviar convite para creator/strategist**
+
+### Como Preencher (via SQL)
+
+```sql
+-- Adicionar business ao managed_businesses
+UPDATE platform_users
+SET managed_businesses = array_append(
+  COALESCE(managed_businesses, '{}'),
+  'uuid-do-business'::UUID
+),
+updated_at = NOW()
+WHERE creator_id = 'uuid-do-creator';
+```
+
+### Como Preencher (via API de debug)
+
+```bash
+curl -X POST https://criadores.digital/api/debug/fix-creator-access \
+  -H "Content-Type: application/json" \
+  -d '{"creatorId": "uuid-do-creator"}'
+```
+
+Este endpoint busca automaticamente todos businesses vinculados (via `strategist_id` e `strategist_contracts`) e popula `managed_businesses`.
+
+### Diagnóstico de Acesso
+
+```bash
+# Verificar estado completo de um creator
+curl "https://criadores.digital/api/debug/creator-access?creatorId=UUID&businessId=UUID"
+```
+
+Retorna: creator data, auth user, platform_user, external_user, linked businesses, contracts, e diagnostico automatico.
+
+## TRIGGERS EM auth.users (Migration 503)
+
+Existem 2 triggers ativos em `auth.users` que podem causar "Database error granting user":
+
+1. **`on_auth_user_created`** → `sync_auth_user_to_platform_users()` (AFTER INSERT OR UPDATE)
+   - Cria/atualiza platform_users baseado em raw_user_meta_data
+   - Tem EXCEPTION WHEN OTHERS para nao bloquear auth
+
+2. **`sync_auth_login_to_creator_trigger`** → `sync_auth_login_to_creator()` (AFTER UPDATE)
+   - Atualiza `creators.platform_last_login_at`
+   - Tem EXCEPTION WHEN OTHERS (adicionado na migration 503)
+
+**REGRA**: Todos os triggers em auth.users DEVEM ter `EXCEPTION WHEN OTHERS THEN RETURN NEW` para nunca bloquear o Supabase Auth.
+
 ## Quando Usar Este Agente
 
 - Enviar convites para businesses ou creators
 - Debugar problemas de login no portal criadores.app
 - Investigar dessincronizacao de senhas (auth.users vs platform_users)
+- **Diagnosticar strategist sem acesso a business (managed_businesses vazio)**
 - Revogar ou reativar acessos
 - Gerenciar equipe multi-user
 - Corrigir vulnerabilidades de seguranca no sistema de acesso
 - Implementar novos fluxos de convite
 - Entender o fluxo completo de ponta a ponta (CRM → email → /senha → portal login)
+- **Corrigir triggers em auth.users que bloqueiam Supabase Auth**
