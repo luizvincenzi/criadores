@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BusinessSocialContent } from '../BusinessContentModal';
 
@@ -51,11 +51,16 @@ export default function ContentMonthView({
     calendarDays.push(nextDay);
   }
 
-  // Agrupar conteúdos por dia
+  // Agrupar conteúdos por dia (comparação por string para evitar problemas de timezone)
   const getContentsForDay = (date: Date) => {
-    return contents.filter(content =>
-      isSameDay(new Date(content.scheduled_date), date)
-    );
+    const targetDateStr = format(date, 'yyyy-MM-dd');
+    return contents.filter(content => {
+      if (!content.scheduled_date || typeof content.scheduled_date !== 'string') return false;
+      const contentDateStr = content.scheduled_date.includes('T')
+        ? content.scheduled_date.split('T')[0]
+        : content.scheduled_date;
+      return contentDateStr === targetDateStr;
+    });
   };
 
   const contentTypeColors = {

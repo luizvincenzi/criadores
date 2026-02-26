@@ -51,11 +51,16 @@ export default function MobileStrategistContentMonth({
     calendarDays.push(nextDay);
   }
 
-  // Agrupar conteúdos por dia
+  // Agrupar conteúdos por dia (comparação por string para evitar problemas de timezone)
   const getContentsForDay = (date: Date) => {
-    return contents.filter(content => 
-      isSameDay(new Date(content.scheduled_date), date)
-    ).sort((a, b) => {
+    const targetDateStr = format(date, 'yyyy-MM-dd');
+    return contents.filter(content => {
+      if (!content.scheduled_date || typeof content.scheduled_date !== 'string') return false;
+      const contentDateStr = content.scheduled_date.includes('T')
+        ? content.scheduled_date.split('T')[0]
+        : content.scheduled_date;
+      return contentDateStr === targetDateStr;
+    }).sort((a, b) => {
       if (a.scheduled_time && b.scheduled_time) {
         return a.scheduled_time.localeCompare(b.scheduled_time);
       }

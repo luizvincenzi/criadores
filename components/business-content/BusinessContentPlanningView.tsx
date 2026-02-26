@@ -172,24 +172,65 @@ export default function BusinessContentPlanningView({ businessId, businessName }
     if (!businessId) return;
 
     try {
-      // Criar todos os conteúdos do planejamento
-      const promises = plans.map(content =>
-        fetch('/api/business-content', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...content,
-            business_id: businessId
-          })
-        }).then(res => res.json())
+      const contentTypeLabels: Record<string, string> = {
+        reels: 'Reels',
+        story: 'Story',
+        post: 'Post'
+      };
+
+      // Transformar WeeklyPlan[] em content items individuais
+      const contentItems: Array<{
+        title: string;
+        content_type: string;
+        scheduled_date: string;
+        business_id: string;
+        status: string;
+      }> = [];
+
+      plans.forEach(plan => {
+        plan.days.forEach((dayIndex: number) => {
+          const date = addDays(currentWeekStart, dayIndex);
+          const dateStr = format(date, 'yyyy-MM-dd');
+          const dayName = format(date, 'EEEE', { locale: ptBR });
+          const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+          const label = contentTypeLabels[plan.content_type] || plan.content_type;
+
+          contentItems.push({
+            title: `${label} - ${capitalizedDay}`,
+            content_type: plan.content_type,
+            scheduled_date: dateStr,
+            business_id: businessId,
+            status: 'planned'
+          });
+        });
+      });
+
+      if (contentItems.length === 0) {
+        alert('Nenhum conteúdo para criar. Selecione dias para cada tipo de conteúdo.');
+        return;
+      }
+
+      const results = await Promise.all(
+        contentItems.map(item =>
+          fetch('/api/business-content', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+          }).then(res => res.json())
+        )
       );
 
-      await Promise.all(promises);
+      const failures = results.filter(r => !r.success);
 
       // Recarregar conteúdos
       await loadContents();
 
-      alert(`✅ Planejamento atualizado com sucesso!`);
+      if (failures.length > 0) {
+        console.error('Erros no planejamento:', failures);
+        alert(`⚠️ ${contentItems.length - failures.length} de ${contentItems.length} conteúdos criados. Alguns falharam.`);
+      } else {
+        alert(`✅ Planejamento criado com sucesso! ${contentItems.length} conteúdo(s) adicionado(s).`);
+      }
     } catch (error) {
       console.error('Erro ao criar planejamento:', error);
       alert('Erro ao criar planejamento semanal');
@@ -262,20 +303,24 @@ export default function BusinessContentPlanningView({ businessId, businessName }
   const weekLabel = `${format(currentWeekStart, 'd MMM', { locale: ptBR })} - ${format(addDays(currentWeekStart, 6), 'd MMM yyyy', { locale: ptBR })}`;
   const monthLabel = format(currentMonthStart, 'MMMM yyyy', { locale: ptBR });
 
-  // Agrupar conteúdos por tipo e dia da semana
+  // Agrupar conteúdos por tipo e dia da semana (com parsing seguro de timezone)
   const groupedContents = contents.reduce((acc, content) => {
     const type = content.content_type;
     if (!acc[type]) {
       acc[type] = {};
     }
-    
-    const date = new Date(content.scheduled_date);
-    const dayName = format(date, 'EEEE', { locale: ptBR });
-    
+
+    const dateStr = content.scheduled_date.includes('T')
+      ? content.scheduled_date.split('T')[0]
+      : content.scheduled_date;
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const contentDate = new Date(year, month - 1, day);
+    const dayName = format(contentDate, 'EEEE', { locale: ptBR });
+
     if (!acc[type][dayName]) {
       acc[type][dayName] = [];
     }
-    
+
     acc[type][dayName].push(content);
     return acc;
   }, {} as Record<string, Record<string, SocialContent[]>>);
