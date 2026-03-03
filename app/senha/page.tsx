@@ -43,11 +43,33 @@ export default function SetPasswordPage() {
         const refreshToken = hashParams.get('refresh_token');
         const type = hashParams.get('type');
 
+        // Detectar erros do Supabase Auth no hash (ex: token expirado)
+        const hashError = hashParams.get('error');
+        const hashErrorCode = hashParams.get('error_code');
+        const hashErrorDescription = hashParams.get('error_description');
+
         console.log(' [Senha] Parâmetros da URL:', {
           hasAccessToken: !!accessToken,
           hasRefreshToken: !!refreshToken,
-          type
+          type,
+          error: hashError,
+          errorCode: hashErrorCode
         });
+
+        // Se Supabase retornou erro no redirect (token expirado, invalido, etc)
+        if (hashError || hashErrorCode) {
+          console.error('❌ [Senha] Erro do Supabase Auth:', { hashError, hashErrorCode, hashErrorDescription });
+          const isExpired = hashErrorCode === 'otp_expired' || hashErrorDescription?.includes('expired');
+          if (isExpired) {
+            setError('Seu link expirou. Os links de acesso são válidos por 24 horas. Entre em contato com a equipe Criadores para solicitar um novo link.');
+          } else {
+            setError('Link inválido. Entre em contato com a equipe Criadores para solicitar um novo link de acesso.');
+          }
+          // Limpar hash da URL
+          window.history.replaceState(null, '', window.location.pathname);
+          setInitializing(false);
+          return;
+        }
 
         if (accessToken) {
           console.log('🔑 [Senha] Token encontrado na URL, definindo sessão...');
@@ -59,7 +81,12 @@ export default function SetPasswordPage() {
 
           if (sessionError) {
             console.error('❌ [Senha] Erro ao definir sessão:', sessionError);
-            setError('Erro ao processar link: ' + sessionError.message);
+            const isExpiredSession = sessionError.message?.includes('expired') || sessionError.message?.includes('invalid');
+            if (isExpiredSession) {
+              setError('Seu link expirou. Os links de acesso são válidos por 24 horas. Entre em contato com a equipe Criadores para solicitar um novo link.');
+            } else {
+              setError('Erro ao processar link: ' + sessionError.message);
+            }
             setInitializing(false);
             return;
           }
@@ -73,7 +100,7 @@ export default function SetPasswordPage() {
 
         if (!session) {
           console.error('❌ [Senha] Nenhuma sessão encontrada');
-          setError('Link inválido ou expirado. Por favor, solicite um novo link de recuperação de senha.');
+          setError('Não foi possível validar seu acesso. Entre em contato com a equipe Criadores para solicitar um novo link.');
           setInitializing(false);
           return;
         }
@@ -227,22 +254,46 @@ export default function SetPasswordPage() {
 
   // Error state (sem sessão)
   if (error && !userEmail) {
+    const isExpiredError = error.includes('expirou') || error.includes('expired');
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-                <AlertCircle className="h-8 w-8 text-red-600" />
+              <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4 ${isExpiredError ? 'bg-orange-100' : 'bg-red-100'}`}>
+                <AlertCircle className={`h-8 w-8 ${isExpiredError ? 'text-orange-600' : 'text-red-600'}`} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Link Inválido</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {isExpiredError ? 'Link Expirado' : 'Link Inválido'}
+              </h2>
               <p className="text-gray-600 mb-6">{error}</p>
-              <button
-                onClick={() => router.push('/login')}
-                className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Ir para Login
-              </button>
+
+              {isExpiredError && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-left">
+                  <p className="text-sm text-orange-800 font-medium mb-1">O que aconteceu?</p>
+                  <p className="text-xs text-orange-700">
+                    Os links de ativação expiram em 24 horas por segurança.
+                    Solicite um novo link à equipe que enviou o convite.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => router.push('/login')}
+                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Ir para Login
+                </button>
+                <a
+                  href="https://wa.me/554391936400?text=Olá! Preciso de um novo link de acesso à plataforma Criadores. Meu link expirou."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Solicitar Novo Link via WhatsApp
+                </a>
+              </div>
             </div>
           </div>
         </div>
