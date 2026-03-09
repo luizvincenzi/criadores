@@ -76,7 +76,7 @@ const reportData = {
     { label: "Media por Video", value: "1.4K", sub: "Views por Video", icon: TrendingUp },
     { label: "Posts por Mes", value: "17", sub: "Frequencia Media", icon: Calendar },
     { label: "Direcionamento", value: "16", sub: "Temas Criativos", icon: Sparkles },
-    { label: "Melhor Mes", value: "Jan", sub: "55K Views", icon: Crown },
+    { label: "Alinhamento", value: "05", sub: "Reunioes Estrategicas", icon: Briefcase },
   ],
   pillars: [
     { id: 1, title: "Planejamento Estrategico Mensal", desc: "Definicao de temas, calendario editorial e direcionamento criativo.", icon: Target },
@@ -86,44 +86,49 @@ const reportData = {
   ],
   evolution: [
     {
-      month: "Novembro 2025",
-      subtitle: "Lancamento e Black November",
-      stats: "23 posts | 4 influenciadores",
-      focus: "Estabelecer presenca digital e aproveitar sazonalidade agressiva.",
-      details: ["Black November (40% OFF)", "Kit Empresarial", "Institucional Loja"],
-      metrics: { posts: 23, views: 2500, comments: 96, avgViews: 277 }
-    },
-    {
-      month: "Dezembro 2025",
-      subtitle: "Natal e Confraternizacoes",
-      stats: "20 posts | 4 influenciadores",
-      focus: "Foco em celebracoes, presentes e aumento de ticket medio.",
-      details: ["Confra Empresa", "Kit Natal + Bolsa Termica", "Videos de Humor", "Foco em Sobremesas"],
-      metrics: { posts: 20, views: 14717, comments: 192, avgViews: 865 }
-    },
-    {
-      month: "Janeiro 2026",
-      subtitle: "Retomada Pos-Ferias",
-      stats: "22 posts | 4 influenciadores",
-      focus: "Manutencao de engajamento durante o periodo de recesso.",
-      details: ["Praticidade nas Ferias", "Cafe da Manha Bread King"],
-      metrics: { posts: 22, views: 55105, comments: 248, avgViews: 3936, highlight: "Melhor Mes" }
+      month: "Marco 2026",
+      subtitle: "Eventos Comunitarios e Autoridade",
+      initiative: "Evento Dia do Doguinho + Mes da Mulher",
+      stats: "5 posts | 2+ influenciadores",
+      narrative: "Criamos dois eventos de alto impacto local: o Dia do Doguinho (14/03) como experiencia presencial para atrair novos publicos, e uma dinamica especial de Mes da Mulher para fortalecer a conexao emocional com a audiencia feminina.",
+      details: ["Evento Doguinho (14/03)", "Dinamica Mes da Mulher", "Humor com Kelvin", "Comparativo Nutricionista"],
+      metrics: { posts: 5, views: 2269, comments: 34, avgViews: 567, isPartial: true }
     },
     {
       month: "Fevereiro 2026",
-      subtitle: "Volta as Aulas e Trends",
+      subtitle: "Volta as Aulas e Tendencias Virais",
+      initiative: "4 Campanhas Tematicas Simultaneas",
       stats: "15 posts | 4 influenciadores",
-      focus: "Tendencias virais e conexao com o publico jovem/familiar.",
+      narrative: "Executamos 4 frentes criativas em paralelo: a trend viral R$ 1 vs R$ 100 para gerar alcance, o posicionamento de saudabilidade (sem conservantes), conteudo de volta as aulas para maes e a versatilidade do croissant como carro-chefe de produto.",
       details: ["Trend R$ 1 vs R$ 100", "Saudabilidade (Sem Conservantes)", "Volta as Aulas", "Versatilidade Croissant"],
       metrics: { posts: 15, views: 6034, comments: 83, avgViews: 502 }
     },
     {
-      month: "Marco 2026",
-      subtitle: "Mes da Mulher e Eventos",
-      stats: "5 posts | 2+ influenciadores",
-      focus: "Eventos comunitarios e autoridade nutricional.",
-      details: ["Evento Doguinho", "Dinamica Mes da Mulher", "Humor com Kelvin", "Comparativo Nutricionista"],
-      metrics: { posts: 5, views: 2269, comments: 34, avgViews: 567, isPartial: true }
+      month: "Janeiro 2026",
+      subtitle: "Explosao de Alcance nas Ferias",
+      initiative: "Campanha Praticidade nas Ferias",
+      stats: "22 posts | 4 influenciadores",
+      narrative: "A grande aposta do periodo: influenciadoras maes falando sobre praticidade durante as ferias escolares. A estrategia gerou o melhor mes do perfil com 55 mil views — um unico video da Fernanda Tagawa alcancou 40 mil visualizacoes e 94 comentarios.",
+      details: ["Praticidade nas Ferias", "Cafe da Manha Bread King", "Video Viral 40K Views"],
+      metrics: { posts: 22, views: 55105, comments: 248, avgViews: 3936, highlight: "Melhor Mes" }
+    },
+    {
+      month: "Dezembro 2025",
+      subtitle: "Natal, Kits e Confraternizacoes",
+      initiative: "Kit Natal Corporativo + Bolsa Termica",
+      stats: "20 posts | 4 influenciadores",
+      narrative: "Desenvolvemos o Kit Natal como produto estrategico para empresas e o Kit Natal com Bolsa Termica para pessoa fisica. Criamos conteudo de humor natalino e focamos em sobremesas como driver de vendas para ceias e confraternizacoes.",
+      details: ["Kit Natal Corporativo", "Kit Natal + Bolsa Termica", "Videos de Humor Natalino", "Foco em Sobremesas para Ceias"],
+      metrics: { posts: 20, views: 14717, comments: 192, avgViews: 865 }
+    },
+    {
+      month: "Novembro 2025",
+      subtitle: "Inicio da Operacao e Black November",
+      initiative: "Lancamento Digital + Black November",
+      stats: "23 posts | 4 influenciadores",
+      narrative: "O mes zero da parceria. Estruturamos toda a presenca digital da Bread King em Londrina do zero: identidade de conteudo, primeiros influenciadores ativados e a campanha Black November com 40% OFF para gerar volume de vendas e awareness inicial.",
+      details: ["Black November (40% OFF)", "Kit Empresarial", "Institucional Loja", "Primeiros Influenciadores"],
+      metrics: { posts: 23, views: 2500, comments: 96, avgViews: 277 }
     }
   ],
   influencers: [
@@ -327,59 +332,95 @@ export default function BreadKingReport() {
           </div>
         </section>
 
-        {/* PLANEJAMENTO E EVOLUCAO */}
+        {/* GRANDES INICIATIVAS — TIMELINE */}
         <section>
-          <SectionTitle title="Planejamento Estrategico" icon={Target} />
+          <SectionTitle title="Grandes Iniciativas" icon={Target} />
           <WhyMatters>
-            E a <strong>espinha dorsal</strong> da operacao. Sem ele, as acoes seriam reativas. Com o planejamento, cada mes tem um <strong>direcionamento claro</strong>, temas que conversam com a sazonalidade de Londrina e uma narrativa consistente que fortalece a marca.
+            Cada mes e uma <strong>operacao estrategica completa</strong>: definicao de temas, briefing de influenciadores, producao de conteudo, acompanhamento de metricas e ajustes em tempo real. Aqui estao as 5 grandes iniciativas executadas para a Bread King Londrina.
           </WhyMatters>
-          <div className="space-y-6">
-            {reportData.evolution.map((ev, i) => (
-              <AppleCard key={i} className="flex flex-col md:flex-row gap-10">
-                <div className="md:w-1/4">
-                  <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-1">{ev.month}</p>
-                  <h4 className="text-xl font-black text-gray-900 mb-2">{ev.subtitle}</h4>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">{ev.stats}</p>
-                </div>
-                <div className="md:w-3/4 border-l border-gray-50 md:pl-10 flex flex-col justify-center">
-                  <p className="text-sm text-gray-600 font-medium italic mb-6">&ldquo;{ev.focus}&rdquo;</p>
-                  <div className="flex flex-wrap gap-2">
-                    {ev.details.map((d, idx) => (
-                      <span key={idx} className="px-3 py-1.5 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-500 border border-gray-100">
-                        {d}
-                      </span>
-                    ))}
-                  </div>
-                  {/* Metric pills */}
-                  {ev.metrics && (
-                    <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-50">
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <Eye size={12} />
-                        <span className="text-[10px] font-bold">{ev.metrics.views.toLocaleString('pt-BR')} views</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <MessageCircle size={12} />
-                        <span className="text-[10px] font-bold">{ev.metrics.comments} comentarios</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <PlayCircle size={12} />
-                        <span className="text-[10px] font-bold">{ev.metrics.posts} posts</span>
-                      </div>
-                      {ev.metrics.highlight && (
-                        <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase border border-red-100">
-                          {ev.metrics.highlight}
-                        </span>
-                      )}
-                      {ev.metrics.isPartial && (
-                        <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold uppercase border border-amber-100">
-                          Parcial
-                        </span>
-                      )}
+
+          {/* Timeline vertical */}
+          <div className="relative">
+            {/* Linha vertical */}
+            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-px bg-gray-200 hidden md:block"></div>
+
+            <div className="space-y-8">
+              {reportData.evolution.map((ev, i) => {
+                const num = reportData.evolution.length - i;
+                return (
+                  <div key={i} className="relative">
+                    {/* Dot na timeline */}
+                    <div className={`absolute left-4 md:left-6 top-10 w-4 h-4 rounded-full border-2 hidden md:flex items-center justify-center z-10 ${
+                      ev.metrics?.highlight ? 'bg-red-600 border-red-600' : 'bg-white border-gray-300'
+                    }`}>
+                      {ev.metrics?.highlight && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
                     </div>
-                  )}
-                </div>
-              </AppleCard>
-            ))}
+
+                    <div className="md:ml-16">
+                      <AppleCard>
+                        {/* Header da iniciativa */}
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-black ${
+                                ev.metrics?.highlight ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-400'
+                              }`}>
+                                {String(num).padStart(2, '0')}
+                              </span>
+                              <p className="text-[10px] font-black text-red-600 uppercase tracking-widest">{ev.month}</p>
+                              {ev.metrics?.highlight && (
+                                <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase border border-red-100">
+                                  {ev.metrics.highlight}
+                                </span>
+                              )}
+                              {ev.metrics?.isPartial && (
+                                <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold uppercase border border-amber-100">
+                                  Em andamento
+                                </span>
+                              )}
+                            </div>
+                            <h4 className="text-xl font-black text-gray-900 mb-1">{ev.subtitle}</h4>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">{ev.initiative}</p>
+                          </div>
+                          {/* Mini metrics no canto */}
+                          {ev.metrics && (
+                            <div className="flex gap-4 md:gap-6 shrink-0">
+                              <div className="text-center">
+                                <p className="text-lg font-black text-gray-900">{formatNumber(ev.metrics.views)}</p>
+                                <p className="text-[9px] font-bold text-gray-400 uppercase">Views</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-lg font-black text-gray-900">{ev.metrics.comments}</p>
+                                <p className="text-[9px] font-bold text-gray-400 uppercase">Comments</p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-lg font-black text-gray-900">{ev.metrics.posts}</p>
+                                <p className="text-[9px] font-bold text-gray-400 uppercase">Posts</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Narrativa */}
+                        <p className="text-sm text-gray-600 leading-relaxed font-medium mb-6">{ev.narrative}</p>
+
+                        {/* Tags + stats */}
+                        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-50">
+                          {ev.details.map((d, idx) => (
+                            <span key={idx} className="px-3 py-1.5 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-500 border border-gray-100">
+                              {d}
+                            </span>
+                          ))}
+                          <span className="px-3 py-1.5 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-400 border border-gray-100 italic">
+                            {ev.stats}
+                          </span>
+                        </div>
+                      </AppleCard>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 
