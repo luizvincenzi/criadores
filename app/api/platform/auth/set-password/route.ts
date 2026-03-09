@@ -145,6 +145,44 @@ export async function POST(request: NextRequest) {
         updatePayload.id = authUpdateData.user.id;
       }
 
+      // SYNC: Se é creator, sincronizar roles da tabela creators
+      if (existingUser.creator_id) {
+        const { data: creatorData } = await supabase
+          .from('creators')
+          .select('platform_roles, is_strategist')
+          .eq('id', existingUser.creator_id)
+          .single();
+
+        if (creatorData?.platform_roles && Array.isArray(creatorData.platform_roles) && creatorData.platform_roles.length > 0) {
+          const syncedRoles = creatorData.platform_roles;
+          const isStrategist = syncedRoles.includes('marketing_strategist') || creatorData.is_strategist;
+          const syncedRole = isStrategist ? 'marketing_strategist' : (syncedRoles[0] || existingUser.role);
+
+          if (syncedRole !== existingUser.role || JSON.stringify(syncedRoles) !== JSON.stringify(existingUser.roles)) {
+            updatePayload.role = syncedRole;
+            updatePayload.roles = syncedRoles;
+            if (isStrategist && !syncedRoles.includes('marketing_strategist')) {
+              updatePayload.roles = [...syncedRoles, 'marketing_strategist'];
+            }
+            console.log('🔄 [Set Password] Sincronizando roles:', updatePayload.role, updatePayload.roles);
+          }
+
+          // Se é strategist e não tem managed_businesses, buscar
+          if (isStrategist && (!existingUser.managed_businesses || existingUser.managed_businesses.length === 0)) {
+            const { data: managedBiz } = await supabase
+              .from('businesses')
+              .select('id')
+              .eq('strategist_id', existingUser.creator_id)
+              .eq('is_active', true);
+
+            if (managedBiz && managedBiz.length > 0) {
+              updatePayload.managed_businesses = managedBiz.map((b: { id: string }) => b.id);
+              console.log('🔄 [Set Password] Sincronizando managed_businesses:', updatePayload.managed_businesses);
+            }
+          }
+        }
+      }
+
       const { data: updateData, error: updateError } = await supabase
         .from('platform_users')
         .update(updatePayload)
@@ -197,14 +235,51 @@ export async function POST(request: NextRequest) {
       // Determinar role e roles baseado nos dados do convite
       const entityType = userData?.entityType || 'business';
       const isCreator = entityType === 'creator';
-      const role = userData?.role || (isCreator ? 'creator' : 'business_owner');
-      const roles = isCreator
+      let role = userData?.role || (isCreator ? 'creator' : 'business_owner');
+      let roles: string[] = isCreator
         ? ['creator']
         : (userData?.role === 'business_owner' ? ['business_owner'] : [userData?.role || 'creator']);
 
-      console.log('📋 [Set Password] Tipo de entidade:', entityType, 'Role:', role);
+      // SYNC: Para creators, buscar platform_roles da tabela creators para sincronizar roles
+      let managedBusinessIds: string[] = [];
+      if (isCreator && userData?.creatorId) {
+        const { data: creatorData } = await supabase
+          .from('creators')
+          .select('platform_roles, is_strategist')
+          .eq('id', userData.creatorId)
+          .single();
+
+        if (creatorData?.platform_roles && Array.isArray(creatorData.platform_roles) && creatorData.platform_roles.length > 0) {
+          roles = creatorData.platform_roles;
+          // Se tem marketing_strategist, usar como role principal
+          if (roles.includes('marketing_strategist') || creatorData.is_strategist) {
+            role = 'marketing_strategist';
+            if (!roles.includes('marketing_strategist')) {
+              roles.push('marketing_strategist');
+            }
+          }
+          console.log('🔄 [Set Password] Roles sincronizados do creators:', roles, 'Role principal:', role);
+        }
+
+        // Se é strategist, buscar businesses que gerencia
+        if (role === 'marketing_strategist' || creatorData?.is_strategist) {
+          const { data: managedBiz } = await supabase
+            .from('businesses')
+            .select('id')
+            .eq('strategist_id', userData.creatorId)
+            .eq('is_active', true);
+
+          if (managedBiz && managedBiz.length > 0) {
+            managedBusinessIds = managedBiz.map(b => b.id);
+            console.log('🔄 [Set Password] managed_businesses encontrados:', managedBusinessIds);
+          }
+        }
+      }
+
+      console.log('📋 [Set Password] Tipo de entidade:', entityType, 'Role:', role, 'Roles:', roles);
 
       // Preparar dados do novo usuário
+      const isStrategist = role === 'marketing_strategist' || roles.includes('marketing_strategist');
       const newUserData: any = {
         id: authUpdateData?.user?.id, // Usar o mesmo ID do auth.users
         organization_id: DEFAULT_ORG_ID,
@@ -219,8 +294,8 @@ export async function POST(request: NextRequest) {
         last_password_change: new Date().toISOString(),
         permissions: {
           campaigns: { read: true, write: role === 'business_owner', delete: false },
-          conteudo: { read: true, write: isCreator || role === 'marketing_strategist', delete: false },
-          briefings: { read: true, write: role === 'marketing_strategist', delete: false },
+          conteudo: { read: true, write: isCreator || isStrategist, delete: false },
+          briefings: { read: true, write: isStrategist, delete: false },
           reports: { read: true, write: false, delete: false },
           tasks: { read: true, write: true, delete: false }
         },
@@ -250,6 +325,10 @@ export async function POST(request: NextRequest) {
       // Adicionar creator_id se for creator
       if (userData?.creatorId) {
         newUserData.creator_id = userData.creatorId;
+        // Adicionar managed_businesses encontrados para strategists
+        if (managedBusinessIds.length > 0) {
+          newUserData.managed_businesses = managedBusinessIds;
+        }
       }
 
       const { data: newUser, error: insertError } = await supabase
