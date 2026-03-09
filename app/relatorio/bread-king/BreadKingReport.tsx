@@ -287,16 +287,8 @@ export default function BreadKingReport() {
               <span className="text-gray-300">Entrega.</span>
             </h2>
             <p className="mt-10 text-xl text-gray-500 font-medium leading-relaxed max-w-lg">
-              Plano de marketing integrado 360&deg; desenvolvido para a franqueadora como prova de excelencia e conformidade regional.
+              Plano de marketing integrado 360&deg; desenvolvido para a Bread King Londrina.
             </p>
-          </div>
-          <div className="bg-white/40 backdrop-blur-xl border border-white p-8 rounded-[40px] shadow-sm min-w-[280px]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status da Unidade</span>
-            </div>
-            <p className="text-4xl font-black text-gray-900">100%</p>
-            <p className="text-xs font-bold text-green-600 uppercase tracking-widest mt-1 italic">Conformidade Total</p>
           </div>
         </section>
 
@@ -631,14 +623,24 @@ export default function BreadKingReport() {
             </div>
             <div className="flex flex-col justify-center">
               <div className="p-10 bg-white/5 backdrop-blur-md rounded-[48px] border border-white/10">
-                <ShieldCheck size={48} className="text-red-600 mb-6" />
-                <h4 className="text-xl font-bold mb-4">Relatorio Homologado</h4>
+                <TrendingUp size={48} className="text-red-600 mb-6" />
+                <h4 className="text-xl font-bold mb-4">Resultados em Numeros</h4>
                 <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                  Este documento atesta que a unidade Londrina mantem um alto padrao de marketing, alinhado as diretrizes globais da franqueadora, com entrega de volume e qualidade tecnica.
+                  Em 5 meses de operacao integrada, a Bread King Londrina alcancou mais de 80 mil visualizacoes organicas, ativou 18 influenciadores locais e publicou 85 conteudos estrategicos — tudo com gestao profissional e acompanhamento semanal.
                 </p>
-                <div className="mt-8 flex items-center justify-between pt-8 border-t border-white/10">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Auditoria Unidade Londrina</span>
-                  <span className="text-xs font-black text-green-500 italic">APROVADO</span>
+                <div className="mt-8 grid grid-cols-3 gap-4 pt-8 border-t border-white/10">
+                  <div>
+                    <p className="text-2xl font-black text-white">80.6K</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase mt-1">Views</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-black text-white">18</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase mt-1">Creators</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-black text-white">85</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase mt-1">Posts</p>
+                  </div>
                 </div>
               </div>
             </div>
