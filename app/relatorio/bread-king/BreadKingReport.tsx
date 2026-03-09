@@ -2,14 +2,35 @@
 
 import React from 'react';
 import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title as ChartTitle,
+  Tooltip as ChartTooltip,
+  Legend as ChartLegend,
+  type ChartOptions,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import {
   CheckCircle2, Users, Clapperboard, Calendar,
   ExternalLink, Award, MapPin,
   ChevronRight, Play, Layout, ListChecks,
   Search, ShieldCheck, Sparkles, Instagram,
   PlayCircle, FileText, Target, TrendingUp,
   MessageSquare, Briefcase, Zap, ArrowRight,
-  Info, Clock, Megaphone, ChefHat, Eye
+  Info, Clock, Megaphone, ChefHat, Eye,
+  BarChart3, MessageCircle, Crown, Flame, ArrowUpRight
 } from 'lucide-react';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ChartTitle,
+  ChartTooltip,
+  ChartLegend
+);
 
 const reportData = {
   header: {
@@ -19,13 +40,43 @@ const reportData = {
     date: "09 de Marco de 2026",
     preparedBy: "Equipe Criadores Digital"
   },
+  instagramProfile: {
+    handle: "@breadkinglondrina",
+    followers: 4487,
+    totalPosts: 192,
+    periodPosts: 85,
+    periodVideos: 56,
+    periodImages: 25,
+    periodCarousels: 4,
+    totalViews: 80625,
+    totalComments: 653,
+    avgPostsPerMonth: 17,
+    avgViewsPerVideo: 1439,
+    avgCommentsPerPost: 7.7,
+  },
+  monthlyPerformance: [
+    { month: "Nov/25", label: "Novembro", posts: 23, views: 2500, comments: 96, avgViews: 277, isBest: false, isPartial: false },
+    { month: "Dez/25", label: "Dezembro", posts: 20, views: 14717, comments: 192, avgViews: 865, isBest: false, isPartial: false },
+    { month: "Jan/26", label: "Janeiro", posts: 22, views: 55105, comments: 248, avgViews: 3936, isBest: true, isPartial: false },
+    { month: "Fev/26", label: "Fevereiro", posts: 15, views: 6034, comments: 83, avgViews: 502, isBest: false, isPartial: false },
+    { month: "Mar/26", label: "Marco", posts: 5, views: 2269, comments: 34, avgViews: 567, isBest: false, isPartial: true },
+  ],
+  topVideos: [
+    { views: 40006, comments: 94, date: "24 Jan", influencer: "Fernanda Tagawa", theme: "Praticidade nas Ferias", link: "https://www.instagram.com/reel/DT5cHtskVrS/" },
+    { views: 3359, comments: 10, date: "5 Jan", influencer: "Mariani Fernandes", theme: "Humor Crianca", link: "https://www.instagram.com/reel/DTJQE7GERTL/" },
+    { views: 2991, comments: 48, date: "9 Jan", influencer: "ANA BUENO", theme: "Fome nas Ferias", link: "https://www.instagram.com/reel/DTTie-5Eayn/" },
+    { views: 2558, comments: 1, date: "15 Dez", influencer: null, theme: "Sobremesa para Ceia", link: "https://www.instagram.com/reel/DSTHe7UE_Pa/" },
+    { views: 2402, comments: 4, date: "23 Jan", influencer: "Luciana Casarin", theme: "Marketing Transformation", link: "https://www.instagram.com/reel/DT0Fir6kkQj/" },
+  ],
   kpis: [
-    { label: "Frequencia Feed", value: "3 Reels", sub: "Por semana", icon: PlayCircle },
-    { label: "Frequencia Stories", value: "2 Stories", sub: "Por dia", icon: Layout },
-    { label: "Acompanhamento", value: "Semanal", sub: "Visitas Estrategista", icon: MapPin },
+    { label: "Total de Posts", value: "85", sub: "Nov/25 a Mar/26", icon: PlayCircle },
+    { label: "Visualizacoes", value: "80.6K", sub: "Total do Periodo", icon: Eye },
+    { label: "Comentarios", value: "653", sub: "Engajamento Real", icon: MessageCircle },
     { label: "Vozes Ativas", value: "18", sub: "Influenciadores", icon: Users },
+    { label: "Media por Video", value: "1.4K", sub: "Views por Video", icon: TrendingUp },
+    { label: "Posts por Mes", value: "17", sub: "Frequencia Media", icon: Calendar },
     { label: "Direcionamento", value: "16", sub: "Temas Criativos", icon: Sparkles },
-    { label: "Links Oficiais", value: "16", sub: "Posts Registrados", icon: ExternalLink }
+    { label: "Melhor Mes", value: "Jan", sub: "55K Views", icon: Crown },
   ],
   pillars: [
     { id: 1, title: "Planejamento Estrategico Mensal", desc: "Definicao de temas, calendario editorial e direcionamento criativo.", icon: Target },
@@ -37,60 +88,71 @@ const reportData = {
     {
       month: "Novembro 2025",
       subtitle: "Lancamento e Black November",
-      stats: "3 temas | 4 influenciadores",
+      stats: "23 posts | 4 influenciadores",
       focus: "Estabelecer presenca digital e aproveitar sazonalidade agressiva.",
-      details: ["Black November (40% OFF)", "Kit Empresarial", "Institucional Loja"]
+      details: ["Black November (40% OFF)", "Kit Empresarial", "Institucional Loja"],
+      metrics: { posts: 23, views: 2500, comments: 96, avgViews: 277 }
     },
     {
       month: "Dezembro 2025",
       subtitle: "Natal e Confraternizacoes",
-      stats: "4 temas | 4 influenciadores",
+      stats: "20 posts | 4 influenciadores",
       focus: "Foco em celebracoes, presentes e aumento de ticket medio.",
-      details: ["Confra Empresa", "Kit Natal + Bolsa Termica", "Videos de Humor", "Foco em Sobremesas"]
+      details: ["Confra Empresa", "Kit Natal + Bolsa Termica", "Videos de Humor", "Foco em Sobremesas"],
+      metrics: { posts: 20, views: 14717, comments: 192, avgViews: 865 }
     },
     {
       month: "Janeiro 2026",
       subtitle: "Retomada Pos-Ferias",
-      stats: "1 tema expandido | 4 influenciadores",
+      stats: "22 posts | 4 influenciadores",
       focus: "Manutencao de engajamento durante o periodo de recesso.",
-      details: ["Praticidade nas Ferias", "Cafe da Manha Bread King"]
+      details: ["Praticidade nas Ferias", "Cafe da Manha Bread King"],
+      metrics: { posts: 22, views: 55105, comments: 248, avgViews: 3936, highlight: "Melhor Mes" }
     },
     {
       month: "Fevereiro 2026",
       subtitle: "Volta as Aulas e Trends",
-      stats: "4 temas | 4 influenciadores",
+      stats: "15 posts | 4 influenciadores",
       focus: "Tendencias virais e conexao com o publico jovem/familiar.",
-      details: ["Trend R$ 1 vs R$ 100", "Saudabilidade (Sem Conservantes)", "Volta as Aulas", "Versatilidade Croissant"]
+      details: ["Trend R$ 1 vs R$ 100", "Saudabilidade (Sem Conservantes)", "Volta as Aulas", "Versatilidade Croissant"],
+      metrics: { posts: 15, views: 6034, comments: 83, avgViews: 502 }
     },
     {
       month: "Marco 2026",
       subtitle: "Mes da Mulher e Eventos",
-      stats: "4 temas | 2+ influenciadores",
+      stats: "5 posts | 2+ influenciadores",
       focus: "Eventos comunitarios e autoridade nutricional.",
-      details: ["Evento Doguinho", "Dinamica Mes da Mulher", "Humor com Kelvin", "Comparativo Nutricionista"]
+      details: ["Evento Doguinho", "Dinamica Mes da Mulher", "Humor com Kelvin", "Comparativo Nutricionista"],
+      metrics: { posts: 5, views: 2269, comments: 34, avgViews: 567, isPartial: true }
     }
   ],
   influencers: [
-    { id: 1, name: "Andressa Bieco", campaign: "Nov/25 - Black November", link: "https://www.instagram.com/reel/DSais7wj3lB/" },
-    { id: 2, name: "Pietra Mantovani", campaign: "Nov/25 - Kit Empresarial", link: "https://www.instagram.com/reel/DRx2UR1janB/" },
-    { id: 3, name: "Giro Londrina", campaign: "Nov/25 - Bread King Loja", link: "https://www.instagram.com/reel/DRhhqe_jarE/" },
-    { id: 4, name: "Ana Nunes", campaign: "Nov/25 - Bread King Loja", link: "https://www.instagram.com/reel/DSDd6PHkq7O/" },
-    { id: 5, name: "Isabella", campaign: "Dez/25 - Confra/Kit Natal", link: "https://www.instagram.com/reel/DSVq26Ygdc-/" },
-    { id: 6, name: "ANA BUENO", campaign: "Dez/25 - Video Engracado", link: "https://www.instagram.com/reel/DTTie-5Eayn/" },
-    { id: 7, name: "Eliza", campaign: "Dez/25 - Kit Natal", link: "https://www.instagram.com/reel/DSh53SKAKLH/" },
-    { id: 8, name: "Mariani Fernandes", campaign: "Dez/25 - Sobremesa", link: "https://www.instagram.com/reel/DTJQE7GERTL/" },
-    { id: 9, name: "Thays", campaign: "Jan/26", link: "https://www.instagram.com/reel/DUwJJtNiYhk/" },
-    { id: 10, name: "Fernanda Tagawa", campaign: "Jan/26", link: "https://www.instagram.com/reel/DT5cHtskVrS/" },
-    { id: 11, name: "Andreia Gavetti", campaign: "Jan/26", link: "https://www.instagram.com/reel/DU8WWGcjbZN/" },
-    { id: 12, name: "Luciana Casarin", campaign: "Jan/26", link: "https://www.instagram.com/reel/DT0Fir6kkQj/" },
+    { id: 1, name: "Andressa Bieco", campaign: "Nov/25 - Black November", link: "https://www.instagram.com/reel/DSais7wj3lB/", views: 485, comments: 12 },
+    { id: 2, name: "Pietra Mantovani", campaign: "Nov/25 - Kit Empresarial", link: "https://www.instagram.com/reel/DRx2UR1janB/", views: 2198, comments: 34 },
+    { id: 3, name: "Giro Londrina", campaign: "Nov/25 - Bread King Loja", link: "https://www.instagram.com/reel/DRhhqe_jarE/", views: 673, comments: 20 },
+    { id: 4, name: "Ana Nunes", campaign: "Nov/25 - Bread King Loja", link: "https://www.instagram.com/reel/DSDd6PHkq7O/", views: 481, comments: 33 },
+    { id: 5, name: "Isabella", campaign: "Dez/25 - Confra/Kit Natal", link: "https://www.instagram.com/reel/DSVq26Ygdc-/", views: 481, comments: 40 },
+    { id: 6, name: "ANA BUENO", campaign: "Dez/25 - Video Engracado", link: "https://www.instagram.com/reel/DTTie-5Eayn/", views: 2991, comments: 48 },
+    { id: 7, name: "Eliza", campaign: "Dez/25 - Kit Natal", link: "https://www.instagram.com/reel/DSh53SKAKLH/", views: 1551, comments: 17 },
+    { id: 8, name: "Mariani Fernandes", campaign: "Dez/25 - Sobremesa", link: "https://www.instagram.com/reel/DTJQE7GERTL/", views: 3359, comments: 10 },
+    { id: 9, name: "Thays", campaign: "Jan/26", link: "https://www.instagram.com/reel/DUwJJtNiYhk/", views: 391, comments: 3 },
+    { id: 10, name: "Fernanda Tagawa", campaign: "Jan/26", link: "https://www.instagram.com/reel/DT5cHtskVrS/", views: 40006, comments: 94 },
+    { id: 11, name: "Andreia Gavetti", campaign: "Jan/26", link: "https://www.instagram.com/reel/DU8WWGcjbZN/", views: 612, comments: 14 },
+    { id: 12, name: "Luciana Casarin", campaign: "Jan/26", link: "https://www.instagram.com/reel/DT0Fir6kkQj/", views: 2402, comments: 4 },
     { id: 13, name: "Lara Agostini", campaign: "Fev/26 - Trends", link: "#", status: "Em producao" },
-    { id: 14, name: "Stefany Bigas", campaign: "Fev/26 - Saudavel", link: "https://www.instagram.com/reel/DVb6KS2AI-_/" },
+    { id: 14, name: "Stefany Bigas", campaign: "Fev/26 - Saudavel", link: "https://www.instagram.com/reel/DVb6KS2AI-_/", views: 1380, comments: 12 },
     { id: 15, name: "Catarina", campaign: "Fev/26 - Volta as Aulas", link: "https://www.instagram.com/reel/DVCXIJ9D2Lc/" },
     { id: 16, name: "Isabela Fernandes", campaign: "Fev/26 - Croissant", link: "https://www.instagram.com/reel/DVMfCmvkhM1/" },
-    { id: 17, name: "Alice Nunes", campaign: "Mar/26 - Evento Doguinho", link: "https://www.instagram.com/reel/DVgpn91k0YK/" },
+    { id: 17, name: "Alice Nunes", campaign: "Mar/26 - Evento Doguinho", link: "https://www.instagram.com/reel/DVgpn91k0YK/", views: 335, comments: 8 },
     { id: 18, name: "Karol Silva", campaign: "Mar/26 - Mes da Mulher", link: "#", status: "Em producao" }
   ]
 };
+
+// Helper
+function formatNumber(num: number): string {
+  if (num >= 1000) return `${(num / 1000).toFixed(1).replace('.0', '')}K`;
+  return num.toString();
+}
 
 function AppleCard({ children, className = "", noPadding = false }: { children: React.ReactNode; className?: string; noPadding?: boolean }) {
   return (
@@ -124,6 +186,70 @@ function WhyMatters({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+// Chart config
+const chartData = {
+  labels: reportData.monthlyPerformance.map(m => m.month + (m.isPartial ? '*' : '')),
+  datasets: [{
+    label: 'Visualizacoes',
+    data: reportData.monthlyPerformance.map(m => m.views),
+    backgroundColor: reportData.monthlyPerformance.map(m =>
+      m.isBest ? 'rgba(220, 38, 38, 0.85)' : 'rgba(220, 38, 38, 0.25)'
+    ),
+    borderColor: reportData.monthlyPerformance.map(m =>
+      m.isBest ? 'rgb(220, 38, 38)' : 'rgba(220, 38, 38, 0.4)'
+    ),
+    borderWidth: 2,
+    borderRadius: 12,
+    borderSkipped: false as const,
+  }],
+};
+
+const chartOptions: ChartOptions<'bar'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(15, 23, 42, 0.95)',
+      titleFont: { family: 'Onest, sans-serif', size: 13, weight: 'bold' },
+      bodyFont: { family: 'Onest, sans-serif', size: 12 },
+      padding: 16,
+      cornerRadius: 12,
+      callbacks: {
+        label: (ctx) => {
+          const month = reportData.monthlyPerformance[ctx.dataIndex];
+          return [
+            ` ${month.views.toLocaleString('pt-BR')} views`,
+            ` ${month.comments} comentarios`,
+            ` Media: ${month.avgViews.toLocaleString('pt-BR')} views/video`,
+          ];
+        },
+      },
+    },
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: { color: 'rgba(0,0,0,0.04)' },
+      border: { display: false },
+      ticks: {
+        font: { family: 'Onest, sans-serif', size: 11 },
+        callback: (val) => {
+          const n = Number(val);
+          return n >= 1000 ? `${(n / 1000).toFixed(0)}K` : val;
+        },
+      },
+    },
+    x: {
+      grid: { display: false },
+      border: { display: false },
+      ticks: {
+        font: { family: 'Onest, sans-serif', size: 11, weight: 'bold' as const },
+      },
+    },
+  },
+};
 
 export default function BreadKingReport() {
   return (
@@ -177,7 +303,7 @@ export default function BreadKingReport() {
         {/* OS GRANDES NUMEROS */}
         <section>
           <SectionTitle title="Os Grandes Numeros" icon={TrendingUp} />
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {reportData.kpis.map((kpi, i) => (
               <AppleCard key={i} className="group">
                 <div className="flex items-center gap-4 text-gray-300 group-hover:text-red-600 transition-colors mb-4">
@@ -232,6 +358,33 @@ export default function BreadKingReport() {
                       </span>
                     ))}
                   </div>
+                  {/* Metric pills */}
+                  {ev.metrics && (
+                    <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-50">
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <Eye size={12} />
+                        <span className="text-[10px] font-bold">{ev.metrics.views.toLocaleString('pt-BR')} views</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <MessageCircle size={12} />
+                        <span className="text-[10px] font-bold">{ev.metrics.comments} comentarios</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <PlayCircle size={12} />
+                        <span className="text-[10px] font-bold">{ev.metrics.posts} posts</span>
+                      </div>
+                      {ev.metrics.highlight && (
+                        <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase border border-red-100">
+                          {ev.metrics.highlight}
+                        </span>
+                      )}
+                      {ev.metrics.isPartial && (
+                        <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold uppercase border border-amber-100">
+                          Parcial
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </AppleCard>
             ))}
@@ -248,27 +401,136 @@ export default function BreadKingReport() {
               </WhyMatters>
               <div className="grid grid-cols-2 gap-4">
                 <AppleCard className="!bg-slate-900 !text-white !border-none !shadow-xl">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Reels/Mes</p>
-                  <p className="text-4xl font-black text-white">12</p>
-                  <p className="text-[9px] text-red-500 font-bold uppercase mt-2">Visibilidade Feed</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total de Posts</p>
+                  <p className="text-4xl font-black text-white">85</p>
+                  <p className="text-[9px] text-red-500 font-bold uppercase mt-2">56 Videos &bull; 25 Fotos &bull; 4 Carrosseis</p>
                 </AppleCard>
                 <AppleCard className="!bg-slate-900 !text-white !border-none !shadow-xl">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Stories/Mes</p>
-                  <p className="text-4xl font-black text-white">60</p>
-                  <p className="text-[9px] text-red-500 font-bold uppercase mt-2">Conexao Diaria</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Views Totais</p>
+                  <p className="text-4xl font-black text-white">80.6K</p>
+                  <p className="text-[9px] text-red-500 font-bold uppercase mt-2">Media 1.4K por Video</p>
                 </AppleCard>
               </div>
             </div>
             <div className="flex flex-col justify-center bg-white p-10 rounded-[48px] border border-gray-100">
               <h4 className="text-xl font-bold mb-4 tracking-tight">Presenca Ininterrupta</h4>
               <p className="text-sm text-gray-500 leading-relaxed font-medium">
-                O volume contratado de <strong>12 Reels mensais</strong> garante presenca constante no Explore do Instagram, enquanto os <strong>2 Stories por dia</strong> mantem a marca sempre no topo da timeline dos seguidores, gerando desejo de consumo imediato.
+                Com <strong>85 publicacoes em 5 meses</strong>, a Bread King manteve uma media de 17 posts/mes. Os <strong>56 Reels</strong> geraram mais de 80 mil visualizacoes organicas, comprovando que a estrategia de video e o principal motor de alcance da marca.
               </p>
               <div className="mt-8 flex gap-3">
                 <div className="p-3 bg-red-50 text-red-600 rounded-2xl"><Clapperboard size={20} /></div>
                 <div className="p-3 bg-red-50 text-red-600 rounded-2xl"><Play size={20} /></div>
+                <div className="p-3 bg-red-50 text-red-600 rounded-2xl"><Eye size={20} /></div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* PERFORMANCE INSTAGRAM — BAR CHART */}
+        <section>
+          <SectionTitle title="Performance Instagram" icon={BarChart3} />
+          <WhyMatters>
+            Dados reais de performance comprovam o <strong>retorno do investimento</strong>. Com 80.625 visualizacoes organicas em 5 meses, o perfil da Bread King saiu de 277 views/video para um pico de 3.936 views/video em janeiro — um crescimento de mais de 1.300%.
+          </WhyMatters>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Chart */}
+            <div className="lg:col-span-3">
+              <AppleCard>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">
+                  Visualizacoes Mensais
+                </p>
+                <div className="h-80">
+                  <Bar data={chartData} options={chartOptions} />
+                </div>
+                <p className="text-[10px] text-gray-300 mt-4 italic">
+                  * Marco 2026: dados parciais (ate 09/03)
+                </p>
+              </AppleCard>
+            </div>
+            {/* Stat Cards */}
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <AppleCard className="!bg-slate-900 !border-none !shadow-xl flex-1">
+                <div className="flex items-center gap-3 text-red-500 mb-3">
+                  <Flame size={20} />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Melhor Mes</span>
+                </div>
+                <p className="text-4xl font-black text-white">55.1K</p>
+                <p className="text-xs font-bold text-red-500 mt-1">Janeiro 2026</p>
+                <p className="text-[10px] text-slate-500 mt-2">22 posts &bull; 248 comentarios</p>
+              </AppleCard>
+              <AppleCard className="flex-1">
+                <div className="flex items-center gap-3 text-green-600 mb-3">
+                  <ArrowUpRight size={20} />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Crescimento</span>
+                </div>
+                <p className="text-4xl font-black text-gray-900">+1.321%</p>
+                <p className="text-xs font-bold text-green-600 mt-1">Nov &rarr; Jan (views/video)</p>
+              </AppleCard>
+              <AppleCard className="flex-1">
+                <div className="flex items-center gap-3 text-red-600 mb-3">
+                  <MessageCircle size={20} />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Engajamento</span>
+                </div>
+                <p className="text-4xl font-black text-gray-900">7.7</p>
+                <p className="text-xs font-bold text-gray-400 mt-1">Comentarios / Post</p>
+              </AppleCard>
+            </div>
+          </div>
+        </section>
+
+        {/* DESTAQUES DE CONTEUDO — TOP VIDEOS */}
+        <section>
+          <SectionTitle title="Destaques de Conteudo" icon={Crown} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* HERO card — Top 1 */}
+            <AppleCard className="md:col-span-2 lg:col-span-1 !bg-slate-900 !border-none !shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-red-600 rounded-full blur-[80px] opacity-30 -mr-8 -mt-8"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Crown size={16} className="text-red-500" />
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Top 1 Performance</span>
+                </div>
+                <p className="text-5xl font-black text-white leading-none">40K</p>
+                <p className="text-xs font-bold text-red-500 mt-2 uppercase">Visualizacoes</p>
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  <p className="text-sm font-bold text-white">{reportData.topVideos[0].influencer}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{reportData.topVideos[0].theme} &bull; {reportData.topVideos[0].date}</p>
+                  <p className="text-[10px] text-slate-500 mt-2">{reportData.topVideos[0].comments} comentarios</p>
+                </div>
+                <a href={reportData.topVideos[0].link} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-xl text-[10px] font-black uppercase hover:bg-white/20 transition-all border border-white/10">
+                  Ver no Instagram <ExternalLink size={12} />
+                </a>
+              </div>
+            </AppleCard>
+
+            {/* Cards #2-5 */}
+            {reportData.topVideos.slice(1, 5).map((video, i) => (
+              <AppleCard key={i}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                    #{i + 2}
+                  </span>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Eye size={14} />
+                    <span className="text-xs font-bold">{formatNumber(video.views)}</span>
+                  </div>
+                </div>
+                <h4 className="text-sm font-bold text-gray-900 mb-1">{video.theme}</h4>
+                {video.influencer && (
+                  <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider">{video.influencer}</p>
+                )}
+                <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-50">
+                  <div className="flex items-center gap-1 text-gray-400">
+                    <MessageCircle size={12} />
+                    <span className="text-[10px] font-bold">{video.comments}</span>
+                  </div>
+                  <span className="text-[10px] text-gray-300">{video.date}</span>
+                  <a href={video.link} target="_blank" rel="noreferrer" className="ml-auto text-red-600 hover:text-red-700 transition-colors">
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
+              </AppleCard>
+            ))}
           </div>
         </section>
 
@@ -284,18 +546,41 @@ export default function BreadKingReport() {
                 <thead>
                   <tr className="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
                     <th className="px-8 py-5">Influenciador</th>
-                    <th className="px-8 py-5">Campanha / Acao</th>
-                    <th className="px-8 py-5 text-right">Rastreabilidade</th>
+                    <th className="px-6 py-5">Campanha / Acao</th>
+                    <th className="px-6 py-5 text-right">Views</th>
+                    <th className="px-6 py-5 text-right">Comentarios</th>
+                    <th className="px-8 py-5 text-right">Link</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {reportData.influencers.map((inf) => (
                     <tr key={inf.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-8 py-6 font-black text-gray-900">{inf.name}</td>
-                      <td className="px-8 py-6">
+                      <td className="px-8 py-5 font-black text-gray-900 whitespace-nowrap">
+                        {inf.name}
+                        {inf.views && inf.views >= 2000 && (
+                          <Flame size={12} className="inline ml-1.5 text-red-500 -mt-0.5" />
+                        )}
+                      </td>
+                      <td className="px-6 py-5">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-tight">{inf.campaign}</p>
                       </td>
-                      <td className="px-8 py-6 text-right">
+                      <td className="px-6 py-5 text-right">
+                        {inf.views ? (
+                          <span className={`text-sm font-black ${inf.views >= 2000 ? 'text-gray-900' : 'text-gray-600'}`}>
+                            {formatNumber(inf.views)}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-gray-300">&mdash;</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        {inf.comments !== undefined ? (
+                          <span className="text-sm font-bold text-gray-500">{inf.comments}</span>
+                        ) : (
+                          <span className="text-[10px] text-gray-300">&mdash;</span>
+                        )}
+                      </td>
+                      <td className="px-8 py-5 text-right">
                         {inf.status ? (
                           <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold uppercase border border-amber-100">{inf.status}</span>
                         ) : (
@@ -307,6 +592,20 @@ export default function BreadKingReport() {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr className="bg-gray-50 border-t-2 border-gray-100">
+                    <td className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest" colSpan={2}>
+                      Total (14 influenciadores com dados)
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <span className="text-sm font-black text-gray-900">56.9K</span>
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <span className="text-sm font-bold text-gray-600">342</span>
+                    </td>
+                    <td className="px-8 py-5"></td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </AppleCard>
