@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import CityStateSelector from './CityStateSelector';
 
 interface AddBusinessModalProps {
   isOpen: boolean;
@@ -327,17 +328,12 @@ export default function AddBusinessModalNew({ isOpen, onClose, onSuccess }: AddB
                     </select>
                   </div>
 
-                  {/* Cidade */}
-                  <div>
-                    <label className="block text-sm font-semibold text-blue-700 mb-2">
-                      Cidade
-                    </label>
-                    <input
-                      type="text"
+                  {/* Cidade + Estado */}
+                  <div className="md:col-span-2">
+                    <CityStateSelector
                       value={formData.cidade}
-                      onChange={(e) => handleInputChange('cidade', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Ex: São Paulo"
+                      onChange={(val) => handleInputChange('cidade', val)}
+                      labelColor="text-blue-700"
                     />
                   </div>
 

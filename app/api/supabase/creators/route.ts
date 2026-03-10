@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { normalizeCity } from '@/lib/normalizeCity';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -318,10 +319,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Preparar dados para atualização
+    const profileInfo = body.profile_info || {};
+    if (profileInfo.location?.city) {
+      profileInfo.location.city = normalizeCity(profileInfo.location.city);
+    }
     const updateData = {
       name: body.name,
       contact_info: body.contact_info || {},
-      profile_info: body.profile_info || {},
+      profile_info: profileInfo,
       social_media: body.social_media || {},
       status: body.status,
       notes: body.notes || '',

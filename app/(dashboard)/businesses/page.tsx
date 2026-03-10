@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBusinessStore, Business } from '@/store/businessStore';
 import { fetchBusinesses, isUsingSupabase } from '@/lib/dataSource';
+import { normalizeCity } from '@/lib/normalizeCity';
 import BusinessCard from '@/components/BusinessCard';
 import AddBusinessModalNew from '@/components/AddBusinessModalNew';
 import BusinessModalNew from '@/components/BusinessModalNew';
@@ -63,12 +64,12 @@ export default function BusinessesPage() {
 
           setBusinesses(sortedBusinesses);
 
-          // Extrair cidades únicas para o filtro
+          // Extrair cidades únicas para o filtro (normalizadas)
           const cities = [...new Set(
             sortedBusinesses
-              .map(b => b.cidade || b.address?.city)
+              .map(b => normalizeCity(b.cidade || b.address?.city))
               .filter(Boolean)
-              .sort()
+              .sort((a, b) => a.localeCompare(b, 'pt-BR'))
           )];
           setAvailableCities(cities);
 
@@ -92,7 +93,7 @@ export default function BusinessesPage() {
   useEffect(() => {
     if (selectedCity) {
       const filtered = businesses.filter(business => {
-        const businessCity = business.cidade || business.address?.city || '';
+        const businessCity = normalizeCity(business.cidade || business.address?.city);
         return businessCity === selectedCity;
       });
       setFilteredBusinesses(filtered);
@@ -418,7 +419,7 @@ export default function BusinessesPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span className="text-sm font-medium truncate">
-                          {business.cidade || business.address?.city || 'Não informado'}
+                          {normalizeCity(business.cidade || business.address?.city) || 'Não informado'}
                         </span>
                       </div>
 

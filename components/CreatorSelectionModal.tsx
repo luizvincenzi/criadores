@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { normalizeCity } from '@/lib/normalizeCity';
 
 interface Creator {
   id: string;
@@ -88,11 +89,21 @@ export default function CreatorSelectionModal({
     }
   };
 
+  // Extract unique cities from loaded creators
+  const availableCities = useMemo(() => {
+    return [...new Set(
+      creators
+        .map(c => normalizeCity(c.profile_info?.location?.city))
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [creators]);
+
   const filteredCreators = creators.filter(creator => {
     const matchesSearch = creator.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || creator.profile_info?.category === filterCategory;
-    const matchesLocation = filterLocation === 'all' || creator.profile_info?.location?.city === filterLocation;
-    
+    const creatorCity = normalizeCity(creator.profile_info?.location?.city);
+    const matchesLocation = filterLocation === 'all' || creatorCity === filterLocation;
+
     return matchesSearch && matchesCategory && matchesLocation;
   });
 
@@ -340,10 +351,9 @@ Aguardo seu retorno! 🚀`
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="all">Todas as cidades</option>
-                    <option value="São Paulo">São Paulo</option>
-                    <option value="Rio de Janeiro">Rio de Janeiro</option>
-                    <option value="Belo Horizonte">Belo Horizonte</option>
-                    <option value="Brasília">Brasília</option>
+                    {availableCities.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
                   </select>
                 </div>
               </div>

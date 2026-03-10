@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import CityStateSelector from './CityStateSelector';
 
 interface BusinessModalProps {
   business: any;
@@ -499,7 +500,23 @@ export default function BusinessModalNew({ business, isOpen, onClose, onBusiness
                 {renderField('Categoria', 'category', 'select', [
                   'Alimentação', 'Moda', 'Beleza', 'Tecnologia', 'Saúde', 'Educação', 'Entretenimento', 'Outros'
                 ])}
-                {renderField('Cidade', 'cidade')}
+                {/* Cidade + Estado */}
+                <div className="md:col-span-2 bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                  {isEditMode ? (
+                    <CityStateSelector
+                      value={formData.cidade}
+                      onChange={(val) => handleInputChange('cidade', val)}
+                      labelColor="text-blue-600"
+                    />
+                  ) : (
+                    <>
+                      <label className="block text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">
+                        Cidade
+                      </label>
+                      <p className="text-gray-900">{formData.cidade || 'Não informada'}</p>
+                    </>
+                  )}
+                </div>
                 {renderField('Plano Atual', 'currentPlan', 'select', [
                   'Silver', 'Gold', 'Diamond', 'Personalizado'
                 ])}

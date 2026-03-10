@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { CreatorData } from '@/app/actions/sheetsActions';
+import CityStateSelector from './CityStateSelector';
 
 interface CreatorModalProps {
   creator: CreatorData | null;
@@ -275,18 +276,18 @@ export default function CreatorModalNew({ creator, isOpen, onClose, onCreatorUpd
                       <p className="text-gray-900 font-medium">{creator.nome}</p>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
+                  <div className="md:col-span-2">
                     {isEditMode ? (
-                      <input
-                        type="text"
+                      <CityStateSelector
                         value={formData.cidade}
-                        onChange={(e) => handleInputChange('cidade', e.target.value)}
-                        className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="Ex: São Paulo, SP"
+                        onChange={(val) => handleInputChange('cidade', val)}
+                        labelColor="text-gray-700"
                       />
                     ) : (
-                      <p className="text-gray-900">{creator.cidade || 'Não informado'}</p>
+                      <>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
+                        <p className="text-gray-900">{creator.cidade || 'Não informado'}</p>
+                      </>
                     )}
                   </div>
                   <div>

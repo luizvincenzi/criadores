@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { normalizeCity } from '@/lib/normalizeCity';
 
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
         },
         address: {
           street: '',
-          city: body.cidade || '',
+          city: normalizeCity(body.cidade),
           state: '',
           zip_code: '',
           country: 'Brasil'
@@ -300,7 +301,12 @@ export async function PUT(request: NextRequest) {
     if (updateData.name) updateFields.name = updateData.name;
     if (updateData.description) updateFields.description = updateData.description;
     if (updateData.contact_info) updateFields.contact_info = updateData.contact_info;
-    if (updateData.address) updateFields.address = updateData.address;
+    if (updateData.address) {
+      updateFields.address = {
+        ...updateData.address,
+        city: normalizeCity(updateData.address.city),
+      };
+    }
     if (updateData.custom_fields) updateFields.custom_fields = updateData.custom_fields;
     if (updateData.business_stage) updateFields.business_stage = updateData.business_stage;
     if (updateData.estimated_value !== undefined) updateFields.estimated_value = updateData.estimated_value;
