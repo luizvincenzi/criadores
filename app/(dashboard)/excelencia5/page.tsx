@@ -337,95 +337,107 @@ export default function ExcelencIA5Page() {
       {/* ============================================ */}
       {activeTab === 'overview' && (
         <>
-          {/* KPI Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-9 h-9 rounded-xl bg-[#007AFF] flex items-center justify-center">
-                  <BarChart3 className="w-4 h-4 text-white" strokeWidth={2} />
-                </div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total</span>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{analytics?.total_reviews || 0}</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">avaliações coletadas</p>
+          {/* Section Title */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-gray-400" />
+            </div>
+            <h2 className="text-lg font-black text-gray-900 italic uppercase tracking-tight">Os Números</h2>
+          </div>
+
+          {/* KPI Cards - Bread King style */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <BarChart3 className="w-5 h-5 text-gray-300 mb-3" />
+              <p className="text-3xl font-black text-gray-900">{analytics?.total_reviews || 0}</p>
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Total Avaliações</p>
+              <p className="text-[9px] text-gray-300 mt-0.5">Coletadas pelo sistema</p>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center">
-                  <Star className="w-4 h-4 text-white" strokeWidth={2} />
-                </div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Média</span>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{analytics?.avg_rating?.toFixed(1) || '0.0'}<span className="text-sm font-normal text-gray-400">/5</span></p>
-              <p className="text-[10px] text-gray-400 mt-0.5">nota geral</p>
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <Star className="w-5 h-5 text-gray-300 mb-3" />
+              <p className="text-3xl font-black text-gray-900">{analytics?.avg_rating?.toFixed(1) || '0.0'}</p>
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Nota Média</p>
+              <p className="text-[9px] text-gray-300 mt-0.5">De 5 estrelas</p>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center">
-                  <ExternalLink className="w-4 h-4 text-white" strokeWidth={2} />
-                </div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Google</span>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{analytics?.google_redirects || 0}</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">enviados para Google</p>
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <ExternalLink className="w-5 h-5 text-gray-300 mb-3" />
+              <p className="text-3xl font-black text-gray-900">{analytics?.google_redirects || 0}</p>
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Enviados p/ Google</p>
+              <p className="text-[9px] text-gray-300 mt-0.5">Redirecionamentos</p>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-9 h-9 rounded-xl bg-rose-500 flex items-center justify-center">
-                  <Star className="w-4 h-4 text-white" strokeWidth={2} />
-                </div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Taxa 5★</span>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{fiveStarRate}<span className="text-sm font-normal text-gray-400">%</span></p>
-              <p className="text-[10px] text-gray-400 mt-0.5">avaliações 5 estrelas</p>
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <Star className="w-5 h-5 text-gray-300 mb-3" />
+              <p className="text-3xl font-black text-gray-900">{fiveStarRate}<span className="text-lg">%</span></p>
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Taxa 5 Estrelas</p>
+              <p className="text-[9px] text-gray-300 mt-0.5">Avaliações perfeitas</p>
             </div>
           </div>
 
           {/* Google Maps Card (if has profile) */}
           {googleData?.has_profile && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-4 h-4 text-[#007AFF]" />
-                <h3 className="text-sm font-semibold text-gray-800">Google Maps</h3>
+            <div className="bg-white rounded-2xl p-5 shadow-sm mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#4285F4]/10 flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-[#4285F4]" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">{googleData.business_name_on_google || 'Google Maps'}</p>
+                    <p className="text-[9px] text-gray-400">Perfil verificado</p>
+                  </div>
+                </div>
                 {googleData.google_maps_url && (
                   <a href={googleData.google_maps_url} target="_blank" rel="noopener noreferrer"
-                    className="ml-auto text-[10px] text-[#007AFF] hover:underline flex items-center gap-1">
+                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-lg text-[10px] font-medium text-gray-600 hover:bg-gray-200 transition-colors">
                     Ver no Google <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
               </div>
-              <div className="flex items-center gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-3xl font-bold text-gray-900">{googleData.rating?.toFixed(1) || '—'}</p>
-                  <StarDisplay rating={googleData.rating || 0} size={14} />
+                  <p className="text-2xl font-black text-gray-900">{googleData.rating?.toFixed(1) || '—'}</p>
+                  <StarDisplay rating={googleData.rating || 0} size={12} />
+                  <p className="text-[9px] text-gray-300 mt-0.5">Nota Google</p>
                 </div>
-                <div className="h-12 w-px bg-gray-100" />
                 <div>
-                  <p className="text-lg font-bold text-gray-900">{googleData.reviews_count?.toLocaleString() || '—'}</p>
-                  <p className="text-[10px] text-gray-400">avaliações no Google</p>
+                  <p className="text-2xl font-black text-gray-900">{googleData.reviews_count?.toLocaleString() || '—'}</p>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Avaliações</p>
+                  <p className="text-[9px] text-gray-300 mt-0.5">No Google Maps</p>
                 </div>
-                {googleData.positive_sentiment_pct !== null && googleData.positive_sentiment_pct !== undefined && (
-                  <>
-                    <div className="h-12 w-px bg-gray-100" />
-                    <div>
-                      <p className="text-lg font-bold text-emerald-600">{googleData.positive_sentiment_pct}%</p>
-                      <p className="text-[10px] text-gray-400">sentimento positivo</p>
-                    </div>
-                  </>
+                {googleData.positive_sentiment_pct != null && (
+                  <div>
+                    <p className="text-2xl font-black text-emerald-600">{googleData.positive_sentiment_pct}%</p>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Sentimento</p>
+                    <p className="text-[9px] text-gray-300 mt-0.5">Positivo</p>
+                  </div>
+                )}
+                {googleData.response_rate != null && (
+                  <div>
+                    <p className="text-2xl font-black text-[#007AFF]">{googleData.response_rate}%</p>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Resposta</p>
+                    <p className="text-[9px] text-gray-300 mt-0.5">Taxa de resposta</p>
+                  </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Distribution + Categories */}
+          {/* Distribution + Categories Section Title */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center">
+              <Star className="w-5 h-5 text-gray-400" />
+            </div>
+            <h2 className="text-lg font-black text-gray-900 italic uppercase tracking-tight">Detalhamento</h2>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             {/* Star Distribution */}
             {analytics && analytics.total_reviews > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h3 className="text-sm font-semibold text-gray-800 mb-4">Distribuição de Notas</h3>
+              <div className="bg-white rounded-2xl p-5 shadow-sm">
+                <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Distribuição de Notas</h3>
                 <div className="space-y-2.5">
                   {[5, 4, 3, 2, 1].map((star) => {
                     const count = analytics.star_distribution[star] || 0;
@@ -449,8 +461,8 @@ export default function ExcelencIA5Page() {
 
             {/* Category Averages */}
             {analytics && Object.keys(analytics.category_averages || {}).length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h3 className="text-sm font-semibold text-gray-800 mb-4">Média por Categoria</h3>
+              <div className="bg-white rounded-2xl p-5 shadow-sm">
+                <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Média por Categoria</h3>
                 <div className="space-y-3">
                   {Object.entries(analytics.category_averages).map(([key, val]) => {
                     const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-teal-500', 'bg-amber-500'];
@@ -477,8 +489,13 @@ export default function ExcelencIA5Page() {
 
           {/* Top Waiters */}
           {analytics?.waiter_ranking && analytics.waiter_ranking.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4">Top Garçons</h3>
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-amber-500" />
+                </div>
+                <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Ranking de Garçons</h3>
+              </div>
               <div className="space-y-2">
                 {analytics.waiter_ranking.slice(0, 5).map((waiter, i) => (
                   <div key={waiter.waiter_id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
@@ -557,7 +574,7 @@ export default function ExcelencIA5Page() {
           )}
 
           {/* General QR Code */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-700">QR Code Geral</p>
@@ -584,7 +601,7 @@ export default function ExcelencIA5Page() {
 
           {/* Waiter list */}
           {activeWaiters.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-600 mb-1">Nenhum garçom cadastrado</p>
               <p className="text-xs text-gray-400">Adicione garçons para rastrear avaliações individuais e gerar QR codes personalizados.</p>
@@ -594,7 +611,7 @@ export default function ExcelencIA5Page() {
               {activeWaiters.map((waiter) => {
                 const stats = analytics?.waiter_ranking?.find(w => w.waiter_id === waiter.id);
                 return (
-                  <div key={waiter.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center justify-between">
+                  <div key={waiter.id} className="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#007AFF]/10 flex items-center justify-center text-sm font-bold text-[#007AFF]">
                         {waiter.name.charAt(0).toUpperCase()}
@@ -656,7 +673,7 @@ export default function ExcelencIA5Page() {
           </div>
 
           {reviews.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-600 mb-1">Nenhuma avaliação ainda</p>
               <p className="text-xs text-gray-400">As avaliações dos clientes aparecerão aqui.</p>
@@ -667,7 +684,7 @@ export default function ExcelencIA5Page() {
                 {paginatedReviews.map((review) => {
                   const waiterName = waiters.find(w => w.id === review.waiter_id)?.name;
                   return (
-                    <div key={review.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                    <div key={review.id} className="bg-white rounded-2xl p-4 shadow-sm">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <StarDisplay rating={review.overall_rating} size={14} />
@@ -679,7 +696,7 @@ export default function ExcelencIA5Page() {
                           )}
                         </div>
                         <span className="text-[10px] text-gray-400">
-                          {new Date(review.created_at + 'T12:00:00').toLocaleDateString('pt-BR')}
+                          {new Date(review.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
 
@@ -747,7 +764,7 @@ export default function ExcelencIA5Page() {
       {activeTab === 'google' && (
         <div className="space-y-4">
           {!googleData?.has_profile ? (
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+            <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-600 mb-1">Google Maps não vinculado</p>
               <p className="text-xs text-gray-400 max-w-md mx-auto">
@@ -758,7 +775,7 @@ export default function ExcelencIA5Page() {
           ) : (
             <>
               {/* Google Maps Overview Card */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <div className="bg-white rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-9 h-9 rounded-xl bg-[#4285F4] flex items-center justify-center">
                     <MapPin className="w-4 h-4 text-white" />
@@ -807,7 +824,7 @@ export default function ExcelencIA5Page() {
 
               {/* Google Reviews List */}
               {googleData.reviews && googleData.reviews.length > 0 && (
-                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <div className="bg-white rounded-2xl p-5 shadow-sm">
                   <h3 className="text-sm font-semibold text-gray-800 mb-4">Últimas Avaliações no Google</h3>
                   <div className="space-y-3">
                     {googleData.reviews.map((review, idx) => (
