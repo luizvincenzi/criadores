@@ -200,6 +200,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       roles: ['business_owner'] // Timeline de campanhas para business owner
     },
     {
+      id: 'excelencia5',
+      label: 'excelencIA5',
+      href: '/excelencia5',
+      roles: ['business_owner'] // Produto excelencIA5 - gestão de avaliações Google
+    },
+    {
       id: 'reports',
       label: 'Relatórios',
       href: '/reports',
