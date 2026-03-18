@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight } from 'lucide-react';
+import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2 } from 'lucide-react';
 
 // ============================================
 // Types
@@ -38,6 +38,38 @@ interface Waiter {
   is_active: boolean;
 }
 
+interface Review {
+  id: string;
+  overall_rating: number;
+  redirected_to_google: boolean;
+  category_ratings: Record<string, number> | null;
+  comment: string | null;
+  customer_phone: string | null;
+  customer_name: string | null;
+  waiter_id: string | null;
+  created_at: string;
+}
+
+interface GoogleReviewsData {
+  has_profile: boolean;
+  business_name_on_google: string | null;
+  google_maps_url: string | null;
+  rating: number | null;
+  reviews_count: number | null;
+  response_rate: number | null;
+  positive_sentiment_pct: number | null;
+  reviews: Array<{
+    author_name: string;
+    author_photo_url: string | null;
+    rating: number;
+    text: string;
+    publish_time: string | null;
+    relative_time: string | null;
+  }>;
+}
+
+type TabId = 'overview' | 'waiters' | 'reviews' | 'google';
+
 // ============================================
 // Star Rating Display
 // ============================================
@@ -58,6 +90,18 @@ function StarDisplay({ rating, size = 16 }: { rating: number; size?: number }) {
 }
 
 // ============================================
+// Category label helper
+// ============================================
+const CATEGORY_LABELS: Record<string, string> = {
+  atendimento: 'Atendimento',
+  comida: 'Qualidade da Comida',
+  qualidade_comida: 'Qualidade da Comida',
+  tempo_espera: 'Tempo de Espera',
+  ambiente: 'Ambiente',
+  custo_beneficio: 'Custo-benefício',
+};
+
+// ============================================
 // Main Page
 // ============================================
 export default function ExcelencIA5Page() {
@@ -65,23 +109,33 @@ export default function ExcelencIA5Page() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [waiters, setWaiters] = useState<Waiter[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [googleData, setGoogleData] = useState<GoogleReviewsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [noSubscription, setNoSubscription] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
+
+  // Waiter management
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [newWaiterName, setNewWaiterName] = useState('');
   const [addingWaiter, setAddingWaiter] = useState(false);
   const [showAddWaiter, setShowAddWaiter] = useState(false);
+
+  // QR Modal
   const [qrModal, setQrModal] = useState<{ url: string; dataUrl: string; name: string } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
 
+  // Reviews pagination
+  const [reviewsPage, setReviewsPage] = useState(0);
+  const REVIEWS_PER_PAGE = 10;
+
   const businessId = user?.business_id;
 
-  // Fetch subscription data
+  // Fetch all data
   const fetchData = useCallback(async () => {
     if (!businessId) return;
     setLoading(true);
     try {
-      // Fetch subscription
       const subRes = await fetch(`/api/excelencia5/subscription?business_id=${businessId}`);
       const subData = await subRes.json();
 
@@ -93,10 +147,10 @@ export default function ExcelencIA5Page() {
 
       setSubscription(subData.data);
 
-      // Fetch analytics and waiters in parallel
-      const [analyticsRes, waitersRes] = await Promise.all([
+      const [analyticsRes, waitersRes, googleRes] = await Promise.all([
         fetch(`/api/excelencia5/analytics?business_id=${businessId}`),
         fetch(`/api/excelencia5/waiters?business_id=${businessId}`),
+        fetch(`/api/excelencia5/google-reviews?business_id=${businessId}`),
       ]);
 
       const analyticsData = await analyticsRes.json();
@@ -104,6 +158,9 @@ export default function ExcelencIA5Page() {
 
       const waitersData = await waitersRes.json();
       if (waitersData.success) setWaiters(waitersData.data || []);
+
+      const googleResData = await googleRes.json();
+      if (googleResData.success) setGoogleData(googleResData.data);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     } finally {
@@ -111,10 +168,22 @@ export default function ExcelencIA5Page() {
     }
   }, [businessId]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  // Fetch reviews (separate, paginated)
+  const fetchReviews = useCallback(async () => {
+    if (!businessId) return;
+    try {
+      const res = await fetch(`/api/excelencia5/reviews?business_id=${businessId}&limit=50`);
+      const data = await res.json();
+      if (data.success) setReviews(data.data || []);
+    } catch (err) {
+      console.error('Erro ao carregar avaliações:', err);
+    }
+  }, [businessId]);
 
+  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { if (activeTab === 'reviews') fetchReviews(); }, [activeTab, fetchReviews]);
+
+  // Waiter actions
   const handleAddWaiter = async () => {
     if (!newWaiterName.trim() || !businessId) return;
     setAddingWaiter(true);
@@ -129,6 +198,7 @@ export default function ExcelencIA5Page() {
         setWaiters((prev) => [...prev, data.data]);
         setNewWaiterName('');
         setShowAddWaiter(false);
+        fetchData(); // refresh analytics
       }
     } catch (err) {
       console.error('Erro ao adicionar garçom:', err);
@@ -186,9 +256,7 @@ export default function ExcelencIA5Page() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // ============================================
-  // Loading
-  // ============================================
+  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -197,9 +265,7 @@ export default function ExcelencIA5Page() {
     );
   }
 
-  // ============================================
   // No subscription
-  // ============================================
   if (noSubscription) {
     return (
       <div className="px-6 md:px-8 max-w-4xl mx-auto pt-12 pb-8">
@@ -229,9 +295,18 @@ export default function ExcelencIA5Page() {
     ? ((analytics.star_distribution[5] || 0) / analytics.total_reviews * 100).toFixed(0)
     : '0';
 
-  // ============================================
-  // Dashboard
-  // ============================================
+  const activeWaiters = waiters.filter(w => w.is_active);
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: 'overview', label: 'Visão Geral' },
+    { id: 'waiters', label: 'Garçons' },
+    { id: 'reviews', label: 'Avaliações' },
+    { id: 'google', label: 'Google Maps' },
+  ];
+
+  const paginatedReviews = reviews.slice(reviewsPage * REVIEWS_PER_PAGE, (reviewsPage + 1) * REVIEWS_PER_PAGE);
+  const totalReviewPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
+
   return (
     <div className="px-6 md:px-8 max-w-[1200px] mx-auto pt-6 md:pt-8 pb-8">
       {/* Header */}
@@ -240,227 +315,531 @@ export default function ExcelencIA5Page() {
         <p className="text-sm text-gray-500 mt-1">Gestão de avaliações e reputação Google</p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-[#007AFF] flex items-center justify-center">
-              <BarChart3 className="w-4.5 h-4.5 text-white" strokeWidth={2} />
-            </div>
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Avaliações</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{analytics?.total_reviews || 0}</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center">
-              <Star className="w-4.5 h-4.5 text-white" strokeWidth={2} />
-            </div>
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Média</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{analytics?.avg_rating?.toFixed(1) || '0.0'}<span className="text-sm font-normal text-gray-400">/5</span></p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center">
-              <ExternalLink className="w-4.5 h-4.5 text-white" strokeWidth={2} />
-            </div>
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Google</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{analytics?.google_redirects || 0}</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
-          <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center">
-              <Star className="w-4.5 h-4.5 text-white" strokeWidth={2} />
-            </div>
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Taxa 5★</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{fiveStarRate}<span className="text-sm font-normal text-gray-400">%</span></p>
-        </div>
+      {/* Tabs */}
+      <div className="flex items-center gap-1 mb-6 bg-gray-100 rounded-full p-1 w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition-all ${
+              activeTab === tab.id
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Star Distribution */}
-      {analytics && analytics.total_reviews > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">Distribuição de Avaliações</h3>
-          <div className="space-y-2">
-            {[5, 4, 3, 2, 1].map((star) => {
-              const count = analytics.star_distribution[star] || 0;
-              const pct = analytics.total_reviews > 0 ? (count / analytics.total_reviews) * 100 : 0;
-              return (
-                <div key={star} className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-gray-500 w-6 text-right">{star}★</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${star >= 4 ? 'bg-emerald-400' : star === 3 ? 'bg-amber-400' : 'bg-red-400'}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-400 w-12 text-right">{count} ({pct.toFixed(0)}%)</span>
+      {/* ============================================ */}
+      {/* TAB: Overview */}
+      {/* ============================================ */}
+      {activeTab === 'overview' && (
+        <>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div className="bg-white rounded-2xl border border-gray-100 p-4">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-[#007AFF] flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-white" strokeWidth={2} />
                 </div>
-              );
-            })}
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Total</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{analytics?.total_reviews || 0}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">avaliações coletadas</p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 p-4">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center">
+                  <Star className="w-4 h-4 text-white" strokeWidth={2} />
+                </div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Média</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{analytics?.avg_rating?.toFixed(1) || '0.0'}<span className="text-sm font-normal text-gray-400">/5</span></p>
+              <p className="text-[10px] text-gray-400 mt-0.5">nota geral</p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 p-4">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center">
+                  <ExternalLink className="w-4 h-4 text-white" strokeWidth={2} />
+                </div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Google</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{analytics?.google_redirects || 0}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">enviados para Google</p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 p-4">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-9 h-9 rounded-xl bg-rose-500 flex items-center justify-center">
+                  <Star className="w-4 h-4 text-white" strokeWidth={2} />
+                </div>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Taxa 5★</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{fiveStarRate}<span className="text-sm font-normal text-gray-400">%</span></p>
+              <p className="text-[10px] text-gray-400 mt-0.5">avaliações 5 estrelas</p>
+            </div>
           </div>
+
+          {/* Google Maps Card (if has profile) */}
+          {googleData?.has_profile && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="w-4 h-4 text-[#007AFF]" />
+                <h3 className="text-sm font-semibold text-gray-800">Google Maps</h3>
+                {googleData.google_maps_url && (
+                  <a href={googleData.google_maps_url} target="_blank" rel="noopener noreferrer"
+                    className="ml-auto text-[10px] text-[#007AFF] hover:underline flex items-center gap-1">
+                    Ver no Google <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+              <div className="flex items-center gap-6">
+                <div>
+                  <p className="text-3xl font-bold text-gray-900">{googleData.rating?.toFixed(1) || '—'}</p>
+                  <StarDisplay rating={googleData.rating || 0} size={14} />
+                </div>
+                <div className="h-12 w-px bg-gray-100" />
+                <div>
+                  <p className="text-lg font-bold text-gray-900">{googleData.reviews_count?.toLocaleString() || '—'}</p>
+                  <p className="text-[10px] text-gray-400">avaliações no Google</p>
+                </div>
+                {googleData.positive_sentiment_pct !== null && googleData.positive_sentiment_pct !== undefined && (
+                  <>
+                    <div className="h-12 w-px bg-gray-100" />
+                    <div>
+                      <p className="text-lg font-bold text-emerald-600">{googleData.positive_sentiment_pct}%</p>
+                      <p className="text-[10px] text-gray-400">sentimento positivo</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Distribution + Categories */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {/* Star Distribution */}
+            {analytics && analytics.total_reviews > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <h3 className="text-sm font-semibold text-gray-800 mb-4">Distribuição de Notas</h3>
+                <div className="space-y-2.5">
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = analytics.star_distribution[star] || 0;
+                    const pct = analytics.total_reviews > 0 ? (count / analytics.total_reviews) * 100 : 0;
+                    return (
+                      <div key={star} className="flex items-center gap-3">
+                        <span className="text-xs font-medium text-gray-500 w-6 text-right">{star}★</span>
+                        <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${star >= 4 ? 'bg-emerald-400' : star === 3 ? 'bg-amber-400' : 'bg-red-400'}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-400 w-16 text-right">{count} ({pct.toFixed(0)}%)</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Category Averages */}
+            {analytics && Object.keys(analytics.category_averages || {}).length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <h3 className="text-sm font-semibold text-gray-800 mb-4">Média por Categoria</h3>
+                <div className="space-y-3">
+                  {Object.entries(analytics.category_averages).map(([key, val]) => {
+                    const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-teal-500', 'bg-amber-500'];
+                    const idx = Object.keys(analytics.category_averages).indexOf(key);
+                    return (
+                      <div key={key}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-gray-600">{CATEGORY_LABELS[key] || key}</span>
+                          <span className="text-xs font-semibold text-gray-800">{val.toFixed(1)} / 5</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${colors[idx % colors.length]}`}
+                            style={{ width: `${(val / 5) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Top Waiters */}
+          {analytics?.waiter_ranking && analytics.waiter_ranking.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h3 className="text-sm font-semibold text-gray-800 mb-4">Top Garçons</h3>
+              <div className="space-y-2">
+                {analytics.waiter_ranking.slice(0, 5).map((waiter, i) => (
+                  <div key={waiter.waiter_id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      i === 0 ? 'bg-amber-100 text-amber-700' :
+                      i === 1 ? 'bg-gray-100 text-gray-600' :
+                      i === 2 ? 'bg-orange-100 text-orange-700' :
+                      'bg-gray-50 text-gray-400'
+                    }`}>
+                      {i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-gray-800">{waiter.name}</p>
+                      <p className="text-[10px] text-gray-400">{waiter.total_reviews} avaliações • {waiter.five_star_count} ★5</p>
+                    </div>
+                    <div className="text-right">
+                      <StarDisplay rating={waiter.avg_rating} size={11} />
+                      <p className="text-[10px] font-semibold text-gray-600 mt-0.5">{waiter.avg_rating.toFixed(1)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ============================================ */}
+      {/* TAB: Waiters */}
+      {/* ============================================ */}
+      {activeTab === 'waiters' && (
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-800">
+              Garçons ({activeWaiters.length})
+            </h3>
+            <button
+              onClick={() => setShowAddWaiter(!showAddWaiter)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#007AFF] text-white rounded-xl text-[12px] font-medium hover:bg-[#0066DD] transition-colors shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Adicionar Garçom
+            </button>
+          </div>
+
+          {/* Add waiter form */}
+          {showAddWaiter && (
+            <div className="bg-blue-50 rounded-xl border border-blue-100 p-4">
+              <p className="text-xs font-medium text-blue-800 mb-2">Novo Garçom</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newWaiterName}
+                  onChange={(e) => setNewWaiterName(e.target.value)}
+                  placeholder="Nome do garçom"
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddWaiter()}
+                  className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+                />
+                <button
+                  onClick={handleAddWaiter}
+                  disabled={addingWaiter || !newWaiterName.trim()}
+                  className="px-4 py-2.5 bg-[#007AFF] text-white rounded-lg text-xs font-medium hover:bg-[#0066DD] disabled:opacity-50 transition-colors"
+                >
+                  {addingWaiter ? '...' : 'Salvar'}
+                </button>
+                <button
+                  onClick={() => { setShowAddWaiter(false); setNewWaiterName(''); }}
+                  className="px-3 py-2.5 text-gray-400 hover:text-gray-600 text-xs"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* General QR Code */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-700">QR Code Geral</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">criadores.app/avaliar/{subscription?.business_slug}</p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handleShowQR()}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  QR Code
+                </button>
+                <button
+                  onClick={() => handleCopyLink()}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  {copiedId === 'general' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                  {copiedId === 'general' ? 'Copiado!' : 'Copiar'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Waiter list */}
+          {activeWaiters.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+              <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm font-medium text-gray-600 mb-1">Nenhum garçom cadastrado</p>
+              <p className="text-xs text-gray-400">Adicione garçons para rastrear avaliações individuais e gerar QR codes personalizados.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {activeWaiters.map((waiter) => {
+                const stats = analytics?.waiter_ranking?.find(w => w.waiter_id === waiter.id);
+                return (
+                  <div key={waiter.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#007AFF]/10 flex items-center justify-center text-sm font-bold text-[#007AFF]">
+                        {waiter.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{waiter.name}</p>
+                        {stats ? (
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <StarDisplay rating={stats.avg_rating} size={10} />
+                            <span className="text-[10px] text-gray-400">
+                              {stats.avg_rating.toFixed(1)} • {stats.total_reviews} avaliações • {stats.five_star_count} ★5
+                            </span>
+                          </div>
+                        ) : (
+                          <p className="text-[10px] text-gray-400 mt-0.5">Sem avaliações ainda</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleShowQR(waiter)}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
+                      >
+                        <QrCode className="w-3 h-3" />
+                        QR
+                      </button>
+                      <button
+                        onClick={() => handleCopyLink(waiter)}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                        {copiedId === waiter.id ? 'Copiado!' : 'Link'}
+                      </button>
+                      <button
+                        onClick={() => handleRemoveWaiter(waiter.id)}
+                        className="p-2 text-gray-300 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                        title="Remover garçom"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Waiters + QR Codes */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-800">
-            <Users className="w-4 h-4 inline mr-1.5 text-gray-400" />
-            Garçons ({waiters.filter(w => w.is_active).length})
-          </h3>
-          <button
-            onClick={() => setShowAddWaiter(!showAddWaiter)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
-          >
-            <Plus className="w-3 h-3" />
-            Adicionar
-          </button>
-        </div>
-
-        {/* Add waiter form */}
-        {showAddWaiter && (
-          <div className="flex items-center gap-2 mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
-            <input
-              type="text"
-              value={newWaiterName}
-              onChange={(e) => setNewWaiterName(e.target.value)}
-              placeholder="Nome do garçom"
-              autoFocus
-              onKeyDown={(e) => e.key === 'Enter' && handleAddWaiter()}
-              className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
-            />
-            <button
-              onClick={handleAddWaiter}
-              disabled={addingWaiter || !newWaiterName.trim()}
-              className="px-3 py-2 bg-[#007AFF] text-white rounded-lg text-xs font-medium hover:bg-[#0066DD] disabled:opacity-50 transition-colors"
-            >
-              {addingWaiter ? '...' : 'Salvar'}
-            </button>
-            <button
-              onClick={() => { setShowAddWaiter(false); setNewWaiterName(''); }}
-              className="px-2 py-2 text-gray-400 hover:text-gray-600 text-xs"
-            >
-              Cancelar
-            </button>
+      {/* ============================================ */}
+      {/* TAB: Reviews */}
+      {/* ============================================ */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-800">
+              Avaliações Recebidas ({reviews.length})
+            </h3>
           </div>
-        )}
 
-        {/* General QR */}
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-3">
-          <div>
-            <p className="text-xs font-medium text-gray-700">QR Code Geral</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">criadores.app/avaliar/{subscription?.business_slug}</p>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => handleShowQR()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
-            >
-              <QrCode className="w-3 h-3" />
-              QR Code
-            </button>
-            <button
-              onClick={() => handleCopyLink()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              {copiedId === 'general' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-              {copiedId === 'general' ? 'Copiado!' : 'Copiar link'}
-            </button>
-          </div>
-        </div>
+          {reviews.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+              <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm font-medium text-gray-600 mb-1">Nenhuma avaliação ainda</p>
+              <p className="text-xs text-gray-400">As avaliações dos clientes aparecerão aqui.</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {paginatedReviews.map((review) => {
+                  const waiterName = waiters.find(w => w.id === review.waiter_id)?.name;
+                  return (
+                    <div key={review.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <StarDisplay rating={review.overall_rating} size={14} />
+                          <span className="text-xs font-semibold text-gray-700">{review.overall_rating}/5</span>
+                          {review.redirected_to_google && (
+                            <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
+                              → Google
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-gray-400">
+                          {new Date(review.created_at + 'T12:00:00').toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
 
-        {/* Waiter list */}
-        {waiters.filter(w => w.is_active).length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-4">
-            Nenhum garçom cadastrado. A equipe crIAdores vai configurar seus garçons.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {waiters.filter(w => w.is_active).map((waiter) => {
-              const stats = analytics?.waiter_ranking?.find(w => w.waiter_id === waiter.id);
-              return (
-                <div key={waiter.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#007AFF]/10 flex items-center justify-center text-[11px] font-bold text-[#007AFF]">
-                      {waiter.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-700">{waiter.name}</p>
-                      {stats && (
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <StarDisplay rating={stats.avg_rating} size={10} />
-                          <span className="text-[10px] text-gray-400">
-                            {stats.avg_rating.toFixed(1)} • {stats.total_reviews} avaliações
-                          </span>
+                      {waiterName && (
+                        <p className="text-[10px] text-gray-400 mb-2">
+                          <Users className="w-3 h-3 inline mr-1" />
+                          Garçom: {waiterName}
+                        </p>
+                      )}
+
+                      {review.comment && (
+                        <p className="text-xs text-gray-600 mb-2 italic">"{review.comment}"</p>
+                      )}
+
+                      {review.category_ratings && Object.keys(review.category_ratings).length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {Object.entries(review.category_ratings).map(([key, val]) => (
+                            <span key={key} className="text-[10px] bg-gray-50 text-gray-500 px-2 py-1 rounded-lg">
+                              {CATEGORY_LABELS[key] || key}: <strong>{val}/5</strong>
+                            </span>
+                          ))}
                         </div>
                       )}
+
+                      {review.customer_phone && (
+                        <p className="text-[10px] text-gray-400 mt-2">
+                          📱 {review.customer_phone}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              {totalReviewPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <button
+                    onClick={() => setReviewsPage(Math.max(0, reviewsPage - 1))}
+                    disabled={reviewsPage === 0}
+                    className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 disabled:opacity-40"
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-xs text-gray-400">
+                    {reviewsPage + 1} de {totalReviewPages}
+                  </span>
+                  <button
+                    onClick={() => setReviewsPage(Math.min(totalReviewPages - 1, reviewsPage + 1))}
+                    disabled={reviewsPage >= totalReviewPages - 1}
+                    className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 disabled:opacity-40"
+                  >
+                    Próximo
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* TAB: Google Maps */}
+      {/* ============================================ */}
+      {activeTab === 'google' && (
+        <div className="space-y-4">
+          {!googleData?.has_profile ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+              <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm font-medium text-gray-600 mb-1">Google Maps não vinculado</p>
+              <p className="text-xs text-gray-400 max-w-md mx-auto">
+                O perfil do Google Maps do seu negócio ainda não está vinculado.
+                Entre em contato com a equipe crIAdores para configurar.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Google Maps Overview Card */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-[#4285F4] flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-800">
+                      {googleData.business_name_on_google || 'Seu Negócio'}
+                    </h3>
+                    <p className="text-[10px] text-gray-400">Perfil do Google Maps</p>
+                  </div>
+                  {googleData.google_maps_url && (
+                    <a href={googleData.google_maps_url} target="_blank" rel="noopener noreferrer"
+                      className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-[#4285F4] text-white rounded-lg text-[11px] font-medium hover:bg-[#3367D6] transition-colors">
+                      <ExternalLink className="w-3 h-3" />
+                      Ver no Google
+                    </a>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Nota</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-2xl font-bold text-gray-900">{googleData.rating?.toFixed(1) || '—'}</p>
+                      <StarDisplay rating={googleData.rating || 0} size={12} />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => handleShowQR(waiter)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
-                    >
-                      <QrCode className="w-3 h-3" />
-                      QR
-                    </button>
-                    <button
-                      onClick={() => handleCopyLink(waiter)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                      {copiedId === waiter.id ? 'Copiado!' : 'Link'}
-                    </button>
-                    <button
-                      onClick={() => handleRemoveWaiter(waiter.id)}
-                      className="p-1.5 text-gray-300 hover:text-red-500 transition-colors"
-                      title="Remover garçom"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </button>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Total Avaliações</p>
+                    <p className="text-2xl font-bold text-gray-900">{googleData.reviews_count?.toLocaleString() || '—'}</p>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Waiter Ranking */}
-      {analytics?.waiter_ranking && analytics.waiter_ranking.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <h3 className="text-sm font-semibold text-gray-800 mb-4">Ranking de Garçons</h3>
-          <div className="space-y-2">
-            {analytics.waiter_ranking.map((waiter, i) => (
-              <div key={waiter.waiter_id} className="flex items-center gap-3 p-2 rounded-xl">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  i === 0 ? 'bg-amber-100 text-amber-700' :
-                  i === 1 ? 'bg-gray-100 text-gray-600' :
-                  i === 2 ? 'bg-orange-100 text-orange-700' :
-                  'bg-gray-50 text-gray-400'
-                }`}>
-                  {i + 1}
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-800">{waiter.name}</p>
-                  <p className="text-[10px] text-gray-400">{waiter.total_reviews} avaliações • {waiter.five_star_count} ★5</p>
-                </div>
-                <div className="text-right">
-                  <StarDisplay rating={waiter.avg_rating} size={11} />
-                  <p className="text-[10px] font-semibold text-gray-600 mt-0.5">{waiter.avg_rating.toFixed(1)}</p>
+                  {googleData.positive_sentiment_pct !== null && googleData.positive_sentiment_pct !== undefined && (
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Sentimento</p>
+                      <p className="text-2xl font-bold text-emerald-600">{googleData.positive_sentiment_pct}%</p>
+                    </div>
+                  )}
+                  {googleData.response_rate !== null && googleData.response_rate !== undefined && (
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Taxa Resposta</p>
+                      <p className="text-2xl font-bold text-[#007AFF]">{googleData.response_rate}%</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Google Reviews List */}
+              {googleData.reviews && googleData.reviews.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4">Últimas Avaliações no Google</h3>
+                  <div className="space-y-3">
+                    {googleData.reviews.map((review, idx) => (
+                      <div key={idx} className="p-3 bg-gray-50 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          {review.author_photo_url ? (
+                            <img src={review.author_photo_url} alt="" className="w-7 h-7 rounded-full" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-[#4285F4]/10 flex items-center justify-center text-[10px] font-bold text-[#4285F4]">
+                              {review.author_name?.charAt(0) || '?'}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs font-medium text-gray-700">{review.author_name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <StarDisplay rating={review.rating} size={10} />
+                              {review.relative_time && (
+                                <span className="text-[9px] text-gray-400">{review.relative_time}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {review.text && (
+                          <p className="text-xs text-gray-600 leading-relaxed">{review.text}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -470,9 +849,7 @@ export default function ExcelencIA5Page() {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setQrModal(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
             <button onClick={() => setQrModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <X className="w-5 h-5" />
             </button>
             <div className="text-center">
               <h3 className="text-sm font-semibold text-gray-800 mb-1">{qrModal.name}</h3>
