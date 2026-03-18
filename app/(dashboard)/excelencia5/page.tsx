@@ -68,6 +68,9 @@ export default function ExcelencIA5Page() {
   const [loading, setLoading] = useState(true);
   const [noSubscription, setNoSubscription] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [newWaiterName, setNewWaiterName] = useState('');
+  const [addingWaiter, setAddingWaiter] = useState(false);
+  const [showAddWaiter, setShowAddWaiter] = useState(false);
 
   const businessId = user?.business_id;
 
@@ -109,6 +112,37 @@ export default function ExcelencIA5Page() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleAddWaiter = async () => {
+    if (!newWaiterName.trim() || !businessId) return;
+    setAddingWaiter(true);
+    try {
+      const res = await fetch('/api/excelencia5/waiters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_id: businessId, name: newWaiterName.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWaiters((prev) => [...prev, data.data]);
+        setNewWaiterName('');
+        setShowAddWaiter(false);
+      }
+    } catch (err) {
+      console.error('Erro ao adicionar garçom:', err);
+    } finally {
+      setAddingWaiter(false);
+    }
+  };
+
+  const handleRemoveWaiter = async (waiterId: string) => {
+    try {
+      await fetch(`/api/excelencia5/waiters?id=${waiterId}`, { method: 'DELETE' });
+      setWaiters((prev) => prev.map((w) => w.id === waiterId ? { ...w, is_active: false } : w));
+    } catch (err) {
+      console.error('Erro ao remover garçom:', err);
+    }
+  };
 
   const handleCopyLink = async (waiter?: Waiter) => {
     if (!subscription) return;
@@ -249,7 +283,42 @@ export default function ExcelencIA5Page() {
             <Users className="w-4 h-4 inline mr-1.5 text-gray-400" />
             Garçons ({waiters.filter(w => w.is_active).length})
           </h3>
+          <button
+            onClick={() => setShowAddWaiter(!showAddWaiter)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
+          >
+            <Plus className="w-3 h-3" />
+            Adicionar
+          </button>
         </div>
+
+        {/* Add waiter form */}
+        {showAddWaiter && (
+          <div className="flex items-center gap-2 mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+            <input
+              type="text"
+              value={newWaiterName}
+              onChange={(e) => setNewWaiterName(e.target.value)}
+              placeholder="Nome do garçom"
+              autoFocus
+              onKeyDown={(e) => e.key === 'Enter' && handleAddWaiter()}
+              className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+            />
+            <button
+              onClick={handleAddWaiter}
+              disabled={addingWaiter || !newWaiterName.trim()}
+              className="px-3 py-2 bg-[#007AFF] text-white rounded-lg text-xs font-medium hover:bg-[#0066DD] disabled:opacity-50 transition-colors"
+            >
+              {addingWaiter ? '...' : 'Salvar'}
+            </button>
+            <button
+              onClick={() => { setShowAddWaiter(false); setNewWaiterName(''); }}
+              className="px-2 py-2 text-gray-400 hover:text-gray-600 text-xs"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
 
         {/* General QR */}
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl mb-3">
@@ -293,13 +362,24 @@ export default function ExcelencIA5Page() {
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleCopyLink(waiter)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                  >
-                    {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <QrCode className="w-3 h-3" />}
-                    {copiedId === waiter.id ? 'Copiado!' : 'Link'}
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleCopyLink(waiter)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <QrCode className="w-3 h-3" />}
+                      {copiedId === waiter.id ? 'Copiado!' : 'Link'}
+                    </button>
+                    <button
+                      onClick={() => handleRemoveWaiter(waiter.id)}
+                      className="p-1.5 text-gray-300 hover:text-red-500 transition-colors"
+                      title="Remover garçom"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               );
             })}
