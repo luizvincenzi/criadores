@@ -71,6 +71,8 @@ export default function ExcelencIA5Page() {
   const [newWaiterName, setNewWaiterName] = useState('');
   const [addingWaiter, setAddingWaiter] = useState(false);
   const [showAddWaiter, setShowAddWaiter] = useState(false);
+  const [qrModal, setQrModal] = useState<{ url: string; dataUrl: string; name: string } | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
 
   const businessId = user?.business_id;
 
@@ -142,6 +144,36 @@ export default function ExcelencIA5Page() {
     } catch (err) {
       console.error('Erro ao remover garçom:', err);
     }
+  };
+
+  const handleShowQR = async (waiter?: Waiter) => {
+    if (!subscription) return;
+    setQrLoading(true);
+    try {
+      const params = new URLSearchParams({ business_slug: subscription.business_slug });
+      if (waiter?.slug) params.set('waiter_slug', waiter.slug);
+      const res = await fetch(`/api/excelencia5/qrcode?${params}`);
+      const data = await res.json();
+      if (data.success) {
+        setQrModal({
+          url: data.data.url,
+          dataUrl: data.data.qrcode_data_url,
+          name: waiter?.name || 'QR Code Geral',
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao gerar QR:', err);
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  const handleDownloadQR = () => {
+    if (!qrModal) return;
+    const link = document.createElement('a');
+    link.download = `qrcode-${qrModal.name.toLowerCase().replace(/\s+/g, '-')}.png`;
+    link.href = qrModal.dataUrl;
+    link.click();
   };
 
   const handleCopyLink = async (waiter?: Waiter) => {
@@ -326,13 +358,22 @@ export default function ExcelencIA5Page() {
             <p className="text-xs font-medium text-gray-700">QR Code Geral</p>
             <p className="text-[10px] text-gray-400 mt-0.5">criadores.app/avaliar/{subscription?.business_slug}</p>
           </div>
-          <button
-            onClick={() => handleCopyLink()}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            {copiedId === 'general' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-            {copiedId === 'general' ? 'Copiado!' : 'Copiar link'}
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handleShowQR()}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
+            >
+              <QrCode className="w-3 h-3" />
+              QR Code
+            </button>
+            <button
+              onClick={() => handleCopyLink()}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              {copiedId === 'general' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+              {copiedId === 'general' ? 'Copiado!' : 'Copiar link'}
+            </button>
+          </div>
         </div>
 
         {/* Waiter list */}
@@ -364,10 +405,17 @@ export default function ExcelencIA5Page() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
-                      onClick={() => handleCopyLink(waiter)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                      onClick={() => handleShowQR(waiter)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
                     >
-                      {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <QrCode className="w-3 h-3" />}
+                      <QrCode className="w-3 h-3" />
+                      QR
+                    </button>
+                    <button
+                      onClick={() => handleCopyLink(waiter)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                       {copiedId === waiter.id ? 'Copiado!' : 'Link'}
                     </button>
                     <button
@@ -412,6 +460,42 @@ export default function ExcelencIA5Page() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {qrModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setQrModal(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+            <button onClick={() => setQrModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <div className="text-center">
+              <h3 className="text-sm font-semibold text-gray-800 mb-1">{qrModal.name}</h3>
+              <p className="text-[10px] text-gray-400 mb-4">Escaneie para avaliar</p>
+              <img src={qrModal.dataUrl} alt="QR Code" className="w-52 h-52 mx-auto rounded-xl mb-4" />
+              <p className="text-[10px] text-gray-500 break-all mb-4 px-2">{qrModal.url}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDownloadQR}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#007AFF] text-white rounded-xl text-xs font-medium hover:bg-[#0066DD] transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download
+                </button>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(qrModal.url); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium hover:bg-gray-200 transition-colors"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Copiar Link
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
