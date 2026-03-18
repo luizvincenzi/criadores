@@ -124,10 +124,8 @@ export default function AvaliarPage() {
     (rating: number) => {
       setOverallRating(rating);
 
-      if (rating === 5 && businessInfo?.google_reviews_url) {
-        // 5 stars → redirect to Google
-        setScreen('redirect');
-        // Submit the 5-star review in background
+      if (rating === 5) {
+        // 5 stars → redirect to Google (if URL exists) or thank you
         fetch('/api/excelencia5/public/reviews', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -135,14 +133,20 @@ export default function AvaliarPage() {
             business_slug: businessSlug,
             overall_rating: 5,
             waiter_slug: waiterSlug,
-            redirected_to_google: true,
+            redirected_to_google: !!businessInfo?.google_reviews_url,
           }),
         }).catch(() => {});
 
-        // Redirect after brief thank you
-        setTimeout(() => {
-          window.location.href = businessInfo.google_reviews_url!;
-        }, 1500);
+        if (businessInfo?.google_reviews_url) {
+          // Has Google URL → redirect
+          setScreen('redirect');
+          setTimeout(() => {
+            window.location.href = businessInfo.google_reviews_url!;
+          }, 1500);
+        } else {
+          // No Google URL → thank you screen
+          setScreen('thanks');
+        }
       } else {
         // ≤4 stars → detailed feedback
         setScreen('details');
