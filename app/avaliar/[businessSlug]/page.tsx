@@ -51,9 +51,9 @@ function Star({
         width={size}
         height={size}
         viewBox="0 0 24 24"
-        fill={filled ? '#FBBF24' : 'none'}
+        fill={filled ? '#FBBF24' : '#E5E7EB'}
         stroke={filled ? '#F59E0B' : '#D1D5DB'}
-        strokeWidth="1.5"
+        strokeWidth="1"
       >
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
@@ -225,28 +225,33 @@ export default function AvaliarPage() {
               className="text-center"
             >
               {/* Business name */}
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <div className="w-16 h-16 bg-[#007AFF]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-[#007AFF]">
+                  {businessInfo?.business_name?.charAt(0) || '?'}
+                </span>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
                 {businessInfo?.business_name}
               </h1>
 
               {businessInfo?.waiter_name && (
-                <p className="text-sm text-gray-500 mb-8">
-                  Atendido por <span className="font-medium text-gray-700">{businessInfo.waiter_name}</span>
+                <p className="text-sm text-gray-500 mb-6">
+                  Atendido por <span className="font-semibold text-gray-700">{businessInfo.waiter_name}</span>
                 </p>
               )}
 
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-base text-gray-500 mb-8">
                 Como foi sua experiência hoje?
               </p>
 
               {/* Stars */}
-              <div className="flex items-center justify-center gap-2 mb-12">
+              <div className="flex items-center justify-center gap-3 mb-6">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
                     filled={star <= overallRating}
                     onTap={() => handleRating(star)}
-                    size={48}
+                    size={52}
                     delay={star}
                   />
                 ))}
