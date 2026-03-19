@@ -121,9 +121,9 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
     if (!mounted) return;
     creators.forEach((cr, index) => {
       const id = cr.id || `cr-${index}`;
-      if (cr.photo_url && cr.photo_url.startsWith('http')) {
+      if (cr.photo_url && (cr.photo_url.startsWith('http') || cr.photo_url.startsWith('/api/'))) {
         const img = new Image();
-        img.onload = () => {}; // Image OK
+        img.onload = () => {};
         img.onerror = () => {
           setBrokenImages(prev => new Set(prev).add(id));
         };
@@ -186,7 +186,7 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
               'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
             }`}>
               {creators.map((cr, index) => {
-                const hasValidPhoto = cr.photo_url && cr.photo_url.startsWith('http') && !brokenImages.has(cr.id || `cr-${index}`);
+                const hasValidPhoto = cr.photo_url && (cr.photo_url.startsWith('http') || cr.photo_url.startsWith('/api/')) && !brokenImages.has(cr.id || `cr-${index}`);
                 return (
                   <div key={cr.id || index} className={`flex flex-col items-center text-center ${creators.length === 1 ? 'md:flex-row md:text-left md:gap-16 md:items-center max-w-3xl mx-auto' : ''}`}>
                     <div className={`flex-shrink-0 mb-6 ${creators.length === 1 ? 'md:mb-0' : ''}`}>
