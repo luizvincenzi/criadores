@@ -31,7 +31,24 @@ interface OnboardingPresentationProps {
 export function OnboardingPresentation({ business, onboarding, creators }: OnboardingPresentationProps) {
   const [mounted, setMounted] = useState(false);
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+
   useEffect(() => { setMounted(true); }, []);
+
+  // Check all creator images after mount (SSR onError doesn't fire)
+  useEffect(() => {
+    if (!mounted) return;
+    creators.forEach((cr, index) => {
+      const id = cr.id || `cr-${index}`;
+      if (cr.photo_url && cr.photo_url.startsWith('http')) {
+        const img = new Image();
+        img.onload = () => {}; // Image OK
+        img.onerror = () => {
+          setBrokenImages(prev => new Set(prev).add(id));
+        };
+        img.src = cr.photo_url;
+      }
+    });
+  }, [mounted, creators]);
 
   const handleImageError = (id: string) => {
     setBrokenImages(prev => new Set(prev).add(id));
