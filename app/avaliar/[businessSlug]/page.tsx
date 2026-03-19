@@ -164,7 +164,7 @@ export default function AvaliarPage() {
   const handleSubmitContact = useCallback(async () => {
     setSubmitting(true);
     try {
-      await fetch('/api/excelencia5/public/reviews', {
+      const res = await fetch('/api/excelencia5/public/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -176,8 +176,11 @@ export default function AvaliarPage() {
           customer_phone: phone || null,
         }),
       });
-    } catch {
-      // Silently fail — don't block the user
+      if (!res.ok) {
+        console.error('Failed to save review:', res.status);
+      }
+    } catch (err) {
+      console.error('Error saving review:', err);
     }
     setSubmitting(false);
     setScreen('thanks');

@@ -696,7 +696,7 @@ export default function ExcelencIA5Page() {
                           )}
                         </div>
                         <span className="text-[10px] text-gray-400">
-                          {new Date(review.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          {(() => { const d = new Date(review.created_at); return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); })()}
                         </span>
                       </div>
 
