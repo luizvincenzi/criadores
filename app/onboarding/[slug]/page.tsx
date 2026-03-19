@@ -90,6 +90,11 @@ async function getOnboardingData(slug: string) {
       resolvedPhoto = cr.photo_url;
     }
 
+    // 3) Proxy CDN URLs through our server (Instagram CDN URLs expire for browsers)
+    if (resolvedPhoto && (resolvedPhoto.includes('cdninstagram.com') || resolvedPhoto.includes('fbcdn.net') || resolvedPhoto.includes('scontent'))) {
+      resolvedPhoto = `/api/image-proxy?url=${encodeURIComponent(resolvedPhoto)}`;
+    }
+
     creators[i] = {
       ...cr,
       photo_url: resolvedPhoto,
