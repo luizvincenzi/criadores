@@ -138,11 +138,11 @@ export default function AvaliarPage() {
         }).catch(() => {});
 
         if (businessInfo?.google_reviews_url) {
-          // Has Google URL → redirect
+          // Has Google URL → redirect quickly
           setScreen('redirect');
           setTimeout(() => {
             window.location.href = businessInfo.google_reviews_url!;
-          }, 1500);
+          }, 600);
         } else {
           // No Google URL → thank you screen
           setScreen('thanks');

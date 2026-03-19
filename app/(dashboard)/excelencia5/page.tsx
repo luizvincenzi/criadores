@@ -58,6 +58,21 @@ interface GoogleReviewsData {
   reviews_count: number | null;
   response_rate: number | null;
   positive_sentiment_pct: number | null;
+  negative_sentiment_pct: number | null;
+  star_distribution: {
+    reviews_5_star: number;
+    reviews_4_star: number;
+    reviews_3_star: number;
+    reviews_2_star: number;
+    reviews_1_star: number;
+  } | null;
+  growth: {
+    reviews_gained: number;
+    rating_change: number;
+    days_monitored: number;
+    avg_reviews_per_month: number;
+  } | null;
+  last_sync_at: string | null;
   reviews: Array<{
     author_name: string;
     author_photo_url: string | null;
@@ -101,8 +116,125 @@ const CATEGORY_LABELS: Record<string, string> = {
   custo_beneficio: 'Custo-benefício',
 };
 
+const RADAR_CATEGORIES = [
+  { key: 'atendimento', label: 'Atendimento' },
+  { key: 'comida', label: 'Comida' },
+  { key: 'tempo_espera', label: 'Tempo de Espera' },
+  { key: 'ambiente', label: 'Ambiente' },
+  { key: 'custo_beneficio', label: 'Custo-benefício' },
+];
+
 // ============================================
-// WaitersTab Component (simplified)
+// RadarChart SVG
+// ============================================
+function RadarChart({ categories }: { categories: Record<string, number> }) {
+  const cx = 120;
+  const cy = 120;
+  const maxR = 80;
+  const levels = 5;
+  const cats = RADAR_CATEGORIES;
+  const n = cats.length;
+
+  const getPoint = (index: number, value: number) => {
+    const angle = (Math.PI * 2 * index) / n - Math.PI / 2;
+    const r = (value / 5) * maxR;
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  };
+
+  const getLabelPos = (index: number) => {
+    const angle = (Math.PI * 2 * index) / n - Math.PI / 2;
+    const r = maxR + 28;
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  };
+
+  const gridPolygons = Array.from({ length: levels }, (_, level) => {
+    const val = ((level + 1) / levels) * 5;
+    return cats.map((_, i) => {
+      const p = getPoint(i, val);
+      return `${p.x},${p.y}`;
+    }).join(' ');
+  });
+
+  const dataPoints = cats.map((cat, i) => {
+    const val = categories[cat.key] || 0;
+    const p = getPoint(i, val);
+    return `${p.x},${p.y}`;
+  }).join(' ');
+
+  return (
+    <svg viewBox="0 0 240 240" className="w-full max-w-[240px] mx-auto">
+      {gridPolygons.map((points, i) => (
+        <polygon key={i} points={points} fill="none" stroke="#E5E7EB" strokeWidth="0.5" />
+      ))}
+      {cats.map((_, i) => {
+        const p = getPoint(i, 5);
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#E5E7EB" strokeWidth="0.5" />;
+      })}
+      <polygon points={dataPoints} fill="rgba(0, 122, 255, 0.15)" stroke="#007AFF" strokeWidth="1.5" />
+      {cats.map((cat, i) => {
+        const val = categories[cat.key] || 0;
+        const p = getPoint(i, val);
+        return <circle key={i} cx={p.x} cy={p.y} r="3" fill="#007AFF" />;
+      })}
+      {cats.map((cat, i) => {
+        const pos = getLabelPos(i);
+        const val = categories[cat.key] || 0;
+        return (
+          <text key={i} x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle" className="text-[8px] fill-gray-500 font-medium">
+            <tspan x={pos.x} dy="-4">{cat.label}</tspan>
+            <tspan x={pos.x} dy="10" className="fill-gray-900 font-bold text-[9px]">{val.toFixed(1)}</tspan>
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ============================================
+// NPS Distribution
+// ============================================
+function NPSDistribution({ reviews }: { reviews: Review[] }) {
+  const total = reviews.length;
+  const promotores = reviews.filter(r => r.overall_rating === 5).length;
+  const neutros = reviews.filter(r => r.overall_rating === 4).length;
+  const detratores = reviews.filter(r => r.overall_rating <= 3).length;
+
+  const pctPromotor = total > 0 ? Math.round((promotores / total) * 100) : 0;
+  const pctNeutro = total > 0 ? Math.round((neutros / total) * 100) : 0;
+  const pctDetrator = total > 0 ? Math.round((detratores / total) * 100) : 0;
+
+  const items = [
+    { label: 'Promotores', sublabel: '5 estrelas', count: promotores, pct: pctPromotor, color: 'bg-emerald-500', textColor: 'text-emerald-600' },
+    { label: 'Neutros', sublabel: '4 estrelas', count: neutros, pct: pctNeutro, color: 'bg-amber-400', textColor: 'text-amber-600' },
+    { label: 'Detratores', sublabel: '1-3 estrelas', count: detratores, pct: pctDetrator, color: 'bg-red-500', textColor: 'text-red-600' },
+  ];
+
+  return (
+    <div className="space-y-3">
+      {items.map(item => (
+        <div key={item.label}>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${item.color}`} />
+              <span className="text-[11px] font-medium text-gray-700">{item.label}</span>
+              <span className="text-[9px] text-gray-400">({item.sublabel})</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[11px] font-bold ${item.textColor}`}>{item.count}</span>
+              <span className="text-[10px] text-gray-400">{item.pct}%</span>
+            </div>
+          </div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full ${item.color} transition-all duration-500`} style={{ width: `${item.pct}%` }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================
+// WaitersTab Component
 // ============================================
 function WaitersTab({
   waiters, analytics, reviews, subscription,
@@ -167,6 +299,9 @@ function WaitersTab({
     const fiveStarPct = stats && stats.total_reviews > 0
       ? Math.round((stats.five_star_count / stats.total_reviews) * 100)
       : 0;
+    const promotoresPct = waiterReviews.length > 0
+      ? Math.round((waiterReviews.filter(r => r.overall_rating === 5).length / waiterReviews.length) * 100)
+      : 0;
 
     return (
       <div className="space-y-6">
@@ -201,12 +336,12 @@ function WaitersTab({
           </div>
         </div>
 
-        {/* KPIs - Bread King style */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* KPIs - 4 columns */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <MessageCircle className="w-5 h-5 text-gray-300 mb-3" />
             <p className="text-3xl font-black text-gray-900">{stats?.total_reviews || 0}</p>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Avaliacoes</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Respostas</p>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <Star className="w-5 h-5 text-gray-300 mb-3" />
@@ -214,32 +349,51 @@ function WaitersTab({
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Nota Media</p>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <ExternalLink className="w-5 h-5 text-gray-300 mb-3" />
+            <Star className="w-5 h-5 text-gray-300 mb-3" />
             <p className="text-3xl font-black text-gray-900">{fiveStarPct}<span className="text-lg text-gray-400">%</span></p>
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">5 Estrelas</p>
           </div>
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <ExternalLink className="w-5 h-5 text-gray-300 mb-3" />
+            <p className="text-3xl font-black text-gray-900">{promotoresPct}<span className="text-lg text-gray-400">%</span></p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Promotores</p>
+          </div>
         </div>
 
-        {/* Category bars */}
-        {hasCategories && (
+        {/* NPS Distribution */}
+        {waiterReviews.length > 0 && (
           <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Media por Categoria</h4>
-            <div className="space-y-3">
-              {Object.entries(categories).map(([key, value]) => {
-                const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-teal-500', 'bg-amber-500'];
-                const catIndex = Object.keys(categories).indexOf(key);
-                return (
-                  <div key={key}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] text-gray-700">{CATEGORY_LABELS[key] || key}</span>
-                      <span className="text-[11px] font-semibold text-gray-900">{value}/5</span>
+            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Distribuicao NPS</h4>
+            <NPSDistribution reviews={waiterReviews} />
+          </div>
+        )}
+
+        {/* Radar Chart + Category bars */}
+        {hasCategories && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Radar de Performance</h4>
+              <RadarChart categories={categories} />
+            </div>
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Media por Categoria</h4>
+              <div className="space-y-3">
+                {Object.entries(categories).map(([key, value]) => {
+                  const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-teal-500', 'bg-amber-500'];
+                  const catIndex = Object.keys(categories).indexOf(key);
+                  return (
+                    <div key={key}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] text-gray-700">{CATEGORY_LABELS[key] || key}</span>
+                        <span className="text-[11px] font-semibold text-gray-900">{value}/5</span>
+                      </div>
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${colors[catIndex % colors.length]}`} style={{ width: `${(value / 5) * 100}%` }} />
+                      </div>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${colors[catIndex % colors.length]}`} style={{ width: `${(value / 5) * 100}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -955,15 +1109,15 @@ export default function ExcelencIA5Page() {
           {!googleData?.has_profile ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <MapPin className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-600 mb-1">Google Maps não vinculado</p>
+              <p className="text-sm font-medium text-gray-600 mb-1">Google Maps nao vinculado</p>
               <p className="text-xs text-gray-400 max-w-md mx-auto">
-                O perfil do Google Maps do seu negócio ainda não está vinculado.
+                O perfil do Google Maps do seu negocio ainda nao esta vinculado.
                 Entre em contato com a equipe crIAdores para configurar.
               </p>
             </div>
           ) : (
             <>
-              {/* Google Maps Overview Card */}
+              {/* Google Maps Header */}
               <div className="bg-white rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-9 h-9 rounded-xl bg-[#4285F4] flex items-center justify-center">
@@ -971,9 +1125,14 @@ export default function ExcelencIA5Page() {
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-gray-800">
-                      {googleData.business_name_on_google || 'Seu Negócio'}
+                      {googleData.business_name_on_google || 'Seu Negocio'}
                     </h3>
-                    <p className="text-[10px] text-gray-400">Perfil do Google Maps</p>
+                    <p className="text-[10px] text-gray-400">
+                      Perfil do Google Maps
+                      {googleData.last_sync_at && (
+                        <> &middot; Atualizado: {new Date(googleData.last_sync_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</>
+                      )}
+                    </p>
                   </div>
                   {googleData.google_maps_url && (
                     <a href={googleData.google_maps_url} target="_blank" rel="noopener noreferrer"
@@ -984,61 +1143,159 @@ export default function ExcelencIA5Page() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Nota</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-2xl font-bold text-gray-900">{googleData.rating?.toFixed(1) || '—'}</p>
-                      <StarDisplay rating={googleData.rating || 0} size={12} />
-                    </div>
+                {/* KPIs - Bread King style */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <Star className="w-4 h-4 text-gray-300 mb-2" />
+                    <p className="text-2xl font-black text-gray-900">{googleData.rating?.toFixed(1) || '-'}<span className="text-sm text-gray-400">/5</span></p>
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Nota Google</p>
+                    {googleData.growth && googleData.growth.rating_change !== 0 && (
+                      <p className={`text-[9px] mt-0.5 font-semibold ${googleData.growth.rating_change > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {googleData.growth.rating_change > 0 ? '+' : ''}{googleData.growth.rating_change.toFixed(1)}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Total Avaliações</p>
-                    <p className="text-2xl font-bold text-gray-900">{googleData.reviews_count?.toLocaleString() || '—'}</p>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <BarChart3 className="w-4 h-4 text-gray-300 mb-2" />
+                    <p className="text-2xl font-black text-gray-900">{googleData.reviews_count?.toLocaleString() || '-'}</p>
+                    <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Reviews</p>
+                    {googleData.growth && googleData.growth.reviews_gained > 0 && (
+                      <p className="text-[9px] text-emerald-500 mt-0.5 font-semibold">+{googleData.growth.reviews_gained} novos</p>
+                    )}
                   </div>
-                  {googleData.positive_sentiment_pct !== null && googleData.positive_sentiment_pct !== undefined && (
-                    <div>
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Sentimento</p>
-                      <p className="text-2xl font-bold text-emerald-600">{googleData.positive_sentiment_pct}%</p>
+                  {googleData.positive_sentiment_pct != null && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <Star className="w-4 h-4 text-gray-300 mb-2" />
+                      <p className="text-2xl font-black text-emerald-600">{googleData.positive_sentiment_pct}%</p>
+                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Positivas</p>
                     </div>
                   )}
-                  {googleData.response_rate !== null && googleData.response_rate !== undefined && (
-                    <div>
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Taxa Resposta</p>
-                      <p className="text-2xl font-bold text-[#007AFF]">{googleData.response_rate}%</p>
+                  {googleData.response_rate != null && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <Star className="w-4 h-4 text-gray-300 mb-2" />
+                      <p className="text-2xl font-black text-[#007AFF]">{googleData.response_rate}%</p>
+                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Taxa Resposta</p>
+                    </div>
+                  )}
+                  {googleData.growth && googleData.growth.avg_reviews_per_month > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <BarChart3 className="w-4 h-4 text-gray-300 mb-2" />
+                      <p className="text-2xl font-black text-gray-900">{googleData.growth.avg_reviews_per_month.toFixed(1)}</p>
+                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Reviews/Mes</p>
+                    </div>
+                  )}
+                  {googleData.growth && googleData.growth.days_monitored > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <BarChart3 className="w-4 h-4 text-gray-300 mb-2" />
+                      <p className="text-2xl font-black text-gray-900">{googleData.growth.days_monitored}</p>
+                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">Dias Monitorado</p>
                     </div>
                   )}
                 </div>
               </div>
 
+              {/* Star Distribution + Sentiment */}
+              {googleData.star_distribution && (() => {
+                const sd = googleData.star_distribution;
+                const stars = [
+                  { star: 5, count: sd.reviews_5_star },
+                  { star: 4, count: sd.reviews_4_star },
+                  { star: 3, count: sd.reviews_3_star },
+                  { star: 2, count: sd.reviews_2_star },
+                  { star: 1, count: sd.reviews_1_star },
+                ];
+                const totalStars = stars.reduce((acc, s) => acc + s.count, 0);
+                if (totalStars === 0) return null;
+
+                const sentimentData = [
+                  { label: 'Positivas', sublabel: '4-5 estrelas', count: sd.reviews_5_star + sd.reviews_4_star, color: 'bg-emerald-500', textColor: 'text-emerald-600' },
+                  { label: 'Neutras', sublabel: '3 estrelas', count: sd.reviews_3_star, color: 'bg-amber-400', textColor: 'text-amber-600' },
+                  { label: 'Negativas', sublabel: '1-2 estrelas', count: sd.reviews_2_star + sd.reviews_1_star, color: 'bg-red-500', textColor: 'text-red-600' },
+                ];
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-2xl p-5 shadow-sm">
+                      <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Distribuicao Google</h3>
+                      <div className="space-y-2">
+                        {stars.map(({ star, count }) => {
+                          const pct = totalStars > 0 ? (count / totalStars) * 100 : 0;
+                          return (
+                            <div key={star} className="flex items-center gap-2">
+                              <span className="text-[11px] font-semibold text-gray-600 w-4">{star}</span>
+                              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-amber-400 rounded-full" style={{ width: `${pct}%` }} />
+                              </div>
+                              <span className="text-[10px] text-gray-500 w-8 text-right">{count}</span>
+                              <span className="text-[9px] text-gray-400 w-10 text-right">{pct.toFixed(0)}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 shadow-sm">
+                      <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Sentimento</h3>
+                      <div className="space-y-3">
+                        {sentimentData.map(item => {
+                          const pct = totalStars > 0 ? Math.round((item.count / totalStars) * 100) : 0;
+                          return (
+                            <div key={item.label}>
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${item.color}`} />
+                                  <span className="text-[11px] font-medium text-gray-700">{item.label}</span>
+                                  <span className="text-[9px] text-gray-400">({item.sublabel})</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[11px] font-bold ${item.textColor}`}>{item.count}</span>
+                                  <span className="text-[10px] text-gray-400">{pct}%</span>
+                                </div>
+                              </div>
+                              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${item.color}`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Google Reviews List */}
               {googleData.reviews && googleData.reviews.length > 0 && (
                 <div className="bg-white rounded-2xl p-5 shadow-sm">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-4">Últimas Avaliações no Google</h3>
-                  <div className="space-y-3">
+                  <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                    Avaliacoes no Google ({googleData.reviews.length})
+                  </h3>
+                  <div className="space-y-4">
                     {googleData.reviews.map((review, idx) => (
-                      <div key={idx} className="p-3 bg-gray-50 rounded-xl">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div key={idx} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
+                        <div className="flex items-start gap-3">
                           {review.author_photo_url ? (
-                            <img src={review.author_photo_url} alt="" className="w-7 h-7 rounded-full" />
+                            <img src={review.author_photo_url} alt={review.author_name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                           ) : (
-                            <div className="w-7 h-7 rounded-full bg-[#4285F4]/10 flex items-center justify-center text-[10px] font-bold text-[#4285F4]">
-                              {review.author_name?.charAt(0) || '?'}
+                            <div className="w-8 h-8 rounded-full bg-[#4285F4]/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[11px] font-bold text-[#4285F4]">{review.author_name?.charAt(0)?.toUpperCase() || '?'}</span>
                             </div>
                           )}
-                          <div>
-                            <p className="text-xs font-medium text-gray-700">{review.author_name}</p>
-                            <div className="flex items-center gap-1.5">
-                              <StarDisplay rating={review.rating} size={10} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <span className="text-[12px] font-semibold text-gray-800">{review.author_name}</span>
                               {review.relative_time && (
-                                <span className="text-[9px] text-gray-400">{review.relative_time}</span>
+                                <span className="text-[10px] text-gray-400 flex-shrink-0 ml-2">{review.relative_time}</span>
                               )}
                             </div>
+                            <div className="flex items-center gap-0.5 mb-1.5">
+                              <StarDisplay rating={review.rating} size={11} />
+                            </div>
+                            {review.text && (
+                              <p className="text-[11px] text-gray-600 leading-relaxed">{review.text}</p>
+                            )}
                           </div>
                         </div>
-                        {review.text && (
-                          <p className="text-xs text-gray-600 leading-relaxed">{review.text}</p>
-                        )}
                       </div>
                     ))}
                   </div>
