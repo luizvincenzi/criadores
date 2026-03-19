@@ -149,7 +149,7 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
         </section>
       )}
 
-      {/* ===== TRABALHOS (Thumbnail + Link) ===== */}
+      {/* ===== TRABALHOS (Instagram Embed) ===== */}
       {portfolioItems.length > 0 && (
         <section className="py-20 md:py-32 bg-gray-50">
           <div className="max-w-5xl mx-auto px-8 md:px-16">
@@ -157,66 +157,49 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
               TRABALHOS
             </h2>
 
-            <div className={`grid gap-6 md:gap-8 ${
-              portfolioItems.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' :
-              portfolioItems.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto' :
+            <div className={`grid gap-6 md:gap-8 justify-items-center ${
+              portfolioItems.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
+              portfolioItems.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto' :
               'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
             }`}>
-              {portfolioItems.map((item, index) => (
-                <a
-                  key={index}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block"
-                >
-                  {/* Phone mockup */}
-                  <div className="relative bg-gray-900 rounded-[2rem] p-2 shadow-xl group-hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-300">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-gray-900 rounded-b-2xl z-10" />
-                    <div className="relative rounded-[1.5rem] overflow-hidden bg-gray-800 aspect-[9/16]">
-                      {item.thumbnail_url && item.thumbnail_url.startsWith('http') ? (
-                        <>
-                          <img
-                            src={item.thumbnail_url}
-                            alt={item.title || `Trabalho ${index + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                          />
-                          {/* Play overlay */}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
-                            <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                              <svg className="w-6 h-6 text-gray-900 ml-1" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                              </svg>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
-                          {/* Instagram icon */}
-                          <svg className="w-10 h-10 mb-4 opacity-40" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-                          </svg>
-                          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-3">
-                            <svg className="w-5 h-5 text-gray-400 ml-0.5" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                            </svg>
-                          </div>
-                          <span className="text-[11px] opacity-60 uppercase tracking-wider">
-                            {item.type === 'reel' ? 'Reel' : item.type === 'video' ? 'Vídeo' : 'Post'}
-                          </span>
-                          <span className="text-[10px] opacity-40 mt-1">Toque para ver</span>
+              {portfolioItems.map((item, index) => {
+                // Extract shortcode from Instagram URL
+                const shortcodeMatch = item.url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+                const shortcode = shortcodeMatch ? shortcodeMatch[1] : null;
+                const isReel = item.url.includes('/reel/');
+                const embedUrl = shortcode
+                  ? `https://www.instagram.com/${isReel ? 'reel' : 'p'}/${shortcode}/embed/captioned/`
+                  : null;
+
+                return (
+                  <div key={index} className="w-full max-w-[350px]">
+                    {embedUrl ? (
+                      <div className="rounded-2xl overflow-hidden shadow-xl bg-white">
+                        <iframe
+                          src={embedUrl}
+                          className="w-full border-0"
+                          style={{ minHeight: '500px' }}
+                          allowFullScreen
+                          loading="lazy"
+                          title={item.title || `Trabalho ${index + 1}`}
+                        />
+                      </div>
+                    ) : (
+                      /* Fallback for non-Instagram URLs */
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
+                        <div className="bg-gray-200 rounded-2xl p-8 text-center">
+                          <p className="text-gray-500">Ver conte\u00fado</p>
                         </div>
-                      )}
-                    </div>
+                      </a>
+                    )}
+                    {item.title && (
+                      <p className="text-center mt-3 text-[13px] font-medium text-gray-700">
+                        {item.title}
+                      </p>
+                    )}
                   </div>
-                  {item.title && (
-                    <p className="text-center mt-4 text-[13px] font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
-                      {item.title}
-                    </p>
-                  )}
-                </a>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
