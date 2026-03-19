@@ -125,7 +125,7 @@ export default function AvaliarPage() {
       setOverallRating(rating);
 
       if (rating === 5) {
-        // 5 stars → redirect to Google (if URL exists) or thank you
+        // 5 stars → redirect to Google IMMEDIATELY (fire and forget the API call)
         fetch('/api/excelencia5/public/reviews', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -138,11 +138,8 @@ export default function AvaliarPage() {
         }).catch(() => {});
 
         if (businessInfo?.google_reviews_url) {
-          // Has Google URL → redirect quickly
-          setScreen('redirect');
-          setTimeout(() => {
-            window.location.href = businessInfo.google_reviews_url!;
-          }, 600);
+          // Redirect instantly - replace() avoids back button returning here
+          window.location.replace(businessInfo.google_reviews_url);
         } else {
           // No Google URL → thank you screen
           setScreen('thanks');
@@ -267,37 +264,20 @@ export default function AvaliarPage() {
           )}
 
           {/* ======================== */}
-          {/* SCREEN: Redirect to Google */}
+          {/* SCREEN: Redirect to Google (fallback while navigating) */}
           {/* ======================== */}
           {screen === 'redirect' && (
             <motion.div
               key="redirect"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               className="text-center"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-                className="text-6xl mb-4"
-              >
-                🎉
-              </motion.div>
+              <p className="text-4xl mb-4">🎉</p>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Obrigado!</h2>
-              <p className="text-sm text-gray-600 mb-1">
-                Adoramos saber que sua experiência foi excelente!
-              </p>
               <p className="text-sm text-gray-500 mb-4">
-                Agora clique em <strong>5 estrelas</strong> no Google para completar sua avaliação
+                Redirecionando para o Google...
               </p>
-              <div className="flex items-center justify-center gap-1 mb-4">
-                {[1,2,3,4,5].map((s) => (
-                  <svg key={s} width={20} height={20} viewBox="0 0 24 24" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                ))}
-              </div>
               <div className="w-6 h-6 border-2 border-[#007AFF] border-t-transparent rounded-full animate-spin mx-auto" />
             </motion.div>
           )}
