@@ -28,82 +28,79 @@ interface OnboardingPresentationProps {
   creators: CreatorInfo[];
 }
 
-// Instagram Official Embed using blockquote + embed.js
+// Instagram Reel/Post cards with thumbnail + link
 function InstagramEmbedsSection({ items }: { items: PortfolioItem[] }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Load Instagram embed.js script
-    const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
-    if (existing) {
-      // Script already loaded, re-process embeds
-      (window as any).instgrm?.Embeds?.process?.();
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = 'https://www.instagram.com/embed.js';
-    script.async = true;
-    script.onload = () => {
-      (window as any).instgrm?.Embeds?.process?.();
-    };
-    document.body.appendChild(script);
-    return () => {
-      // Don't remove - other embeds may need it
-    };
-  }, [items]);
-
-  // Build the permalink URL for embed
-  const getPermalink = (url: string) => {
-    // Clean URL - remove trailing slash and query params
-    const clean = url.split('?')[0].replace(/\/$/, '') + '/';
-    return clean;
-  };
-
   return (
     <section className="py-20 md:py-32 bg-gray-50">
       <div className="max-w-5xl mx-auto px-8 md:px-16">
         <h2 className="text-3xl md:text-5xl font-bold text-gray-950 tracking-[0.15em] text-center mb-16">
           TRABALHOS
         </h2>
-        <div
-          ref={containerRef}
-          className={`grid gap-6 md:gap-8 justify-items-center ${
-            items.length === 1 ? 'grid-cols-1 max-w-lg mx-auto' :
-            items.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto' :
-            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-          }`}
-        >
-          {items.map((item, index) => (
-            <div key={index} className="w-full max-w-[400px]">
-              <blockquote
-                className="instagram-media"
-                data-instgrm-captioned
-                data-instgrm-permalink={getPermalink(item.url)}
-                data-instgrm-version="14"
-                style={{
-                  background: '#FFF',
-                  border: '0',
-                  borderRadius: '16px',
-                  boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-                  margin: '0',
-                  maxWidth: '400px',
-                  minWidth: '280px',
-                  padding: '0',
-                  width: '100%',
-                }}
-              >
-                <a href={item.url} target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'block', padding: '16px', textAlign: 'center', textDecoration: 'none', color: '#999', fontSize: '14px' }}>
-                  Ver no Instagram
-                </a>
-              </blockquote>
-              {item.title && (
-                <p className="text-center mt-3 text-[13px] font-medium text-gray-700">
-                  {item.title}
-                </p>
-              )}
-            </div>
-          ))}
+        <div className={`grid gap-8 justify-items-center ${
+          items.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' :
+          items.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto' :
+          'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+        }`}>
+          {items.map((item, index) => {
+            const hasThumbnail = item.thumbnail_url && (item.thumbnail_url.startsWith('http') || item.thumbnail_url.startsWith('/api/'));
+            const typeLabel = item.type === 'reel' ? 'Reel' : item.type === 'video' ? 'Vídeo' : 'Post';
+
+            return (
+              <a key={index} href={item.url} target="_blank" rel="noopener noreferrer"
+                className="group block w-full max-w-[320px]">
+                {/* Phone mockup */}
+                <div className="relative bg-gradient-to-b from-gray-900 to-gray-800 rounded-[2.5rem] p-3 shadow-2xl group-hover:shadow-3xl group-hover:-translate-y-2 transition-all duration-500">
+                  {/* Notch */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-gray-900 rounded-b-2xl z-10" />
+                  {/* Screen */}
+                  <div className="relative rounded-[2rem] overflow-hidden bg-gray-950 aspect-[9/16]">
+                    {hasThumbnail ? (
+                      <>
+                        <img src={item.thumbnail_url!} alt={item.title || typeLabel}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 flex flex-col items-center justify-center">
+                        {/* Instagram gradient icon */}
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg">
+                          <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300 border border-white/30">
+                        <svg className="w-7 h-7 text-white ml-1 drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* Type badge */}
+                    <div className="absolute top-8 left-4">
+                      <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[11px] font-semibold tracking-wider uppercase border border-white/20">
+                        {typeLabel}
+                      </span>
+                    </div>
+                    {/* Bottom info */}
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-white text-[13px] font-medium drop-shadow-lg">
+                        {item.title || 'Ver no Instagram'}
+                      </p>
+                      <p className="text-white/60 text-[11px] mt-1 flex items-center gap-1">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/>
+                        </svg>
+                        Toque para assistir
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </div>
     </section>
