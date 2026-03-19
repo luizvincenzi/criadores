@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2 } from 'lucide-react';
+import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft, ThumbsUp, Minus, ThumbsDown } from 'lucide-react';
 
 // ============================================
 // Types
@@ -102,6 +102,470 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 // ============================================
+// Radar Chart (SVG-based, no external lib)
+// ============================================
+function RadarChart({ data, size = 280 }: { data: Record<string, number>; size?: number }) {
+  const categories = Object.keys(data);
+  const n = categories.length;
+  if (n === 0) return null;
+
+  const cx = size / 2;
+  const cy = size / 2;
+  const maxR = size * 0.38;
+  const levels = 5;
+
+  const angleStep = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2;
+
+  const getPoint = (index: number, value: number) => {
+    const angle = startAngle + index * angleStep;
+    const r = (value / 5) * maxR;
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  };
+
+  // Grid circles
+  const gridPaths = Array.from({ length: levels }, (_, i) => {
+    const r = ((i + 1) / levels) * maxR;
+    const points = Array.from({ length: n }, (_, j) => {
+      const angle = startAngle + j * angleStep;
+      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+    });
+    return points.join(' ');
+  });
+
+  // Data polygon
+  const dataPoints = categories.map((_, i) => {
+    const pt = getPoint(i, data[categories[i]] || 0);
+    return `${pt.x},${pt.y}`;
+  });
+
+  // Label positions
+  const labels = categories.map((cat, i) => {
+    const angle = startAngle + i * angleStep;
+    const lr = maxR + 28;
+    return {
+      label: CATEGORY_LABELS[cat] || cat,
+      x: cx + lr * Math.cos(angle),
+      y: cy + lr * Math.sin(angle),
+      anchor: Math.abs(Math.cos(angle)) < 0.1 ? 'middle' : Math.cos(angle) > 0 ? 'start' : 'end',
+    };
+  });
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] mx-auto">
+      {/* Grid */}
+      {gridPaths.map((points, i) => (
+        <polygon key={i} points={points} fill="none" stroke="#E5E7EB" strokeWidth="0.5" />
+      ))}
+      {/* Spokes */}
+      {categories.map((_, i) => {
+        const pt = getPoint(i, 5);
+        return <line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y} stroke="#E5E7EB" strokeWidth="0.5" />;
+      })}
+      {/* Data area */}
+      <polygon points={dataPoints.join(' ')} fill="rgba(100,150,200,0.2)" stroke="#6496C8" strokeWidth="1.5" />
+      {/* Labels */}
+      {labels.map((l, i) => (
+        <text
+          key={i}
+          x={l.x}
+          y={l.y}
+          textAnchor={l.anchor as any}
+          dominantBaseline="central"
+          className="text-[7px] font-semibold uppercase"
+          fill="#9CA3AF"
+        >
+          {l.label}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+// ============================================
+// WaitersTab Component
+// ============================================
+function WaitersTab({
+  waiters, analytics, reviews, subscription,
+  showAddWaiter, setShowAddWaiter, newWaiterName, setNewWaiterName,
+  addingWaiter, handleAddWaiter, handleShowQR, handleCopyLink, handleRemoveWaiter,
+  copiedId, fetchReviews,
+}: {
+  waiters: Waiter[];
+  analytics: Analytics | null;
+  reviews: Review[];
+  subscription: Subscription | null;
+  showAddWaiter: boolean;
+  setShowAddWaiter: (v: boolean) => void;
+  newWaiterName: string;
+  setNewWaiterName: (v: string) => void;
+  addingWaiter: boolean;
+  handleAddWaiter: () => void;
+  handleShowQR: (w?: Waiter) => void;
+  handleCopyLink: (w?: Waiter) => void;
+  handleRemoveWaiter: (id: string) => void;
+  copiedId: string | null;
+  fetchReviews: () => void;
+}) {
+  const [selectedWaiter, setSelectedWaiter] = useState<string | null>(null);
+
+  // Get stats for a waiter
+  const getWaiterStats = (waiterId: string) => {
+    return analytics?.waiter_ranking?.find(w => w.waiter_id === waiterId);
+  };
+
+  // Get reviews for a waiter
+  const getWaiterReviews = (waiterId: string) => {
+    return reviews.filter(r => r.waiter_id === waiterId);
+  };
+
+  // Compute NPS for a waiter
+  const getWaiterNPS = (waiterId: string) => {
+    const waiterReviews = getWaiterReviews(waiterId);
+    const total = waiterReviews.length;
+    if (total === 0) return { promoters: 0, neutrals: 0, detractors: 0, promoterPct: 0, neutralPct: 0, detractorPct: 0 };
+    const promoters = waiterReviews.filter(r => r.overall_rating === 5).length;
+    const neutrals = waiterReviews.filter(r => r.overall_rating === 4).length;
+    const detractors = waiterReviews.filter(r => r.overall_rating <= 3).length;
+    return {
+      promoters, neutrals, detractors,
+      promoterPct: Math.round((promoters / total) * 100),
+      neutralPct: Math.round((neutrals / total) * 100),
+      detractorPct: Math.round((detractors / total) * 100),
+    };
+  };
+
+  // Compute category averages for a waiter
+  const getWaiterCategories = (waiterId: string) => {
+    const waiterReviews = getWaiterReviews(waiterId).filter(r => r.category_ratings);
+    if (waiterReviews.length === 0) return {};
+    const sums: Record<string, { total: number; count: number }> = {};
+    waiterReviews.forEach(r => {
+      if (!r.category_ratings) return;
+      Object.entries(r.category_ratings).forEach(([key, value]) => {
+        if (!sums[key]) sums[key] = { total: 0, count: 0 };
+        sums[key].total += value;
+        sums[key].count += 1;
+      });
+    });
+    const avgs: Record<string, number> = {};
+    Object.entries(sums).forEach(([key, { total, count }]) => {
+      avgs[key] = Number((total / count).toFixed(1));
+    });
+    return avgs;
+  };
+
+  // Detail view for a selected waiter
+  if (selectedWaiter) {
+    const waiter = waiters.find(w => w.id === selectedWaiter);
+    if (!waiter) { setSelectedWaiter(null); return null; }
+
+    const stats = getWaiterStats(waiter.id);
+    const nps = getWaiterNPS(waiter.id);
+    const categories = getWaiterCategories(waiter.id);
+    const waiterReviews = getWaiterReviews(waiter.id);
+    const hasCategories = Object.keys(categories).length > 0;
+
+    return (
+      <div className="space-y-6">
+        {/* Back */}
+        <button
+          onClick={() => setSelectedWaiter(null)}
+          className="text-[12px] text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
+        >
+          <ChevronLeft className="w-3.5 h-3.5" />
+          Voltar para lista
+        </button>
+
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-[#007AFF]/10 flex items-center justify-center text-xl font-bold text-[#007AFF]">
+            {waiter.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">{waiter.name}</h2>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {stats ? `${stats.total_reviews} avaliações • Nota ${stats.avg_rating.toFixed(1)}` : 'Sem avaliações'}
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <button onClick={() => handleShowQR(waiter)} className="flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors">
+              <QrCode className="w-3.5 h-3.5" /> QR Code
+            </button>
+            <button onClick={() => handleCopyLink(waiter)} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+              {copiedId === waiter.id ? 'Copiado!' : 'Copiar link'}
+            </button>
+          </div>
+        </div>
+
+        {/* KPIs - Bread King style */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <MessageCircle className="w-5 h-5 text-gray-300 mb-3" />
+            <p className="text-3xl font-black text-gray-900">{stats?.total_reviews || 0}</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Respostas</p>
+            <p className="text-[9px] text-gray-300 mt-0.5">Total de avaliacoes</p>
+          </div>
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <Star className="w-5 h-5 text-gray-300 mb-3" />
+            <p className="text-3xl font-black text-gray-900">{stats?.avg_rating.toFixed(1) || '0.0'}<span className="text-lg">/5</span></p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Nota Media</p>
+            <p className="text-[9px] text-gray-300 mt-0.5">Avaliacao geral</p>
+          </div>
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <ThumbsUp className="w-5 h-5 text-gray-300 mb-3" />
+            <p className="text-3xl font-black text-gray-900">{stats?.five_star_count || 0}</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">5 Estrelas</p>
+            <p className="text-[9px] text-gray-300 mt-0.5">Avaliacoes perfeitas</p>
+          </div>
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <ExternalLink className="w-5 h-5 text-gray-300 mb-3" />
+            <p className="text-3xl font-black text-gray-900">{nps.promoterPct}<span className="text-lg">%</span></p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Promotores</p>
+            <p className="text-[9px] text-gray-300 mt-0.5">Nota 5 estrelas</p>
+          </div>
+        </div>
+
+        {/* NPS Distribution */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-emerald-400">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
+                <ThumbsUp className="w-3.5 h-3.5 text-emerald-600" />
+              </div>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase">Promotores</span>
+            </div>
+            <p className="text-2xl font-black text-gray-900">{nps.promoters}</p>
+            <p className="text-[10px] text-gray-400">{nps.promoterPct}% das respostas</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-amber-400">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
+                <Minus className="w-3.5 h-3.5 text-amber-600" />
+              </div>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase">Neutros</span>
+            </div>
+            <p className="text-2xl font-black text-gray-900">{nps.neutrals}</p>
+            <p className="text-[10px] text-gray-400">{nps.neutralPct}% das respostas</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-red-400">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center">
+                <ThumbsDown className="w-3.5 h-3.5 text-red-600" />
+              </div>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase">Detratores</span>
+            </div>
+            <p className="text-2xl font-black text-gray-900">{nps.detractors}</p>
+            <p className="text-[10px] text-gray-400">{nps.detractorPct}% das respostas</p>
+          </div>
+        </div>
+
+        {/* Radar + Categories side by side */}
+        {hasCategories && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Radar de Performance</h4>
+              <RadarChart data={categories} />
+            </div>
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Media por Categoria</h4>
+              <div className="space-y-3">
+                {Object.entries(categories).map(([key, value]) => {
+                  const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-teal-500', 'bg-amber-500'];
+                  const catIndex = Object.keys(categories).indexOf(key);
+                  return (
+                    <div key={key}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] text-gray-700">{CATEGORY_LABELS[key] || key}</span>
+                        <span className="text-[11px] font-semibold text-gray-900">{value} / 5</span>
+                      </div>
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${colors[catIndex % colors.length]}`} style={{ width: `${(value / 5) * 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recent Reviews */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Avaliacoes Recentes</h4>
+          {waiterReviews.length === 0 ? (
+            <p className="text-[11px] text-gray-400 text-center py-4">Nenhuma avaliacao encontrada</p>
+          ) : (
+            <div className="space-y-3">
+              {waiterReviews.slice(0, 10).map(review => (
+                <div key={review.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <StarDisplay rating={review.overall_rating} size={12} />
+                      <span className="text-[11px] font-semibold text-gray-700">{review.overall_rating}/5</span>
+                      {review.redirected_to_google && (
+                        <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full font-medium">Google</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-400">
+                      {(() => { const d = new Date(review.created_at); return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }); })()}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="text-[11px] text-gray-600 mt-1 italic">&quot;{review.comment}&quot;</p>
+                  )}
+                  {review.category_ratings && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {Object.entries(review.category_ratings).map(([key, val]) => (
+                        <span key={key} className="text-[9px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full">
+                          {CATEGORY_LABELS[key] || key}: <b>{val}/5</b>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // List view
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-800">
+          Garçons ({waiters.length})
+        </h3>
+        <button
+          onClick={() => setShowAddWaiter(!showAddWaiter)}
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-[#007AFF] text-white rounded-xl text-[12px] font-medium hover:bg-[#0066DD] transition-colors shadow-sm"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Adicionar Garçom
+        </button>
+      </div>
+
+      {/* Add waiter form */}
+      {showAddWaiter && (
+        <div className="bg-blue-50 rounded-xl border border-blue-100 p-4">
+          <p className="text-xs font-medium text-blue-800 mb-2">Novo Garçom</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newWaiterName}
+              onChange={(e) => setNewWaiterName(e.target.value)}
+              placeholder="Nome do garçom"
+              autoFocus
+              onKeyDown={(e) => e.key === 'Enter' && handleAddWaiter()}
+              className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+            />
+            <button onClick={handleAddWaiter} disabled={addingWaiter || !newWaiterName.trim()} className="px-4 py-2.5 bg-[#007AFF] text-white rounded-lg text-xs font-medium hover:bg-[#0066DD] disabled:opacity-50 transition-colors">
+              {addingWaiter ? '...' : 'Salvar'}
+            </button>
+            <button onClick={() => { setShowAddWaiter(false); setNewWaiterName(''); }} className="px-3 py-2.5 text-gray-400 hover:text-gray-600 text-xs">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* General QR Code */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-gray-700">QR Code Geral</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">criadores.app/avaliar/{subscription?.business_slug}</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => handleShowQR()} className="flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors">
+              <QrCode className="w-3.5 h-3.5" /> QR Code
+            </button>
+            <button onClick={() => handleCopyLink()} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              {copiedId === 'general' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+              {copiedId === 'general' ? 'Copiado!' : 'Copiar'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Waiter cards */}
+      {waiters.length === 0 ? (
+        <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+          <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm font-medium text-gray-600 mb-1">Nenhum garçom cadastrado</p>
+          <p className="text-xs text-gray-400">Adicione garçons para rastrear avaliações individuais e gerar QR codes personalizados.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {waiters.map((waiter) => {
+            const stats = getWaiterStats(waiter.id);
+            const nps = getWaiterNPS(waiter.id);
+            return (
+              <div
+                key={waiter.id}
+                className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedWaiter(waiter.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#007AFF]/10 flex items-center justify-center text-sm font-bold text-[#007AFF]">
+                      {waiter.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{waiter.name}</p>
+                      {stats ? (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <StarDisplay rating={stats.avg_rating} size={10} />
+                          <span className="text-[10px] text-gray-400">
+                            {stats.avg_rating.toFixed(1)} • {stats.total_reviews} avaliações • {stats.five_star_count} ★5
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-gray-400 mt-0.5">Sem avaliações ainda</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => handleShowQR(waiter)} className="flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors">
+                      <QrCode className="w-3 h-3" /> QR
+                    </button>
+                    <button onClick={() => handleCopyLink(waiter)} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                      {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      {copiedId === waiter.id ? 'Copiado!' : 'Link'}
+                    </button>
+                    <button onClick={() => handleRemoveWaiter(waiter.id)} className="p-2 text-gray-300 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50" title="Remover garçom">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <ChevronRight className="w-4 h-4 text-gray-300 ml-1" />
+                  </div>
+                </div>
+
+                {/* NPS mini bar */}
+                {stats && stats.total_reviews > 0 && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden flex">
+                      <div className="h-full bg-emerald-400" style={{ width: `${nps.promoterPct}%` }} />
+                      <div className="h-full bg-amber-400" style={{ width: `${nps.neutralPct}%` }} />
+                      <div className="h-full bg-red-400" style={{ width: `${nps.detractorPct}%` }} />
+                    </div>
+                    <span className="text-[9px] text-gray-400">{nps.promoterPct}% promotores</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
 // Main Page
 // ============================================
 export default function ExcelencIA5Page() {
@@ -181,7 +645,7 @@ export default function ExcelencIA5Page() {
   }, [businessId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-  useEffect(() => { if (activeTab === 'reviews') fetchReviews(); }, [activeTab, fetchReviews]);
+  useEffect(() => { if (activeTab === 'reviews' || activeTab === 'waiters') fetchReviews(); }, [activeTab, fetchReviews]);
 
   // Waiter actions
   const handleAddWaiter = async () => {
@@ -527,138 +991,23 @@ export default function ExcelencIA5Page() {
       {/* TAB: Waiters */}
       {/* ============================================ */}
       {activeTab === 'waiters' && (
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-800">
-              Garçons ({activeWaiters.length})
-            </h3>
-            <button
-              onClick={() => setShowAddWaiter(!showAddWaiter)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#007AFF] text-white rounded-xl text-[12px] font-medium hover:bg-[#0066DD] transition-colors shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Adicionar Garçom
-            </button>
-          </div>
-
-          {/* Add waiter form */}
-          {showAddWaiter && (
-            <div className="bg-blue-50 rounded-xl border border-blue-100 p-4">
-              <p className="text-xs font-medium text-blue-800 mb-2">Novo Garçom</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={newWaiterName}
-                  onChange={(e) => setNewWaiterName(e.target.value)}
-                  placeholder="Nome do garçom"
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddWaiter()}
-                  className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
-                />
-                <button
-                  onClick={handleAddWaiter}
-                  disabled={addingWaiter || !newWaiterName.trim()}
-                  className="px-4 py-2.5 bg-[#007AFF] text-white rounded-lg text-xs font-medium hover:bg-[#0066DD] disabled:opacity-50 transition-colors"
-                >
-                  {addingWaiter ? '...' : 'Salvar'}
-                </button>
-                <button
-                  onClick={() => { setShowAddWaiter(false); setNewWaiterName(''); }}
-                  className="px-3 py-2.5 text-gray-400 hover:text-gray-600 text-xs"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* General QR Code */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-gray-700">QR Code Geral</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">criadores.app/avaliar/{subscription?.business_slug}</p>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => handleShowQR()}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  QR Code
-                </button>
-                <button
-                  onClick={() => handleCopyLink()}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  {copiedId === 'general' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                  {copiedId === 'general' ? 'Copiado!' : 'Copiar'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Waiter list */}
-          {activeWaiters.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-              <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-600 mb-1">Nenhum garçom cadastrado</p>
-              <p className="text-xs text-gray-400">Adicione garçons para rastrear avaliações individuais e gerar QR codes personalizados.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {activeWaiters.map((waiter) => {
-                const stats = analytics?.waiter_ranking?.find(w => w.waiter_id === waiter.id);
-                return (
-                  <div key={waiter.id} className="bg-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#007AFF]/10 flex items-center justify-center text-sm font-bold text-[#007AFF]">
-                        {waiter.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{waiter.name}</p>
-                        {stats ? (
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <StarDisplay rating={stats.avg_rating} size={10} />
-                            <span className="text-[10px] text-gray-400">
-                              {stats.avg_rating.toFixed(1)} • {stats.total_reviews} avaliações • {stats.five_star_count} ★5
-                            </span>
-                          </div>
-                        ) : (
-                          <p className="text-[10px] text-gray-400 mt-0.5">Sem avaliações ainda</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => handleShowQR(waiter)}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-[#007AFF] text-white rounded-lg text-[11px] font-medium hover:bg-[#0066DD] transition-colors"
-                      >
-                        <QrCode className="w-3 h-3" />
-                        QR
-                      </button>
-                      <button
-                        onClick={() => handleCopyLink(waiter)}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        {copiedId === waiter.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                        {copiedId === waiter.id ? 'Copiado!' : 'Link'}
-                      </button>
-                      <button
-                        onClick={() => handleRemoveWaiter(waiter.id)}
-                        className="p-2 text-gray-300 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
-                        title="Remover garçom"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <WaitersTab
+          waiters={activeWaiters}
+          analytics={analytics}
+          reviews={reviews}
+          subscription={subscription}
+          showAddWaiter={showAddWaiter}
+          setShowAddWaiter={setShowAddWaiter}
+          newWaiterName={newWaiterName}
+          setNewWaiterName={setNewWaiterName}
+          addingWaiter={addingWaiter}
+          handleAddWaiter={handleAddWaiter}
+          handleShowQR={handleShowQR}
+          handleCopyLink={handleCopyLink}
+          handleRemoveWaiter={handleRemoveWaiter}
+          copiedId={copiedId}
+          fetchReviews={fetchReviews}
+        />
       )}
 
       {/* ============================================ */}
