@@ -30,7 +30,12 @@ interface OnboardingPresentationProps {
 
 export function OnboardingPresentation({ business, onboarding, creators }: OnboardingPresentationProps) {
   const [mounted, setMounted] = useState(false);
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
   useEffect(() => { setMounted(true); }, []);
+
+  const handleImageError = (id: string) => {
+    setBrokenImages(prev => new Set(prev).add(id));
+  };
 
   const welcomeMessage = onboarding.welcome_message || `BEM VINDO ${business.name.toUpperCase()}`;
   const portfolioItems = onboarding.portfolio_items || [];
@@ -82,13 +87,14 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
               'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
             }`}>
               {creators.map((cr, index) => {
-                const hasValidPhoto = cr.photo_url && !cr.photo_url.match(/^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9_.]+\/?$/);
+                const hasValidPhoto = cr.photo_url && cr.photo_url.startsWith('http') && !brokenImages.has(cr.id || `cr-${index}`);
                 return (
                   <div key={cr.id || index} className={`flex flex-col items-center text-center ${creators.length === 1 ? 'md:flex-row md:text-left md:gap-16 md:items-center max-w-3xl mx-auto' : ''}`}>
                     <div className={`flex-shrink-0 mb-6 ${creators.length === 1 ? 'md:mb-0' : ''}`}>
                       {hasValidPhoto ? (
                         <div className={`rounded-full overflow-hidden bg-gray-100 ring-4 ring-gray-100 shadow-2xl ${creators.length === 1 ? 'w-56 h-56 md:w-72 md:h-72' : 'w-40 h-40 md:w-48 md:h-48'}`}>
-                          <img src={cr.photo_url!} alt={cr.name} className="w-full h-full object-cover" />
+                          <img src={cr.photo_url!} alt={cr.name} className="w-full h-full object-cover"
+                            onError={() => handleImageError(cr.id || `cr-${index}`)} />
                         </div>
                       ) : (
                         <div className={`rounded-full bg-gray-100 flex items-center justify-center ${creators.length === 1 ? 'w-56 h-56 md:w-72 md:h-72' : 'w-40 h-40 md:w-48 md:h-48'}`}>
@@ -151,12 +157,13 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
                   <div className="relative bg-gray-900 rounded-[2rem] p-2 shadow-xl group-hover:shadow-2xl group-hover:-translate-y-1 transition-all duration-300">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-gray-900 rounded-b-2xl z-10" />
                     <div className="relative rounded-[1.5rem] overflow-hidden bg-gray-800 aspect-[9/16]">
-                      {item.thumbnail_url ? (
+                      {item.thumbnail_url && item.thumbnail_url.startsWith('http') ? (
                         <>
                           <img
                             src={item.thumbnail_url}
                             alt={item.title || `Trabalho ${index + 1}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                           />
                           {/* Play overlay */}
                           <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">

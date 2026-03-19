@@ -61,22 +61,41 @@ async function getOnboardingData(slug: string) {
     }
   }
 
-  // Resolve Instagram profile pics for each creator
+  // Resolve profile pics + IG username for each creator from DB
   for (let i = 0; i < creators.length; i++) {
     const cr = creators[i];
-    // If photo_url is an IG profile URL, try to resolve actual pic
-    const igUser = cr.instagram_username || extractInstagramUsername(cr.photo_url);
-    if (igUser && (!cr.photo_url || cr.photo_url.includes('instagram.com/'))) {
-      const { data: igProfile } = await supabase
-        .from('business_instagram_profiles')
-        .select('profile_pic_url')
-        .eq('username', igUser)
-        .limit(1)
+    let resolvedPhoto = '';
+    let resolvedIg = cr.instagram_username || '';
+
+    // 1) Look up the actual creator in DB to get reliable IG username + profile pic
+    if (cr.id) {
+      const { data: creatorRow } = await supabase
+        .from('creators')
+        .select('social_media, profile_info')
+        .eq('id', cr.id)
         .maybeSingle();
-      if (igProfile?.profile_pic_url) {
-        creators[i] = { ...cr, photo_url: igProfile.profile_pic_url };
+
+      if (creatorRow) {
+        if (!resolvedIg) {
+          resolvedIg = creatorRow.social_media?.instagram?.username || '';
+        }
+        // Use profile_info.profile_pic_url if available
+        if (creatorRow.profile_info?.profile_pic_url) {
+          resolvedPhoto = creatorRow.profile_info.profile_pic_url;
+        }
       }
     }
+
+    // 2) Fallback: use the photo_url saved in onboarding (even CDN URLs - they work for a while)
+    if (!resolvedPhoto && cr.photo_url && cr.photo_url.startsWith('http')) {
+      resolvedPhoto = cr.photo_url;
+    }
+
+    creators[i] = {
+      ...cr,
+      photo_url: resolvedPhoto,
+      instagram_username: resolvedIg,
+    };
   }
 
   return { business, onboarding, creators };
