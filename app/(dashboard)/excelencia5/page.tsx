@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft, ThumbsUp, Minus, ThumbsDown } from 'lucide-react';
+import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft } from 'lucide-react';
 
 // ============================================
 // Types
@@ -102,88 +102,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 // ============================================
-// Radar Chart (SVG-based, no external lib)
-// ============================================
-function RadarChart({ data, size = 280 }: { data: Record<string, number>; size?: number }) {
-  const categories = Object.keys(data);
-  const n = categories.length;
-  if (n === 0) return null;
-
-  const cx = size / 2;
-  const cy = size / 2;
-  const maxR = size * 0.38;
-  const levels = 5;
-
-  const angleStep = (2 * Math.PI) / n;
-  const startAngle = -Math.PI / 2;
-
-  const getPoint = (index: number, value: number) => {
-    const angle = startAngle + index * angleStep;
-    const r = (value / 5) * maxR;
-    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
-  };
-
-  // Grid circles
-  const gridPaths = Array.from({ length: levels }, (_, i) => {
-    const r = ((i + 1) / levels) * maxR;
-    const points = Array.from({ length: n }, (_, j) => {
-      const angle = startAngle + j * angleStep;
-      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
-    });
-    return points.join(' ');
-  });
-
-  // Data polygon
-  const dataPoints = categories.map((_, i) => {
-    const pt = getPoint(i, data[categories[i]] || 0);
-    return `${pt.x},${pt.y}`;
-  });
-
-  // Label positions
-  const labels = categories.map((cat, i) => {
-    const angle = startAngle + i * angleStep;
-    const lr = maxR + 28;
-    return {
-      label: CATEGORY_LABELS[cat] || cat,
-      x: cx + lr * Math.cos(angle),
-      y: cy + lr * Math.sin(angle),
-      anchor: Math.abs(Math.cos(angle)) < 0.1 ? 'middle' : Math.cos(angle) > 0 ? 'start' : 'end',
-    };
-  });
-
-  return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] mx-auto">
-      {/* Grid */}
-      {gridPaths.map((points, i) => (
-        <polygon key={i} points={points} fill="none" stroke="#E5E7EB" strokeWidth="0.5" />
-      ))}
-      {/* Spokes */}
-      {categories.map((_, i) => {
-        const pt = getPoint(i, 5);
-        return <line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y} stroke="#E5E7EB" strokeWidth="0.5" />;
-      })}
-      {/* Data area */}
-      <polygon points={dataPoints.join(' ')} fill="rgba(100,150,200,0.2)" stroke="#6496C8" strokeWidth="1.5" />
-      {/* Labels */}
-      {labels.map((l, i) => (
-        <text
-          key={i}
-          x={l.x}
-          y={l.y}
-          textAnchor={l.anchor as any}
-          dominantBaseline="central"
-          className="text-[7px] font-semibold uppercase"
-          fill="#9CA3AF"
-        >
-          {l.label}
-        </text>
-      ))}
-    </svg>
-  );
-}
-
-// ============================================
-// WaitersTab Component
+// WaitersTab Component (simplified)
 // ============================================
 function WaitersTab({
   waiters, analytics, reviews, subscription,
@@ -209,33 +128,14 @@ function WaitersTab({
 }) {
   const [selectedWaiter, setSelectedWaiter] = useState<string | null>(null);
 
-  // Get stats for a waiter
   const getWaiterStats = (waiterId: string) => {
     return analytics?.waiter_ranking?.find(w => w.waiter_id === waiterId);
   };
 
-  // Get reviews for a waiter
   const getWaiterReviews = (waiterId: string) => {
     return reviews.filter(r => r.waiter_id === waiterId);
   };
 
-  // Compute NPS for a waiter
-  const getWaiterNPS = (waiterId: string) => {
-    const waiterReviews = getWaiterReviews(waiterId);
-    const total = waiterReviews.length;
-    if (total === 0) return { promoters: 0, neutrals: 0, detractors: 0, promoterPct: 0, neutralPct: 0, detractorPct: 0 };
-    const promoters = waiterReviews.filter(r => r.overall_rating === 5).length;
-    const neutrals = waiterReviews.filter(r => r.overall_rating === 4).length;
-    const detractors = waiterReviews.filter(r => r.overall_rating <= 3).length;
-    return {
-      promoters, neutrals, detractors,
-      promoterPct: Math.round((promoters / total) * 100),
-      neutralPct: Math.round((neutrals / total) * 100),
-      detractorPct: Math.round((detractors / total) * 100),
-    };
-  };
-
-  // Compute category averages for a waiter
   const getWaiterCategories = (waiterId: string) => {
     const waiterReviews = getWaiterReviews(waiterId).filter(r => r.category_ratings);
     if (waiterReviews.length === 0) return {};
@@ -255,16 +155,18 @@ function WaitersTab({
     return avgs;
   };
 
-  // Detail view for a selected waiter
+  // Detail view
   if (selectedWaiter) {
     const waiter = waiters.find(w => w.id === selectedWaiter);
     if (!waiter) { setSelectedWaiter(null); return null; }
 
     const stats = getWaiterStats(waiter.id);
-    const nps = getWaiterNPS(waiter.id);
     const categories = getWaiterCategories(waiter.id);
     const waiterReviews = getWaiterReviews(waiter.id);
     const hasCategories = Object.keys(categories).length > 0;
+    const fiveStarPct = stats && stats.total_reviews > 0
+      ? Math.round((stats.five_star_count / stats.total_reviews) * 100)
+      : 0;
 
     return (
       <div className="space-y-6">
@@ -300,93 +202,44 @@ function WaitersTab({
         </div>
 
         {/* KPIs - Bread King style */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <MessageCircle className="w-5 h-5 text-gray-300 mb-3" />
             <p className="text-3xl font-black text-gray-900">{stats?.total_reviews || 0}</p>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Respostas</p>
-            <p className="text-[9px] text-gray-300 mt-0.5">Total de avaliacoes</p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Avaliacoes</p>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <Star className="w-5 h-5 text-gray-300 mb-3" />
-            <p className="text-3xl font-black text-gray-900">{stats?.avg_rating.toFixed(1) || '0.0'}<span className="text-lg">/5</span></p>
+            <p className="text-3xl font-black text-gray-900">{stats?.avg_rating.toFixed(1) || '0.0'}<span className="text-lg text-gray-400">/5</span></p>
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Nota Media</p>
-            <p className="text-[9px] text-gray-300 mt-0.5">Avaliacao geral</p>
-          </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <ThumbsUp className="w-5 h-5 text-gray-300 mb-3" />
-            <p className="text-3xl font-black text-gray-900">{stats?.five_star_count || 0}</p>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">5 Estrelas</p>
-            <p className="text-[9px] text-gray-300 mt-0.5">Avaliacoes perfeitas</p>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <ExternalLink className="w-5 h-5 text-gray-300 mb-3" />
-            <p className="text-3xl font-black text-gray-900">{nps.promoterPct}<span className="text-lg">%</span></p>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">Promotores</p>
-            <p className="text-[9px] text-gray-300 mt-0.5">Nota 5 estrelas</p>
+            <p className="text-3xl font-black text-gray-900">{fiveStarPct}<span className="text-lg text-gray-400">%</span></p>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-1">5 Estrelas</p>
           </div>
         </div>
 
-        {/* NPS Distribution */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-emerald-400">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
-                <ThumbsUp className="w-3.5 h-3.5 text-emerald-600" />
-              </div>
-              <span className="text-[10px] font-semibold text-gray-500 uppercase">Promotores</span>
-            </div>
-            <p className="text-2xl font-black text-gray-900">{nps.promoters}</p>
-            <p className="text-[10px] text-gray-400">{nps.promoterPct}% das respostas</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-amber-400">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
-                <Minus className="w-3.5 h-3.5 text-amber-600" />
-              </div>
-              <span className="text-[10px] font-semibold text-gray-500 uppercase">Neutros</span>
-            </div>
-            <p className="text-2xl font-black text-gray-900">{nps.neutrals}</p>
-            <p className="text-[10px] text-gray-400">{nps.neutralPct}% das respostas</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border-l-4 border-red-400">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center">
-                <ThumbsDown className="w-3.5 h-3.5 text-red-600" />
-              </div>
-              <span className="text-[10px] font-semibold text-gray-500 uppercase">Detratores</span>
-            </div>
-            <p className="text-2xl font-black text-gray-900">{nps.detractors}</p>
-            <p className="text-[10px] text-gray-400">{nps.detractorPct}% das respostas</p>
-          </div>
-        </div>
-
-        {/* Radar + Categories side by side */}
+        {/* Category bars */}
         {hasCategories && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Radar de Performance</h4>
-              <RadarChart data={categories} />
-            </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Media por Categoria</h4>
-              <div className="space-y-3">
-                {Object.entries(categories).map(([key, value]) => {
-                  const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-teal-500', 'bg-amber-500'];
-                  const catIndex = Object.keys(categories).indexOf(key);
-                  return (
-                    <div key={key}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] text-gray-700">{CATEGORY_LABELS[key] || key}</span>
-                        <span className="text-[11px] font-semibold text-gray-900">{value} / 5</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${colors[catIndex % colors.length]}`} style={{ width: `${(value / 5) * 100}%` }} />
-                      </div>
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Media por Categoria</h4>
+            <div className="space-y-3">
+              {Object.entries(categories).map(([key, value]) => {
+                const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-teal-500', 'bg-amber-500'];
+                const catIndex = Object.keys(categories).indexOf(key);
+                return (
+                  <div key={key}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] text-gray-700">{CATEGORY_LABELS[key] || key}</span>
+                      <span className="text-[11px] font-semibold text-gray-900">{value}/5</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${colors[catIndex % colors.length]}`} style={{ width: `${(value / 5) * 100}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -504,7 +357,6 @@ function WaitersTab({
         <div className="space-y-2">
           {waiters.map((waiter) => {
             const stats = getWaiterStats(waiter.id);
-            const nps = getWaiterNPS(waiter.id);
             return (
               <div
                 key={waiter.id}
@@ -544,18 +396,6 @@ function WaitersTab({
                     <ChevronRight className="w-4 h-4 text-gray-300 ml-1" />
                   </div>
                 </div>
-
-                {/* NPS mini bar */}
-                {stats && stats.total_reviews > 0 && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden flex">
-                      <div className="h-full bg-emerald-400" style={{ width: `${nps.promoterPct}%` }} />
-                      <div className="h-full bg-amber-400" style={{ width: `${nps.neutralPct}%` }} />
-                      <div className="h-full bg-red-400" style={{ width: `${nps.detractorPct}%` }} />
-                    </div>
-                    <span className="text-[9px] text-gray-400">{nps.promoterPct}% promotores</span>
-                  </div>
-                )}
               </div>
             );
           })}
