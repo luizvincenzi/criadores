@@ -61,7 +61,7 @@ async function getOnboardingData(slug: string) {
     }
   }
 
-  // Resolve profile pics + IG username for each creator from DB
+  // Resolve profile pics + IG username for each creator from DB + ScrapeCreators
   for (let i = 0; i < creators.length; i++) {
     const cr = creators[i];
     let resolvedPhoto = '';
@@ -79,16 +79,42 @@ async function getOnboardingData(slug: string) {
         if (!resolvedIg) {
           resolvedIg = creatorRow.social_media?.instagram?.username || '';
         }
-        // Use profile_info.profile_pic_url if available
         if (creatorRow.profile_info?.profile_pic_url) {
           resolvedPhoto = creatorRow.profile_info.profile_pic_url;
         }
       }
     }
 
-    // 2) Fallback: use the photo_url saved in onboarding (even CDN URLs - they work for a while)
-    if (!resolvedPhoto && cr.photo_url && cr.photo_url.startsWith('http')) {
+    // 2) Fallback: use photo_url from onboarding (skip expired fbcdn URLs)
+    if (!resolvedPhoto && cr.photo_url && cr.photo_url.startsWith('http')
+        && !cr.photo_url.includes('fbcdn.net') && !cr.photo_url.includes('cdninstagram.com')) {
       resolvedPhoto = cr.photo_url;
+    }
+
+    // 3) Last resort: fetch from ScrapeCreators API if we have IG username but no photo
+    if (!resolvedPhoto && resolvedIg) {
+      try {
+        const apiKey = process.env.SCRAPECREATORS_API_KEY;
+        if (apiKey) {
+          const scRes = await fetch(
+            `https://api.scrapecreators.com/v1/instagram/basic-info?handle=${encodeURIComponent(resolvedIg)}`,
+            { headers: { 'x-api-key': apiKey }, next: { revalidate: 86400 } } // cache 24h
+          );
+          if (scRes.ok) {
+            const scData = await scRes.json();
+            if (scData?.data?.profile_pic_url) {
+              resolvedPhoto = scData.data.profile_pic_url;
+              // Also save to creators table for future use
+              await supabase
+                .from('creators')
+                .update({ profile_info: { profile_pic_url: resolvedPhoto } })
+                .eq('id', cr.id);
+            }
+          }
+        }
+      } catch {
+        // ScrapeCreators failed, continue without photo
+      }
     }
 
     creators[i] = {
