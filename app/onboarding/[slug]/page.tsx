@@ -6,6 +6,13 @@ import { OnboardingPresentation } from './OnboardingPresentation';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// Extract Instagram username from a URL like https://www.instagram.com/username/
+function extractInstagramUsername(url: string | null): string | null {
+  if (!url) return null;
+  const match = url.match(/instagram\.com\/([A-Za-z0-9_.]+)/);
+  return match ? match[1] : null;
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -44,7 +51,33 @@ async function getOnboardingData(slug: string) {
     creator = creatorData;
   }
 
-  return { business, onboarding, creator };
+  // Try to get Instagram profile pic from creator_photo_url (if it's an IG profile URL)
+  // or from business_instagram_profiles table
+  let instagramProfilePic = onboarding.creator_photo_url;
+  const igUsername = extractInstagramUsername(onboarding.creator_photo_url);
+  if (igUsername) {
+    const { data: igProfile } = await supabase
+      .from('business_instagram_profiles')
+      .select('profile_pic_url, full_name, username')
+      .eq('username', igUsername)
+      .limit(1)
+      .maybeSingle();
+    if (igProfile?.profile_pic_url) {
+      instagramProfilePic = igProfile.profile_pic_url;
+    }
+    // Also use IG profile name if no creator selected
+    if (!creator && igProfile) {
+      creator = {
+        id: 'ig-profile',
+        name: igProfile.full_name || igUsername,
+        slug: igUsername,
+        social_media: { instagram: { username: igUsername } },
+        profile_info: null,
+      };
+    }
+  }
+
+  return { business, onboarding, creator, instagramProfilePic };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -90,6 +123,7 @@ export default async function OnboardingPage({ params }: PageProps) {
       business={data.business}
       onboarding={data.onboarding}
       creator={data.creator}
+      instagramProfilePic={data.instagramProfilePic}
     />
   );
 }

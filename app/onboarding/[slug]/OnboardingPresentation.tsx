@@ -37,9 +37,19 @@ interface OnboardingPresentationProps {
       niche?: string[];
     };
   } | null;
+  instagramProfilePic?: string | null;
 }
 
-export function OnboardingPresentation({ business, onboarding, creator }: OnboardingPresentationProps) {
+// Extract Instagram embed URL from a reel/post/tv URL
+function getInstagramEmbedUrl(url: string): string | null {
+  try {
+    const match = url.match(/instagram\.com\/(reel|p|tv)\/([A-Za-z0-9_-]+)/);
+    if (match) return `https://www.instagram.com/${match[1]}/${match[2]}/embed`;
+  } catch { /* ignore */ }
+  return null;
+}
+
+export function OnboardingPresentation({ business, onboarding, creator, instagramProfilePic }: OnboardingPresentationProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -50,21 +60,19 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
   const instagramHandle = creator?.social_media?.instagram?.username;
   const portfolioItems = onboarding.portfolio_items || [];
 
-  // Extract reel shortcode from Instagram URL for thumbnail fallback
-  const getInstagramEmbedUrl = (url: string) => {
-    try {
-      const match = url.match(/instagram\.com\/(reel|p|tv)\/([A-Za-z0-9_-]+)/);
-      if (match) return `https://www.instagram.com/${match[1]}/${match[2]}/embed`;
-    } catch {}
-    return null;
-  };
+  // Use instagramProfilePic (resolved from DB) or fall back to creator_photo_url
+  const photoUrl = instagramProfilePic || onboarding.creator_photo_url;
+  // Check if photo is an actual image URL (not an IG profile URL)
+  const isValidPhotoUrl = photoUrl && !photoUrl.match(/^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9_.]+\/?$/);
+
+  // Show social media section if we have creator OR match_description OR photo
+  const showSocialMediaSection = creator || onboarding.match_description || isValidPhotoUrl;
 
   return (
     <div className="min-h-screen bg-white">
 
       {/* ===== SECTION 1: HERO / WELCOME ===== */}
       <section className="relative min-h-screen flex flex-col justify-center items-start bg-gray-950 text-white overflow-hidden">
-        {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950" />
 
         <div className={`relative z-10 w-full max-w-5xl mx-auto px-8 md:px-16 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -76,7 +84,6 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
           </h1>
         </div>
 
-        {/* crIAdores branding - bottom right */}
         <div className={`absolute bottom-8 md:bottom-12 right-8 md:right-16 text-right transition-all duration-1000 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <div className="text-2xl md:text-3xl font-light tracking-wide">
             cr<span className="font-bold text-3xl md:text-4xl">IA</span>dores
@@ -86,14 +93,13 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
           </p>
         </div>
 
-        {/* Scroll indicator */}
         <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-all duration-1000 delay-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
           <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-gray-500 to-transparent animate-pulse" />
         </div>
       </section>
 
       {/* ===== SECTION 2: SOCIAL MEDIA SELECIONADA ===== */}
-      {creator && (
+      {showSocialMediaSection && (
         <section className="py-20 md:py-32 bg-white">
           <div className="max-w-5xl mx-auto px-8 md:px-16">
             <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
@@ -108,9 +114,11 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
                 </h2>
 
                 <div className="mt-8 md:mt-12">
-                  <h3 className="text-2xl md:text-3xl font-medium text-gray-900 mb-4">
-                    {creator.name}
-                  </h3>
+                  {creator && (
+                    <h3 className="text-2xl md:text-3xl font-medium text-gray-900 mb-4">
+                      {creator.name}
+                    </h3>
+                  )}
 
                   <div className="space-y-1 mb-8">
                     {instagramHandle && (
@@ -126,7 +134,7 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
                         <span className="text-[14px]">@{instagramHandle}</span>
                       </a>
                     )}
-                    {creator.profile_info?.category && (
+                    {creator?.profile_info?.category && (
                       <p className="text-[13px] text-gray-400">{creator.profile_info.category}</p>
                     )}
                   </div>
@@ -146,12 +154,12 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
 
               {/* Right: Photo */}
               <div className="flex justify-center md:justify-end">
-                {onboarding.creator_photo_url ? (
+                {isValidPhotoUrl ? (
                   <div className="relative">
                     <div className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden bg-gray-100 ring-4 ring-gray-100 shadow-2xl">
                       <img
-                        src={onboarding.creator_photo_url}
-                        alt={creator.name}
+                        src={photoUrl!}
+                        alt={creator?.name || 'Social Media'}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -169,7 +177,7 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
         </section>
       )}
 
-      {/* ===== SECTION 3: TRABALHOS / PORTFOLIO ===== */}
+      {/* ===== SECTION 3: TRABALHOS / PORTFOLIO (Instagram Embeds) ===== */}
       {portfolioItems.length > 0 && (
         <section className="py-20 md:py-32 bg-gray-50">
           <div className="max-w-5xl mx-auto px-8 md:px-16">
@@ -178,61 +186,67 @@ export function OnboardingPresentation({ business, onboarding, creator }: Onboar
             </h2>
 
             <div className={`grid gap-6 md:gap-8 ${
-              portfolioItems.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' :
-              portfolioItems.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto' :
+              portfolioItems.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
+              portfolioItems.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto' :
               'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
             }`}>
-              {portfolioItems.map((item, index) => (
-                <a
-                  key={index}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block"
-                >
-                  {/* Phone mockup */}
-                  <div className="relative bg-gray-900 rounded-[2rem] p-2 shadow-xl group-hover:shadow-2xl transition-shadow duration-300 group-hover:-translate-y-1 transition-transform">
-                    {/* Phone notch */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-gray-900 rounded-b-2xl z-10" />
+              {portfolioItems.map((item, index) => {
+                const embedUrl = getInstagramEmbedUrl(item.url);
 
-                    {/* Screen */}
-                    <div className="relative rounded-[1.5rem] overflow-hidden bg-gray-800 aspect-[9/16]">
-                      {item.thumbnail_url ? (
-                        <img
-                          src={item.thumbnail_url}
-                          alt={item.title || `Trabalho ${index + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
-                          <svg className="w-12 h-12 mb-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                          </svg>
-                          <span className="text-[12px] opacity-70">
-                            {item.type === 'reel' ? 'Reel' : item.type === 'video' ? 'Vídeo' : 'Post'}
-                          </span>
-                        </div>
-                      )}
+                return (
+                  <div key={index} className="flex flex-col items-center">
+                    {/* Phone mockup with Instagram embed */}
+                    <div className="relative bg-gray-900 rounded-[2rem] p-2 shadow-xl w-full max-w-[280px]">
+                      {/* Phone notch */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-gray-900 rounded-b-2xl z-10" />
 
-                      {/* Play overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                        <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                          <svg className="w-6 h-6 text-gray-900 ml-1" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                          </svg>
-                        </div>
+                      {/* Screen with Instagram embed */}
+                      <div className="relative rounded-[1.5rem] overflow-hidden bg-white aspect-[9/16]">
+                        {embedUrl ? (
+                          <iframe
+                            src={embedUrl}
+                            className="w-full h-full border-0"
+                            allowFullScreen
+                            loading="lazy"
+                            title={item.title || `Trabalho ${index + 1}`}
+                          />
+                        ) : item.thumbnail_url ? (
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full group">
+                            <img
+                              src={item.thumbnail_url}
+                              alt={item.title || `Trabalho ${index + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                              <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                                <svg className="w-6 h-6 text-gray-900 ml-1" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </a>
+                        ) : (
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex w-full h-full flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg className="w-12 h-12 mb-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                            </svg>
+                            <span className="text-[12px] opacity-70">
+                              {item.type === 'reel' ? 'Reel' : item.type === 'video' ? 'Vídeo' : 'Post'}
+                            </span>
+                          </a>
+                        )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Title below phone */}
-                  {item.title && (
-                    <p className="text-center mt-4 text-[13px] font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
-                      {item.title}
-                    </p>
-                  )}
-                </a>
-              ))}
+                    {/* Title below phone */}
+                    {item.title && (
+                      <p className="text-center mt-4 text-[13px] font-medium text-gray-700">
+                        {item.title}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
