@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface PortfolioItem {
   url: string;
@@ -26,6 +26,88 @@ interface OnboardingPresentationProps {
     portfolio_items: PortfolioItem[];
   };
   creators: CreatorInfo[];
+}
+
+// Instagram Official Embed using blockquote + embed.js
+function InstagramEmbedsSection({ items }: { items: PortfolioItem[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Load Instagram embed.js script
+    const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
+    if (existing) {
+      // Script already loaded, re-process embeds
+      (window as any).instgrm?.Embeds?.process?.();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://www.instagram.com/embed.js';
+    script.async = true;
+    script.onload = () => {
+      (window as any).instgrm?.Embeds?.process?.();
+    };
+    document.body.appendChild(script);
+    return () => {
+      // Don't remove - other embeds may need it
+    };
+  }, [items]);
+
+  // Build the permalink URL for embed
+  const getPermalink = (url: string) => {
+    // Clean URL - remove trailing slash and query params
+    const clean = url.split('?')[0].replace(/\/$/, '') + '/';
+    return clean;
+  };
+
+  return (
+    <section className="py-20 md:py-32 bg-gray-50">
+      <div className="max-w-5xl mx-auto px-8 md:px-16">
+        <h2 className="text-3xl md:text-5xl font-bold text-gray-950 tracking-[0.15em] text-center mb-16">
+          TRABALHOS
+        </h2>
+        <div
+          ref={containerRef}
+          className={`grid gap-6 md:gap-8 justify-items-center ${
+            items.length === 1 ? 'grid-cols-1 max-w-lg mx-auto' :
+            items.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto' :
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+          }`}
+        >
+          {items.map((item, index) => (
+            <div key={index} className="w-full max-w-[400px]">
+              <blockquote
+                className="instagram-media"
+                data-instgrm-captioned
+                data-instgrm-permalink={getPermalink(item.url)}
+                data-instgrm-version="14"
+                style={{
+                  background: '#FFF',
+                  border: '0',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+                  margin: '0',
+                  maxWidth: '400px',
+                  minWidth: '280px',
+                  padding: '0',
+                  width: '100%',
+                }}
+              >
+                <a href={item.url} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'block', padding: '16px', textAlign: 'center', textDecoration: 'none', color: '#999', fontSize: '14px' }}>
+                  Ver no Instagram
+                </a>
+              </blockquote>
+              {item.title && (
+                <p className="text-center mt-3 text-[13px] font-medium text-gray-700">
+                  {item.title}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export function OnboardingPresentation({ business, onboarding, creators }: OnboardingPresentationProps) {
@@ -149,60 +231,9 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
         </section>
       )}
 
-      {/* ===== TRABALHOS (Instagram Embed) ===== */}
+      {/* ===== TRABALHOS (Instagram Official Embed) ===== */}
       {portfolioItems.length > 0 && (
-        <section className="py-20 md:py-32 bg-gray-50">
-          <div className="max-w-5xl mx-auto px-8 md:px-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-950 tracking-[0.15em] text-center mb-16">
-              TRABALHOS
-            </h2>
-
-            <div className={`grid gap-6 md:gap-8 justify-items-center ${
-              portfolioItems.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
-              portfolioItems.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto' :
-              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-            }`}>
-              {portfolioItems.map((item, index) => {
-                // Extract shortcode from Instagram URL
-                const shortcodeMatch = item.url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
-                const shortcode = shortcodeMatch ? shortcodeMatch[1] : null;
-                const isReel = item.url.includes('/reel/');
-                const embedUrl = shortcode
-                  ? `https://www.instagram.com/${isReel ? 'reel' : 'p'}/${shortcode}/embed/captioned/`
-                  : null;
-
-                return (
-                  <div key={index} className="w-full max-w-[350px]">
-                    {embedUrl ? (
-                      <div className="rounded-2xl overflow-hidden shadow-xl bg-white">
-                        <iframe
-                          src={embedUrl}
-                          className="w-full border-0"
-                          style={{ minHeight: '500px' }}
-                          allowFullScreen
-                          loading="lazy"
-                          title={item.title || `Trabalho ${index + 1}`}
-                        />
-                      </div>
-                    ) : (
-                      /* Fallback for non-Instagram URLs */
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
-                        <div className="bg-gray-200 rounded-2xl p-8 text-center">
-                          <p className="text-gray-500">Ver conte\u00fado</p>
-                        </div>
-                      </a>
-                    )}
-                    {item.title && (
-                      <p className="text-center mt-3 text-[13px] font-medium text-gray-700">
-                        {item.title}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        <InstagramEmbedsSection items={portfolioItems} />
       )}
 
       {/* ===== FOOTER ===== */}
