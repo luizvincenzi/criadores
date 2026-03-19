@@ -40,44 +40,46 @@ async function getOnboardingData(slug: string) {
 
   if (onbError || !onboarding) return null;
 
-  // Fetch creator details if assigned
-  let creator = null;
-  if (onboarding.creator_id) {
+  // Build creators list from new `creators` JSONB array or legacy single creator
+  let creators: any[] = onboarding.creators || [];
+
+  // Legacy backward compat: if no creators array but has creator_id
+  if (creators.length === 0 && onboarding.creator_id) {
     const { data: creatorData } = await supabase
       .from('creators')
       .select('id, name, slug, social_media, profile_info')
       .eq('id', onboarding.creator_id)
       .single();
-    creator = creatorData;
-  }
-
-  // Try to get Instagram profile pic from creator_photo_url (if it's an IG profile URL)
-  // or from business_instagram_profiles table
-  let instagramProfilePic = onboarding.creator_photo_url;
-  const igUsername = extractInstagramUsername(onboarding.creator_photo_url);
-  if (igUsername) {
-    const { data: igProfile } = await supabase
-      .from('business_instagram_profiles')
-      .select('profile_pic_url, full_name, username')
-      .eq('username', igUsername)
-      .limit(1)
-      .maybeSingle();
-    if (igProfile?.profile_pic_url) {
-      instagramProfilePic = igProfile.profile_pic_url;
-    }
-    // Also use IG profile name if no creator selected
-    if (!creator && igProfile) {
-      creator = {
-        id: 'ig-profile',
-        name: igProfile.full_name || igUsername,
-        slug: igUsername,
-        social_media: { instagram: { username: igUsername } },
-        profile_info: null,
-      };
+    if (creatorData) {
+      creators = [{
+        id: creatorData.id,
+        name: creatorData.name,
+        instagram_username: creatorData.social_media?.instagram?.username || '',
+        photo_url: onboarding.creator_photo_url || '',
+        match_description: onboarding.match_description || '',
+      }];
     }
   }
 
-  return { business, onboarding, creator, instagramProfilePic };
+  // Resolve Instagram profile pics for each creator
+  for (let i = 0; i < creators.length; i++) {
+    const cr = creators[i];
+    // If photo_url is an IG profile URL, try to resolve actual pic
+    const igUser = cr.instagram_username || extractInstagramUsername(cr.photo_url);
+    if (igUser && (!cr.photo_url || cr.photo_url.includes('instagram.com/'))) {
+      const { data: igProfile } = await supabase
+        .from('business_instagram_profiles')
+        .select('profile_pic_url')
+        .eq('username', igUser)
+        .limit(1)
+        .maybeSingle();
+      if (igProfile?.profile_pic_url) {
+        creators[i] = { ...cr, photo_url: igProfile.profile_pic_url };
+      }
+    }
+  }
+
+  return { business, onboarding, creators };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -122,8 +124,7 @@ export default async function OnboardingPage({ params }: PageProps) {
     <OnboardingPresentation
       business={data.business}
       onboarding={data.onboarding}
-      creator={data.creator}
-      instagramProfilePic={data.instagramProfilePic}
+      creators={data.creators}
     />
   );
 }
