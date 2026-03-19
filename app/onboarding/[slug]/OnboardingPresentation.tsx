@@ -33,10 +33,11 @@ interface OnboardingPresentationProps {
   creators: CreatorInfo[];
 }
 
-function getInstagramEmbedUrl(url: string): string | null {
+// Extract Instagram shortcode for embed
+function getInstagramEmbedInfo(url: string): { type: string; shortcode: string } | null {
   try {
     const match = url.match(/instagram\.com\/(reel|p|tv)\/([A-Za-z0-9_-]+)/);
-    if (match) return `https://www.instagram.com/${match[1]}/${match[2]}/embed`;
+    if (match) return { type: match[1], shortcode: match[2] };
   } catch { /* ignore */ }
   return null;
 }
@@ -47,6 +48,22 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Load Instagram embed script for proper rendering
+  useEffect(() => {
+    if (typeof window !== 'undefined' && onboarding.portfolio_items?.length > 0) {
+      const script = document.createElement('script');
+      script.src = 'https://www.instagram.com/embed.js';
+      script.async = true;
+      document.body.appendChild(script);
+      script.onload = () => {
+        if ((window as any).instgrm) {
+          (window as any).instgrm.Embeds.process();
+        }
+      };
+      return () => { document.body.removeChild(script); };
+    }
+  }, [onboarding.portfolio_items]);
 
   const welcomeMessage = onboarding.welcome_message || `BEM VINDO ${business.name.toUpperCase()}`;
   const portfolioItems = onboarding.portfolio_items || [];
@@ -175,49 +192,56 @@ export function OnboardingPresentation({ business, onboarding, creators }: Onboa
               TRABALHOS
             </h2>
 
-            <div className={`grid gap-6 md:gap-8 ${
-              portfolioItems.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
+            <div className={`grid gap-8 ${
+              portfolioItems.length === 1 ? 'grid-cols-1 max-w-[400px] mx-auto' :
               portfolioItems.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto' :
               'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
             }`}>
               {portfolioItems.map((item, index) => {
-                const embedUrl = getInstagramEmbedUrl(item.url);
+                const embedInfo = getInstagramEmbedInfo(item.url);
+                const embedUrl = embedInfo
+                  ? `https://www.instagram.com/${embedInfo.type}/${embedInfo.shortcode}/`
+                  : item.url;
 
                 return (
                   <div key={index} className="flex flex-col items-center">
-                    <div className="relative bg-gray-900 rounded-[2rem] p-2 shadow-xl w-full max-w-[280px]">
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-gray-900 rounded-b-2xl z-10" />
-                      <div className="relative rounded-[1.5rem] overflow-hidden bg-white aspect-[9/16]">
-                        {embedUrl ? (
-                          <iframe
-                            src={embedUrl}
-                            className="w-full h-full border-0"
-                            allowFullScreen
-                            loading="lazy"
-                            title={item.title || `Trabalho ${index + 1}`}
-                          />
-                        ) : item.thumbnail_url ? (
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full group">
-                            <img
-                              src={item.thumbnail_url}
-                              alt={item.title || `Trabalho ${index + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
+                    {/* Instagram official embed via blockquote */}
+                    {embedInfo ? (
+                      <div className="w-full max-w-[400px]">
+                        <blockquote
+                          className="instagram-media"
+                          data-instgrm-captioned
+                          data-instgrm-permalink={embedUrl}
+                          style={{
+                            background: '#FFF',
+                            border: 0,
+                            borderRadius: '12px',
+                            boxShadow: '0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)',
+                            margin: '0 auto',
+                            maxWidth: '400px',
+                            minWidth: '280px',
+                            padding: 0,
+                            width: '100%',
+                          }}
+                        >
+                          <a href={embedUrl} target="_blank" rel="noopener noreferrer"
+                            className="block text-center p-6 text-[#007AFF] text-[13px] hover:underline">
+                            Ver no Instagram
                           </a>
-                        ) : (
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex w-full h-full flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
-                            <svg className="w-12 h-12 mb-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                            </svg>
-                            <span className="text-[12px] opacity-70">
-                              {item.type === 'reel' ? 'Reel' : item.type === 'video' ? 'Vídeo' : 'Post'}
-                            </span>
-                          </a>
-                        )}
+                        </blockquote>
                       </div>
-                    </div>
+                    ) : (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer"
+                        className="block w-full max-w-[400px] bg-white rounded-xl border border-gray-200 p-6 text-center hover:shadow-lg transition-shadow">
+                        <svg className="w-10 h-10 mx-auto mb-3 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-1.06l4.5-4.5a4.5 4.5 0 00-6.364-6.364l-1.757 1.757" />
+                        </svg>
+                        <p className="text-[13px] text-[#007AFF]">Abrir conteúdo</p>
+                      </a>
+                    )}
+
                     {item.title && (
-                      <p className="text-center mt-4 text-[13px] font-medium text-gray-700">
+                      <p className="text-center mt-3 text-[13px] font-medium text-gray-700">
                         {item.title}
                       </p>
                     )}
