@@ -588,6 +588,7 @@ export default function ExcelencIA5Page() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
+  const [filterWaiterId, setFilterWaiterId] = useState<string>('all');
   const REVIEWS_PER_PAGE = 10;
 
   const applyQuickFilter = (filterId: string) => {
@@ -812,6 +813,15 @@ export default function ExcelencIA5Page() {
   ];
 
   const filteredReviews = reviews.filter((review) => {
+    // Waiter filter
+    if (filterWaiterId !== 'all') {
+      if (filterWaiterId === 'none') {
+        if (review.waiter_id) return false;
+      } else {
+        if (review.waiter_id !== filterWaiterId) return false;
+      }
+    }
+    // Date filter
     const reviewDate = new Date(review.created_at);
     if (isNaN(reviewDate.getTime())) return true;
     if (dateFrom) {
@@ -1133,16 +1143,50 @@ export default function ExcelencIA5Page() {
                 />
               </div>
             </div>
+
+            {/* Waiter filter */}
+            {waiters.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+                <Users className="w-4 h-4 text-gray-400 shrink-0" />
+                <button
+                  onClick={() => { setFilterWaiterId('all'); setReviewsPage(0); }}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                    filterWaiterId === 'all' ? 'bg-[#007AFF] text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Todos
+                </button>
+                {waiters.filter(w => w.is_active).map((w) => (
+                  <button
+                    key={w.id}
+                    onClick={() => { setFilterWaiterId(w.id); setReviewsPage(0); }}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                      filterWaiterId === w.id ? 'bg-[#007AFF] text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {w.name}
+                  </button>
+                ))}
+                <button
+                  onClick={() => { setFilterWaiterId('none'); setReviewsPage(0); }}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                    filterWaiterId === 'none' ? 'bg-[#007AFF] text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Sem garçom
+                </button>
+              </div>
+            )}
           </div>
 
           {filteredReviews.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-600 mb-1">
-                {reviews.length > 0 ? 'Nenhuma avaliação neste período' : 'Nenhuma avaliação ainda'}
+                {reviews.length > 0 ? 'Nenhuma avaliação com esses filtros' : 'Nenhuma avaliação ainda'}
               </p>
               <p className="text-xs text-gray-400">
-                {reviews.length > 0 ? 'Tente ajustar as datas do filtro.' : 'As avaliações dos clientes aparecerão aqui.'}
+                {reviews.length > 0 ? 'Tente ajustar os filtros de data ou garçom.' : 'As avaliações dos clientes aparecerão aqui.'}
               </p>
             </div>
           ) : (
