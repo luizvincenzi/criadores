@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft } from 'lucide-react';
+import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft, Calendar } from 'lucide-react';
 
 // ============================================
 // Types
@@ -583,8 +583,10 @@ export default function ExcelencIA5Page() {
   const [qrModal, setQrModal] = useState<{ url: string; dataUrl: string; name: string } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
 
-  // Reviews pagination
+  // Reviews pagination & date filter
   const [reviewsPage, setReviewsPage] = useState(0);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const REVIEWS_PER_PAGE = 10;
 
   const businessId = user?.business_id;
@@ -762,8 +764,21 @@ export default function ExcelencIA5Page() {
     { id: 'google', label: 'Google Maps' },
   ];
 
-  const paginatedReviews = reviews.slice(reviewsPage * REVIEWS_PER_PAGE, (reviewsPage + 1) * REVIEWS_PER_PAGE);
-  const totalReviewPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
+  const filteredReviews = reviews.filter((review) => {
+    const reviewDate = new Date(review.created_at);
+    if (isNaN(reviewDate.getTime())) return true;
+    if (dateFrom) {
+      const from = new Date(dateFrom + 'T00:00:00');
+      if (reviewDate < from) return false;
+    }
+    if (dateTo) {
+      const to = new Date(dateTo + 'T23:59:59');
+      if (reviewDate > to) return false;
+    }
+    return true;
+  });
+  const paginatedReviews = filteredReviews.slice(reviewsPage * REVIEWS_PER_PAGE, (reviewsPage + 1) * REVIEWS_PER_PAGE);
+  const totalReviewPages = Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE);
 
   return (
     <div className="px-6 md:px-8 max-w-[1200px] mx-auto pt-6 md:pt-8 pb-8">
@@ -1011,15 +1026,52 @@ export default function ExcelencIA5Page() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-800">
-              Avaliações Recebidas ({reviews.length})
+              Avaliações Recebidas ({filteredReviews.length}{filteredReviews.length !== reviews.length ? ` de ${reviews.length}` : ''})
             </h3>
           </div>
 
-          {reviews.length === 0 ? (
+          {/* Date Filter */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="flex flex-wrap items-center gap-3">
+              <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] text-gray-500">De:</label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => { setDateFrom(e.target.value); setReviewsPage(0); }}
+                  className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] text-gray-500">Até:</label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => { setDateTo(e.target.value); setReviewsPage(0); }}
+                  className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={() => { setDateFrom(''); setDateTo(''); setReviewsPage(0); }}
+                  className="text-[11px] text-[#007AFF] hover:text-[#0066DD] font-medium transition-colors"
+                >
+                  Limpar filtro
+                </button>
+              )}
+            </div>
+          </div>
+
+          {filteredReviews.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-600 mb-1">Nenhuma avaliação ainda</p>
-              <p className="text-xs text-gray-400">As avaliações dos clientes aparecerão aqui.</p>
+              <p className="text-sm font-medium text-gray-600 mb-1">
+                {reviews.length > 0 ? 'Nenhuma avaliação neste período' : 'Nenhuma avaliação ainda'}
+              </p>
+              <p className="text-xs text-gray-400">
+                {reviews.length > 0 ? 'Tente ajustar as datas do filtro.' : 'As avaliações dos clientes aparecerão aqui.'}
+              </p>
             </div>
           ) : (
             <>
