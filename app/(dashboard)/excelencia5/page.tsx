@@ -587,7 +587,54 @@ export default function ExcelencIA5Page() {
   const [reviewsPage, setReviewsPage] = useState(0);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [activeQuickFilter, setActiveQuickFilter] = useState<string | null>(null);
   const REVIEWS_PER_PAGE = 10;
+
+  const applyQuickFilter = (filterId: string) => {
+    const now = new Date();
+    const fmt = (d: Date) => d.toISOString().split('T')[0];
+    let from = '';
+    let to = fmt(now);
+
+    if (filterId === activeQuickFilter) {
+      // Toggle off
+      setDateFrom(''); setDateTo(''); setActiveQuickFilter(null); setReviewsPage(0);
+      return;
+    }
+
+    switch (filterId) {
+      case 'today': {
+        from = fmt(now);
+        break;
+      }
+      case '7days': {
+        const d = new Date(now); d.setDate(d.getDate() - 6);
+        from = fmt(d);
+        break;
+      }
+      case '30days': {
+        const d = new Date(now); d.setDate(d.getDate() - 29);
+        from = fmt(d);
+        break;
+      }
+      case 'this_month': {
+        from = fmt(new Date(now.getFullYear(), now.getMonth(), 1));
+        break;
+      }
+      case 'last_month': {
+        const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const last = new Date(now.getFullYear(), now.getMonth(), 0);
+        from = fmt(first);
+        to = fmt(last);
+        break;
+      }
+      case 'this_year': {
+        from = fmt(new Date(now.getFullYear(), 0, 1));
+        break;
+      }
+    }
+    setDateFrom(from); setDateTo(to); setActiveQuickFilter(filterId); setReviewsPage(0);
+  };
 
   const businessId = user?.business_id;
 
@@ -1031,15 +1078,48 @@ export default function ExcelencIA5Page() {
           </div>
 
           {/* Date Filter */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+            {/* Quick filters */}
+            <div className="flex flex-wrap items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
+              {[
+                { id: 'today', label: 'Hoje' },
+                { id: '7days', label: '7 dias' },
+                { id: '30days', label: '30 dias' },
+                { id: 'this_month', label: 'Este mês' },
+                { id: 'last_month', label: 'Mês passado' },
+                { id: 'this_year', label: 'Este ano' },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => applyQuickFilter(f.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                    activeQuickFilter === f.id
+                      ? 'bg-[#007AFF] text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={() => { setDateFrom(''); setDateTo(''); setActiveQuickFilter(null); setReviewsPage(0); }}
+                  className="px-3 py-1.5 text-[11px] text-red-500 hover:text-red-600 font-medium transition-colors"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+            {/* Custom date range */}
+            <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-100">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Personalizado</span>
               <div className="flex items-center gap-2">
                 <label className="text-[11px] text-gray-500">De:</label>
                 <input
                   type="date"
                   value={dateFrom}
-                  onChange={(e) => { setDateFrom(e.target.value); setReviewsPage(0); }}
+                  onChange={(e) => { setDateFrom(e.target.value); setActiveQuickFilter(null); setReviewsPage(0); }}
                   className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
                 />
               </div>
@@ -1048,18 +1128,10 @@ export default function ExcelencIA5Page() {
                 <input
                   type="date"
                   value={dateTo}
-                  onChange={(e) => { setDateTo(e.target.value); setReviewsPage(0); }}
+                  onChange={(e) => { setDateTo(e.target.value); setActiveQuickFilter(null); setReviewsPage(0); }}
                   className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
                 />
               </div>
-              {(dateFrom || dateTo) && (
-                <button
-                  onClick={() => { setDateFrom(''); setDateTo(''); setReviewsPage(0); }}
-                  className="text-[11px] text-[#007AFF] hover:text-[#0066DD] font-medium transition-colors"
-                >
-                  Limpar filtro
-                </button>
-              )}
             </div>
           </div>
 
