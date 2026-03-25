@@ -74,28 +74,12 @@ export default function CriadoresVIPCard() {
       logo: '🎵',
     },
     {
-      id: 6,
-      nome: 'Pantanos',
-      categoria: 'Bar',
-      beneficio: 'Compre uma torre de chopp e ganhe uma isca de frango média',
-      descricao: '',
-      logo: '🍻',
-    },
-    {
       id: 7,
       nome: 'John o Groats',
       categoria: 'Pub',
       beneficio: 'Entrada liberada para o crIAdor + 1 acompanhante',
       descricao: 'Não é válido para as quartas!',
       logo: '🎸',
-    },
-    {
-      id: 8,
-      nome: 'Brah Poke',
-      categoria: 'Restaurante',
-      beneficio: 'Compre um Poke e ganhe um suco de laranja',
-      descricao: 'Válido para consumo ou retirada no local',
-      logo: '🥗',
     },
   ];
 
