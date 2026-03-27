@@ -7,19 +7,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ============================================
 // Types
 // ============================================
+interface CategoryConfig {
+  key: string;
+  label: string;
+  emoji: string;
+}
+
 interface BusinessInfo {
   business_name: string;
   business_slug: string;
   google_reviews_url: string | null;
   waiter_name: string | null;
-}
-
-interface CategoryRatings {
-  atendimento: number;
-  comida: number;
-  tempo_espera: number;
-  ambiente: number;
-  custo_beneficio: number;
+  custom_categories: CategoryConfig[] | null;
 }
 
 // ============================================
@@ -126,9 +125,9 @@ function isInAppBrowser(): boolean {
 }
 
 // ============================================
-// Category Labels
+// Default Category Labels (restaurant)
 // ============================================
-const CATEGORIES: { key: keyof CategoryRatings; label: string; emoji: string }[] = [
+const DEFAULT_CATEGORIES: CategoryConfig[] = [
   { key: 'atendimento', label: 'Atendimento', emoji: '🤝' },
   { key: 'comida', label: 'Qualidade da comida', emoji: '🍽️' },
   { key: 'tempo_espera', label: 'Tempo de espera', emoji: '⏱️' },
@@ -148,16 +147,13 @@ export default function AvaliarPage() {
   const [screen, setScreen] = useState<'loading' | 'rating' | 'details' | 'contact' | 'thanks' | 'redirect' | 'error'>('loading');
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [overallRating, setOverallRating] = useState(0);
-  const [categoryRatings, setCategoryRatings] = useState<CategoryRatings>({
-    atendimento: 0,
-    comida: 0,
-    tempo_espera: 0,
-    ambiente: 0,
-    custo_beneficio: 0,
-  });
+  const [categoryRatings, setCategoryRatings] = useState<Record<string, number>>({});
   const [comment, setComment] = useState('');
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Dynamic categories from business config or defaults
+  const activeCategories = businessInfo?.custom_categories || DEFAULT_CATEGORIES;
 
   // Pre-compute Google URLs
   const googleUrls = useMemo(() => {
@@ -453,7 +449,7 @@ export default function AvaliarPage() {
 
               {/* Category ratings */}
               <div className="space-y-4 mb-6">
-                {CATEGORIES.map((cat) => (
+                {activeCategories.map((cat) => (
                   <div key={cat.key}>
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-sm">{cat.emoji}</span>
@@ -463,7 +459,7 @@ export default function AvaliarPage() {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          filled={star <= categoryRatings[cat.key]}
+                          filled={star <= (categoryRatings[cat.key] || 0)}
                           onTap={() =>
                             setCategoryRatings((prev) => ({ ...prev, [cat.key]: star }))
                           }

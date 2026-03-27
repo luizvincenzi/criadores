@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
         business_slug,
         google_reviews_url,
         settings,
+        custom_categories,
         businesses (
           id,
           name
@@ -73,6 +74,7 @@ export async function GET(request: NextRequest) {
         business_slug: subscription.business_slug,
         google_reviews_url: subscription.google_reviews_url,
         waiter_name: waiterName,
+        custom_categories: subscription.custom_categories || null,
       },
     });
   } catch (error) {

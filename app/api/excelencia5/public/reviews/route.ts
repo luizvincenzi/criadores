@@ -65,6 +65,9 @@ export async function POST(request: NextRequest) {
         id,
         business_id,
         alert_whatsapp,
+        alert_contacts,
+        alert_threshold,
+        custom_categories,
         google_reviews_url,
         businesses (
           name
@@ -128,19 +131,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send WhatsApp alert for ≤4 star reviews (fire and forget)
-    if (overall_rating <= 4 && subscription.alert_whatsapp && UAZAPI_URL && UAZAPI_TOKEN) {
+    // Send WhatsApp alert based on threshold (fire and forget)
+    const threshold = subscription.alert_threshold ?? 4;
+    const alertContacts: Array<{ name: string; phone: string; active: boolean }> = Array.isArray(subscription.alert_contacts) ? subscription.alert_contacts : [];
+    const activeContacts = alertContacts.filter(c => c.active && c.phone);
+    // Fallback to legacy alert_whatsapp if no contacts configured
+    const phonesToAlert = activeContacts.length > 0
+      ? activeContacts.map(c => c.phone)
+      : (subscription.alert_whatsapp ? [subscription.alert_whatsapp] : []);
+
+    // Build dynamic category labels from custom_categories
+    const customCats: Array<{ key: string; label: string }> | null = Array.isArray(subscription.custom_categories) ? subscription.custom_categories : null;
+
+    if (overall_rating <= threshold && phonesToAlert.length > 0 && UAZAPI_URL && UAZAPI_TOKEN) {
       const businessName = (subscription.businesses as unknown as { name: string })?.name || 'Desconhecido';
-      sendWhatsAppAlert(
-        subscription.alert_whatsapp,
-        businessName,
-        waiterName,
-        overall_rating,
-        category_ratings,
-        comment,
-        customer_phone
-      ).then(() => {
-        // Update alert_sent flag
+      const alertPromises = phonesToAlert.map(phone =>
+        sendWhatsAppAlert(
+          phone,
+          businessName,
+          waiterName,
+          overall_rating,
+          category_ratings,
+          comment,
+          customer_phone,
+          customCats
+        )
+      );
+      Promise.all(alertPromises).then(() => {
         supabase
           .from('excelencia5_reviews')
           .update({ alert_sent: true })
@@ -171,7 +188,8 @@ async function sendWhatsAppAlert(
   overallRating: number,
   categoryRatings: Record<string, number> | null,
   comment: string | null,
-  customerPhone: string | null
+  customerPhone: string | null,
+  customCategories: Array<{ key: string; label: string }> | null
 ): Promise<void> {
   const starEmoji = (n: number) => '⭐'.repeat(n) + '☆'.repeat(5 - n);
 
@@ -182,17 +200,22 @@ async function sendWhatsAppAlert(
 
   if (categoryRatings) {
     message += `\n📊 *Detalhes:*\n`;
-    const labels: Record<string, string> = {
+    // Use custom labels if available, fallback to defaults
+    const defaultLabels: Record<string, string> = {
       atendimento: 'Atendimento',
       comida: 'Comida',
       tempo_espera: 'Tempo de espera',
       ambiente: 'Ambiente',
       custo_beneficio: 'Custo-benefício',
     };
-    for (const [key, label] of Object.entries(labels)) {
-      const rating = categoryRatings[key];
+    const labelMap: Record<string, string> = customCategories
+      ? Object.fromEntries(customCategories.map(c => [c.key, c.label]))
+      : defaultLabels;
+
+    for (const [key, rating] of Object.entries(categoryRatings)) {
       if (rating) {
-        message += `• ${label}: ${starEmoji(rating)}\n`;
+        const label = labelMap[key] || key;
+        message += `• ${label}: ${starEmoji(rating as number)}\n`;
       }
     }
   }

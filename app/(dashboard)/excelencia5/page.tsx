@@ -2,11 +2,23 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft, Calendar } from 'lucide-react';
+import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft, Calendar, Settings, AlertTriangle, Phone } from 'lucide-react';
 
 // ============================================
 // Types
 // ============================================
+interface AlertContact {
+  name: string;
+  phone: string;
+  active: boolean;
+}
+
+interface CategoryConfig {
+  key: string;
+  label: string;
+  emoji: string;
+}
+
 interface Subscription {
   id: string;
   business_id: string;
@@ -14,6 +26,10 @@ interface Subscription {
   business_slug: string;
   google_reviews_url: string | null;
   alert_whatsapp: string | null;
+  alert_contacts: AlertContact[];
+  alert_threshold: number;
+  custom_categories: CategoryConfig[] | null;
+  categories_history: Array<{ categories: CategoryConfig[]; changed_at: string }>;
 }
 
 interface Analytics {
@@ -83,7 +99,7 @@ interface GoogleReviewsData {
   }>;
 }
 
-type TabId = 'overview' | 'waiters' | 'reviews' | 'google';
+type TabId = 'overview' | 'waiters' | 'reviews' | 'google' | 'settings';
 
 // ============================================
 // Star Rating Display
@@ -105,9 +121,9 @@ function StarDisplay({ rating, size = 16 }: { rating: number; size?: number }) {
 }
 
 // ============================================
-// Category label helper
+// Category label helper (defaults, overridden by subscription.custom_categories)
 // ============================================
-const CATEGORY_LABELS: Record<string, string> = {
+const DEFAULT_CATEGORY_LABELS: Record<string, string> = {
   atendimento: 'Atendimento',
   comida: 'Qualidade da Comida',
   qualidade_comida: 'Qualidade da Comida',
@@ -116,7 +132,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   custo_beneficio: 'Custo-benefício',
 };
 
-const RADAR_CATEGORIES = [
+const DEFAULT_RADAR_CATEGORIES = [
   { key: 'atendimento', label: 'Atendimento' },
   { key: 'comida', label: 'Comida' },
   { key: 'tempo_espera', label: 'Tempo de Espera' },
@@ -124,15 +140,29 @@ const RADAR_CATEGORIES = [
   { key: 'custo_beneficio', label: 'Custo-benefício' },
 ];
 
+function getCategoryLabels(customCats: CategoryConfig[] | null): Record<string, string> {
+  if (!customCats) return DEFAULT_CATEGORY_LABELS;
+  const labels: Record<string, string> = {};
+  for (const cat of customCats) {
+    labels[cat.key] = cat.label;
+  }
+  return labels;
+}
+
+function getRadarCategories(customCats: CategoryConfig[] | null) {
+  if (!customCats) return DEFAULT_RADAR_CATEGORIES;
+  return customCats.map(c => ({ key: c.key, label: c.label }));
+}
+
 // ============================================
 // RadarChart SVG
 // ============================================
-function RadarChart({ categories }: { categories: Record<string, number> }) {
+function RadarChart({ categories, radarCats }: { categories: Record<string, number>; radarCats?: Array<{ key: string; label: string }> }) {
   const cx = 120;
   const cy = 120;
   const maxR = 80;
   const levels = 5;
-  const cats = RADAR_CATEGORIES;
+  const cats = radarCats || DEFAULT_RADAR_CATEGORIES;
   const n = cats.length;
 
   const getPoint = (index: number, value: number) => {
@@ -260,6 +290,10 @@ function WaitersTab({
 }) {
   const [selectedWaiter, setSelectedWaiter] = useState<string | null>(null);
 
+  // Dynamic category labels
+  const waiterCategoryLabels = getCategoryLabels(subscription?.custom_categories || null);
+  const waiterRadarCats = getRadarCategories(subscription?.custom_categories || null);
+
   const getWaiterStats = (waiterId: string) => {
     return analytics?.waiter_ranking?.find(w => w.waiter_id === waiterId);
   };
@@ -373,7 +407,7 @@ function WaitersTab({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Radar de Performance</h4>
-              <RadarChart categories={categories} />
+              <RadarChart categories={categories} radarCats={waiterRadarCats} />
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <h4 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-4">Media por Categoria</h4>
@@ -384,7 +418,7 @@ function WaitersTab({
                   return (
                     <div key={key}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] text-gray-700">{CATEGORY_LABELS[key] || key}</span>
+                        <span className="text-[11px] text-gray-700">{waiterCategoryLabels[key] || key}</span>
                         <span className="text-[11px] font-semibold text-gray-900">{value}/5</span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -426,7 +460,7 @@ function WaitersTab({
                     <div className="flex flex-wrap gap-2 mt-2">
                       {Object.entries(review.category_ratings).map(([key, val]) => (
                         <span key={key} className="text-[9px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full">
-                          {CATEGORY_LABELS[key] || key}: <b>{val}/5</b>
+                          {waiterCategoryLabels[key] || key}: <b>{val}/5</b>
                         </span>
                       ))}
                     </div>
@@ -555,6 +589,383 @@ function WaitersTab({
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================
+// Default categories (restaurant)
+// ============================================
+const DEFAULT_CATEGORIES: CategoryConfig[] = [
+  { key: 'atendimento', label: 'Atendimento', emoji: '🤝' },
+  { key: 'comida', label: 'Qualidade da comida', emoji: '🍽️' },
+  { key: 'tempo_espera', label: 'Tempo de espera', emoji: '⏱️' },
+  { key: 'ambiente', label: 'Ambiente', emoji: '✨' },
+  { key: 'custo_beneficio', label: 'Custo-benefício', emoji: '💰' },
+];
+
+const EMOJI_OPTIONS = ['🤝', '🍽️', '⏱️', '✨', '💰', '⭐', '🎯', '💬', '🏢', '🛠️', '📦', '🚀', '💡', '🎨', '📱', '🔧', '👥', '📊', '🏥', '⚖️'];
+
+// ============================================
+// SettingsTab Component
+// ============================================
+function SettingsTab({
+  subscription,
+  onUpdate,
+}: {
+  subscription: Subscription;
+  onUpdate: (updated: Subscription) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Alert contacts
+  const [contacts, setContacts] = useState<AlertContact[]>(
+    Array.isArray(subscription.alert_contacts) && subscription.alert_contacts.length > 0
+      ? subscription.alert_contacts
+      : subscription.alert_whatsapp
+        ? [{ name: 'Principal', phone: subscription.alert_whatsapp, active: true }]
+        : []
+  );
+  const [threshold, setThreshold] = useState(subscription.alert_threshold ?? 4);
+
+  // Categories
+  const [categories, setCategories] = useState<CategoryConfig[]>(
+    subscription.custom_categories || DEFAULT_CATEGORIES
+  );
+  const [categoriesChanged, setCategoriesChanged] = useState(false);
+
+  // Google URL
+  const [googleUrl, setGoogleUrl] = useState(subscription.google_reviews_url || '');
+
+  const addContact = () => {
+    if (contacts.length >= 5) return;
+    setContacts([...contacts, { name: '', phone: '', active: true }]);
+  };
+
+  const removeContact = (index: number) => {
+    setContacts(contacts.filter((_, i) => i !== index));
+  };
+
+  const updateContact = (index: number, field: keyof AlertContact, value: string | boolean) => {
+    const updated = [...contacts];
+    updated[index] = { ...updated[index], [field]: value };
+    setContacts(updated);
+  };
+
+  const addCategory = () => {
+    if (categories.length >= 8) return;
+    setCategoriesChanged(true);
+    setCategories([...categories, { key: `cat_${Date.now()}`, label: '', emoji: '⭐' }]);
+  };
+
+  const removeCategory = (index: number) => {
+    if (categories.length <= 1) return;
+    setCategoriesChanged(true);
+    setCategories(categories.filter((_, i) => i !== index));
+  };
+
+  const updateCategory = (index: number, field: keyof CategoryConfig, value: string) => {
+    setCategoriesChanged(true);
+    const updated = [...categories];
+    if (field === 'label') {
+      // Auto-generate key from label
+      const key = value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      updated[index] = { ...updated[index], label: value, key: key || updated[index].key };
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
+    setCategories(updated);
+  };
+
+  const resetToDefault = () => {
+    setCategoriesChanged(true);
+    setCategories([...DEFAULT_CATEGORIES]);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Determine if categories actually differ from what's saved
+      const savedCats = subscription.custom_categories || DEFAULT_CATEGORIES;
+      const catsAreSame = JSON.stringify(categories) === JSON.stringify(savedCats);
+      const isDefault = JSON.stringify(categories) === JSON.stringify(DEFAULT_CATEGORIES);
+
+      const res = await fetch('/api/excelencia5/subscription', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscription_id: subscription.id,
+          alert_contacts: contacts.filter(c => c.phone), // Remove empty
+          alert_threshold: threshold,
+          custom_categories: catsAreSame ? undefined : (isDefault ? null : categories),
+          google_reviews_url: googleUrl || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        onUpdate(data.data);
+        setSaved(true);
+        setCategoriesChanged(false);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+    }
+    setSaving(false);
+  };
+
+  const lastCategoryChange = Array.isArray(subscription.categories_history) && subscription.categories_history.length > 0
+    ? subscription.categories_history[subscription.categories_history.length - 1]
+    : null;
+
+  return (
+    <div className="space-y-6">
+      {/* Section: Alert Contacts */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+            <Phone className="w-4 h-4 text-green-600" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800">Alertas WhatsApp</h3>
+            <p className="text-[10px] text-gray-400">Receba notificações de avaliações negativas</p>
+          </div>
+        </div>
+
+        {/* Threshold */}
+        <div className="mb-4 p-3 bg-gray-50 rounded-xl">
+          <label className="text-[11px] font-medium text-gray-600 block mb-2">
+            Alertar quando a nota for menor ou igual a:
+          </label>
+          <div className="flex items-center gap-2">
+            {[1, 2, 3, 4].map((t) => (
+              <button
+                key={t}
+                onClick={() => setThreshold(t)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  threshold === t
+                    ? 'bg-[#007AFF] text-white shadow-sm'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                ≤ {t} {'⭐'.repeat(t)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact List */}
+        <div className="space-y-3">
+          {contacts.map((contact, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={contact.name}
+                onChange={(e) => updateContact(index, 'name', e.target.value)}
+                placeholder="Nome (ex: Gerente)"
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+              />
+              <input
+                type="tel"
+                value={contact.phone}
+                onChange={(e) => updateContact(index, 'phone', e.target.value)}
+                placeholder="5543999999999"
+                className="w-40 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none font-mono"
+              />
+              <button
+                onClick={() => updateContact(index, 'active', !contact.active)}
+                className={`px-3 py-2 rounded-lg text-[10px] font-medium transition-all ${
+                  contact.active
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'bg-gray-50 text-gray-400 border border-gray-200'
+                }`}
+              >
+                {contact.active ? 'Ativo' : 'Inativo'}
+              </button>
+              <button
+                onClick={() => removeContact(index)}
+                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {contacts.length < 5 && (
+          <button
+            onClick={addContact}
+            className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-[#007AFF] hover:text-[#0066DD] transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Adicionar contato
+          </button>
+        )}
+      </div>
+
+      {/* Section: Custom Categories */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+            <BarChart3 className="w-4 h-4 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800">Categorias de Avaliação</h3>
+            <p className="text-[10px] text-gray-400">Personalize as perguntas "O que podemos melhorar?"</p>
+          </div>
+        </div>
+
+        {/* Warning */}
+        {categoriesChanged && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[11px] font-medium text-amber-800">
+                Alterar as categorias pode afetar a análise comparativa dos dados.
+              </p>
+              <p className="text-[10px] text-amber-600 mt-0.5">
+                Recomendamos manter as mesmas categorias por pelo menos 30 dias para garantir padrões consistentes de respostas.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {lastCategoryChange && (
+          <div className="mb-4 p-2 bg-gray-50 rounded-lg">
+            <p className="text-[10px] text-gray-400">
+              Última alteração: {new Date(lastCategoryChange.changed_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+        )}
+
+        {/* Category List */}
+        <div className="space-y-2">
+          {categories.map((cat, index) => (
+            <div key={index} className="flex items-center gap-2">
+              {/* Emoji selector */}
+              <div className="relative group">
+                <button className="w-10 h-10 bg-gray-50 border border-gray-200 rounded-lg text-lg flex items-center justify-center hover:bg-gray-100 transition-colors">
+                  {cat.emoji}
+                </button>
+                <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-2 hidden group-hover:grid grid-cols-5 gap-1 z-50 w-48">
+                  {EMOJI_OPTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => updateCategory(index, 'emoji', emoji)}
+                      className="w-8 h-8 text-lg flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <input
+                type="text"
+                value={cat.label}
+                onChange={(e) => updateCategory(index, 'label', e.target.value)}
+                placeholder="Nome da categoria"
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-xs text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
+              />
+              {categories.length > 1 && (
+                <button
+                  onClick={() => removeCategory(index)}
+                  className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 mt-3">
+          {categories.length < 8 && (
+            <button
+              onClick={addCategory}
+              className="flex items-center gap-1.5 text-[11px] font-medium text-[#007AFF] hover:text-[#0066DD] transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Adicionar categoria ({categories.length}/8)
+            </button>
+          )}
+          <button
+            onClick={resetToDefault}
+            className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            Restaurar padrão (Restaurante)
+          </button>
+        </div>
+
+        {/* Preview */}
+        <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Preview do formulário</p>
+          <div className="space-y-2">
+            {categories.map((cat, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-sm">{cat.emoji}</span>
+                <span className="text-xs text-gray-700">{cat.label || '(sem nome)'}</span>
+                <div className="flex gap-0.5 ml-auto">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <svg key={s} width={12} height={12} viewBox="0 0 24 24" fill="#E5E7EB" stroke="#D1D5DB" strokeWidth="1">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Section: Google Maps URL */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <MapPin className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800">Link Google Maps</h3>
+            <p className="text-[10px] text-gray-400">URL para redirecionar avaliações 5 estrelas</p>
+          </div>
+        </div>
+        <input
+          type="url"
+          value={googleUrl}
+          onChange={(e) => setGoogleUrl(e.target.value)}
+          placeholder="https://search.google.com/local/writereview?placeid=..."
+          className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-xs text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none font-mono"
+        />
+      </div>
+
+      {/* Save Button */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-3 bg-[#007AFF] text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/25 hover:bg-[#0066DD] transition-colors active:scale-[0.98] disabled:opacity-50 flex items-center gap-2"
+        >
+          {saving ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Salvando...
+            </>
+          ) : saved ? (
+            <>
+              <Check className="w-4 h-4" />
+              Salvo!
+            </>
+          ) : (
+            <>
+              <Settings className="w-4 h-4" />
+              Salvar Configurações
+            </>
+          )}
+        </button>
+        {saved && (
+          <span className="text-xs text-green-600 font-medium">Configurações atualizadas com sucesso</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -805,11 +1216,16 @@ export default function ExcelencIA5Page() {
 
   const activeWaiters = waiters.filter(w => w.is_active);
 
+  // Dynamic category labels based on subscription config
+  const CATEGORY_LABELS = getCategoryLabels(subscription?.custom_categories || null);
+  const RADAR_CATS = getRadarCategories(subscription?.custom_categories || null);
+
   const tabs: { id: TabId; label: string }[] = [
     { id: 'overview', label: 'Visão Geral' },
     { id: 'waiters', label: 'Garçons' },
     { id: 'reviews', label: 'Avaliações' },
     { id: 'google', label: 'Google Maps' },
+    { id: 'settings', label: 'Configurações' },
   ];
 
   const filteredReviews = reviews.filter((review) => {
@@ -1472,6 +1888,16 @@ export default function ExcelencIA5Page() {
             </>
           )}
         </div>
+      )}
+
+      {/* ============================================ */}
+      {/* TAB: Settings */}
+      {/* ============================================ */}
+      {activeTab === 'settings' && subscription && (
+        <SettingsTab
+          subscription={subscription}
+          onUpdate={(updated) => setSubscription(updated)}
+        />
       )}
 
       {/* QR Code Modal */}
