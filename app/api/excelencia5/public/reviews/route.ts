@@ -230,15 +230,15 @@ async function sendWhatsAppAlert(
 
   message += `\n⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
 
-  await fetch(`${UAZAPI_URL}/message/send-text/${UAZAPI_INSTANCE}`, {
+  await fetch(`${UAZAPI_URL}/send/text`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${UAZAPI_TOKEN}`,
+      token: UAZAPI_TOKEN!,
     },
     body: JSON.stringify({
-      phone,
-      message,
+      number: phone,
+      text: message,
     }),
   });
 }

@@ -15,22 +15,22 @@ export async function GET(request: NextRequest) {
     UAZAPI_URL: UAZAPI_URL ? `${UAZAPI_URL.substring(0, 30)}...` : 'NOT SET',
     UAZAPI_TOKEN: UAZAPI_TOKEN ? `${UAZAPI_TOKEN.substring(0, 10)}...` : 'NOT SET',
     UAZAPI_INSTANCE,
-    full_endpoint: UAZAPI_URL ? `${UAZAPI_URL}/message/send-text/${UAZAPI_INSTANCE}` : 'N/A',
+    full_endpoint: UAZAPI_URL ? `${UAZAPI_URL}/send/text` : 'N/A',
   };
 
   // If send=true and phone provided, try to send a test message
   if (sendTest && testPhone && UAZAPI_URL && UAZAPI_TOKEN) {
     try {
-      const endpoint = `${UAZAPI_URL}/message/send-text/${UAZAPI_INSTANCE}`;
+      const endpoint = `${UAZAPI_URL}/send/text`;
       const message = `✅ Teste excelencIA5 - WhatsApp funcionando!\n\n⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${UAZAPI_TOKEN}`,
+          token: UAZAPI_TOKEN,
         },
-        body: JSON.stringify({ phone: testPhone, message }),
+        body: JSON.stringify({ number: testPhone, text: message }),
       });
 
       const responseText = await res.text();
