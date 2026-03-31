@@ -179,6 +179,18 @@ export async function POST(request: NextRequest) {
 }
 
 // ============================================
+// Normalize phone to Brazil format (55XXXXXXXXXXX)
+// ============================================
+function normalizePhoneBR(phone: string): string {
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  // If already starts with 55 and has 12-13 digits, it's complete
+  if (digits.startsWith('55') && digits.length >= 12) return digits;
+  // Otherwise prepend 55 (Brazil country code)
+  return `55${digits}`;
+}
+
+// ============================================
 // WhatsApp Alert via UAZAPI
 // ============================================
 async function sendWhatsAppAlert(
@@ -230,6 +242,7 @@ async function sendWhatsAppAlert(
 
   message += `\n⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
 
+  const normalizedPhone = normalizePhoneBR(phone);
   await fetch(`${UAZAPI_URL}/send/text`, {
     method: 'POST',
     headers: {
@@ -237,7 +250,7 @@ async function sendWhatsAppAlert(
       token: UAZAPI_TOKEN!,
     },
     body: JSON.stringify({
-      number: phone,
+      number: normalizedPhone,
       text: message,
     }),
   });
