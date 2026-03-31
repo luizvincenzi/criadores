@@ -24,13 +24,17 @@ export async function GET(request: NextRequest) {
       const endpoint = `${UAZAPI_URL}/send/text`;
       const message = `✅ Teste excelencIA5 - WhatsApp funcionando!\n\n⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
 
+      // Normalize phone: add 55 (Brazil) prefix if missing
+      const digits = testPhone.replace(/\D/g, '');
+      const normalizedPhone = (digits.startsWith('55') && digits.length >= 12) ? digits : `55${digits}`;
+
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           token: UAZAPI_TOKEN,
         },
-        body: JSON.stringify({ number: testPhone, text: message }),
+        body: JSON.stringify({ number: normalizedPhone, text: message }),
       });
 
       const responseText = await res.text();
