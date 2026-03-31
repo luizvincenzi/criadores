@@ -178,9 +178,13 @@ export function middleware(request: NextRequest) {
     });
   }
 
+  // 🔒 ROTAS PÚBLICAS que começam com prefixos protegidos (devem ser excluídas da proteção)
+  const publicRoutes = ['/criadoresvipcard', '/criadores_vip'];
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
   // 🔒 ROTAS PROTEGIDAS DA PLATAFORMA crIAdores CLIENTE
   const protectedRoutes = ['/dashboard', '/eventos', '/campanhas', '/criadores', '/tarefas'];
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const isProtectedRoute = !isPublicRoute && protectedRoutes.some(route => pathname.startsWith(route));
 
   // 🔒 APIs PROTEGIDAS QUE REQUEREM BUSINESS_ID
   const protectedApiRoutes = ['/api/client/'];
