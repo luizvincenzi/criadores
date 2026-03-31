@@ -145,27 +145,27 @@ export async function POST(request: NextRequest) {
 
     if (overall_rating <= threshold && phonesToAlert.length > 0 && UAZAPI_URL && UAZAPI_TOKEN) {
       const businessName = (subscription.businesses as unknown as { name: string })?.name || 'Desconhecido';
-      const alertPromises = phonesToAlert.map(phone =>
-        sendWhatsAppAlert(
-          phone,
-          businessName,
-          waiterName,
-          overall_rating,
-          category_ratings,
-          comment,
-          customer_phone,
-          customCats
-        )
-      );
-      Promise.all(alertPromises).then(() => {
-        supabase
+      try {
+        const alertPromises = phonesToAlert.map(phone =>
+          sendWhatsAppAlert(
+            phone,
+            businessName,
+            waiterName,
+            overall_rating,
+            category_ratings,
+            comment,
+            customer_phone,
+            customCats
+          )
+        );
+        await Promise.all(alertPromises);
+        await supabase
           .from('excelencia5_reviews')
           .update({ alert_sent: true })
-          .eq('id', review.id)
-          .then(() => {});
-      }).catch((err) => {
+          .eq('id', review.id);
+      } catch (err) {
         console.error('[excelencia5/public/reviews] Alert error:', err);
-      });
+      }
     }
 
     return NextResponse.json({ success: true });
