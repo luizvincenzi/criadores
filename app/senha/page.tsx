@@ -3,7 +3,159 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
-import { Eye, EyeOff, Key, CheckCircle, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Key, CheckCircle, AlertCircle, Mail, RefreshCw } from 'lucide-react';
+
+function ExpiredLinkScreen({ isExpired, error, router }: { isExpired: boolean; error: string; router: any }) {
+  const [resendEmail, setResendEmail] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState('');
+
+  const handleResend = async () => {
+    if (!resendEmail || !resendEmail.includes('@')) {
+      setResendError('Digite um email válido.');
+      return;
+    }
+
+    setResending(true);
+    setResendError('');
+    setResendSuccess(false);
+
+    try {
+      const response = await fetch('/api/platform/auth/resend-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resendEmail.toLowerCase().trim() }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setResendSuccess(true);
+      } else if (data.error?.includes('já está ativa')) {
+        // User already has password - redirect to login
+        setResendError('Sua conta já está ativa! Use o login abaixo.');
+        setTimeout(() => router.push('/login'), 2000);
+      } else {
+        setResendError(data.error || 'Erro ao reenviar. Tente novamente.');
+      }
+    } catch {
+      setResendError('Erro de conexão. Tente novamente.');
+    } finally {
+      setResending(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-12 px-4">
+      <div className="max-w-md w-full">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="text-center">
+            <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4 ${isExpired ? 'bg-orange-100' : 'bg-red-100'}`}>
+              <AlertCircle className={`h-8 w-8 ${isExpired ? 'text-orange-600' : 'text-red-600'}`} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {isExpired ? 'Link Expirado' : 'Link Inválido'}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {isExpired
+                ? 'Seu link expirou. Solicite um novo link abaixo.'
+                : error}
+            </p>
+
+            {/* Self-service resend form */}
+            {isExpired && !resendSuccess && (
+              <div className="mb-6">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4 text-left">
+                  <p className="text-sm text-orange-800 font-medium mb-1">O que aconteceu?</p>
+                  <p className="text-xs text-orange-700">
+                    Os links de ativação expiram em 24 horas por segurança.
+                    Digite seu email abaixo para receber um novo link.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="email"
+                      value={resendEmail}
+                      onChange={(e) => setResendEmail(e.target.value)}
+                      placeholder="Digite seu email"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onKeyDown={(e) => e.key === 'Enter' && handleResend()}
+                    />
+                  </div>
+
+                  {resendError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm text-red-700">{resendError}</p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleResend}
+                    disabled={resending || !resendEmail}
+                    className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {resending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4" />
+                        Solicitar Novo Link
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Success message */}
+            {resendSuccess && (
+              <div className="mb-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <p className="text-sm text-green-800 font-medium">Novo link enviado!</p>
+                  </div>
+                  <p className="text-xs text-green-700">
+                    Verifique sua caixa de entrada (e spam) em <strong>{resendEmail}</strong>.
+                    O novo link expira em 24 horas.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/login')}
+                className={`w-full px-6 py-3 font-semibold rounded-lg transition-colors ${
+                  isExpired && !resendSuccess
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Ir para Login
+              </button>
+              <a
+                href="https://wa.me/554391936400?text=Olá! Preciso de um novo link de acesso à plataforma Criadores. Meu link expirou."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-center"
+              >
+                Ajuda via WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -14,7 +166,7 @@ export default function SetPasswordPage() {
 
     if (!url || !key) {
       console.error('❌ Variáveis de ambiente não configuradas:', { url: !!url, key: !!key });
-      throw new Error('Supabase não configurado');
+      return null;
     }
 
     return createClient(url, key);
@@ -67,6 +219,13 @@ export default function SetPasswordPage() {
           }
           // Limpar hash da URL
           window.history.replaceState(null, '', window.location.pathname);
+          setInitializing(false);
+          return;
+        }
+
+        // Check supabase client is available (env vars configured)
+        if (!supabase) {
+          setError('Configuração do sistema indisponível. Entre em contato com a equipe Criadores.');
           setInitializing(false);
           return;
         }
@@ -145,6 +304,12 @@ export default function SetPasswordPage() {
 
     try {
       console.log('🔐 [Senha] Atualizando senha no Supabase Auth...');
+
+      if (!supabase) {
+        setError('Erro de configuração. Tente novamente.');
+        setLoading(false);
+        return;
+      }
 
       // 1. Atualizar senha no Supabase Auth
       const { data, error: updateError } = await supabase.auth.updateUser({
@@ -255,50 +420,7 @@ export default function SetPasswordPage() {
   // Error state (sem sessão)
   if (error && !userEmail) {
     const isExpiredError = error.includes('expirou') || error.includes('expired');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] py-12 px-4">
-        <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="text-center">
-              <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-4 ${isExpiredError ? 'bg-orange-100' : 'bg-red-100'}`}>
-                <AlertCircle className={`h-8 w-8 ${isExpiredError ? 'text-orange-600' : 'text-red-600'}`} />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {isExpiredError ? 'Link Expirado' : 'Link Inválido'}
-              </h2>
-              <p className="text-gray-600 mb-6">{error}</p>
-
-              {isExpiredError && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-left">
-                  <p className="text-sm text-orange-800 font-medium mb-1">O que aconteceu?</p>
-                  <p className="text-xs text-orange-700">
-                    Os links de ativação expiram em 24 horas por segurança.
-                    Solicite um novo link à equipe que enviou o convite.
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => router.push('/login')}
-                  className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Ir para Login
-                </button>
-                <a
-                  href="https://wa.me/554391936400?text=Olá! Preciso de um novo link de acesso à plataforma Criadores. Meu link expirou."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Solicitar Novo Link via WhatsApp
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ExpiredLinkScreen isExpired={isExpiredError} error={error} router={router} />;
   }
 
   // Main form

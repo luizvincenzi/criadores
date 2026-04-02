@@ -17,6 +17,7 @@ export default function AuthCallbackPage() {
       const refreshToken = params.get('refresh_token');
       const tokenType = params.get('type');
       const error = params.get('error');
+      const errorCode = params.get('error_code');
       const errorDescription = params.get('error_description');
 
       console.log('🔐 [Auth Callback] Processando callback...', {
@@ -24,12 +25,23 @@ export default function AuthCallbackPage() {
         hasRefreshToken: !!refreshToken,
         tokenType,
         error,
+        errorCode,
         errorDescription
       });
 
-      // Se houver erro, redirecionar para login com mensagem
+      // Se houver erro, redirecionar para página apropriada
       if (error) {
-        console.error('❌ [Auth Callback] Erro no callback:', error, errorDescription);
+        console.error('❌ [Auth Callback] Erro no callback:', error, errorCode, errorDescription);
+
+        const isExpired = errorCode === 'otp_expired' || errorDescription?.includes('expired');
+
+        if (isExpired) {
+          // Redirect to /senha which has the self-service resend form
+          console.log('⏰ [Auth Callback] Token expirado, redirecionando para /senha com erro');
+          router.push(`/senha#error=access_denied&error_code=otp_expired&error_description=${encodeURIComponent('Token expirado')}`);
+          return;
+        }
+
         router.push(`/login?error=${encodeURIComponent(error)}`);
         return;
       }

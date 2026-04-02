@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'crypto';
 
 // Criar cliente admin do Supabase com service role key
 const supabaseAdmin = createClient(
@@ -13,7 +14,7 @@ const supabaseAdmin = createClient(
   }
 );
 
-// Rate limiting simples para resend-invite (max 3 por email por hora)
+// Rate limiting simples para resend-invite (max 5 por email por hora)
 const resendLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 function checkResendLimit(email: string): boolean {
@@ -25,12 +26,51 @@ function checkResendLimit(email: string): boolean {
     return true;
   }
 
-  if (record.count >= 3) {
+  if (record.count >= 5) {
     return false;
   }
 
   record.count++;
   return true;
+}
+
+/**
+ * Generate a permanent activation token for a platform_user.
+ * Invalidates any previous unused tokens for the same email.
+ * Returns the token string or null on failure.
+ */
+async function generatePermanentToken(email: string, userId: string): Promise<string | null> {
+  try {
+    // Invalidate previous unused tokens
+    await supabaseAdmin
+      .from('activation_tokens')
+      .update({ used_at: new Date().toISOString() })
+      .eq('email', email)
+      .is('used_at', null);
+
+    // Create new permanent token
+    const token = randomUUID();
+    const { error: insertError } = await supabaseAdmin
+      .from('activation_tokens')
+      .insert([{
+        email,
+        token,
+        user_id: userId,
+        expires_at: null, // NULL = never expires until used
+        used_at: null
+      }]);
+
+    if (insertError) {
+      console.error('❌ [Resend Invite] Erro ao criar activation_token:', insertError);
+      return null;
+    }
+
+    console.log('✅ [Resend Invite] Token permanente criado para:', email);
+    return token;
+  } catch (err) {
+    console.error('❌ [Resend Invite] Erro ao gerar token permanente:', err);
+    return null;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -44,22 +84,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limiting: máximo 3 reenvios por email por hora
-    if (!checkResendLimit(email.toLowerCase())) {
-      console.warn('⚠️ [Resend Invite] Rate limit excedido para:', email);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Rate limiting: máximo 5 reenvios por email por hora
+    if (!checkResendLimit(normalizedEmail)) {
+      console.warn('⚠️ [Resend Invite] Rate limit excedido para:', normalizedEmail);
       return NextResponse.json(
         { success: false, error: 'Muitas tentativas. Aguarde 1 hora antes de tentar novamente.' },
         { status: 429 }
       );
     }
 
-    console.log('📧 [Resend Invite] Solicitação de reenvio para:', email);
+    console.log('📧 [Resend Invite] Solicitação de reenvio para:', normalizedEmail);
 
     // 1. Verificar se o usuário existe na tabela platform_users
     const { data: platformUser, error: platformError } = await supabaseAdmin
       .from('platform_users')
-      .select('id, email, password_hash, is_active')
-      .eq('email', email)
+      .select('id, email, password_hash, is_active, full_name, role, creator_id, business_id')
+      .eq('email', normalizedEmail)
       .single();
 
     if (platformError && platformError.code !== 'PGRST116') {
@@ -71,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!platformUser) {
-      console.log('❌ [Resend Invite] Usuário não encontrado:', email);
+      console.log('❌ [Resend Invite] Usuário não encontrado:', normalizedEmail);
       return NextResponse.json(
         { success: false, error: 'Usuário não encontrado. Entre em contato com o administrador.' },
         { status: 404 }
@@ -80,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Verificar se o usuário já criou senha (já completou onboarding)
     if (platformUser.password_hash) {
-      console.log('⚠️ [Resend Invite] Usuário já completou onboarding:', email);
+      console.log('⚠️ [Resend Invite] Usuário já completou onboarding:', normalizedEmail);
       return NextResponse.json(
         {
           success: false,
@@ -90,62 +132,72 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Buscar metadata do usuário no Supabase Auth
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    // 3. Generate a permanent activation token (always works, no expiration)
+    const permanentToken = await generatePermanentToken(normalizedEmail, platformUser.id);
+    const activationLink = permanentToken
+      ? `https://www.criadores.app/activate/${permanentToken}`
+      : null;
 
-    if (listError) {
-      console.error('❌ [Resend Invite] Erro ao listar usuários:', listError);
-    }
+    console.log('🔑 [Resend Invite] Link permanente gerado:', !!activationLink);
 
-    const existingUser = users?.find(u => u.email === email);
-    const userMetadata = existingUser?.user_metadata || {};
-
-    console.log('📧 [Resend Invite] Reenviando convite com metadata:', {
-      email,
-      hasMetadata: Object.keys(userMetadata).length > 0,
-      entityType: userMetadata.entity_type
-    });
-
-    // 4. Reenviar convite via Supabase Admin API
-    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      email,
-      {
-        redirectTo: 'https://www.criadores.app/auth/callback',
-        data: {
-          ...userMetadata,
-          email_verified: true,
-          invited_at: new Date().toISOString()
+    // 4. Also try Supabase invite (sends email automatically)
+    let supabaseEmailSent = false;
+    try {
+      const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        normalizedEmail,
+        {
+          redirectTo: 'https://www.criadores.app/auth/callback',
+          data: {
+            full_name: platformUser.full_name,
+            role: platformUser.role,
+            creator_id: platformUser.creator_id,
+            business_id: platformUser.business_id,
+            entity_type: platformUser.creator_id ? 'creator' : 'business',
+            email_verified: true,
+            invited_at: new Date().toISOString()
+          }
         }
-      }
-    );
-
-    // O Supabase retorna erro "User already registered" mas AINDA ENVIA O EMAIL
-    // Então vamos ignorar esse erro específico e retornar sucesso
-    if (inviteError) {
-      console.error('⚠️ [Resend Invite] Erro do Supabase:', inviteError.message);
-
-      // Se o erro é "user already registered", o email foi enviado mesmo assim
-      if (inviteError.message.includes('already been registered')) {
-        console.log('✅ [Resend Invite] Email enviado apesar do erro (usuário já existe no Auth)');
-        return NextResponse.json({
-          success: true,
-          message: 'Novo link de ativação enviado para seu email! Verifique sua caixa de entrada.'
-        });
-      }
-
-      // Outros erros são realmente problemas
-      return NextResponse.json(
-        { success: false, error: `Erro ao reenviar convite: ${inviteError.message}` },
-        { status: 500 }
       );
+
+      if (inviteError) {
+        // "User already registered" still sends the email
+        if (inviteError.message.includes('already been registered')) {
+          supabaseEmailSent = true;
+          console.log('✅ [Resend Invite] Email Supabase enviado (user already registered)');
+        } else {
+          console.error('⚠️ [Resend Invite] Erro do Supabase invite:', inviteError.message);
+        }
+      } else {
+        supabaseEmailSent = true;
+        console.log('✅ [Resend Invite] Email Supabase enviado com sucesso');
+      }
+    } catch (err) {
+      console.error('⚠️ [Resend Invite] Erro ao enviar Supabase invite:', err);
     }
 
-    console.log('✅ [Resend Invite] Convite reenviado com sucesso para:', email);
+    // 5. Return success with activation link as fallback
+    if (supabaseEmailSent) {
+      return NextResponse.json({
+        success: true,
+        message: 'Novo link de ativação enviado para seu email! Verifique sua caixa de entrada e pasta de spam.',
+        activationLink // Include permanent link so admin/support can share it if needed
+      });
+    }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Novo link de ativação enviado para seu email!'
-    });
+    // Supabase email failed, but we have the permanent token
+    if (activationLink) {
+      return NextResponse.json({
+        success: true,
+        message: 'Link de ativação gerado! Se não receber o email, entre em contato com a equipe.',
+        activationLink
+      });
+    }
+
+    // Both methods failed
+    return NextResponse.json(
+      { success: false, error: 'Erro ao reenviar convite. Tente novamente ou entre em contato via WhatsApp.' },
+      { status: 500 }
+    );
 
   } catch (error: any) {
     console.error('❌ [Resend Invite] Erro inesperado:', error);
