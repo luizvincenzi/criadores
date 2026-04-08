@@ -191,7 +191,7 @@ export default function AvaliarPage() {
       setOverallRating(rating);
 
       if (rating === 5) {
-        // 5 stars → save review (fire and forget) + show redirect screen
+        // 5 stars → save review (fire and forget) + redirect instantly to Google Maps
         fetch('/api/excelencia5/public/reviews', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -199,11 +199,33 @@ export default function AvaliarPage() {
             business_slug: businessSlug,
             overall_rating: 5,
             waiter_slug: waiterSlug,
-            redirected_to_google: !!businessInfo?.google_reviews_url,
+            redirected_to_google: !!googleUrls,
           }),
         }).catch(() => {});
 
-        if (businessInfo?.google_reviews_url) {
+        if (googleUrls) {
+          // Redirect immediately to Google Maps — no intermediate screen
+          const mobile = isMobileDevice();
+          const inApp = isInAppBrowser();
+
+          if (mobile) {
+            const url = googleUrls.mapsAppUrl;
+            if (inApp) {
+              const a = document.createElement('a');
+              a.href = url;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            } else {
+              window.location.replace(url);
+            }
+          } else {
+            window.location.replace(googleUrls.writeReviewUrl);
+          }
+
+          // Show redirect screen as fallback (in case redirect didn't navigate away)
           setScreen('redirect');
         } else {
           setScreen('thanks');
@@ -213,7 +235,7 @@ export default function AvaliarPage() {
         setScreen('details');
       }
     },
-    [businessInfo, businessSlug, waiterSlug]
+    [businessInfo, businessSlug, waiterSlug, googleUrls]
   );
 
   // Open Google Maps - tries native app first on mobile
