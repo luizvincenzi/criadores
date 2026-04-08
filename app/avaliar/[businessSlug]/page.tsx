@@ -136,6 +136,79 @@ const DEFAULT_CATEGORIES: CategoryConfig[] = [
 ];
 
 // ============================================
+// Redirect Fallback - minimal spinner, then button after 3s
+// ============================================
+function RedirectFallback({
+  googleUrls,
+  onOpenGoogle,
+  onSkip,
+}: {
+  googleUrls: { mapsAppUrl: string; writeReviewUrl: string } | null;
+  onOpenGoogle: () => void;
+  onSkip: () => void;
+}) {
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    // If user is still here after 3s, redirect didn't work — show manual button
+    const timer = setTimeout(() => setShowButton(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <motion.div
+      key="redirect"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="text-center"
+    >
+      {!showButton ? (
+        <>
+          <div className="w-10 h-10 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-gray-500">Abrindo Google Maps...</p>
+        </>
+      ) : (
+        <>
+          <p className="text-4xl mb-4">⭐</p>
+          <h2 className="text-lg font-bold text-gray-900 mb-2">Obrigado pela nota!</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Toque abaixo para avaliar no Google Maps
+          </p>
+
+          <button
+            onClick={onOpenGoogle}
+            className="w-full bg-[#4285F4] text-white rounded-xl px-6 py-4 text-base font-semibold shadow-lg shadow-blue-500/25 hover:bg-[#3367D6] transition-colors active:scale-[0.98] flex items-center justify-center gap-3 mb-3"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="white"/>
+            </svg>
+            Avaliar no Google Maps
+          </button>
+
+          {googleUrls && (
+            <a
+              href={googleUrls.writeReviewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-[12px] text-gray-400 hover:text-gray-600 transition-colors mt-2"
+            >
+              Ou avalie pelo navegador
+            </a>
+          )}
+
+          <button
+            onClick={onSkip}
+            className="block mx-auto text-sm text-gray-400 hover:text-gray-600 transition-colors mt-4"
+          >
+            Agora nao
+          </button>
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+// ============================================
 // Main Page Component
 // ============================================
 export default function AvaliarPage() {
@@ -382,74 +455,10 @@ export default function AvaliarPage() {
           )}
 
           {/* ======================== */}
-          {/* SCREEN: Redirect to Google */}
+          {/* SCREEN: Redirect to Google (fallback only) */}
           {/* ======================== */}
           {screen === 'redirect' && (
-            <motion.div
-              key="redirect"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-                className="text-6xl mb-4"
-              >
-                🎉
-              </motion.div>
-
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Experiencia nota 10!</h2>
-
-              <p className="text-sm text-gray-600 mb-2">
-                Adoramos saber que voce teve uma experiencia excelente!
-              </p>
-
-              <p className="text-sm text-gray-500 mb-6">
-                Nos ajude compartilhando no Google Maps?
-              </p>
-
-              {/* Google stars visual */}
-              <div className="flex items-center justify-center gap-1 mb-6">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <svg key={s} width={24} height={24} viewBox="0 0 24 24" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                ))}
-              </div>
-
-              {/* CTA Button - Opens Google Maps app */}
-              <button
-                onClick={handleOpenGoogle}
-                className="w-full bg-[#4285F4] text-white rounded-xl px-6 py-4 text-base font-semibold shadow-lg shadow-blue-500/25 hover:bg-[#3367D6] transition-colors active:scale-[0.98] flex items-center justify-center gap-3 mb-3"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="white"/>
-                </svg>
-                Avaliar no Google Maps
-              </button>
-
-              {/* Secondary: try writereview URL directly */}
-              {googleUrls && (
-                <a
-                  href={googleUrls.writeReviewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-[12px] text-gray-400 hover:text-gray-600 transition-colors mt-2"
-                >
-                  Ou avalie pelo navegador
-                </a>
-              )}
-
-              {/* Skip option */}
-              <button
-                onClick={() => setScreen('thanks')}
-                className="block mx-auto text-sm text-gray-400 hover:text-gray-600 transition-colors mt-4"
-              >
-                Agora nao
-              </button>
-            </motion.div>
+            <RedirectFallback googleUrls={googleUrls} onOpenGoogle={handleOpenGoogle} onSkip={() => setScreen('thanks')} />
           )}
 
           {/* ======================== */}
