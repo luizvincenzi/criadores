@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
         alert_threshold,
         custom_categories,
         google_reviews_url,
+        whatsapp_template,
         businesses (
           name
         )
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
 
     if (overall_rating <= threshold && phonesToAlert.length > 0 && UAZAPI_URL && UAZAPI_TOKEN) {
       const businessName = (subscription.businesses as unknown as { name: string })?.name || 'Desconhecido';
+      const customTemplate: string | null = (subscription as Record<string, unknown>).whatsapp_template as string | null ?? null;
       try {
         const alertPromises = phonesToAlert.map(phone =>
           sendWhatsAppAlert(
@@ -155,7 +157,8 @@ export async function POST(request: NextRequest) {
             category_ratings,
             comment,
             customer_phone,
-            customCats
+            customCats,
+            customTemplate
           )
         );
         await Promise.all(alertPromises);
@@ -193,8 +196,17 @@ function normalizePhoneBR(phone: string): string {
 // ============================================
 // WhatsApp Alert via UAZAPI
 // ============================================
-async function sendWhatsAppAlert(
-  phone: string,
+// Default WhatsApp template with variables
+const DEFAULT_WHATSAPP_TEMPLATE = `⚠️ *Nova avaliação crítica - excelencIA5*
+
+🏢 *{empresa}*
+{garcom}⭐ Nota geral: {nota}/5
+{detalhes}
+{comentario}
+{contato}
+⏰ {data}`;
+
+function buildDefaultMessage(
   businessName: string,
   waiterName: string | null,
   overallRating: number,
@@ -202,17 +214,14 @@ async function sendWhatsAppAlert(
   comment: string | null,
   customerPhone: string | null,
   customCategories: Array<{ key: string; label: string }> | null
-): Promise<void> {
+): string {
   const starEmoji = (n: number) => '⭐'.repeat(n) + '☆'.repeat(5 - n);
 
-  let message = `⚠️ *Nova avaliação crítica - excelencIA5*\n\n`;
-  message += `🏢 *${businessName}*\n`;
-  if (waiterName) message += `👤 Garçom: ${waiterName}\n`;
-  message += `⭐ Nota geral: ${overallRating}/5\n`;
+  // Build each variable value
+  const garcomLine = waiterName ? `👤 Garçom: ${waiterName}\n` : '';
 
+  let detalhes = '';
   if (categoryRatings) {
-    message += `\n📊 *Detalhes:*\n`;
-    // Use custom labels if available, fallback to defaults
     const defaultLabels: Record<string, string> = {
       atendimento: 'Atendimento',
       comida: 'Comida',
@@ -224,23 +233,90 @@ async function sendWhatsAppAlert(
       ? Object.fromEntries(customCategories.map(c => [c.key, c.label]))
       : defaultLabels;
 
-    for (const [key, rating] of Object.entries(categoryRatings)) {
-      if (rating) {
-        const label = labelMap[key] || key;
-        message += `• ${label}: ${starEmoji(rating as number)}\n`;
-      }
+    const lines = Object.entries(categoryRatings)
+      .filter(([, rating]) => rating)
+      .map(([key, rating]) => `• ${labelMap[key] || key}: ${starEmoji(rating as number)}`);
+    if (lines.length > 0) {
+      detalhes = `\n📊 *Detalhes:*\n${lines.join('\n')}`;
     }
   }
 
-  if (comment) {
-    message += `\n💬 "${comment}"\n`;
+  const comentarioLine = comment ? `\n💬 "${comment}"` : '';
+  const contatoLine = customerPhone ? `\n📱 Entre em contato com o cliente: ${customerPhone}` : '';
+  const data = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+  return DEFAULT_WHATSAPP_TEMPLATE
+    .replace('{empresa}', businessName)
+    .replace('{garcom}', garcomLine)
+    .replace('{nota}', String(overallRating))
+    .replace('{detalhes}', detalhes)
+    .replace('{comentario}', comentarioLine)
+    .replace('{contato}', contatoLine)
+    .replace('{data}', data)
+    .replace(/\n{3,}/g, '\n\n') // collapse excessive newlines
+    .trim();
+}
+
+function buildCustomMessage(
+  template: string,
+  businessName: string,
+  waiterName: string | null,
+  overallRating: number,
+  categoryRatings: Record<string, number> | null,
+  comment: string | null,
+  customerPhone: string | null,
+  customCategories: Array<{ key: string; label: string }> | null
+): string {
+  const starEmoji = (n: number) => '⭐'.repeat(n) + '☆'.repeat(5 - n);
+
+  let detalhes = '';
+  if (categoryRatings) {
+    const defaultLabels: Record<string, string> = {
+      atendimento: 'Atendimento',
+      comida: 'Comida',
+      tempo_espera: 'Tempo de espera',
+      ambiente: 'Ambiente',
+      custo_beneficio: 'Custo-benefício',
+    };
+    const labelMap: Record<string, string> = customCategories
+      ? Object.fromEntries(customCategories.map(c => [c.key, c.label]))
+      : defaultLabels;
+    const lines = Object.entries(categoryRatings)
+      .filter(([, rating]) => rating)
+      .map(([key, rating]) => `• ${labelMap[key] || key}: ${starEmoji(rating as number)}`);
+    if (lines.length > 0) {
+      detalhes = `📊 *Detalhes:*\n${lines.join('\n')}`;
+    }
   }
 
-  if (customerPhone) {
-    message += `\n📱 Contato: ${customerPhone}\n`;
-  }
+  const data = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
-  message += `\n⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
+  return template
+    .replace(/\{empresa\}/g, businessName)
+    .replace(/\{garcom\}/g, waiterName || '')
+    .replace(/\{nota\}/g, String(overallRating))
+    .replace(/\{detalhes\}/g, detalhes)
+    .replace(/\{comentario\}/g, comment || '')
+    .replace(/\{contato\}/g, customerPhone || '')
+    .replace(/\{data\}/g, data)
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+async function sendWhatsAppAlert(
+  phone: string,
+  businessName: string,
+  waiterName: string | null,
+  overallRating: number,
+  categoryRatings: Record<string, number> | null,
+  comment: string | null,
+  customerPhone: string | null,
+  customCategories: Array<{ key: string; label: string }> | null,
+  customTemplate: string | null
+): Promise<void> {
+  const message = customTemplate
+    ? buildCustomMessage(customTemplate, businessName, waiterName, overallRating, categoryRatings, comment, customerPhone, customCategories)
+    : buildDefaultMessage(businessName, waiterName, overallRating, categoryRatings, comment, customerPhone, customCategories);
 
   const normalizedPhone = normalizePhoneBR(phone);
   await fetch(`${UAZAPI_URL}/send/text`, {

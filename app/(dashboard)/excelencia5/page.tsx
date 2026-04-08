@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, X, Trash2, ChevronLeft, Calendar, Settings, AlertTriangle, Phone } from 'lucide-react';
+import { Star, Users, BarChart3, ExternalLink, QrCode, Plus, Copy, Check, Download, ChevronRight, MapPin, MessageCircle, MessageSquare, X, Trash2, ChevronLeft, Calendar, Settings, AlertTriangle, Phone } from 'lucide-react';
 
 // ============================================
 // Types
@@ -30,6 +30,7 @@ interface Subscription {
   alert_threshold: number;
   custom_categories: CategoryConfig[] | null;
   categories_history: Array<{ categories: CategoryConfig[]; changed_at: string }>;
+  whatsapp_template: string | null;
 }
 
 interface Analytics {
@@ -638,6 +639,24 @@ function SettingsTab({
   // Google URL
   const [googleUrl, setGoogleUrl] = useState(subscription.google_reviews_url || '');
 
+  // WhatsApp template
+  const DEFAULT_TEMPLATE = `⚠️ *Nova avaliação crítica - excelencIA5*
+
+🏢 *{empresa}*
+👤 Garçom: {garcom}
+⭐ Nota geral: {nota}/5
+
+📊 *Detalhes:*
+{detalhes}
+
+💬 "{comentario}"
+
+📱 Entre em contato com o cliente: {contato}
+
+⏰ {data}`;
+  const [whatsappTemplate, setWhatsappTemplate] = useState(subscription.whatsapp_template || '');
+  const [templateEnabled, setTemplateEnabled] = useState(!!subscription.whatsapp_template);
+
   const addContact = () => {
     if (contacts.length >= 5) return;
     setContacts([...contacts, { name: '', phone: '', active: true }]);
@@ -700,6 +719,7 @@ function SettingsTab({
           alert_threshold: threshold,
           custom_categories: catsAreSame ? undefined : (isDefault ? null : categories),
           google_reviews_url: googleUrl || null,
+          whatsapp_template: templateEnabled ? whatsappTemplate : null,
         }),
       });
       const data = await res.json();
@@ -818,6 +838,78 @@ function SettingsTab({
             )}
           </button>
         </div>
+      </div>
+
+      {/* Section: WhatsApp Message Template */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-green-600" />
+            <h3 className="text-sm font-semibold text-gray-800">Mensagem WhatsApp</h3>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className="text-[11px] text-gray-500">{templateEnabled ? 'Personalizada' : 'Padrao'}</span>
+            <button
+              onClick={() => {
+                if (!templateEnabled && !whatsappTemplate) {
+                  setWhatsappTemplate(DEFAULT_TEMPLATE);
+                }
+                setTemplateEnabled(!templateEnabled);
+              }}
+              className={`relative w-9 h-5 rounded-full transition-colors ${templateEnabled ? 'bg-green-500' : 'bg-gray-300'}`}
+            >
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${templateEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            </button>
+          </label>
+        </div>
+
+        {!templateEnabled ? (
+          <p className="text-[11px] text-gray-400">
+            Usando mensagem padrao. Ative para personalizar o template da mensagem de alerta.
+          </p>
+        ) : (
+          <>
+            <textarea
+              value={whatsappTemplate}
+              onChange={(e) => setWhatsappTemplate(e.target.value)}
+              rows={12}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[12px] text-gray-800 font-mono placeholder-gray-400 focus:ring-2 focus:ring-green-500/50 focus:border-green-500 outline-none resize-y"
+              placeholder={DEFAULT_TEMPLATE}
+            />
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[
+                { var: '{empresa}', desc: 'Nome da empresa' },
+                { var: '{garcom}', desc: 'Nome do garcom' },
+                { var: '{nota}', desc: 'Nota (1-5)' },
+                { var: '{detalhes}', desc: 'Categorias' },
+                { var: '{comentario}', desc: 'Comentario' },
+                { var: '{contato}', desc: 'Telefone' },
+                { var: '{data}', desc: 'Data/hora' },
+              ].map((v) => (
+                <button
+                  key={v.var}
+                  type="button"
+                  onClick={() => {
+                    setWhatsappTemplate((prev) => prev + v.var);
+                  }}
+                  className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-[10px] font-mono hover:bg-green-100 transition-colors"
+                  title={v.desc}
+                >
+                  {v.var}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[10px] text-gray-400">
+              Clique nas variaveis acima para inserir no template. Elas serao substituidas pelos valores reais.
+            </p>
+            <button
+              onClick={() => setWhatsappTemplate(DEFAULT_TEMPLATE)}
+              className="mt-2 text-[11px] text-gray-400 hover:text-gray-600 transition-colors underline"
+            >
+              Restaurar mensagem padrao
+            </button>
+          </>
+        )}
       </div>
 
       {/* Section: Custom Categories */}

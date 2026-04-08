@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { subscription_id, alert_contacts, alert_threshold, custom_categories, google_reviews_url } = body;
+    const { subscription_id, alert_contacts, alert_threshold, custom_categories, google_reviews_url, whatsapp_template } = body;
 
     if (!subscription_id) {
       return NextResponse.json({ success: false, error: 'subscription_id required' }, { status: 400 });
@@ -99,6 +99,11 @@ export async function PUT(request: NextRequest) {
 
     if (google_reviews_url !== undefined) {
       updates.google_reviews_url = google_reviews_url;
+    }
+
+    if (whatsapp_template !== undefined) {
+      // Allow null to reset to default, or a non-empty string
+      updates.whatsapp_template = whatsapp_template || null;
     }
 
     const { data, error } = await supabase
