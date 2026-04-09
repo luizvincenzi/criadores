@@ -223,7 +223,6 @@ Use agentes específicos para tarefas especializadas (`.claude/agents/`):
 | `client-access-manager` | **Acesso cross-platform**: managed_businesses[], sync auth↔platform_users, convites, login, diagnostico de acesso |
 | `onboarding` | Fluxo completo de convite, ativacao, criacao de senha, liberacao de acesso (cross-project CRM + Plataforma) |
 | `seo` | SEO/AEO/GEO completo: metadata, 8 schemas JSON-LD, sitemap, keywords, OG images, RSS, robots.txt, FAQ schemas, GEO para LLMs, audit de paginas publicas. REGRA: nunca incluir precos. Foco: social media estrategico presencial |
-| `trafego` | Trafego pago Meta Ads (FB/IG): coleta de dados, analise de metricas (CTR/CPC/ROAS/CPA), avaliacao de criativos (AIDA), comparacao A/B, otimizacao de budget, relatorios semanais, criacao de campanhas. Usa 13 ferramentas MCP Meta Ads |
 
 ## REGRA CRITICA: managed_businesses[] (Fev/2026)
 
