@@ -8,7 +8,8 @@ export enum UserRole {
   CREATOR_STRATEGIST = 'creator_strategist', // Criadores estrategistas (nível premium)
   CREATOR = 'creator',                // Criadores/Influenciadores (nível básico)
   USER = 'user',                      // Usuários padrão
-  VIEWER = 'viewer'                   // Visualizadores
+  VIEWER = 'viewer',                   // Visualizadores
+  BUSINESS_EMPLOYEE = 'business_employee' // Funcionários de empresas clientes
 }
 
 export enum UserStatus {

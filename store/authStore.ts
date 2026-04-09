@@ -138,6 +138,13 @@ export const useAuthStore = create<AuthStore>()(
               console.warn('⚠️ Business owner sem business_id definido');
             }
           }
+          // Business employees têm acesso à empresa do dono
+          else if (userData.role === 'business_employee') {
+            console.log('✅ Acesso de funcionário autorizado');
+            if (!userData.business_id) {
+              console.warn('⚠️ Funcionário sem business_id definido');
+            }
+          }
           // Marketing strategists têm acesso às empresas gerenciadas
           else if (userData.role === 'marketing_strategist') {
             console.log('✅ Acesso de marketing strategist autorizado');
@@ -165,7 +172,7 @@ export const useAuthStore = create<AuthStore>()(
           // 5. Criar sessão
           // Para business_owner, manter o business_id original do usuário
           // Para outros tipos, usar o business_id da plataforma cliente
-          const finalBusinessId = userData.role === 'business_owner' && userData.business_id
+          const finalBusinessId = (userData.role === 'business_owner' || userData.role === 'business_employee') && userData.business_id
             ? userData.business_id
             : clientBusinessId;
 

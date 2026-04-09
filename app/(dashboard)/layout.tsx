@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { TasksSidebar } from '@/components/TasksSidebar';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { useTaskNotifications } from '@/hooks/useTaskNotifications';
+import { EquipeTab } from '@/components/settings/EquipeTab';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'conta' | 'assinaturas' | 'produtos'>('conta');
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'conta' | 'assinaturas' | 'produtos' | 'equipe'>('conta');
   const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -191,19 +192,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       id: 'conteudo-empresa',
       label: 'Conteúdo',
       href: '/conteudo-empresa',
-      roles: ['business_owner'] // APENAS business owners
+      roles: ['business_owner', 'business_employee'] // Business owners e funcionários
     },
     {
       id: 'campanhas-empresa',
       label: 'Campanhas',
       href: '/campanhas-empresa',
-      roles: ['business_owner'] // Timeline de campanhas para business owner
+      roles: ['business_owner', 'business_employee'] // Timeline de campanhas
     },
     {
       id: 'excelencia5',
       label: 'excelencIA5',
       href: '/excelencia5',
-      roles: ['business_owner'] // Produto excelencIA5 - gestão de avaliações Google
+      roles: ['business_owner', 'business_employee'] // Gestão de avaliações Google
     },
     {
       id: 'reports',
@@ -503,6 +504,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   Conta
                 </button>
+                {/* Tab Equipe - Apenas business_owner (não employee) */}
+                {user?.role === 'business_owner' && (
+                  <button
+                    onClick={() => setActiveSettingsTab('equipe')}
+                    className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                      activeSettingsTab === 'equipe'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Equipe
+                  </button>
+                )}
                 {!isCreatorOrStrategist && (
                   <>
                     {/* Aba Assinaturas - TEMPORARIAMENTE ESCONDIDA */}
@@ -514,7 +528,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                           : 'border-transparent text-gray-500 hover:text-gray-700'
                       }`}
                     >
-                      💳 Assinaturas
+                      Assinaturas
                     </button>
                     <button
                       onClick={() => setActiveSettingsTab('produtos')}
@@ -762,6 +776,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Aba Equipe - Apenas para business owners */}
+              {activeSettingsTab === 'equipe' && user?.role === 'business_owner' && user?.business_id && (
+                <EquipeTab businessId={user.business_id} userId={user.id} />
               )}
             </div>
           </div>

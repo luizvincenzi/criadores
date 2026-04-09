@@ -10,7 +10,8 @@
 export enum PlatformUserRole {
   CREATOR = 'creator',
   MARKETING_STRATEGIST = 'marketing_strategist',
-  BUSINESS_OWNER = 'business_owner'
+  BUSINESS_OWNER = 'business_owner',
+  BUSINESS_EMPLOYEE = 'business_employee'
 }
 
 export enum SubscriptionPlan {
@@ -55,6 +56,10 @@ export interface PlatformUser {
   last_login?: string;
   platform: 'client';
   
+  // Convite (funcionários)
+  invited_by?: string;
+  invitation_status?: 'pending' | 'accepted' | 'expired';
+
   // Timestamps
   created_at: string;
   updated_at: string;
@@ -159,8 +164,8 @@ export function hasAllRoles(user: PlatformUser, roles: PlatformUserRole[]): bool
  * Retorna o dashboard apropriado baseado nos roles do usuário
  */
 export function getDashboardRoute(user: PlatformUser): string {
-  // Business owner vai para conteúdo empresa (dashboard temporariamente desabilitado)
-  if (hasRole(user, PlatformUserRole.BUSINESS_OWNER)) {
+  // Business owner ou employee vai para conteúdo empresa
+  if (hasAnyRole(user, [PlatformUserRole.BUSINESS_OWNER, PlatformUserRole.BUSINESS_EMPLOYEE])) {
     return '/conteudo-empresa';
   }
 
@@ -177,9 +182,18 @@ export function getDashboardRoute(user: PlatformUser): string {
  * Verifica se o usuário pode acessar uma rota específica
  */
 export function canAccessRoute(user: PlatformUser, route: string): boolean {
-  // Business owner pode acessar conteúdo e campanhas empresa (dashboard temporariamente desabilitado)
+  // Business owner pode acessar conteúdo, campanhas e excelencia5
   if (hasRole(user, PlatformUserRole.BUSINESS_OWNER)) {
-    return route.startsWith('/conteudo-empresa') || route.startsWith('/campanhas-empresa');
+    return route.startsWith('/conteudo-empresa') || route.startsWith('/campanhas-empresa') || route.startsWith('/excelencia5');
+  }
+
+  // Business employee acessa baseado nas suas permissões individuais
+  if (hasRole(user, PlatformUserRole.BUSINESS_EMPLOYEE)) {
+    const perms = user.permissions;
+    if (route.startsWith('/conteudo-empresa') && perms?.conteudo?.read) return true;
+    if (route.startsWith('/campanhas-empresa') && perms?.campaigns?.read) return true;
+    if (route.startsWith('/excelencia5') && perms?.reports?.read) return true;
+    return false;
   }
 
   // Creator e Marketing Strategist podem acessar /dashboard/criador
@@ -226,14 +240,25 @@ export function getCombinedPermissions(user: PlatformUser): PlatformPermissions 
     permissions.tasks.write = true;
   }
   
-  // Permissões de Business Owner
+  // Permissões de Business Owner (acesso total de leitura)
   if (hasRole(user, PlatformUserRole.BUSINESS_OWNER)) {
     permissions.campaigns.read = true;
     permissions.conteudo.read = true;
     permissions.briefings.read = true;
     permissions.reports.read = true;
   }
-  
+
+  // Permissões de Business Employee (baseado no JSONB individual)
+  if (hasRole(user, PlatformUserRole.BUSINESS_EMPLOYEE)) {
+    const p = user.permissions;
+    if (p?.campaigns?.read) permissions.campaigns.read = true;
+    if (p?.conteudo?.read) permissions.conteudo.read = true;
+    if (p?.conteudo?.write) permissions.conteudo.write = true;
+    if (p?.conteudo?.delete) permissions.conteudo.delete = true;
+    if (p?.briefings?.read) permissions.briefings.read = true;
+    if (p?.reports?.read) permissions.reports.read = true;
+  }
+
   return permissions;
 }
 
@@ -282,7 +307,8 @@ export function formatRoleName(role: PlatformUserRole): string {
   const roleNames: Record<PlatformUserRole, string> = {
     [PlatformUserRole.CREATOR]: 'Criador',
     [PlatformUserRole.MARKETING_STRATEGIST]: 'Estrategista de Marketing',
-    [PlatformUserRole.BUSINESS_OWNER]: 'Dono da Empresa'
+    [PlatformUserRole.BUSINESS_OWNER]: 'Dono da Empresa',
+    [PlatformUserRole.BUSINESS_EMPLOYEE]: 'Funcionário'
   };
   
   return roleNames[role];
@@ -295,7 +321,8 @@ export function getRoleIcon(role: PlatformUserRole): string {
   const roleIcons: Record<PlatformUserRole, string> = {
     [PlatformUserRole.CREATOR]: '🎨',
     [PlatformUserRole.MARKETING_STRATEGIST]: '📊',
-    [PlatformUserRole.BUSINESS_OWNER]: '🏢'
+    [PlatformUserRole.BUSINESS_OWNER]: '🏢',
+    [PlatformUserRole.BUSINESS_EMPLOYEE]: '👤'
   };
   
   return roleIcons[role];
