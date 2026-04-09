@@ -11,7 +11,6 @@ const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 // UAZAPI config for WhatsApp alerts
 const UAZAPI_URL = process.env.UAZAPI_URL;
 const UAZAPI_TOKEN = process.env.UAZAPI_TOKEN;
-const UAZAPI_INSTANCE = process.env.UAZAPI_INSTANCE || 'luiz';
 
 // POST /api/excelencia5/public/reviews
 // Public endpoint - no auth required
@@ -29,6 +28,8 @@ export async function POST(request: NextRequest) {
       redirected_to_google,
     } = body;
 
+    console.log(`[excelencia5] Review received: slug=${business_slug}, rating=${overall_rating}, waiter=${waiter_slug || 'none'}`);
+
     // Validate required fields
     if (!business_slug || !overall_rating || overall_rating < 1 || overall_rating > 5) {
       return NextResponse.json(
@@ -42,16 +43,17 @@ export async function POST(request: NextRequest) {
     const ip = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || 'unknown';
     const userAgent = request.headers.get('user-agent') || '';
 
-    // Basic rate limit: check if same IP submitted in last 5 minutes
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    // Basic rate limit: check if same IP submitted in last 2 minutes (reduced from 5)
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
     const { data: recentReviews } = await supabase
       .from('excelencia5_reviews')
       .select('id')
       .eq('ip_address', ip)
-      .gte('created_at', fiveMinutesAgo)
+      .gte('created_at', twoMinutesAgo)
       .limit(1);
 
     if (recentReviews && recentReviews.length > 0) {
+      console.log(`[excelencia5] Rate limited: IP=${ip}`);
       return NextResponse.json(
         { success: false, error: 'Please wait a few minutes before submitting another review' },
         { status: 429 }
@@ -80,6 +82,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (subError || !subscription) {
+      console.error(`[excelencia5] Subscription not found for slug=${business_slug}:`, subError);
       return NextResponse.json(
         { success: false, error: 'Business not found' },
         { status: 404 }
@@ -125,14 +128,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (reviewError) {
-      console.error('[excelencia5/public/reviews] Insert error:', reviewError);
+      console.error('[excelencia5] Insert error:', reviewError);
       return NextResponse.json(
         { success: false, error: 'Failed to save review' },
         { status: 500 }
       );
     }
 
-    // Send WhatsApp alert based on threshold (fire and forget)
+    console.log(`[excelencia5] Review saved: id=${review.id}, rating=${overall_rating}`);
+
+    // ============================================
+    // Send WhatsApp alert based on threshold
+    // ============================================
     const threshold = subscription.alert_threshold ?? 4;
     const alertContacts: Array<{ name: string; phone: string; active: boolean }> = Array.isArray(subscription.alert_contacts) ? subscription.alert_contacts : [];
     const activeContacts = alertContacts.filter(c => c.active && c.phone);
@@ -141,15 +148,17 @@ export async function POST(request: NextRequest) {
       ? activeContacts.map(c => c.phone)
       : (subscription.alert_whatsapp ? [subscription.alert_whatsapp] : []);
 
-    // Build dynamic category labels from custom_categories
-    const customCats: Array<{ key: string; label: string }> | null = Array.isArray(subscription.custom_categories) ? subscription.custom_categories : null;
+    console.log(`[excelencia5] Alert check: rating=${overall_rating}, threshold=${threshold}, shouldAlert=${overall_rating <= threshold}, phones=${JSON.stringify(phonesToAlert)}, UAZAPI_URL=${UAZAPI_URL ? 'SET' : 'NOT SET'}, UAZAPI_TOKEN=${UAZAPI_TOKEN ? 'SET' : 'NOT SET'}`);
 
     if (overall_rating <= threshold && phonesToAlert.length > 0 && UAZAPI_URL && UAZAPI_TOKEN) {
       const businessName = (subscription.businesses as unknown as { name: string })?.name || 'Desconhecido';
+      const customCats: Array<{ key: string; label: string }> | null = Array.isArray(subscription.custom_categories) ? subscription.custom_categories : null;
       const customTemplate: string | null = (subscription as Record<string, unknown>).whatsapp_template as string | null ?? null;
-      try {
-        const alertPromises = phonesToAlert.map(phone =>
-          sendWhatsAppAlert(
+
+      let allSent = true;
+      for (const phone of phonesToAlert) {
+        try {
+          const success = await sendWhatsAppAlert(
             phone,
             businessName,
             waiterName,
@@ -159,21 +168,35 @@ export async function POST(request: NextRequest) {
             customer_phone,
             customCats,
             customTemplate
-          )
-        );
-        await Promise.all(alertPromises);
-        await supabase
-          .from('excelencia5_reviews')
-          .update({ alert_sent: true })
-          .eq('id', review.id);
-      } catch (err) {
-        console.error('[excelencia5/public/reviews] Alert error:', err);
+          );
+          if (!success) allSent = false;
+        } catch (err) {
+          console.error(`[excelencia5] Alert EXCEPTION for phone=${phone}:`, err);
+          allSent = false;
+        }
+      }
+
+      // Only mark alert_sent if at least attempted
+      await supabase
+        .from('excelencia5_reviews')
+        .update({ alert_sent: allSent })
+        .eq('id', review.id);
+
+      console.log(`[excelencia5] Alerts completed: allSent=${allSent}`);
+    } else {
+      // Log why we're NOT sending
+      if (overall_rating > threshold) {
+        console.log(`[excelencia5] No alert: rating ${overall_rating} > threshold ${threshold}`);
+      } else if (phonesToAlert.length === 0) {
+        console.log(`[excelencia5] No alert: no phones configured`);
+      } else if (!UAZAPI_URL || !UAZAPI_TOKEN) {
+        console.error(`[excelencia5] No alert: UAZAPI env vars missing! URL=${UAZAPI_URL ? 'SET' : 'MISSING'}, TOKEN=${UAZAPI_TOKEN ? 'SET' : 'MISSING'}`);
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[excelencia5/public/reviews] Error:', error);
+    console.error('[excelencia5] Unhandled error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
@@ -196,6 +219,7 @@ function normalizePhoneBR(phone: string): string {
 // ============================================
 // WhatsApp Alert via UAZAPI
 // ============================================
+
 // Default WhatsApp template with variables
 const DEFAULT_WHATSAPP_TEMPLATE = `⚠️ *Nova avaliação crítica - excelencIA5*
 
@@ -217,7 +241,6 @@ function buildDefaultMessage(
 ): string {
   const starEmoji = (n: number) => '⭐'.repeat(n) + '☆'.repeat(5 - n);
 
-  // Build each variable value
   const garcomLine = waiterName ? `👤 Garçom: ${waiterName}\n` : '';
 
   let detalhes = '';
@@ -253,7 +276,7 @@ function buildDefaultMessage(
     .replace('{comentario}', comentarioLine)
     .replace('{contato}', contatoLine)
     .replace('{data}', data)
-    .replace(/\n{3,}/g, '\n\n') // collapse excessive newlines
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
@@ -303,6 +326,10 @@ function buildCustomMessage(
     .trim();
 }
 
+/**
+ * Send WhatsApp alert via UAZAPI.
+ * Returns true if UAZAPI responded with success, false otherwise.
+ */
 async function sendWhatsAppAlert(
   phone: string,
   businessName: string,
@@ -313,13 +340,17 @@ async function sendWhatsAppAlert(
   customerPhone: string | null,
   customCategories: Array<{ key: string; label: string }> | null,
   customTemplate: string | null
-): Promise<void> {
+): Promise<boolean> {
   const message = customTemplate
     ? buildCustomMessage(customTemplate, businessName, waiterName, overallRating, categoryRatings, comment, customerPhone, customCategories)
     : buildDefaultMessage(businessName, waiterName, overallRating, categoryRatings, comment, customerPhone, customCategories);
 
   const normalizedPhone = normalizePhoneBR(phone);
-  await fetch(`${UAZAPI_URL}/send/text`, {
+  const endpoint = `${UAZAPI_URL}/send/text`;
+
+  console.log(`[excelencia5] Sending WhatsApp: phone=${normalizedPhone}, endpoint=${endpoint}`);
+
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -330,4 +361,21 @@ async function sendWhatsAppAlert(
       text: message,
     }),
   });
+
+  // Read and log the full response
+  const responseText = await res.text();
+  let responseData: unknown;
+  try {
+    responseData = JSON.parse(responseText);
+  } catch {
+    responseData = responseText;
+  }
+
+  if (!res.ok) {
+    console.error(`[excelencia5] UAZAPI ERROR: status=${res.status}, phone=${normalizedPhone}, response=`, JSON.stringify(responseData));
+    return false;
+  }
+
+  console.log(`[excelencia5] UAZAPI SUCCESS: status=${res.status}, phone=${normalizedPhone}, response=`, JSON.stringify(responseData));
+  return true;
 }
