@@ -244,6 +244,33 @@ export function YouTubeLessonPlayer({
         onLoad={handleIframeLoad}
       />
 
+      {/* Overlays pra bloquear o branding do YouTube (título + botão "Assista no YouTube") */}
+      {/* Só ativam depois do player estar pronto, pra não atrapalhar o clique inicial de play */}
+      {ready && (
+        <>
+          {/* Top bar: avatar do canal + título do vídeo */}
+          <div
+            className="absolute top-0 left-0 right-0 pointer-events-auto cursor-default"
+            style={{ height: '18%', zIndex: 2 }}
+            aria-hidden="true"
+            onClick={e => e.stopPropagation()}
+          />
+          {/* Bottom-right: pill "Assista no YouTube" (fica acima da control bar) */}
+          <div
+            className="absolute pointer-events-auto cursor-default"
+            style={{
+              bottom: '14%',
+              right: '0%',
+              width: '28%',
+              height: '14%',
+              zIndex: 2
+            }}
+            aria-hidden="true"
+            onClick={e => e.stopPropagation()}
+          />
+        </>
+      )}
+
       {/* Loading overlay enquanto o iframe inicializa */}
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
