@@ -217,6 +217,35 @@ export async function GET(
       }
     }
 
+    // 8. Buscar anexos da aula + gerar signed URLs
+    const { data: rawAttachments } = await supabaseAdmin
+      .from('education_lesson_attachments')
+      .select('*')
+      .eq('organization_id', DEFAULT_ORG_ID)
+      .eq('lesson_id', id)
+      .order('display_order', { ascending: true });
+
+    const attachments: any[] = [];
+    for (const att of rawAttachments || []) {
+      let downloadUrl = att.external_url;
+      if (!downloadUrl && att.file_url) {
+        // Gera signed URL válida por 1h
+        const { data: signed } = await supabaseAdmin.storage
+          .from('education-attachments')
+          .createSignedUrl(att.file_url, 3600);
+        downloadUrl = signed?.signedUrl || null;
+      }
+      attachments.push({
+        id: att.id,
+        type: att.type,
+        title: att.title,
+        download_url: downloadUrl,
+        file_size_bytes: att.file_size_bytes,
+        mime_type: att.mime_type,
+        is_link: att.type === 'link'
+      });
+    }
+
     return NextResponse.json({
       success: true,
       lesson,
@@ -224,6 +253,7 @@ export async function GET(
       course,
       track,
       progress: progress || null,
+      attachments,
       navigation: {
         prev: prevLesson ? { id: prevLesson.id, title: prevLesson.title } : null,
         next: nextLesson ? { id: nextLesson.id, title: nextLesson.title } : null,
