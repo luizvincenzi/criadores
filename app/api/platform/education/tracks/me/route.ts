@@ -222,14 +222,19 @@ export async function GET(request: NextRequest) {
     let certificate: any = null;
     if (isTrackComplete) {
       // Busca se já tem certificado
-      const { data: existingCert } = await supabaseAdmin
+      const { data: existingCert, error: certSelectError } = await supabaseAdmin
         .from('education_certificates')
         .select('*')
         .eq('platform_user_id', platformUserId)
         .eq('track_id', track.id)
         .maybeSingle();
 
-      if (existingCert) {
+      // Se a tabela não existe (migration 527 não rodou), pula silenciosamente
+      if (certSelectError && certSelectError.code === '42P01') {
+        console.warn(
+          '[platform/education/tracks/me] education_certificates table missing — run migration 527.'
+        );
+      } else if (existingCert) {
         certificate = existingCert;
       } else {
         // Emite novo certificado
