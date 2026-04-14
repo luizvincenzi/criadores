@@ -214,7 +214,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     },
     {
       id: 'aulas',
-      label: 'Aulas',
+      label: 'Academy',
       href: '/aulas',
       roles: ['marketing_strategist', 'business_owner', 'admin', 'manager'] // Trilhas de educação Criadores Academy
     }
