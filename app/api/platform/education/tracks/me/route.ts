@@ -216,6 +216,63 @@ export async function GET(request: NextRequest) {
     // 10. Resumo geral
     const totalLessons = enrichedCourses.reduce((n, c) => n + c.total_lessons, 0);
     const completedCount = enrichedCourses.reduce((n, c) => n + c.completed_lessons, 0);
+    const isTrackComplete = totalLessons > 0 && completedCount === totalLessons;
+
+    // 11. Certificado: se trilha 100% concluída, busca/emite certificado
+    let certificate: any = null;
+    if (isTrackComplete) {
+      // Busca se já tem certificado
+      const { data: existingCert } = await supabaseAdmin
+        .from('education_certificates')
+        .select('*')
+        .eq('platform_user_id', platformUserId)
+        .eq('track_id', track.id)
+        .maybeSingle();
+
+      if (existingCert) {
+        certificate = existingCert;
+      } else {
+        // Emite novo certificado
+        const { data: userData } = await supabaseAdmin
+          .from('platform_users')
+          .select('full_name, email')
+          .eq('id', platformUserId)
+          .maybeSingle();
+
+        if (userData?.full_name) {
+          // Gera código único (função SQL)
+          const { data: codeData } = await supabaseAdmin.rpc('generate_certificate_code');
+          const certificateCode = codeData || `CRIA-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+          const totalDuration = enrichedCourses.reduce((sum, c) => {
+            return (
+              sum +
+              c.sections.reduce((cs: number, s: any) => {
+                return cs + s.lessons.reduce((ls: number, l: any) => ls + (l.video_duration_seconds || 0), 0);
+              }, 0)
+            );
+          }, 0);
+
+          const { data: newCert } = await supabaseAdmin
+            .from('education_certificates')
+            .insert({
+              organization_id: DEFAULT_ORG_ID,
+              platform_user_id: platformUserId,
+              track_id: track.id,
+              user_full_name: userData.full_name,
+              user_email: userData.email,
+              track_title: track.title,
+              certificate_code: certificateCode,
+              total_lessons: totalLessons,
+              total_duration_seconds: totalDuration
+            })
+            .select('*')
+            .single();
+
+          certificate = newCert;
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -225,8 +282,10 @@ export async function GET(request: NextRequest) {
         total_lessons: totalLessons,
         completed_count: completedCount,
         progress_percent: totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0,
-        next_lesson: nextLesson
-      }
+        next_lesson: nextLesson,
+        is_complete: isTrackComplete
+      },
+      certificate
     });
   } catch (error: any) {
     console.error('[platform/education/tracks/me] Error:', error);

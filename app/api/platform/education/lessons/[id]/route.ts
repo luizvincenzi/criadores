@@ -184,6 +184,39 @@ export async function GET(
       ? orderedLessons[currentIndex + 1]
       : null;
 
+    // 7. Validação de lock sequencial
+    // Se is_sequential=true no curso, valida que todas aulas anteriores estão concluídas
+    const isSequential = course.is_sequential === true;
+    const isInternalAdmin = user.role === 'admin' || user.role === 'manager' ||
+      (Array.isArray(user.roles) && (user.roles.includes('admin') || user.roles.includes('manager')));
+
+    if (isSequential && currentIndex > 0 && !isInternalAdmin) {
+      // Busca progresso de todas as aulas anteriores
+      const previousLessonIds = orderedLessons.slice(0, currentIndex).map(l => l.id);
+      const { data: prevProgress } = await supabaseAdmin
+        .from('education_user_progress')
+        .select('lesson_id, is_completed')
+        .eq('platform_user_id', platformUserId)
+        .in('lesson_id', previousLessonIds);
+
+      const completedIds = new Set(
+        (prevProgress || []).filter(p => p.is_completed).map(p => p.lesson_id)
+      );
+
+      const allPreviousCompleted = previousLessonIds.every(lid => completedIds.has(lid));
+
+      if (!allPreviousCompleted) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Esta aula está bloqueada. Conclua as aulas anteriores primeiro.',
+            locked: true
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     return NextResponse.json({
       success: true,
       lesson,
