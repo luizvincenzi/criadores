@@ -211,6 +211,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       label: 'Relatórios',
       href: '/reports',
       roles: ['admin', 'manager'] // CRM interno apenas
+    },
+    {
+      id: 'aulas',
+      label: 'Aulas',
+      href: '/aulas',
+      roles: ['marketing_strategist', 'business_owner', 'admin', 'manager'] // Trilhas de educação Criadores Academy
     }
   ];
 
