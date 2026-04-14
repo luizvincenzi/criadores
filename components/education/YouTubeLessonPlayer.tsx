@@ -1,67 +1,26 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
-
-// ────────────────────────────────────────────────────────────
-// Singleton loader da YouTube IFrame API
-// Evita race conditions quando múltiplos players montam ao mesmo tempo.
-// ────────────────────────────────────────────────────────────
-let ytApiPromise: Promise<void> | null = null;
-
-function loadYouTubeAPI(): Promise<void> {
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('Sem window (SSR)'));
-  }
-  if (window.YT && window.YT.Player) {
-    return Promise.resolve();
-  }
-  if (ytApiPromise) return ytApiPromise;
-
-  ytApiPromise = new Promise<void>((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new Error('Timeout ao carregar YouTube API (10s)'));
-    }, 10000);
-
-    // Compose com callback anterior se já existir
-    const previousCallback = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      clearTimeout(timeoutId);
-      previousCallback?.();
-      if (window.YT && window.YT.Player) {
-        resolve();
-      } else {
-        reject(new Error('YT.Player não disponível após load'));
-      }
-    };
-
-    // Só injeta o script se ainda não existir
-    const existing = document.getElementById('youtube-iframe-api-script');
-    if (!existing) {
-      const tag = document.createElement('script');
-      tag.id = 'youtube-iframe-api-script';
-      tag.src = 'https://www.youtube.com/iframe_api';
-      tag.async = true;
-      tag.onerror = () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Falha ao baixar o script do YouTube'));
-      };
-      document.body.appendChild(tag);
-    }
-  });
-
-  return ytApiPromise;
-}
-
-// ────────────────────────────────────────────────────────────
-// Componente
-// ────────────────────────────────────────────────────────────
+/**
+ * YouTube Lesson Player — iframe + postMessage (sem script externo).
+ *
+ * Por que não usamos a YouTube IFrame API oficial (script externo)?
+ * O CSP do criadores.app tem script-src restritivo (permite só Google Tag
+ * Manager / Analytics). O script https://www.youtube.com/iframe_api é
+ * bloqueado pelo browser antes mesmo de tentar executar.
+ *
+ * Como este player funciona:
+ * - Renderiza um <iframe> com enablejsapi=1
+ * - Envia {event:"listening",...} por postMessage assim que o iframe carrega
+ * - YouTube responde com onReady / onStateChange / infoDelivery continuamente
+ * - Lemos currentTime, duration, playerState dos eventos infoDelivery
+ * - Como backup, polimos getCurrentTime a cada ~2s (caso infoDelivery atrase)
+ *
+ * Este é o mesmo protocolo interno que a IFrame API oficial usa — só que
+ * sem depender do script externo, então funciona com qualquer CSP que
+ * permita frame-src youtube.com (que o nosso já permite).
+ */
 
 interface Props {
   videoId: string;
@@ -83,151 +42,160 @@ export function YouTubeLessonPlayer({
   onComplete,
   onDurationDetected
 }: Props) {
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
 
-  const playerRef = useRef<any>(null);
+  // Refs — state sem re-render
+  const currentTimeRef = useRef(0);
+  const durationRef = useRef(0);
+  const playerStateRef = useRef<number>(-1); // -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
   const watchedSecondsRef = useRef(0);
   const lastTickRef = useRef<number | null>(null);
   const completedRef = useRef(false);
+  const initialSeekDoneRef = useRef(false);
   const initialPositionRef = useRef(initialPositionSeconds);
 
-  // ID único que muda quando o videoId muda
-  // Isso força React a renderizar um novo <div> e o YT.Player
-  // encontra ele via document.getElementById (mais robusto que passar ref).
-  const containerId = useMemo(
-    () => `yt-player-${videoId}-${Math.random().toString(36).slice(2, 8)}`,
-    [videoId]
+  // URL de embed (enablejsapi=1 habilita postMessage)
+  const embedUrl = useMemo(() => {
+    const params = new URLSearchParams({
+      enablejsapi: '1',
+      modestbranding: '1',
+      rel: '0',
+      iv_load_policy: '3',
+      cc_load_policy: '0',
+      playsinline: '1',
+      fs: '1',
+      controls: '1'
+    });
+    return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+  }, [videoId]);
+
+  // Helper: postMessage pra iframe
+  const postToIframe = useCallback((message: any) => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    try {
+      win.postMessage(JSON.stringify(message), '*');
+    } catch (err) {
+      console.error('[YouTubeLessonPlayer] postMessage error:', err);
+    }
+  }, []);
+
+  const sendCommand = useCallback(
+    (func: string, args: any[] = []) => {
+      postToIframe({ event: 'command', func, args });
+    },
+    [postToIframe]
   );
 
-  // Sempre que o videoId mudar, reseta estado local
+  // Reseta estado quando o videoId muda
   useEffect(() => {
     watchedSecondsRef.current = 0;
     lastTickRef.current = null;
     completedRef.current = false;
+    initialSeekDoneRef.current = false;
+    currentTimeRef.current = 0;
+    durationRef.current = 0;
+    playerStateRef.current = -1;
     initialPositionRef.current = initialPositionSeconds;
     setReady(false);
-    setLoadError(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId]);
 
-  // Inicializa o player quando o container está no DOM
+  // Escuta mensagens vindas do iframe
   useEffect(() => {
-    let cancelled = false;
+    const handleMessage = (event: MessageEvent) => {
+      // Só aceita mensagens do nosso iframe específico
+      if (!iframeRef.current) return;
+      if (event.source !== iframeRef.current.contentWindow) return;
 
-    loadYouTubeAPI()
-      .then(() => {
-        if (cancelled) return;
+      // YouTube envia strings JSON. Ignora objetos.
+      if (typeof event.data !== 'string') return;
 
-        // Aguarda o próximo frame pra garantir que o div está montado
-        const tryInit = () => {
-          if (cancelled) return;
-          const el = document.getElementById(containerId);
-          if (!el) {
-            console.warn('[YouTubeLessonPlayer] container not found yet:', containerId);
-            // Tenta de novo no próximo frame
-            requestAnimationFrame(tryInit);
-            return;
-          }
-
-          try {
-            playerRef.current = new window.YT.Player(containerId, {
-              videoId,
-              playerVars: {
-                modestbranding: 1,
-                rel: 0,
-                iv_load_policy: 3,
-                cc_load_policy: 0,
-                fs: 1,
-                controls: 1,
-                disablekb: 0,
-                playsinline: 1
-                // Nota: 'origin' removido de propósito — causa problema quando
-                // window.location.origin não bate exatamente com o header Origin.
-              },
-              events: {
-                onReady: (e: any) => {
-                  if (cancelled) return;
-                  setReady(true);
-                  try {
-                    const dur = e.target.getDuration?.();
-                    if (dur && dur > 0) {
-                      onDurationDetected?.(dur);
-                    }
-                    if (initialPositionRef.current > 2) {
-                      e.target.seekTo(initialPositionRef.current, true);
-                    }
-                  } catch (err) {
-                    console.error('[YouTubeLessonPlayer] onReady error:', err);
-                  }
-                },
-                onStateChange: (e: any) => {
-                  // 0 = ENDED
-                  if (e.data === 0 && !completedRef.current) {
-                    completedRef.current = true;
-                    onComplete?.();
-                  }
-                },
-                onError: (e: any) => {
-                  // https://developers.google.com/youtube/iframe_api_reference#onError
-                  const errorMessages: Record<number, string> = {
-                    2: 'ID do vídeo inválido',
-                    5: 'Erro no player HTML5 — atualize o navegador',
-                    100: 'Vídeo não encontrado ou removido',
-                    101: 'Embed bloqueado — o dono do vídeo desativou o compartilhamento em outros sites',
-                    150: 'Embed bloqueado — o dono do vídeo desativou o compartilhamento em outros sites'
-                  };
-                  const msg = errorMessages[e.data] || `Erro ${e.data} do player`;
-                  console.error('[YouTubeLessonPlayer] player error:', e.data, msg);
-                  setLoadError(msg);
-                }
-              }
-            });
-          } catch (err: any) {
-            console.error('[YouTubeLessonPlayer] init error:', err);
-            setLoadError(err.message || 'Erro ao inicializar o player');
-          }
-        };
-
-        tryInit();
-      })
-      .catch((err: Error) => {
-        console.error('[YouTubeLessonPlayer] API load error:', err);
-        if (!cancelled) {
-          setLoadError(err.message || 'Não foi possível carregar o YouTube');
-        }
-      });
-
-    return () => {
-      cancelled = true;
+      let data: any;
       try {
-        playerRef.current?.destroy?.();
-      } catch {}
-      playerRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoId, containerId]);
-
-  // Tick loop de 1s (ativado só depois que o player está ready)
-  useEffect(() => {
-    if (!ready) return;
-
-    const interval = setInterval(() => {
-      const p = playerRef.current;
-      if (!p) return;
-
-      let state = -1;
-      let currentTime = 0;
-      let duration = 0;
-
-      try {
-        state = p.getPlayerState?.() ?? -1;
-        currentTime = p.getCurrentTime?.() ?? 0;
-        duration = p.getDuration?.() ?? 0;
+        data = JSON.parse(event.data);
       } catch {
         return;
       }
+      if (!data || typeof data !== 'object') return;
 
+      // onReady: player pronto pra receber comandos
+      if (data.event === 'onReady') {
+        setReady(true);
+
+        // Seek pra posição inicial (retomar de onde parou)
+        if (initialPositionRef.current > 2 && !initialSeekDoneRef.current) {
+          initialSeekDoneRef.current = true;
+          // Pequeno delay pra garantir que o player processou onReady
+          setTimeout(() => {
+            sendCommand('seekTo', [initialPositionRef.current, true]);
+          }, 250);
+        }
+      }
+
+      // onStateChange: estado mudou
+      if (data.event === 'onStateChange') {
+        const state = typeof data.info === 'number' ? data.info : -1;
+        playerStateRef.current = state;
+        // 0 = ENDED → marca como concluída
+        if (state === 0 && !completedRef.current) {
+          completedRef.current = true;
+          onComplete?.();
+        }
+      }
+
+      // infoDelivery: updates periódicos com currentTime/duration/playerState
+      if (data.event === 'infoDelivery' && data.info) {
+        const info = data.info;
+        if (typeof info.currentTime === 'number') {
+          currentTimeRef.current = info.currentTime;
+        }
+        if (typeof info.duration === 'number' && info.duration > 0) {
+          if (durationRef.current !== info.duration) {
+            durationRef.current = info.duration;
+            onDurationDetected?.(info.duration);
+          }
+        }
+        if (typeof info.playerState === 'number') {
+          playerStateRef.current = info.playerState;
+        }
+      }
+
+      // apiInfoDelivery / videoProgress: variantes em versões antigas
+      if (data.event === 'apiInfoDelivery' && data.info) {
+        const info = data.info;
+        if (typeof info.currentTime === 'number') {
+          currentTimeRef.current = info.currentTime;
+        }
+        if (typeof info.duration === 'number' && info.duration > 0) {
+          if (durationRef.current !== info.duration) {
+            durationRef.current = info.duration;
+            onDurationDetected?.(info.duration);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [sendCommand, onComplete, onDurationDetected]);
+
+  // Quando o iframe carrega: envia o comando "listening" pra se inscrever nos eventos
+  const handleIframeLoad = useCallback(() => {
+    postToIframe({ event: 'listening', id: 1, channel: 'widget' });
+  }, [postToIframe]);
+
+  // Tick loop de 1s — usa refs (sem re-render)
+  useEffect(() => {
+    let tickCount = 0;
+
+    const interval = setInterval(() => {
+      tickCount++;
+
+      const state = playerStateRef.current;
+      const currentTime = currentTimeRef.current;
+      const duration = durationRef.current;
       const isPlaying = state === 1;
 
       if (isPlaying) {
@@ -243,67 +211,58 @@ export function YouTubeLessonPlayer({
         lastTickRef.current = null;
       }
 
+      // Callback pro parent salvar progresso
       onTick?.(watchedSecondsRef.current, currentTime, duration, isPlaying);
 
+      // Conclusão em 90%
       if (!completedRef.current && duration > 0 && currentTime / duration >= 0.9) {
         completedRef.current = true;
         onComplete?.();
       }
+
+      // Poll defensivo: a cada 2s pede getCurrentTime pra garantir freshness
+      // Caso o infoDelivery automático esteja demorando
+      if (ready && tickCount % 2 === 0) {
+        sendCommand('getCurrentTime');
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [ready, onTick, onComplete]);
+  }, [ready, sendCommand, onTick, onComplete]);
 
-  // ────────────────────────────────────────────────────────
-  // Render
-  // ────────────────────────────────────────────────────────
-
-  // Estado de erro — mostra mensagem amigável + link pra YouTube
-  if (loadError) {
-    return (
-      <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-900 flex flex-col items-center justify-center text-white p-6 text-center">
-        <svg
-          width="40"
-          height="40"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="text-gray-400 mb-3"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-        <div className="text-[14px] font-medium max-w-md">{loadError}</div>
-        <div className="text-[11px] text-gray-400 mt-1">Vídeo ID: {videoId}</div>
-        <a
-          href={`https://www.youtube.com/watch?v=${videoId}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-medium bg-white/10 hover:bg-white/20 transition-colors"
-        >
-          Abrir diretamente no YouTube
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
-          </svg>
-        </a>
-      </div>
-    );
-  }
-
-  // Estado normal — mostra container + overlay de loading enquanto o player não está pronto
   return (
     <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl">
-      <div id={containerId} className="absolute inset-0 w-full h-full" />
+      <iframe
+        ref={iframeRef}
+        key={videoId}
+        src={embedUrl}
+        title="Aula"
+        className="absolute inset-0 w-full h-full"
+        frameBorder={0}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+        onLoad={handleIframeLoad}
+      />
+
+      {/* Loading overlay enquanto o iframe inicializa */}
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-2 text-white/70">
             <svg className="animate-spin h-8 w-8" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="3"
+                fill="none"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
             <div className="text-[11px] font-medium">Carregando player...</div>
           </div>
