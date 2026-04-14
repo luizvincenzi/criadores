@@ -244,25 +244,49 @@ export function YouTubeLessonPlayer({
         onLoad={handleIframeLoad}
       />
 
-      {/* Overlays pra bloquear o branding do YouTube (título + botão "Assista no YouTube") */}
-      {/* Só ativam depois do player estar pronto, pra não atrapalhar o clique inicial de play */}
+      {/* Overlays pra bloquear TODO o branding do YouTube que navega pra fora. */}
+      {/* Só ativam depois do player estar pronto, pra não atrapalhar o primeiro play. */}
+      {/*
+        Layout do YouTube embed:
+        - Top bar (0-15%): avatar do canal + título do vídeo (clicável → abre canal/vídeo no YouTube)
+        - Bottom-right pill (~5-22% from bottom, ~70-100% from right): "Assista no YouTube"
+        - Bottom-left icon (~5-18% from bottom, ~0-12% from left): ícone de copy-link / share
+        - Center (50%): play button — NÃO cobrir
+        - Bottom strip (0-4% from bottom): control bar (play/pause, progresso, fullscreen) — NÃO cobrir
+      */}
       {ready && (
         <>
-          {/* Top bar: avatar do canal + título do vídeo */}
+          {/* Top: canal + título do vídeo */}
           <div
             className="absolute top-0 left-0 right-0 pointer-events-auto cursor-default"
-            style={{ height: '18%', zIndex: 2 }}
+            style={{ height: '15%', zIndex: 2 }}
             aria-hidden="true"
             onClick={e => e.stopPropagation()}
           />
-          {/* Bottom-right: pill "Assista no YouTube" (fica acima da control bar) */}
+
+          {/* Bottom-right: pill "Assista no YouTube" */}
+          {/* bottom:5% pra não cobrir a progress bar / fullscreen que ficam em 0-4% */}
           <div
             className="absolute pointer-events-auto cursor-default"
             style={{
-              bottom: '14%',
+              bottom: '5%',
               right: '0%',
-              width: '28%',
-              height: '14%',
+              width: '32%',
+              height: '18%',
+              zIndex: 2
+            }}
+            aria-hidden="true"
+            onClick={e => e.stopPropagation()}
+          />
+
+          {/* Bottom-left: ícone de compartilhar / copy link */}
+          <div
+            className="absolute pointer-events-auto cursor-default"
+            style={{
+              bottom: '5%',
+              left: '0%',
+              width: '12%',
+              height: '16%',
               zIndex: 2
             }}
             aria-hidden="true"
