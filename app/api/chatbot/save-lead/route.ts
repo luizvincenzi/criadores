@@ -252,7 +252,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 [CHATBOT API] Enviando notificações...');
 
     try {
-      await sendNotifications(userData, leadId, businessId);
+      await sendNotifications(userData, leadId, businessId, dealResult?.[0]?.id);
     } catch (notificationError) {
       console.error('❌ [CHATBOT API] Erro ao enviar notificações:', notificationError);
       // Não falhar a operação por causa das notificações
@@ -299,7 +299,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Função para enviar notificações sobre novo lead
-async function sendNotifications(userData: any, leadId: string, businessId: string): Promise<void> {
+async function sendNotifications(userData: any, leadId: string, businessId: string, dealId?: string): Promise<void> {
   try {
     console.log('📧 [NOTIFICATIONS] Enviando notificações para novo lead...');
 
@@ -366,6 +366,7 @@ async function sendNotifications(userData: any, leadId: string, businessId: stri
             category: userData.businessCategory || userData.nicho || null,
             message: userData.socialMediaPain || userData.mensagem || null,
             businessId,
+            dealId,
           }),
         });
 
