@@ -340,6 +340,46 @@ async function sendNotifications(userData: any, leadId: string, businessId: stri
       console.log('⚠️ [NOTIFICATIONS] Erro no envio de notificações:', notificationError);
     }
 
+    // 3. NOTIFICAR EQUIPE INTERNA VIA CRM (WhatsApp)
+    // O CRM (criadores.digital) mantém a lógica de notificação centralizada:
+    // lê notification_recipients do Supabase compartilhado e dispara UAZAPI.
+    // Auth via shared secret CRM_NOTIFICATION_SECRET (mesmo valor nos 2 projetos).
+    try {
+      const crmUrl = process.env.CRM_URL || 'https://criadores.digital';
+      const secret = process.env.CRM_NOTIFICATION_SECRET;
+
+      if (!secret) {
+        console.log('ℹ️ [NOTIFICATIONS] CRM_NOTIFICATION_SECRET ausente — pulando notificação WhatsApp do CRM');
+      } else {
+        const crmResponse = await fetch(`${crmUrl}/api/notifications/external/lead-created`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${secret}`,
+          },
+          body: JSON.stringify({
+            origin: 'chatbot-criavoz',
+            leadType: userData.userType === 'criador' ? 'criador' : 'empresa',
+            customerName: userData.name,
+            customerPhone: userData.whatsapp,
+            companyName: userData.businessName || null,
+            category: userData.businessCategory || userData.nicho || null,
+            message: userData.socialMediaPain || userData.mensagem || null,
+            businessId,
+          }),
+        });
+
+        if (crmResponse.ok) {
+          console.log('✅ [NOTIFICATIONS] CRM notificado (WhatsApp equipe)');
+        } else {
+          console.log(`⚠️ [NOTIFICATIONS] CRM respondeu ${crmResponse.status} ao notificar equipe`);
+        }
+      }
+    } catch (crmError) {
+      // Fire-and-forget: nunca quebra o fluxo principal.
+      console.log('⚠️ [NOTIFICATIONS] Erro ao chamar CRM (não crítico):', crmError);
+    }
+
   } catch (error) {
     console.error('❌ [NOTIFICATIONS] Erro geral nas notificações:', error);
   }
